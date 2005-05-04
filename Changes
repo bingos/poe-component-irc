@@ -1,0 +1,354 @@
+Revision history for Perl extension POE::Component::IRC.
+
+4.4   Thu Apr 28 15:16:03 BST 2005
+    - Added event handlers for PING and PONG IRC commands.
+    - Added connected() method, so punters can query if the 
+      component is connected to an IRC server or not.
+    - Applied a patch from Apocalypse re: DNS and SSL.
+    - Fixed Filter::IRC so it now parses PONG properly.
+    - ketas pointed out that in State.pm, the state for a 
+      channel wasn't getting deleted when the bot parted or 
+      got kicked. Fixed.
+
+4.3   Wed Apr 20 09:25:21 BST 2005
+    - Added 'irc_raw' events and parameter to spawn/connect() to
+      enable them. Thanks to webfox for the idea.
+
+4.2   Thu Apr 14 12:00:00 BST 2005
+    - Minor changes to State.pm to delete the STATE info when
+      we disconnect, error or socketerr.
+    - Reorganised the distribution.
+
+4.1   Mon Apr 11 11:24:44 BST 2005
+    - NATAddr bug spotted by apeiron @ MAGnet. Fixed.
+    - webfox spotted a problem with whois plugin and POE
+      Kernel assert_default. Hopefully fixed.
+
+4.0   Tue Apr 05 10:39:42 BST 2005
+    - Fixed a minor bug in Filter-IRC.pm, where it wasn't
+      decoloning the mode line before splitting it. 
+      Thanks to webfox for pointing it out.
+    - Used eval's to make plugins system safe from rogue
+      plugins. *tssk* *tssk*
+    - Plugins system will now try to send events to a plugin
+      method _default() if the call to S_* or U_* fails.
+    - Applied a patch from webfox to enable SSL 
+      connections. \o/
+    - Ported SSL patch to all dependent sub-classes.
+    - Teased and fixed a bug in IRC-State.pm. ban_mask() 
+      should work properly now.
+    - paulv @ MAGnet pointed out that spawn() and connect()
+      arguments are case-sensitive. Adapted his patch. Args
+      can be in any case now.
+
+3.9   Mon Mar 21 09:17:05 GMT 2005
+    - Applied patches from webfox @ MAGnet for UnrealIRCd
+      support in IRC-State.pm and Plugin-State.pm.
+    - Added plugin_list().
+
+3.8   Mon Mar 14 10:15:22 GMT 2005
+    - Applied ketas' DCC patch, eventually.
+    - Applied a patch from Zsolt Szalai, which adds support
+      for Freenode's 320 whois response.
+    - Added Apocalypse's port of IRC-State.pm using the plugin
+      API, Plugin-State.pm.
+    - Added my plugin for 'irc_whois' and 'irc_whowas' 
+      functionality.
+    - Fixed all the necessary modules to use Whois plugin.
+
+3.7   Fri Mar 04 17:37:34 GMT 2005
+    - Applied massive patch from Apocalypse @ MAGnet that
+      adds plugins. Read the docs in Plugins.pm for more info.
+    - Corrected some grammar mistakes in Plugins.pm >:o)
+    - Amended IRC-State.pm so that 'irc_nick' and 'irc_quit'
+      have an additional parameter in ARG2 which is an 
+      arrayref of channels that are common with the component.
+
+3.6   Tue Mar 01 17:47:05 GMT 2005 "Y Adeilad Daffydd-Sant" 
+				   ( The Saint David Build(ing) )
+    - Applied ketas' patch to IRC-State. Adds channel_modes
+      method and some code tidying.
+    - Spotted that in some cases the component *needs* an
+      alias. Made it use an internal alias unless one is 
+      specified.
+    - Applied another ketas patch to IRC.pm, puts a 
+      friendly message when we can't allocate a DCC port.
+    - Updated IRC-Qnet-State.pm to use a 'querytype' in the 
+      extended WHO command, to specify <channel> or <nick>
+      WHO queries, due to spurious channels appearing in the
+      state. Big thanks to MikeC @ Qnet for the pointers.
+
+3.5   Wed Feb 23 13:28:05 GMT 2005
+    - IRC-State bug spotted and patched by ketas @ MAGnet
+    - Same bug caught and squashed in IRC-Qnet-State by me.
+    - Sorted out DCCPorts. It has to be an arrayref now.
+
+3.4   Fri Feb 18 12:01:58 GMT 2005
+    - Deprecated new() in favour of new constructor spawn().
+      spawn() will except all the same parameters as connect().
+      Moved config stuff to _configure() to save duplication.
+    - Changed all the object constructors about. Bit tedious
+      but now it is alot easier to subclass. See _create().
+    - Added a hack for $self->session_id(). Made 'alias' 
+      optional if used with 'spawn'.
+    - Added parameter NATPort so one can specify the NAT
+      address that a bot appears to other IRC clients as
+      for DCC transfers, etc.
+    - Added DCCPorts parameter so that one can specify a
+      range of ports to use for initiating DCC, instead of
+      using 0.
+    - Implemented and added subclass ::State which provides
+      nickname and channel tracking. \o/
+    - Implemented and added subclass ::Qnet::State the ::State
+      ported to the Qnet module.
+    - Fixed the event dispatchers in _sock_up and _sock_down to
+      use _send_event like everyone else. Danke to Apocalypse for
+      spotting that. Amended _send_event so that 'irc_connected'
+      and 'irc_disconnected' get sent to every session not just 
+      those that ask for it, as was the original behaviour.
+    - Documentation updates for all the new stuff.
+    - Added CVSLOG which contains all the glorious changes in
+      developing this thingy. :)
+    - Added send_queue() method, as I noticed that merlyn's 
+      logfile tailing code was accessing the heap and i moved all
+      heap stuff to the object. *sigh* hacked it so that $heap holds
+      a reference to $self->{send_queue} which should work.
+
+3.3   Wed Feb 02 14:07:03 GMT 2005
+    - Updated IRC-Qnet to a). support new whois/whowas;
+      b). support irc_330 which is the account on ircu.
+
+3.2   Wed Feb 02 11:00:59 GMT 2005
+    - Implemented 'irc_whois' and 'irc_whowas' which
+      gather all the salient data from the numeric replies
+      and send one event containing a hashref.
+      As suggested by numerous bods on #PoE @ MAGnet >;o)
+
+3.1   Fri Jan 21 11:59:56 GMT 2005
+    - Converted _send_event sub to object method.
+    - Added IRC-Qnet, with specific extensions for Quakenet.
+    - Updated README
+
+3.0   Fri Dec 31 09:00:01 GMT 2004
+    - Fixed Filter-IRC so that it groks WALLOPS properly.
+    - Added docs/ and populated it with rfcs applicable to IRC.
+    - Added a slightly more substantial test case, moved it to t/
+    - Converted use of HEAP to OBJECT. PoCo-IRC is *now* an object.
+    - Added a fix for the infamous PART bug. Has to be explicitly enabled
+      by specifying PartFix => 1 in the 'connect' handler.
+    - Added a switch to 'connect' so that the use of PoCo::Client::DNS
+      can be disabled if necessary.
+    - Applied the outstanding patches:
+	- PoCo::Client::DNS patch by Jim Westfall
+	- DCC Resume patch by Bruno Boettcher
+	- Flood doc patch by Rocco Caputo
+	- Debug param patch by Paul Visscher
+	- Proxy Support patch by Jeff Pinyan
+	- Locops patch by Jon Nistor
+
+========== Maintainership changed from Fimm to BinGOs ====================
+
+2.9   Sat Jul 19 13:32:45 PDT 2003
+    - Only one change this time: Adam Foxson's patch to add prioritized
+      notices.
+
+2.8   Sat Jun  7 16:13:25 PDT 2003
+    - Applied dngor's mega-patch, which fixes (among other things): a
+      fix for a nasty lockup, improved error reporting, and better flood
+      control.
+    - Fixed some broken URLs and a couple mistakes in the documentation.
+
+2.7   Sun Feb  2 15:05:28 PST 2003
+    - Fixed up the example scripts to play nicer with POE's new signal
+      handling. Thanks to dngor for bringing this up.
+    - Added a patch by lunartear to properly handle spaces in DCC filenames.
+    - Fixed a bug reported by Robert Rendler regarding CTCP quoting
+      accidentally duplicating backslashes.
+
+2.6   Wed Dec 11 20:27:51 PST 2002
+    - Brian Kelly thoughtfully pointed out an URL in the documentation
+      that was being mangled by pod2html. Should look better now.
+    - Added a note about handling CTCP actions to the POD documentation,
+      since that seems to be a source of confusion for a lot of people.
+    - Added a 'list' event, which I seem to have overlooked entirely
+      until now. Thanks to J.D. McCown for pointing it out.
+    - Attempted to add Jim Westfall's asynchronous DNS patch, but I
+      really need to learn a little more about IPv6 before I attempt to
+      port somebody else's code to it. Hopefully in the next release.
+
+2.5   Sun Oct 27 11:03:57 PST 2002
+    - Added an AIM <-> IRC proxy bot to the example scripts. Share and enjoy!
+    - I just now noticed that POE::Component::IRC sessions never get
+      garbage-collected. DOH. Now you can send them "shutdown" events to
+      make them go away. Too bad it's probably too late to be breaking
+      backwards compatibility on this... sigh.
+    - Added a bug fix from Trym Skaar (those Norwegians get the coolest
+      names!) which fixes a potential crash while closing DCC connections.
+    - Added a mega-patch from the unstoppable Rocco Caputo which prioritizes
+      messages sent to the IRC server by importance. This ensures that
+      pings and login information will always keep flowing, even if your
+      bot's inane chatter has been throttled.
+
+2.4   Thu Oct 10 14:22:04 PDT 2002
+    - Added a patch from dngor to fix a crash caused by IRC servers
+      sometimes inexplicably sending a blank line.
+    - Added a patch from Jim Westfall which speeds up DCC file transfers
+      by a couple orders of magnitude. Yay, Jim!
+
+2.3   Fri Sep  6 07:59:50 PDT 2002
+    - Fixed a rare "uninitialized value" warning in oneoptarg().
+    - Added a patch from Trym Skaar which makes sure that DCC buffers
+      are flushed before closing a connection. Thanks, Trym!
+
+2.2   Fri May 24 13:00:44 PDT 2002
+    - dngor found an excellent page about IRC server numeric codes,
+      which I added a link to in the documentation.
+    - dngor also gave me two more patches: one to avoid some deprecation
+      warnings introduced in the latest version of POE, and another
+      which fixed a bug in one of his earlier patches. He's such a stud.
+
+2.1   Mon Mar  4 17:06:03 PST 2002
+    - Added a long-buried patch from thefly to fix IRCnet channel name
+      parsing. Sorry about the long turnaround on that one.
+    - Applied Scott Beck's patch to Rocco's refcount patch. The whole
+      "sessions not being GCed" brain-damage should be fixed now.
+
+2.0   Fri Feb 22 15:23:23 PST 2002
+    - Rocco Caputo gave me two patches to apply; the first was a fix to
+      his earlier output throttling patch, and the second was a snippet
+      of code that will allow bot-writers to avoid having to set aliases
+      on their control sessions to keep them alive. Cool!
+
+1.9   Wed Dec 12 22:44:13 PST 2001
+    - David Dollar pointed out a bug with DCC using the wrong interface
+      on multihomed hosts. Easy fix.
+
+1.8   Mon Dec 10 16:04:06 PST 2001
+    - Applied dngor's studly patch to throttle line output.
+    - Fixed a bug that would cause events to get thrown away if they
+      came in while the connection to the IRC server was down.
+
+1.7   Sat Jul 21 00:46:06 PDT 2001
+    - Fixed bugs in my initial implementations of the irc_invite event.
+      Sigh. You ever have one of those days where you can't do anything
+      right? Thanks again to the exceedingly patient Rasmus Hansen for
+      pointing out that my updated version still didn't work right.
+    - Fixed a bug in 'dcc_close' which prevented it from calling
+      'irc_dcc_done' handlers properly.
+
+1.5   Thu Jul  5 15:24:31 PDT 2001
+    - Added an irc_invite event -- I knew I'd forgotten something!
+      Thanks to Rasmus Hansen for the bug report.
+    - Fixed a bug in topic() that would accidentally clear the topic
+      when trying to query it. More thanks to Rasmus Hansen.
+
+1.4   Mon Jul  2 17:10:59 PDT 2001
+    - One of the fixes in 1.3 broke newline handling horribly, such that
+      it was sending two sets of line terminators on every line. I am a
+      doofus. Patched by Rocco Caputo.
+
+1.3   Sat Jun 30 17:29:30 PDT 2001
+    - The Indomitable Mark-Jason "Ominous" Dominus sent me so many
+      patches and bug reports I'm almost at a loss to list them all.
+      Among others, DCC SENDs no longer report the local pathname to the
+      client on the other end, multiple concurrent DCC connections work,
+      and some documentation errors have been fixed.
+    - Many thanks to the infinitely studly Kees Cook, who, in addition
+      to having a really cool name, sent me a big patch for lots of DCC
+      bugs. DCC connections will now report errors and close their
+      sockets properly! Woohoo! Also, 'irc_dcc_error' events give you
+      more information about the connection that failed, and the
+      'dcc_accept' event now lets you rename incoming DCC files.
+    - Fixed a silly bug; sl() was sending \n instead of \r\n as a line
+      terminator.
+    - Changed lots of Filter::CTCP die()s to warn()s, on the advice of
+      Peter Barabas. Thanks, Peter!
+
+1.2   Thu May 24 02:36:40 PDT 2001
+    - I have learned a valuable lesson about not including debugging
+      prints in released code. Especially when the debugging code in
+      question consists of somewhat vulgar inside jokes. :-)
+
+1.1   Fri Mar  2 03:07:01 PST 2001
+    - A couple patches from Jonathan Steinert: 'ctcp', 'privmsg', and
+      'notice' will join() their arguments together with spaces, and
+      'kick' will no longer accidentally concatenate the nick onto the
+      kick message. Thanks, Jon!
+
+1.0   Wed Feb 21 15:09:56 PST 2001
+    - Split 'irc_ctcp' messages into 'irc_ctcp' and 'irc_ctcpreply'.
+      My thanks to Jonathan Steinert.
+    - Rocco "dngor" Caputo fixed up my DCC code for me, which was so
+      broken as to exercise POE::Kernel bugs. :-) With his fixes in
+      mind, I rewrote pretty much all the DCC stuff; it's much less
+      hairy now.
+    - Added 'dcc_chat' and 'dcc_accept' commands.
+    - Moved all scripts into the "examples" directory and added a dummy
+      test.pl, so it won't hang during CPAN installations anymore.
+    - Worked around a bug in POE versions <0.1201, which caused DCC
+      SEND/GET connections not to properly respond to pending data.
+    - DCC connections should function properly now. Let me know if you
+      experience problems.
+
+1.0b  Sat Jan 13 14:49:22 PST 2001
+    - This is a beta release. It may not entirely work, and DCC receive
+      is still unimplemented. I'll list the bugs I remember fixing below.
+      1.0 final will have DCC receive capability, I promise!
+    - CTCP event names are now in the form of "irc_ctcp_ping" or
+      whatever. See the POD documentation.
+    - CTCP events now actually include the sender and recipient names.
+    - The infamous "Not an ARRAY reference" bug should now go away. Make
+      sure you're using a recent version of POE! Turned out it was a bug
+      in POE::Filter::Line.
+
+0.15  Tue Aug 10 19:21:58 EDT 1999
+    - Well, it sucked for the first revision, at least. In my eager haste,
+      I released the CTCP code with numerous debugging prints scattered
+      throughout the source, some serious brokenness in mixed-mode
+      messages, and a totally unimplemented put() method. All fixed! You
+      can now actually send CTCP messages with the 'ctcp' and 'ctcpreply'
+      events. Now to hack on DCC...
+
+0.14  Sun Aug  8 18:29:46 EDT 1999
+    - Wrote documentation for POE::Filter::IRC.
+    - Moved Filter.pm to Filter-IRC.pm, in preparation for adding a
+      CTCP filter.
+    - Addi <amh@mbl.is> fixed a nasty bug with public/msg handling in
+      the Filter-IRC module. I am SUCH a neen.
+    - Finally sat down and wrote the bloody CTCP filter, at long last.
+      Don't be surprised if it sucks for the first few revisions... the
+      last one I wrote did, too. On the other hand, this uses big chunks
+      of the working code from that effort, so maybe I'll get lucky this
+      time.
+
+0.13  Fri Jun  4 03:56:13 EDT 1999
+    - Split the parser off into a separate POE::Filter::IRC module.
+      The surgery was surprisingly easy, but I had to do an ugly
+      Makefile.PL hack to get it to install correctly.
+
+0.12  Fri Jun  4 01:16:55 EDT 1999
+    - Wrote a nice README, finally.
+    - Fixed a bug in the test.pl script where I accidentally referred
+      to the 'irc_disconnected' event as 'irc_disconnect'. No wonder it
+      wasn't shutting down properly.
+
+0.11  Thu Jun  3 18:41:51 EDT 1999
+    - Spruced up the parser's regexps with a lot of " +"'s.
+    - Turned off all the massively verbose debugging code.
+    - Realized that I need to write a README.
+
+0.1   Thu Jun  3 16:55:24 EDT 1999
+    - Completely functional, minus CTCP and DCC.
+
+0.1a  Mon May 17 09:11:48 EDT 1999
+    - Released for a little private QA to oznoid and dngor. Moderately
+      functional. Can send every command (I think), and has a
+      half-written parser that handles the most common IRC events, and
+      a few which it wasn't meant to handle.
+
+=============================================================================
+
+Key:
+
+Qnet == Quakenet <irc.quakenet.org>
+MAGnet == MAGnet <irc.perl.org>
