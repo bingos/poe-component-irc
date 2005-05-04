@@ -10,6 +10,7 @@ lib/POE/Component/IRC.pm
 lib/POE/Filter/CTCP.pm
 lib/POE/Filter/IRC.pm
 MANIFEST
+MANIFEST.SKIP
 Makefile.PL
 README
 META.yml
