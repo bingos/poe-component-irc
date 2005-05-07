@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+4.5   <Date>
+    - Applied patch from ketas.
+
 4.4   Thu Apr 28 15:16:03 BST 2005
     - Added event handlers for PING and PONG IRC commands.
     - Added connected() method, so punters can query if the 

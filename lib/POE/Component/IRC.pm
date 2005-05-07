@@ -1045,7 +1045,7 @@ sub dcc_close {
   }
 
   # Reclaim our port if necessary.
-  if ( $self->{dcc}->{$id}->{listener} and $self->{dcc_bind_port} ) {
+  if ( $self->{dcc}->{$id}->{listener} and $self->{dcc_bind_port} and $self->{dcc}->{$id}->{listenport} ) {
 	push ( @{ $self->{dcc_bind_port} }, $self->{dcc}->{$id}->{port} );
   }
 
