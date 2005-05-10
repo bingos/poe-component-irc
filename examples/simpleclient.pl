@@ -63,9 +63,14 @@ sub got_input {
     }
     else {
         $heap->{readline_wheel}->put("\tException: $exception");
+	if ( $exception eq 'eot' ) {
+	   $irc->yield( unregister => 'all' );
+	   $irc->yield( 'shutdown' );
+	   delete ( $heap->{readline_wheel} );
+	}
     }
 
-    $heap->{readline_wheel}->get("> ");
+    $heap->{readline_wheel}->get("> ") if ( $heap->{readline_wheel} );
 }
 
 sub parse_input {
