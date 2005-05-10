@@ -2120,10 +2120,8 @@ I<actual> IRC server's port if you provide a proxy but omit the proxy's
 port.
 
 For those people who run bots behind firewalls and/or Network Address Translation
-there are two additional attributes for DCC. "DCCPorts", is either an arrayref of ports
-to use when initiating DCC, using dcc() or a scalar with the following format,
-"<port>,<port>-<port>", eg. "1024,1050-1060,1080", would represent ports 1024 and 1080 and all
-the ports from 1050 to 1060, simple, huh?; "NATAddr", is the NAT'ed IP address that your bot is
+there are two additional attributes for DCC. "DCCPorts", is an arrayref of ports
+to use when initiating DCC, using dcc(). "NATAddr", is the NAT'ed IP address that your bot is
 hidden behind, this is sent whenever you do DCC.
 
 SSL support requires POE::Component::SSLify, as well as an IRC server that supports
