@@ -885,10 +885,10 @@ POE::Component::IRC::State - a fully event-driven IRC client module with channel
 
 =head1 DESCRIPTION
 
-POE::Component::IRC::State is an extension to L<POE::Component::IRC|POE::Component::IRC>
+POE::Component::IRC::State is a sub-class of L<POE::Component::IRC|POE::Component::IRC>
 which tracks IRC state entities such as nicks and channels. See the documentation for
 L<POE::Component::IRC|POE::Component::IRC> for general usage. This document covers the
-extensions.
+extra methods that POE::Component::IRC::State provides.
 
 The component tracks channels and nicks, so that it always has a current snapshot of what
 channels it is on and who else is on those channels. The returned object provides methods
