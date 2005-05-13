@@ -7,6 +7,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Removed State.pm plugin as it was becoming difficult to 
       keep in sync with State subclass. Eventually hope to replace
       State subclass with a proper plugin wrapper.
+    - Relocated constants to Constants.pm, tidied up subclasses.
 
 4.4   Thu Apr 28 15:16:03 BST 2005
     - Added event handlers for PING and PONG IRC commands.

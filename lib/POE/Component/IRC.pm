@@ -15,6 +15,7 @@ use POE qw( Wheel::SocketFactory Wheel::ReadWrite Driver::SysRW
 use POE::Filter::IRC;
 use POE::Filter::CTCP;
 use POE::Component::IRC::Plugin::Whois;
+use POE::Component::IRC::Constants;
 use Carp;
 use Socket;
 use Sys::Hostname;
@@ -24,31 +25,6 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
-
-# For the purposes of inheriting this class the constants below are required.
-
-# The name of the reference count P::C::I keeps in client sessions.
-use constant PCI_REFCOUNT_TAG => "P::C::I registered";
-
-use constant BLOCKSIZE => 1024;           # Send DCC data in 1k chunks
-use constant INCOMING_BLOCKSIZE => 10240; # 10k per DCC socket read
-use constant DCC_TIMEOUT => 300;          # Five minutes for listening DCCs
-
-# Message priorities.
-use constant PRI_LOGIN  => 10; # PASS/NICK/USER messages must go first.
-use constant PRI_HIGH   => 20; # KICK/MODE etc. is more important than chatter.
-use constant PRI_NORMAL => 30; # Random chatter.
-
-use constant MSG_PRI  => 0; # Queued message priority.
-use constant MSG_TEXT => 1; # Queued message text.
-
-# RCC: Since most of the commands are data driven, I have moved their
-# event/handler maps here and added priorities for each data driven
-# command.  The priorities determine message importance when messages
-# are queued up.  Lower ones get sent first.
-
-use constant CMD_PRI => 0; # Command priority.
-use constant CMD_SUB => 1; # Command handler.
 
 $VERSION = '4.5';
 $REVISION = do {my@r=(q$Revision: 1.4 $=~/\d+/g);sprintf"%d."."%04d"x$#r,@r};
