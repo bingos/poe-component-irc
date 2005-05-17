@@ -1259,6 +1259,13 @@ sub register {
       $kernel->refcount_increment($sender->ID(), PCI_REFCOUNT_TAG);
     }
   }
+  # BINGOS:
+  # Apocalypse is gonna hate me for this as 'irc_registered' events will bypass 
+  # the Plugins system, but I can't see how this event will be relevant without 
+  # some sort of reference, like what session has registered. I'm not going to
+  # start hurling session references around at this point :)
+
+  $kernel->post( $sender => 'irc_registered' => $self );
 }
 
 sub register_session {
@@ -2227,6 +2234,11 @@ Registering for C<'all'> will cause it to send all IRC-related events to
 you; this is the easiest way to handle it. See the test script for an
 example.
 
+Registering will generate an 'irc_registered' event that your session can
+trap. ARG0 is the components object. Useful if you want to bolt PoCo-IRC's
+new features such as Plugins into a bot coded to the older deprecated API.
+If you are using the new API, ignore this :)
+
 =item shutdown
 
 By default, POE::Component::IRC sessions never go away. Even after
@@ -2619,6 +2631,11 @@ Similar to the above, except some keys will be missing.
 
 Enabled by passing 'Raw' => 1 to spawn() or connect(), ARG0 is the raw IRC string received
 by the component from the IRC server, before it has been mangled by filters and such like.
+
+=item irc_registered
+
+Sent once to the requesting session on registration ( see register() ). ARG0 is a reference to
+the component's object.
 
 =item All numeric events (see RFC 1459)
 
