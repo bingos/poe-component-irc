@@ -154,7 +154,7 @@ my ($irc) = POE::Component::IRC->spawn();
 
 POE::Session->create( 
 	package_states => [ 
-		'main' => [ qw(_start) ],
+		'main' => [ qw(_start lag-o-meter) ],
 	],
 );
 
@@ -169,6 +169,12 @@ sub _start {
 
   $irc->yield ( connect => { Nick => 'testbot', Server => 'someserver.com' } );
 
+  $_[KERNEL]->delay( 'lag-o-meter' => 60 );
+}
+
+sub lagometer {
+  print STDERR "Time: " . time() . " Lag: " . $irc->lag() . "\n";
+  $_[KERNEL]->delay( 'lag-o-meter' => 60 );
 }
 
 =head1 DESCRIPTION
@@ -176,3 +182,30 @@ sub _start {
 POE::Component::IRC::Plugin::Connector is a L<POE::Component::IRC|POE::Component::IRC> plugin that deals with making
 sure that your IRC bot stays connected to the IRC network of your choice. It implements the general algorithm as 
 demonstrated at L<http://poe.perl.org/?POE_Cookbook/IRC_Bot_Reconnecting>.
+
+=head1 METHODS
+
+=over
+
+=item new
+
+Takes one argument, 'delay', which the frequency that the plugin will ping it's server. Returns a plugin object
+suitable for use in L<POE::Component::IRC|POE::Component::IRC>'s 'plugin_add'.
+
+$irc->plugin_add( 'Connector' => POE::Component::IRC::Plugin::Connector->new( delay => 120 ) );
+
+=item lag
+
+Returns the current 'lag' in seconds between sending PINGs to the IRC server and getting PONG responses.
+Probably not likely to be wholely accurate.
+
+=back
+
+=head1 AUTHOR
+
+Chris "BinGOs" Williams <chris@bingosnet.co.uk>
+
+=head1 SEE ALSO
+
+L<POE::Component::IRC|POE::Component::IRC>
+L<POE::Component::IRC::Plugin|POE::Component::IRC::Plugin>
