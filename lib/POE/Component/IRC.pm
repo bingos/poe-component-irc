@@ -26,7 +26,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '4.5';
+$VERSION = '4.6';
 $REVISION = do {my@r=(q$Revision: 1.4 $=~/\d+/g);sprintf"%d."."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -1007,22 +1007,22 @@ sub dcc_chat {
 sub dcc_close {
   my ($kernel, $self, $id) = @_[KERNEL, OBJECT, ARG0];
 
+  if ($self->{dcc}->{$id}->{wheel}->get_driver_out_octets()) {
+    $kernel->delay( _tryclose => .2 => @_[ARG0..$#_] );
+    return;
+  }
+
   # Let the plugin system process this
   if ( $self->_plugin_process( 'USER', 'DCC_CLOSE', \$id ) == PCI_EAT_ALL ) {
   	return 1;
   }
 
   $self->_send_event( 'irc_dcc_done', $id,
-	       @{$self->{dcc}->{$id}}{ qw(nick type port file size done) } );
-
-  if ($self->{dcc}->{$id}->{wheel}->get_driver_out_octets()) {
-    $kernel->delay( _tryclose => .2 => @_[ARG0..$#_] );
-    return;
-  }
+	       @{$self->{dcc}->{$id}}{ qw(nick type port file size done listenport clientaddr) } );
 
   # Reclaim our port if necessary.
   if ( $self->{dcc}->{$id}->{listener} and $self->{dcc_bind_port} and $self->{dcc}->{$id}->{listenport} ) {
-	push ( @{ $self->{dcc_bind_port} }, $self->{dcc}->{$id}->{port} );
+	push ( @{ $self->{dcc_bind_port} }, $self->{dcc}->{$id}->{listenport} );
   }
 
   if (exists $self->{dcc}->{$id}->{wheel}) {

@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+4.6   <Date>
+    - Applied another ketas patch.
+
 4.5   Sun May 22 16:21:08 BST 2005
     - Moved repository from cvs to svn \o/
     - Applied patch from ketas.
