@@ -1,9 +1,11 @@
 Revision history for Perl extension POE::Component::IRC.
 
-4.6   <Date>
+4.6   Wed Jun 01 15:28:03 BST 2005
     - Applied another ketas patch.
     - Added BotAddressed plugin.
     - Added ::Test::Plugin.
+    - Added ::Test::Harness, PoCo-Server-IRC in disguise :)
+    - Added tests for the ::Test::* 
 
 4.5   Sun May 22 16:21:08 BST 2005
     - Moved repository from cvs to svn \o/

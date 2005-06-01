@@ -278,7 +278,7 @@ sub configure {
     $self->{Config}->{Admin}->[2] = 'someone@somewhere';
   }
   if ( ( not defined ( $self->{Config}->{Info} ) ) or ( ref $self->{Config}->{Info} eq 'ARRAY' ) or ( scalar ( @{ $self->{Config}->{Info} } ) >= 1 ) ) {
-    $self->{Config}->{Info}->[0] = '# POE::Component::Server::IRC';
+    $self->{Config}->{Info}->[0] = '# POE::Component::IRC::Test::Harness';
     $self->{Config}->{Info}->[1] = '#';
     $self->{Config}->{Info}->[2] = '# Author: Chris "BinGOs" Williams';
     $self->{Config}->{Info}->[3] = '#';
@@ -3617,14 +3617,14 @@ sub list_ports_used {
 
 =head1 NAME
 
-POE::Component::Server::IRC - a fully event-driven IRC server daemon module.
+POE::Component::IRC::Test::Harness - a fully event-driven IRC server daemon module.
 
 =head1 SYNOPSIS
 
   use POE;
-  use POE::Component::Server::IRC;
+  use POE::Component::IRC::Test::Harness;
 
-  my ($pocosi) = POE::Component::Server::IRC->spawn( Alias => 'ircd' );
+  my ($pocosi) = POE::Component::IRC::Test::Harness->spawn( Alias => 'ircd' );
 
   POE::Session->create (
         inline_states => { _start => \&test_start,
@@ -3652,14 +3652,26 @@ POE::Component::Server::IRC - a fully event-driven IRC server daemon module.
 
 =head1 DESCRIPTION
 
-POE::Component::Server::IRC is a POE component which implements an RFC compliant Internet Relay Chat
-server ( IRCd ).
+POE::Component::IRC::Test::Harness is a POE component which implements an RFC compliant Internet Relay Chat
+server ( IRCd ). It will eventually end up as the foundation for the new improved[tm] L<POE::Component::IRC|POE::Component::IRC> test suite.
 
 =head1 METHODS
 
+=over
+
+=item spawn
+
+One mandatory argument, Alias, the kernel alias you want to call the component.
+
+=back
+
 =head1 INPUT
 
+See the SYNOPSIS for a flavour, consult the source code for a better idea.
+
 =head1 OUTPUT
+
+Not at this point in development.
 
 =head1 BUGS
 
