@@ -1,5 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
+4.62  Thu Jun 02 16:43:45 BST 2005
+    - Spotted another problem with ::Test::Harness, updated
+      Makefile.PL with Date::Format dependency.
+
 4.61  Thu Jun 02 10:38:05 BST 2005
     - Found a bug in ::Test::Harness that made it fail tests
       where POE::Component::Client::DNS wasn't installed. Doh.

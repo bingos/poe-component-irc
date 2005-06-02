@@ -11,6 +11,7 @@ WriteMakefile(
 							  'POE::Filter::IRCD' => 0,
 							  'Carp'   => 0,
 							  'Socket' => 0,
+							  'Date::Format' => 0,
 							 },
 			  'VERSION_FROM' => 'lib/POE/Component/IRC.pm', # finds $VERSION
 			  'dist' => { 'COMPRESS' => 'gzip --best' },
