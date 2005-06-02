@@ -1,5 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
+4.61  Thu Jun 02 10:38:05 BST 2005
+    - Found a bug in ::Test::Harness that made it fail tests
+      where POE::Component::Client::DNS wasn't installed. Doh.
+
 4.6   Wed Jun 01 15:28:03 BST 2005
     - Applied another ketas patch.
     - Added BotAddressed plugin.

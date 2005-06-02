@@ -163,9 +163,10 @@ sub ircd_start {
 	require POE::Component::Client::Ident;
 	require POE::Component::Client::DNS;
   };
-
-  POE::Component::Client::Ident->spawn ( $self->{Ident_Client} );
-  $self->{ $self->{Resolver} } = POE::Component::Client::DNS->spawn( Alias => $self->{Resolver}, Timeout => 10 );
+  unless ( $@ ) {
+  	POE::Component::Client::Ident->spawn ( $self->{Ident_Client} );
+  	$self->{ $self->{Resolver} } = POE::Component::Client::DNS->spawn( Alias => $self->{Resolver}, Timeout => 10 );
+  }
 
   $kernel->call ( $self->{Alias} => 'configure' );
   $kernel->delay ( 'poll_connections' => $self->lowest_ping_frequency() );
@@ -173,7 +174,6 @@ sub ircd_start {
 
 sub ircd_stop {
   # Probably need some cleanup code here.
-  print "IRCD stopped\n";
 }
 
 sub ircd_shutdown {
