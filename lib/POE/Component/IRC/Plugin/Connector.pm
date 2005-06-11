@@ -148,34 +148,34 @@ POE::Component::IRC::Plugin::Connector - A PoCo-IRC plugin that deals with the m
 
 =head1 SYNOPSIS
 
-use POE qw(Component::IRC Component::IRC::Plugin::Connector);
+  use POE qw(Component::IRC Component::IRC::Plugin::Connector);
 
-my ($irc) = POE::Component::IRC->spawn();
+  my ($irc) = POE::Component::IRC->spawn();
 
-POE::Session->create( 
+  POE::Session->create( 
 	package_states => [ 
 		'main' => [ qw(_start lag-o-meter) ],
 	],
-);
+  );
 
-$poe_kernel->run();
-exit 0;
+  $poe_kernel->run();
+  exit 0;
 
-sub _start {
+  sub _start {
 
-  $irc->yield( register => 'all' );
+    $irc->yield( register => 'all' );
 
-  $irc->plugin_add( 'Connector' => POE::Component::IRC::Plugin::Connector->new() );
+    $irc->plugin_add( 'Connector' => POE::Component::IRC::Plugin::Connector->new() );
 
-  $irc->yield ( connect => { Nick => 'testbot', Server => 'someserver.com' } );
+    $irc->yield ( connect => { Nick => 'testbot', Server => 'someserver.com' } );
 
-  $_[KERNEL]->delay( 'lag-o-meter' => 60 );
-}
+    $_[KERNEL]->delay( 'lag-o-meter' => 60 );
+  }
 
-sub lagometer {
-  print STDERR "Time: " . time() . " Lag: " . $irc->lag() . "\n";
-  $_[KERNEL]->delay( 'lag-o-meter' => 60 );
-}
+  sub lagometer {
+    print STDERR "Time: " . time() . " Lag: " . $irc->lag() . "\n";
+    $_[KERNEL]->delay( 'lag-o-meter' => 60 );
+  }
 
 =head1 DESCRIPTION
 

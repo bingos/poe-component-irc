@@ -40,18 +40,18 @@ POE::Component::IRC::Plugin::BotAddressed - A POE::Component::IRC plugin that ge
 
 =head1 SYNOPSIS
 
-use POE::Component::IRC::Plugin::BotAddressed;
+  use POE::Component::IRC::Plugin::BotAddressed;
 
-$irc->plugin_add( 'BotAddressed', POE::Component::IRC::Plugin::BotAddressed->new() );
+  $irc->plugin_add( 'BotAddressed', POE::Component::IRC::Plugin::BotAddressed->new() );
 
-sub irc_bot_addressed {
-  my ($kernel,$heap) = @_[KERNEL,HEAP];
-  my ($nick) = ( split /!/, $_[ARG0] )[0];
-  my ($channel) = $_[ARG1]->[0];
-  my ($what) = $_[ARG2];
+  sub irc_bot_addressed {
+    my ($kernel,$heap) = @_[KERNEL,HEAP];
+    my ($nick) = ( split /!/, $_[ARG0] )[0];
+    my ($channel) = $_[ARG1]->[0];
+    my ($what) = $_[ARG2];
 
-  print "$nick addressed me in channel $channel with the message '$what'\n";
-}
+    print "$nick addressed me in channel $channel with the message '$what'\n";
+  }
 
 =head1 DESCRIPTION
 
