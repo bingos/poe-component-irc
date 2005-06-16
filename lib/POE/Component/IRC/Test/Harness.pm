@@ -10,8 +10,8 @@ use Date::Format;
 use Socket;
 use Carp;
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Line Filter::IRCD Filter::Stackable);
-#use POE::Component::Client::DNS;
-#use POE::Component::Client::Ident;
+use POE::Component::Client::DNS;
+use POE::Component::Client::Ident;
 
 use vars qw($VERSION);
 
@@ -158,15 +158,8 @@ sub ircd_start {
   $self->{Ident_Client} = 'poco_' . $self->{Alias} . '_ident';
   $self->{Resolver} = 'poco_' . $self->{Alias} . '_resolver';
 
-  $self->{CAN_DO_AUTH} = 0;
-  eval { 
-	require POE::Component::Client::Ident;
-	require POE::Component::Client::DNS;
-  };
-  unless ( $@ ) {
-  	POE::Component::Client::Ident->spawn ( $self->{Ident_Client} );
-  	$self->{ $self->{Resolver} } = POE::Component::Client::DNS->spawn( Alias => $self->{Resolver}, Timeout => 10 );
-  }
+  POE::Component::Client::Ident->spawn ( $self->{Ident_Client} );
+  $self->{ $self->{Resolver} } = POE::Component::Client::DNS->spawn( Alias => $self->{Resolver}, Timeout => 10 );
 
   $kernel->call ( $self->{Alias} => 'configure' );
   $kernel->delay ( 'poll_connections' => $self->lowest_ping_frequency() );

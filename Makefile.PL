@@ -9,6 +9,8 @@ WriteMakefile(
 			  'PREREQ_PM' => {
 							  'POE'    => 0.06_07,
 							  'POE::Filter::IRCD' => 0,
+							  'POE::Component::Client::DNS' => 0.98,
+							  'POE::Component::Client::Ident' => 0.7,
 							  'Carp'   => 0,
 							  'Socket' => 0,
 							  'Date::Format' => 0,
