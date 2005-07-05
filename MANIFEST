@@ -2,6 +2,7 @@ Changes
 lib/POE/Component/IRC/Test/Harness.pm
 lib/POE/Component/IRC/Test/Plugin.pm
 lib/POE/Component/IRC/Plugin/BotAddressed.pm
+lib/POE/Component/IRC/Plugin/BotTraffic.pm
 lib/POE/Component/IRC/Plugin/Connector.pm
 lib/POE/Component/IRC/Plugin/Whois.pm
 lib/POE/Component/IRC/Qnet/State.pm

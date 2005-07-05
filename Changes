@@ -1,5 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
+4.64  Tue Jul 05 16:25:01 BST 2005
+    - Fixed POD in Plugin::BotAddressed.
+    - Added BotTraffic.pm plugin.
+
 4.63  Thu Jun 16 21:55:49 BST 2005
     - Fixed POD in BotAddressed and Connector plugins,
       thanks integral @ MagNET for spotting that one.

@@ -80,8 +80,8 @@ No arguments required. Returns a plugin object suitable for feeding to L<POE::Co
 Has the same parameters passed as 'irc_public'. ARG2 contains the message with the addressed nickname removed, ie. 
 Assuming that your bot is called LameBOT, and someone says 'LameBOT: dance for me', you will actually get 'dance for me'.
 
+=back 
+
 =head1 AUTHOR
 
 Chris 'BinGOs' Williams E<lt>chris@bingosnet.co.uk<gt>
-
-
