@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-4.65  <Date>
+4.65  Wed Jul 13 17:47:08 BST 2005
     - Fixed the anamoly where plugins weren't deleted if shutdown()
       is called. This should fix plugins that based around POE::Session.
 
