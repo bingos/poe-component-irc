@@ -1,5 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
+4.65  <Date>
+    - Fixed the anamoly where plugins weren't deleted if shutdown()
+      is called. This should fix plugins that based around POE::Session.
+
 4.64  Tue Jul 05 16:25:01 BST 2005
     - Fixed POD in Plugin::BotAddressed.
     - Added BotTraffic.pm plugin.

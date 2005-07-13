@@ -26,7 +26,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '4.64';
+$VERSION = '4.65';
 $REVISION = do {my@r=(q$Revision: 1.4 $=~/\d+/g);sprintf"%d."."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -1308,6 +1308,12 @@ sub shutdown {
   #if ( $self->{sessions}->{ $_[SENDER] } ) {
   #	$kernel->yield ( 'unregister_sessions' );
   #}
+  
+  # Delete all plugins that are loaded.
+  foreach my $plugin_alias ( keys %{ $self->plugin_list() } ) {
+	$self->plugin_del( $plugin_alias );
+  }
+  undef;
 }
 
 
