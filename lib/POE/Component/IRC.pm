@@ -16,6 +16,7 @@ use POE::Filter::IRC;
 use POE::Filter::CTCP;
 use POE::Component::IRC::Plugin::Whois;
 use POE::Component::IRC::Constants;
+use POE::Component::IRC::Pipeline;
 use Carp;
 use Socket;
 use Sys::Hostname;
@@ -26,7 +27,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '4.65';
+$VERSION = '4.66';
 $REVISION = do {my@r=(q$Revision: 1.4 $=~/\d+/g);sprintf"%d."."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -1582,295 +1583,172 @@ sub irc_nick {
   }
 }
 
+
+# accesses the plugin pipeline
+sub pipeline {
+  my ($self) = @_;
+  $self->{PLUGINS} = POE::Component::IRC::Pipeline->new($self)
+    unless UNIVERSAL::isa($self->{PLUGINS}, 'POE::Component::IRC::Pipeline');
+  return $self->{PLUGINS};
+}
+
 # Adds a new plugin object
 sub plugin_add {
-	my( $self, $name, $plugin ) = @_;
+  my ($self, $name, $plugin) = @_;
+  my $pipeline = $self->pipeline;
 
-	# Sanity check
-	if ( ! defined $name or ! defined $plugin ) {
-		warn 'Please supply a name and the plugin object to be added!';
-		return undef;
-	}
+  unless (defined $name and defined $plugin) {
+    warn 'Please supply a name and the plugin object to be added!';
+    return;
+  }
 
-	# Tell the plugin to register itself
-	my ($return);
-
-	eval {
-	   $return = $plugin->PCI_register( $self );
-	};
-
-	if ( $return ) {
-		$self->{PLUGINS}->{OBJECTS}->{ $name } = $plugin;
-
-		# Okay, send an event to let others know this plugin is loaded
-		$self->yield( '__send_event', 'irc_plugin_add', $name, $plugin );
-
-		return 1;
-	} else {
-		return undef;
-	}
+  return $pipeline->push($name => $plugin);
 }
 
 # Removes a plugin object
 sub plugin_del {
-	my( $self, $name ) = @_;
+  my ($self, $name) = @_;
 
-	# Sanity check
-	if ( ! defined $name ) {
-		warn 'Please supply a name/object for the plugin to be removed!';
-		return undef;
-	}
+  unless (defined $name) {
+    warn 'Please supply a name/object for the plugin to be removed!';
+    return;
+  }
 
-	# Is it an object or a name?
-	my $plugin = undef;
-	if ( ! ref( $name ) ) {
-		# Check if it is loaded
-		if ( exists $self->{PLUGINS}->{OBJECTS}->{ $name } ) {
-			$plugin = delete $self->{PLUGINS}->{OBJECTS}->{ $name };
-		} else {
-			return undef;
-		}
-	} else {
-		# It's an object...
-		foreach my $key ( keys %{ $self->{PLUGINS}->{OBJECTS} } ) {
-			# Check if it's the same object
-			if ( ref( $self->{PLUGINS}->{OBJECTS}->{ $key } ) eq ref( $name ) ) {
-				$plugin = $name;
-				$name = $key;
-			}
-		}
-	}
-
-	# Did we get it?
-	if ( defined $plugin ) {
-		# Automatically remove all registrations for this plugin
-		foreach my $type ( qw( SERVER USER ) ) {
-			foreach my $event ( keys %{ $self->{PLUGINS}->{ $type } } ) {
-				$self->_plugin_unregister_do( $type, $event, $plugin );
-			}
-		}
-
-		# Tell the plugin to unregister
-		eval {
-			$plugin->PCI_unregister( $self );
-		};
-
-		# Okay, send an event to let others know this plugin is deleted
-		$self->yield( '__send_event', 'irc_plugin_del', $name, $plugin );
-
-		# Success!
-		return $plugin;
-	} else {
-		return undef;
-	}
+  return scalar $self->pipeline->remove($name);
 }
 
 # Gets the plugin object
 sub plugin_get {
-	my( $self, $name ) = @_;
+  my ($self, $name) = @_;  
 
-	# Sanity check
-	if ( ! defined $name ) {
-		warn 'Please supply a name for the plugin object to be retrieved!';
-		return undef;
-	}
+  unless (defined $name) {
+    warn 'Please supply a name/object for the plugin to be removed!';
+    return;
+  }
 
-	# Check if it is loaded
-	if ( exists $self->{PLUGINS}->{OBJECTS}->{ $name } ) {
-		return $self->{PLUGINS}->{OBJECTS}->{ $name };
-	} else {
-		return undef;
-	}
+  return scalar $self->pipeline->get($name);
 }
 
 # Lists loaded plugins
 sub plugin_list {
-	my ($self) = shift;
-	my $return = { };
+  my ($self) = @_;
+  my $pipeline = $self->pipeline;
+  my %return;
 
-	foreach my $name ( keys %{ $self->{PLUGINS}->{OBJECTS} } ) {
-		$return->{ $name } = $self->{PLUGINS}->{OBJECTS}->{ $name };
-	}
-	return $return;
+  for (@{ $pipeline->{PIPELINE} }) {
+    $return{ $pipeline->{PLUGS}{$_} } = $_;
+  }
+
+  return \%return;
+}
+
+# Lists loaded plugins in order!
+sub plugin_order {
+  my ($self) = @_;
+  return $self->pipeline->{PIPELINE};
 }
 
 # Lets a plugin register for certain events
 sub plugin_register {
-	my( $self, $plugin, $type, @events ) = @_;
+  my ($self, $plugin, $type, @events) = @_;
+  my $pipeline = $self->pipeline;
 
-	# Sanity checks
-	if ( ! defined $type or ! ( $type eq 'SERVER' or $type eq 'USER' ) ) {
-		warn 'Type should be SERVER or USER!';
-		return undef;
-	}
-	if ( ! defined $plugin ) {
-		warn 'Please supply the plugin object to register!';
-		return undef;
-	}
-	if ( ! @events ) {
-		warn 'Please supply at least one event name to register!';
-		return undef;
-	}
+  unless (defined $type and ($type eq 'SERVER' or $type eq 'USER')) {
+    warn 'Type should be SERVER or USER!';
+    return;
+  }
 
-	# Okay, do the actual work here!
-	foreach my $ev ( @events ) {
-		# Is it an arrayref?
-		if ( ref( $ev ) and ref( $ev ) eq 'ARRAY' ) {
-			# Loop over it!
-			foreach my $evnt ( @$ev ) {
-				# Make sure it is lowercased
-				$evnt = lc( $evnt );
+  unless (defined $plugin) {
+    warn 'Please supply the plugin object to register!';
+    return;
+  }
 
-				# Push it to the end of the queue
-				push( @{ $self->{PLUGINS}->{ $type }->{ $evnt } }, $plugin );
-			}
-		} else {
-			# Make sure it is lowercased
-			$ev = lc( $ev );
+  unless (@events) {
+    warn 'Please supply at least one event to register!';
+    return;
+  }
 
-			# Push it to the end of the queue
-			push( @{ $self->{PLUGINS}->{ $type }->{ $ev } }, $plugin );
-		}
-	}
+  for my $ev (@events) {
+    if (ref($ev) and ref($ev) eq "ARRAY") {
+      @{ $pipeline->{HANDLES}{$plugin}{$type} }{ map lc, @$ev } = (1) x @$ev;
+    }
+    else {
+      $pipeline->{HANDLES}{$plugin}{$type}{lc $ev} = 1;
+    }
+  }
 
-	# All done!
-	return 1;
+  return 1;
 }
 
 # Lets a plugin unregister events
 sub plugin_unregister {
-	my( $self, $plugin, $type, @events ) = @_;
+  my ($self, $plugin, $type, @events) = @_;
+  my $pipeline = $self->pipeline;
 
-	# Sanity checks
-	if ( ! defined $type or ! ( $type eq 'SERVER' or $type eq 'USER' ) ) {
-		warn 'Type should be SERVER or USER!';
-		return undef;
-	}
-	if ( ! defined $plugin ) {
-		warn 'Please supply the plugin object to register!';
-		return undef;
-	}
-	if ( ! @events ) {
-		warn 'Please supply at least one event name to unregister!';
-		return undef;
-	}
+  unless (defined $type and ($type eq 'SERVER' or $type eq 'USER')) {
+    warn 'Type should be SERVER or USER!';
+    return;
+  }
 
-	# Okay, do the actual work here!
-	foreach my $ev ( @events ) {
-		# Is it an arrayref?
-		if ( ref( $ev ) and ref( $ev ) eq 'ARRAY' ) {
-			# Loop over it!
-			foreach my $evnt ( @$ev ) {
-				# Make sure it is lowercased
-				$evnt = lc( $evnt );
+  unless (defined $plugin) {
+    warn 'Please supply the plugin object to register!';
+    return;
+  }
 
-				# Check if the event even exists
-				if ( ! exists $self->{PLUGINS}->{ $type }->{ $evnt } ) {
-					warn "The event '$evnt' does not exist!";
-					next;
-				}
+  unless (@events) {
+    warn 'Please supply at least one event to unregister!';
+    return;
+  }
 
-				$self->_plugin_unregister_do( $type, $evnt, $plugin );
-			}
-		} else {
-			# Make sure it is lowercased
-			$ev = lc( $ev );
+  for my $ev (@events) {
+    if (ref($ev) and ref($ev) eq "ARRAY") {
+      for my $e (map lc, @$ev) {
+        unless (delete $pipeline->{HANDLES}{$plugin}{$type}{$e}) {
+          warn "The event '$e' does not exist!";
+          next;
+        }
+      }
+    }
+    else {
+      $ev = lc $ev;
+      unless (delete $pipeline->{HANDLES}{$plugin}{$type}{$ev}) {
+        warn "The event '$ev' does not exist!";
+        next;
+      }
+    }
+  }
 
-			# Check if the event even exists
-			if ( ! exists $self->{PLUGINS}->{ $type }->{ $ev } ) {
-				warn "The event '$ev' does not exist!";
-				next;
-			}
-
-			$self->_plugin_unregister_do( $type, $ev, $plugin );
-		}
-	}
-
-	# All done!
-	return 1;
-}
-
-# Helper routine to remove plugins
-sub _plugin_unregister_do {
-	my( $self, $type, $event, $plugin ) = @_;
-
-	# Check if the plugin is there
-	# Yes, this sucks but it doesn't happen often...
-	my $counter = 0;
-
-	# Loop over the array
-	while ( $counter < scalar( @{ $self->{PLUGINS}->{ $type }->{ $event } } ) ) {
-		# See if it is a match
-		if ( ref( $self->{PLUGINS}->{ $type }->{ $event }->[$counter] ) eq ref( $plugin ) ) {
-			# Splice it!
-			splice( @{ $self->{PLUGINS}->{ $type }->{ $event } }, $counter, 1 );
-			last;
-		}
-
-		# Increment the counter
-		$counter++;
-	}
-
-	# All done!
-	return 1;
+  return 1;
 }
 
 # Process an input event for plugins
 sub _plugin_process {
-	my( $self, $type, $event, @args ) = @_;
+  my ($self, $type, $event, @args) = @_;
+  my $pipeline = $self->pipeline;
 
-	# Make sure event is lowercased
-	$event = lc( $event );
+  $event = lc $event;
+  $event =~ s/^irc_//;
 
-	# And remove the irc_ prefix
-	if ( $event =~ /^irc\_(.*)$/ ) {
-		$event = $1;
-	}
+  my $sub = ($type eq 'SERVER' ? "S" : "U") . "_$event";
+  my $return = PCI_EAT_NONE;
 
-	# Check if any plugins are interested in this event
-	if ( not ( exists $self->{PLUGINS}->{ $type }->{ $event } or exists $self->{PLUGINS}->{ $type }->{ 'all' } ) ) {
-		return PCI_EAT_NONE;
-	}
+  for my $plugin (@{ $pipeline->{PIPELINE} }) {
+    next
+      unless $pipeline->{HANDLES}{$plugin}{$type}{$event}
+      or $pipeline->{HANDLES}{$plugin}{$type}{all};
 
-	# Determine the return value
-	my $return = PCI_EAT_NONE;
+    my $ret = PCI_EAT_NONE;
 
-	# Which type are we doing?
-	my $sub;
-	if ( $type eq 'SERVER' ) {
-		$sub = 'S_' . $event;
-	} else {
-		$sub = 'U_' . $event;
-	}
+    eval { $ret = $plugin->$sub($self, @args) };
+    eval { $ret = $plugin->_default($self, $sub, @args) } if $@;
 
-	# Okay, have the plugins process this event!
-	foreach my $plugin ( @{ $self->{PLUGINS}->{ $type }->{ $event } }, @{ $self->{PLUGINS}->{ $type }->{ 'all' } } ) {
-		# What does the plugin return?
-		my ($ret) = PCI_EAT_NONE;
-		# Added eval cos we can't trust plugin authors to play by the rules *sigh*
-		eval {
-			$ret = $plugin->$sub( $self, @args );
-		};
+    return $return if $ret == PCI_EAT_PLUGIN;
+    $return = PCI_EAT_ALL if $ret == PCI_EAT_CLIENT;
+    return PCI_EAT_ALL if $ret == PCI_EAT_ALL;
+  }
 
-		if ( $@ ) {
-		   # Okay, no method of that name fallback on _default() method.
-		   eval {
-			$ret = $plugin->_default( $self, $sub, @args );
-		   };
-		}
-
-		if ( $ret == PCI_EAT_PLUGIN ) {
-			return $return;
-		} elsif ( $ret == PCI_EAT_CLIENT ) {
-			$return = PCI_EAT_ALL;
-		} elsif ( $ret == PCI_EAT_ALL ) {
-			return PCI_EAT_ALL;
-		}
-	}
-
-	# All done!
-	return $return;
-}
+  return $return;
+}  
 
 1;
 __END__

@@ -1,5 +1,10 @@
 Revision history for Perl extension POE::Component::IRC.
 
+4.66  Thu Jul 28 17:55:01 BST 2005
+    - Committed patches from Jeff 'japhy' Pinyan who has hacked
+      prioritisation into the plugin system. Check Plugin.pm and
+      Pipeline.pm for details.
+
 4.65  Wed Jul 13 17:47:08 BST 2005
     - Fixed the anamoly where plugins weren't deleted if shutdown()
       is called. This should fix plugins that based around POE::Session.

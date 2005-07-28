@@ -6,7 +6,7 @@ use strict qw(subs vars refs);				# Make sure we can't mess up
 use warnings FATAL => 'all';				# Enable warnings to catch errors
 
 # Initialize our version
-our $VERSION = '0.05';
+our $VERSION = '0.07';
 
 # We export some stuff
 require Exporter;
@@ -31,6 +31,19 @@ POE::Component::IRC::Plugin - Provides plugin documentation for PoCo-IRC
 	Provides plugin documentation for PoCo-IRC
 
 =head1 CHANGES
+
+=head2 0.07
+
+	The plugin sytem has changed to use L<POE::Component::IRC::Pipeline> now.  See its documentation
+	for information about the underlying operations of the pipeline.
+
+	There's a new method, plugin_order, which returns an array reference of the plugins in the pipeline
+	in the order in which they are executed.
+
+	There's a new method, pipeline, which returns the POE::Component::IRC::Pipeline object so you can
+	deal with its finer-tuned controls yourself.
+
+	The _plugin_unregister_do method is no more.
 
 =head2 0.06
 
@@ -195,6 +208,10 @@ limited only by imagination and the IRC RFC's ;)
 
 =head1 Available methods to use on the $irc object
 
+=head2 pipeline
+
+	This method returns (or creates) the pipeline object into which plugins are stored.
+
 =head2 plugin_add
 
 	Accepts two arguments:
@@ -204,14 +221,19 @@ limited only by imagination and the IRC RFC's ;)
 	The alias is there for the user to refer to it, as it is possible to have multiple
 	plugins of the same kind active in one PoCo-IRC object.
 
+	This method goes through the pipeline's push() method.
+
 	This method will call $plugin->PCI_register( $irc )
 
-	Returns 1 if plugin was initialized, undef if not.
+	Returns the number of plugins now in the pipeline if plugin was initialized, undef
+	if not.
 
 =head2 plugin_get
 
 	Accepts one argument:
 		The alias for the plugin
+
+	This method goes through the pipeline's get() method.
 
 	Returns the plugin object if it was found, undef if not.
 
@@ -219,6 +241,8 @@ limited only by imagination and the IRC RFC's ;)
 
 	Accepts one argument:
 		The alias for the plugin or the plugin object itself
+
+	This method goes through the pipeline's remove() method.
 
 	This method will call $plugin->PCI_unregister( $irc )
 
@@ -230,6 +254,13 @@ limited only by imagination and the IRC RFC's ;)
 
 	Returns a hashref of plugin objects, keyed on alias, or an empty list if there are no
 	plugins loaded.
+
+=head2 plugin_order
+
+	Has no arguments.
+
+	Returns an arrayref of plugin objects, in the order which they are encountered in the
+        pipeline.
 
 =head2 plugin_register
 

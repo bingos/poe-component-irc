@@ -7,6 +7,7 @@ lib/POE/Component/IRC/Plugin/Connector.pm
 lib/POE/Component/IRC/Plugin/Whois.pm
 lib/POE/Component/IRC/Qnet/State.pm
 lib/POE/Component/IRC/Constants.pm
+lib/POE/Component/IRC/Pipeline.pm
 lib/POE/Component/IRC/Plugin.pm
 lib/POE/Component/IRC/Qnet.pm
 lib/POE/Component/IRC/State.pm
