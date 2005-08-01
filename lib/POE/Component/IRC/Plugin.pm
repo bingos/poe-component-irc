@@ -408,9 +408,7 @@ The _default() handler is expected to return one of the exit codes so PoCo-IRC w
 
 =head1 Plugin ordering system
 
-The plugins are given priority on a first come, first serve basis. Therefore, plugins that were added
-before others have the first shot at processing events. Ideas are welcome on a clean system to allow
-users to re-order plugins.
+See L<POE::Component::IRC::Pipeline|POE::Component::IRC::Pipeline>
 
 =head1 EXPORT
 
@@ -419,7 +417,7 @@ users to re-order plugins.
 
 =head1 SEE ALSO
 
-L<POE::Component::IRC>
+L<POE::Component::IRC> L<POE::Component::IRC::Pipeline|POE::Component::IRC::Pipeline>
 
 =head1 AUTHOR
 

@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+4.67  <Date>
+    - Documentation amendments to Plugin.pm. Well spotted, perigrin :D
+
 4.66  Thu Jul 28 17:55:01 BST 2005
     - Committed patches from Jeff 'japhy' Pinyan who has hacked
       prioritisation into the plugin system. Check Plugin.pm and
