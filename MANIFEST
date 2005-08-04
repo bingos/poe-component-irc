@@ -40,4 +40,5 @@ t/2_Qnet.t
 t/2_Qnet_State.t
 t/3_connect.t
 t/4_testharness.t
+t/5_pod.t
 t/testsuite_01_plugin.t
