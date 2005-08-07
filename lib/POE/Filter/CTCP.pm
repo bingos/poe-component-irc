@@ -46,10 +46,10 @@ sub get {
 
     foreach (@$ctcp) {
       ($name, $args) = $_ =~ /^(\w+)(?: (.*))?/
-	or do { warn "Received malformed CTCP message: \"$_\""; next LINE; };
+	or do { warn "Received malformed CTCP message: \"$_\"" if $self->{debug}; next LINE; };
       if (lc $name eq 'dcc') {
 	$args =~ /^(\w+) (\S+) (\d+) (\d+)(?: (\d+))?$/
-	  or do { warn "Received malformed DCC request: \"$_\""; next LINE; };
+	  or do { warn "Received malformed DCC request: \"$_\"" if $Self->{debug}; next LINE; };
 	my $basename = File::Basename::basename( $2 );
 	push @$events, { name => 'dcc_request',
 			 args => [ $who, uc $1, $4, { open => undef,
