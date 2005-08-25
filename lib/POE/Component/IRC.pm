@@ -10,6 +10,7 @@
 package POE::Component::IRC;
 
 use strict;
+use warnings;
 use POE qw( Wheel::SocketFactory Wheel::ReadWrite Driver::SysRW
 	    Filter::Line Filter::Stream );
 use POE::Filter::IRC;
@@ -1759,50 +1760,70 @@ POE::Component::IRC - a fully event-driven IRC client module.
 
 =head1 SYNOPSIS
 
-  # The old way
+  # A simple Rot13 'encryption' bot
 
-  use POE::Component::IRC;
+  use POE qw(Component::IRC);
 
-  # Do this when you create your sessions. 'my client' is just a
-  # kernel alias to christen the new IRC connection with.
+  my ($nickname) = 'Flibble' . $$;
+  my ($ircname) = 'Flibble the Sailor Bot';
+  my ($ircserver) = 'irc.blahblahblah.irc';
+  my ($port) = 6667;
 
-  POE::Component::IRC->new('my client') or die "Oh noooo! $!";
+  my (@channels) = ( '#Blah', #Foo', '#Bar' );
 
-  # Do stuff like this from within your sessions. This line tells the
-  # connection named "my client" to send your session the following
-  # events when they happen.
+  my ($irc) = POE::Component::IRC->spawn( 
+	nick => $nickname,
+	server => $ircserver,
+	port => $port,
+	ircname => $ircname,
+  ) or die "Oh noooo! $!";
 
-  $kernel->post('my client', 'register', qw(connected msg public cdcc cping));
+  POE::Session->create(
+	package_states => [
+		'main' => [ qw(_default _start irc_001 irc_public) ],
+	],
+  );
 
-  # You can guess what this line does.
+  $poe_kernel->run();
+  exit 0;
 
-  $kernel->post('my client', 'connect',
-	        { Nick     => 'Boolahman',
-		  Server   => 'irc-w.primenet.com',
-		  Port     => 6669,
-		  Username => 'quetzal',
-		  Ircname  => 'Ask me about my colon!', } );
+  sub _start {
+    $irc->yield( register => 'all' );
+    $irc->yield( connect => { } );
+    undef;
+  }
 
-  # The new way using the object
+  sub irc_001 {
+    $irc->yield( join => $_ ) for @channels;
+    undef;
+  }
 
-  use POE::Component::IRC;
+  sub irc_public {
+    my ($who,$where,$what) = @_[ARG0,ARG1,ARG2];
+    my $nick = ( split /!/, $who )[0];
+    my $channel = $where->[0];
 
-  my ($irc) = POE::Component::IRC->spawn() or die "Oh noooo! $!";
+    if ( my ($rot13) = $what =~ /^rot13 (.+)/ ) {
+	$rot13 =~ tr[a-zA-Z][n-za-mN-ZA-M];
+	$irc->yield( privmsg => $channel => $rot13 );
+    }
+    undef;
+  }
 
-  $irc->yield( 'connect',
-		{ Nick     => 'Boolahman',
-                  Server   => 'irc-w.primenet.com',
-                  Port     => 6669,
-                  Username => 'quetzal',
-                  Ircname  => 'Ask me about my colon!', } );
+  sub _default {
+    my ($event, $args) = @_[ARG0 .. $#_];
+    my (@output) = ( "$event: " );
 
-  $kernel->post( $irc->session_id(), 'connect',
-                { Nick     => 'Boolahman',
-                  Server   => 'irc-w.primenet.com',
-                  Port     => 6669,
-                  Username => 'quetzal',
-                  Ircname  => 'Ask me about my colon!',
-                  UseSSL   => 1, } );
+    foreach my $arg ( @$args ) {
+        if ( ref($arg) eq 'ARRAY' ) {
+                push( @output, "[" . join(" ,", @$arg ) . "]" );
+        } else {
+                push ( @output, "'$arg'" );
+        }
+    }
+    print STDOUT join( ' ', @output ) . "\n";
+    return 0;
+  }
 
 =head1 DESCRIPTION
 
@@ -1864,7 +1885,25 @@ The long version is the rest of this document.
 As of 3.7, PoCo-IRC sports a plugin system. The documentation for it can be read by looking
 at L<POE::Component::IRC::Plugin>. That is not a subclass, just a placeholder for documentation!
 
-=head1 METHODS
+A number of useful plugins have made their way into the core distribution:
+
+=over 
+
+=item L<POE::Component::IRC::Connector>
+
+Glues an irc bot to an IRC network, ie. deals with maintaining ircd connections.
+
+=item L<POE::Component::IRC::Plugin::BotTraffic>
+
+Under normal circumstances irc bots do not normal see the msgs and public msgs that they generate themselves. This plugin enables you to handle those events.
+
+=item L<POE::Component::IRC::Plugin::BotAddressed>
+
+Generates 'irc_bot_addressed' events whenever someone addresses your bot by name in a channel.
+
+=back
+
+=head1 CONSTRUCTORS
 
 =over
 
@@ -1880,6 +1919,12 @@ arguments that this method accepts. All arguments are optional.
 This method is deprecated. See 'spawn' method instead.
 Takes one argument: a name (kernel alias) which this new connection
 will be known by. Returns a POE::Component::IRC object :)
+
+=back
+
+=head1 METHODS
+
+=over
 
 =item server_name
 
@@ -1947,20 +1992,23 @@ new/different server. If it has a connection already open, it'll close
 it gracefully before reconnecting. Possible attributes for the new
 connection are:
 
-=over
+  "Server", the server name;
+  "Port", the remote port number;
+  "Password", an optional password for restricted servers;
+  "Nick", your client's IRC nickname;
+  "Username", your client's username;
+  "Ircname", some cute comment or something.
 
-"Server", the server name;
-"Password", an optional password for restricted servers;
-"Port", the remote port number;
-"LocalAddr", which local IP address on a multihomed box to connect as;
-"LocalPort", the local TCP port to open your socket on;
-"Nick", your client's IRC nickname;
-"Username", your client's username;
-"Ircname", some cute comment or something.
-"UseSSL", set to some true value if you want to connect using SSL.
-"Raw", set to some true value to enable the component to send 'irc_raw' events.
-
-=back
+  "UseSSL", set to some true value if you want to connect using SSL.
+  "Raw", set to some true value to enable the component to send 'irc_raw' events.
+  "LocalAddr", which local IP address on a multihomed box to connect as;
+  "LocalPort", the local TCP port to open your socket on;
+  "NoDNS", set this to 1 to disable DNS lookups using PoCo-Client-DNS.
+  "Flood", set this to 1 to get quickly disconnected and klined from an ircd >;]
+  "Proxy", IP address or server name of a proxy server to use.
+  "ProxyPort", which tcp port on the proxy to connect to.
+  "NATAddr", what other clients see as your IP address.
+  "DCCPorts", an arrayref containing tcp ports that can be used for DCC sends.
 
 C<connect()> will supply
 reasonable defaults for any of these attributes which are missing, so
@@ -1968,10 +2016,7 @@ don't feel obliged to write them all out.
 
 If the component finds that L<POE::Component::Client::DNS|POE::Component::Client::DNS>
 is installed it will use that to resolve the server name passed. Disable this
-behaviour if you like, by passing NoDNS => 1.
-
-The ever popular I<irc_part> bug has been fixed. To get the bot to exhibit the old broken
-behaviour pass PartFix => 0.
+behaviour if you like, by passing: NoDNS => 1.
 
 Additionally there is a "Flood" parameter.  When true, it disables the
 component's flood protection algorithms, allowing it to send messages
@@ -2464,10 +2509,6 @@ message.
 Sent whenever someone leaves a channel that you're on. ARG0 is the
 person's nick!hostmask. ARG1 is the channel name.
 
-( There has been a slight bug with irc_part and part messages. ARG1
-would contain "<#channel> :part message". This has been fixed, but
-you must pass PartFix => 1 to the 'connect' request ).
-
 =item irc_ping
 
 An event sent whenever the server sends a PING query to the
@@ -2498,14 +2539,23 @@ is probably some vague and/or misleading reason for what failed.
 =item irc_whois
 
 Sent in response to a 'whois' query. ARG0 is a hashref, with the following
-keys: 'nick', the users nickname; 'user', the users username; 'host', their
-hostname; 'real', their real name; 'idle', their idle time in seconds; 'signon',
-the epoch time they signed on ( will be undef if ircd does not support this );
-'channels', an arrayref listing visible channels they are on, the channel is prefixed
-with '@','+','%' depending on whether they have +o +v or +h; 'server', their server (
-might not be useful on some networks ); 'oper', whether they are an IRCop, contains the
-IRC operator string if they are, undef if they aren't. On Freenode if the user has
-identified with NICKSERV there will be an additional key: 'identified'.
+keys: 
+
+  'nick', the users nickname; 
+  'user', the users username; 
+  'host', their hostname;
+  'real', their real name;
+  'idle', their idle time in seconds;
+  'signon', the epoch time they signed on ( will be undef if ircd does not support this );
+  'channels', an arrayref listing visible channels they are on, the channel is prefixed
+              with '@','+','%' depending on whether they have +o +v or +h;
+  'server', their server ( might not be useful on some networks );
+  'oper', whether they are an IRCop, contains the IRC operator string if they are, 
+          undef if they aren't.
+
+On Freenode if the user has identified with NICKSERV there will be an additional key:
+
+  'identified'.
 
 =item irc_whowas
 

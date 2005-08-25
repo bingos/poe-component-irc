@@ -5,6 +5,10 @@ Revision history for Perl extension POE::Component::IRC.
     - Added POD test.
     - Filter-CTCP.pm fixed. All 'warn's only enabled when debug is set.
       Thanks to ketas for spotting that one.
+    - Fixed a typo made doing the previous fix. >;)
+    - Added Projects.pm, hopefully a list of PoCo-IRC using projects.
+    - Added placeholder for State::Lite, a lightweight version of State.
+    - Tidied up main PoCo-IRC POD. Added a much better SYNOPSIS.
 
 4.66  Thu Jul 28 17:55:01 BST 2005
     - Committed patches from Jeff 'japhy' Pinyan who has hacked
