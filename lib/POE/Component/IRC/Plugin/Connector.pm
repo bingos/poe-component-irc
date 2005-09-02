@@ -43,7 +43,7 @@ sub PCI_unregister {
   return 1;
 }
 
-sub S_001 {
+sub S_connected {
   my ($self,$irc) = splice @_, 0, 2;
 
   $poe_kernel->post( $self->{SESSION_ID}, '_start_ping' );
@@ -81,6 +81,7 @@ sub S_pong {
   if ( $reply and $reply =~ /^[0-9]+$/ ) {
 	$self->{lag} = time() - $reply;
   }
+  $self->{seen_traffic} = 1;
   return PCI_EAT_NONE;
 }
 
