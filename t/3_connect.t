@@ -5,10 +5,17 @@
 
 # change 'tests => 1' to 'tests => last_test_to_print';
 
+use strict;
+use warnings;
+use Test::More; 
+
+if ($^O eq "cygwin") {
+  plan skip_all => "Cygwin seems to thwart this test.";
+}
+
 warn "\n***************************\nThese next tests will hang if you are firewalling localhost interfaces\n";
 
-use Test::More tests => 7;
-BEGIN { use_ok('POE::Component::IRC') };
+plan tests => 7;
 
 #########################
 
@@ -17,8 +24,9 @@ BEGIN { use_ok('POE::Component::IRC') };
 
 use Socket;
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Line);
+use_ok('POE::Component::IRC');
 
-my ($self) = POE::Component::IRC->spawn( dccports => '1024,1048-1098,abc' );
+my ($self) = POE::Component::IRC->spawn();
 
 isa_ok ( $self, 'POE::Component::IRC' );
 

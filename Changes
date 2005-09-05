@@ -1,5 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
+4.69  Mon Sep 05 12:30:01 BST 2005
+    - 3_connect.t was causing problems on Cygwin. Skipped this test
+      on Cygwin for now.
+
 4.68  Fri Sep 02 14:00:00 BST 2005
     - Altered Connector plugin so it starts the auto_ping on 
       'irc_connected' rather than 'irc_001'. Thanks to British
