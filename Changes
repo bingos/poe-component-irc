@@ -1,5 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
+4.70  Fri Sep 16 16:45:05 BST 2005
+    - Fixed a bug where 'irc_raw' events were being switched off after
+      a connect() without parameters was called.
+
 4.69  Mon Sep 05 12:30:01 BST 2005
     - 3_connect.t was causing problems on Cygwin. Skipped this test
       on Cygwin for now.

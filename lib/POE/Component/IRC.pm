@@ -28,7 +28,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '4.69';
+$VERSION = '4.70';
 $REVISION = do {my@r=(q$Revision: 1.4 $=~/\d+/g);sprintf"%d."."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -177,19 +177,19 @@ sub _configure {
     if (exists $arg{'flood'} and $arg{'flood'}) {
       $self->{'dont_flood'} = 0;
     } else {
-      $self->{'dont_flood'} = 1;
+      $self->{'dont_flood'} = 1 unless( defined ( $self->{'dont_flood'} ) and $self->{'dont_flood'} eq '0' );
     }
 
     if (exists $arg{'raw'} and $arg{'raw'}) {
       $self->{'raw_events'} = 1;
     } else {
-      $self->{'raw_events'} = 0;
+      $self->{'raw_events'} = 0 unless ( $self->{'raw_events'} );
     }
 
     if (exists $arg{'partfix'} and ( not $arg{'partfix'} ) ) {
       $self->{'dont_partfix'} = 1;
     } else {
-      $self->{'dont_partfix'} = 0;
+      $self->{'dont_partfix'} = 0 unless ( $self->{'dont_partfix'} );
     }
 
     $self->{'password'} = $arg{'password'} if exists $arg{'password'};
