@@ -28,7 +28,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '4.70';
+$VERSION = '4.71';
 $REVISION = do {my@r=(q$Revision: 1.4 $=~/\d+/g);sprintf"%d."."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -1889,7 +1889,7 @@ A number of useful plugins have made their way into the core distribution:
 
 =over 
 
-=item L<POE::Component::IRC::Connector>
+=item L<POE::Component::IRC::Plugin::Connector>
 
 Glues an irc bot to an IRC network, ie. deals with maintaining ircd connections.
 

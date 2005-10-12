@@ -390,6 +390,8 @@ sub irc_352 {
     if ( $status =~ /\@/ ) { $whatever = 'o'; }
     if ( $status =~ /\+/ ) { $whatever = 'v'; }
     if ( $status =~ /\%/ ) { $whatever = 'h'; }
+    if ( $status =~ /\&/ ) { $whatever = 'a'; }
+    if ( $status =~ /\~/ ) { $whatever = 'q'; }
     $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{CHANS}->{ u_irc ( $channel ) } = $whatever;
     $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Name} = $channel;
     $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Nicks}->{ u_irc ( $nick ) } = $whatever;
