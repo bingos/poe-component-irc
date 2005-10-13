@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-4.71  Tue Oct 11 09:59:01 BST 2005
+4.71  Thu Oct 13 19:04:01 BST 2005
     - Documentation bug in IRC.pm, spotted by cnelson.
     - Fixed ::State.pm for channel admin/owner support,
       spotted by Sebastien Wernerus.
