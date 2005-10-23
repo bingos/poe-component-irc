@@ -28,7 +28,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '4.71';
+$VERSION = '4.72';
 $REVISION = do {my@r=(q$Revision: 1.4 $=~/\d+/g);sprintf"%d."."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -1082,6 +1082,8 @@ sub new {
   unless ($alias) {
     croak "Not enough arguments to POE::Component::IRC::new()";
   }
+
+  warn "Use of ->new() is deprecated, please use spawn()\n";
 
   my ($self) = $package->spawn ( alias => $alias, options => { @_ } );
 

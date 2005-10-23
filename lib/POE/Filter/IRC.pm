@@ -75,7 +75,7 @@ sub get {
       push @$events, { name => 'topic', args => [$1, $2, _decolon( $3 )] };
 
     } elsif ($line =~ /^:(\S+) +INVITE +\S+ +(.+)$/) {
-      push @$events, { name => 'invite', args => [$1, _decolon( $2 )] };
+      push @$events, { name => 'invite', args => [$1, split( /\s+/, _decolon( $2 ) )] };
 
     } elsif ($line =~ /^:(\S+) +WALLOPS +(.+)$/) {
       push @$events, { name => 'wallops', args => [$1, _decolon( $2 )] };
