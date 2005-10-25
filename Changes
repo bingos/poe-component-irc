@@ -1,9 +1,12 @@
 Revision history for Perl extension POE::Component::IRC.
 
-4.72  <Date>
+4.72  Tue Oct 25 19:01:05 BST 2005
     - Fix to Filter::IRC for INVITE. Apparently, asuka 
       timestamps after the channel name. Doh. Thanks to
       Johannes Studt for spotting that.
+    - Fixed the documentation in Projects.pm
+    - Solved Ticket #15058, re: NoDNS and multiple PoCo-Client-DNS
+      sessions.
 
 4.71  Thu Oct 13 19:04:01 BST 2005
     - Documentation bug in IRC.pm, spotted by cnelson.

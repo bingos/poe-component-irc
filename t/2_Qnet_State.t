@@ -18,7 +18,7 @@ BEGIN { use_ok('POE::Component::IRC::Qnet::State') };
 #use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Line);
 use POE;
 
-my ($self) = POE::Component::IRC::Qnet::State->new('irc-client');
+my ($self) = POE::Component::IRC::Qnet::State->spawn();
 
 isa_ok ( $self, 'POE::Component::IRC::Qnet::State' );
 

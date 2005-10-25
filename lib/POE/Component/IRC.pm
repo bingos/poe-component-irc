@@ -69,9 +69,9 @@ sub _create {
 
   my $self = bless ( { }, $package );
 
-  if ( $GOT_CLIENT_DNS ) {
-    POE::Component::Client::DNS->spawn( Alias => "irc_resolver" );
-  }
+  #if ( $GOT_CLIENT_DNS ) {
+  #  POE::Component::Client::DNS->spawn( Alias => "irc_resolver" );
+  #}
 
   $self->{IRC_CMDS} =
   { 'rehash'    => [ PRI_HIGH,   'noargs',        ],
@@ -217,10 +217,18 @@ sub _configure {
 	  $self->{dcc_bind_port} = $dccport;
     }
 
+    if ( $arg{'resolver'} and $arg{'resolver'}->isa("POE::Component::Client::DNS") ) {
+	$self->{resolver} = $arg{'resolver'};
+    }
+
     # This is a hack to make sure that the component doesn't die if no IRCServer is
     # specified as the result of being called from new() via spawn().
 
     $spawned = $arg{'CALLED_FROM_SPAWN'} if exists $arg{'CALLED_FROM_SPAWN'};
+  }
+
+  if ( $spawned and ( not $self->{NoDNS} ) and $GOT_CLIENT_DNS and ( not $self->{resolver} ) ) {
+	$self->{resolver} = POE::Component::Client::DNS->spawn( Alias => "resolver" . $self->session_id() );
   }
 
   # Make sure that we have reasonable defaults for all the attributes.
@@ -734,8 +742,11 @@ sub connect {
   $self->_configure( \%arg );
 
   # try and use non-blocking resolver if needed
-  if ( $GOT_CLIENT_DNS && !($self->{'server'} =~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/) && ( not $self->{'NoDNS'} ) ) {
-    $kernel->post(irc_resolver => resolve => got_dns_response => $self->{'server'} => "A", "IN");
+  if ( $self->{resolver} && !($self->{'server'} =~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/) && ( not $self->{'NoDNS'} ) ) {
+    my $response = $self->{resolver}->resolve( event => "got_dns_response", host =>  $self->{'server'} );
+    if ( $response ) {
+	$kernel->yield( got_dns_response => $response );
+    }
   } else {
     $kernel->yield("do_connect");
   }
@@ -746,6 +757,7 @@ sub connect {
   #}
 
   $self->{RealNick} = $self->{nick};
+  undef;
 }
 
 # open the connection
@@ -1921,6 +1933,7 @@ arguments that this method accepts. All arguments are optional.
 This method is deprecated. See 'spawn' method instead.
 Takes one argument: a name (kernel alias) which this new connection
 will be known by. Returns a POE::Component::IRC object :)
+Use of this method will generate a warning. There are currently no plans to make it die() >;]
 
 =back
 
@@ -2005,12 +2018,13 @@ connection are:
   "Raw", set to some true value to enable the component to send 'irc_raw' events.
   "LocalAddr", which local IP address on a multihomed box to connect as;
   "LocalPort", the local TCP port to open your socket on;
-  "NoDNS", set this to 1 to disable DNS lookups using PoCo-Client-DNS.
+  "NoDNS", set this to 1 to disable DNS lookups using PoCo-Client-DNS. ( See note below ).
   "Flood", set this to 1 to get quickly disconnected and klined from an ircd >;]
   "Proxy", IP address or server name of a proxy server to use.
   "ProxyPort", which tcp port on the proxy to connect to.
   "NATAddr", what other clients see as your IP address.
   "DCCPorts", an arrayref containing tcp ports that can be used for DCC sends.
+  "Resolver", provide a POE::Component::Client::DNS object for the component to use.
 
 C<connect()> will supply
 reasonable defaults for any of these attributes which are missing, so
@@ -2044,6 +2058,14 @@ nothing. The default is to not try to use SSL.
 
 Setting 'Raw' to true, will enable the component to send 'irc_raw' events to interested plugins
 and sessions. See below for more details on what a 'irc_raw' events is :)
+
+'NoDNS' has different results depending on whether it is set with spawn() or connect(). Setting it
+with spawn(), disables the creation of the POE::Component::Client::DNS completed. Setting it with
+connect() on the other hand allows the PoCo-Client-DNS session to be spawned, but will disable any 
+dns lookups using it.
+
+'Resolver', requires a POE::Component::Client::DNS object. Useful when spawning multiple poco-irc sessions
+, saves the overhead of multiple dns sessions.
 
 =item ctcp and ctcpreply
 
