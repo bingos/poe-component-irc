@@ -28,7 +28,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '4.72';
+$VERSION = '4.73';
 $REVISION = do {my@r=(q$Revision: 1.4 $=~/\d+/g);sprintf"%d."."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -743,7 +743,7 @@ sub connect {
 
   # try and use non-blocking resolver if needed
   if ( $self->{resolver} && !($self->{'server'} =~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/) && ( not $self->{'NoDNS'} ) ) {
-    my $response = $self->{resolver}->resolve( event => "got_dns_response", host =>  $self->{'server'} );
+    my $response = $self->{resolver}->resolve( event => "got_dns_response", host =>  $self->{'server'}, context => { } );
     if ( $response ) {
 	$kernel->yield( got_dns_response => $response );
     }
