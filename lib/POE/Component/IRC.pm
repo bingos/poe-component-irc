@@ -28,7 +28,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '4.73';
+$VERSION = '4.74';
 $REVISION = do {my@r=(q$Revision: 1.4 $=~/\d+/g);sprintf"%d."."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -785,7 +785,8 @@ sub do_connect {
 # got response from POE::Component::Client::DNS
 sub got_dns_response {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
-  my ($net_dns_packet, $net_dns_errorstring) = @{$_[ARG1]};
+  my ($net_dns_packet) = $_[ARG0]->{response};
+  my ($net_dns_errorstring) = $_[ARG0]->{error};
 
   unless(defined $net_dns_packet) {
     $self->_send_event( 'irc_socketerr', $net_dns_errorstring );

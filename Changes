@@ -1,6 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
-4,73  Wed Oct 26 07:43:03 BST 2005
+4.74  Wed Oct 26 09:15:21 BST 2005
+    - *sigh* another problem fixed with the new dns code.
+
+4.73  Wed Oct 26 07:43:03 BST 2005
     - Minor problem with PoCo-Client-DNS fixed.
 
 4.72  Tue Oct 25 19:01:05 BST 2005
