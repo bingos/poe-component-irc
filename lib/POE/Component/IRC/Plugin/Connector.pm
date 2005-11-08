@@ -11,7 +11,7 @@ sub new {
 
   $self->{SESSION_ID} = POE::Session->create(
 	object_states => [
-	  $self => [ qw(_start _auto_ping _reconnect _shutdown _start_ping _stop_ping) ],
+	  $self => [ qw(_start _auto_ping _reconnect _shutdown _start_ping _start_time_out _stop_ping _time_out) ],
 	],
 	options => { trace => 0 },
   )->ID();
@@ -46,7 +46,7 @@ sub PCI_unregister {
 sub S_connected {
   my ($self,$irc) = splice @_, 0, 2;
 
-  $poe_kernel->post( $self->{SESSION_ID}, '_start_ping' );
+  $poe_kernel->post( $self->{SESSION_ID}, '_start_time_out' );
   return PCI_EAT_NONE;
 }
 
@@ -101,12 +101,14 @@ sub _start {
   $self->{SESSION_ID} = $_[SESSION]->ID();
 
   $kernel->refcount_increment( $self->{SESSION_ID}, __PACKAGE__ );
+  undef;
 }
 
 sub _start_ping {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
 
   $kernel->delay( '_auto_ping' => $self->{delay} || 300 );
+  undef;
 }
 
 sub _auto_ping {
@@ -117,18 +119,22 @@ sub _auto_ping {
   }
   $self->{seen_traffic} = 0;
   $kernel->yield( '_start_ping' );
+  undef;
 }
 
 sub _stop_ping {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
 
   $kernel->delay( '_auto_ping' => undef );
+  $kernel->delay( '_time_out' => undef );
+  undef;
 }
 
 sub _shutdown {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
 
   $kernel->yield( '_stop_ping' );
+  undef;
 }
 
 sub _reconnect {
@@ -139,6 +145,21 @@ sub _reconnect {
   } else {
 	$kernel->delay( '_reconnect' => 60 );
   }
+  undef;
+}
+
+sub _start_time_out {
+  my ($kernel,$self) = @_[KERNEL,OBJECT];
+
+  $kernel->delay( '_time_out => $self->{timeout} || 60 );
+  undef;
+}
+
+sub _time_out {
+  my ($kernel,$self) = @_[KERNEL,OBJECT];
+
+  $self->{irc}->disconnect();
+  undef;
 }
 
 1;
