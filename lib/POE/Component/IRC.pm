@@ -316,6 +316,7 @@ sub _dcc_failed {
     }
     delete $self->{dcc}->{$id};
   }
+  undef;
 }
 
 sub debug {
@@ -384,6 +385,7 @@ sub _dcc_read {
     $self->_send_event( 'irc_dcc_' . lc $self->{dcc}->{$id}->{type},
 		 $id, @{$self->{dcc}->{$id}}{'nick', 'port'}, $data );
   }
+  undef;
 }
 
 
@@ -396,6 +398,7 @@ sub _dcc_timeout {
     $kernel->yield( '_dcc_failed', 'connection', 0,
 		    'DCC connection timed out', $id );
   }
+  undef;
 }
 
 
@@ -485,6 +488,7 @@ sub _dcc_up {
 	       $id, @{$self->{dcc}->{$id}}{'nick', 'type', 'port'},
 	       ($self->{dcc}->{$id}->{'type'} =~ /^(SEND|GET)$/ ?
 		(@{$self->{dcc}->{$id}}{'file', 'size'}) : ()), @{$self->{dcc}->{$id}}{'listenport', 'clientaddr'} );
+  undef;
 }
 
 
@@ -518,6 +522,7 @@ sub _parseline {
     $ev->{name} = 'irc_' . $ev->{name};
     $self->_send_event( $ev->{name}, @{$ev->{args}} );
   }
+  undef;
 }
 
 
@@ -568,6 +573,7 @@ sub _send_event  {
   foreach (values %sessions) {
     $kernel->post( $_, $event, @args ) unless ( $_ eq $session );
   }
+  undef;
 }
 
 
@@ -587,6 +593,11 @@ sub _sock_down {
 
   # post a 'irc_disconnected' to each session that cares
   $self->_send_event( 'irc_disconnected', $self->{server} );
+  undef;
+}
+
+sub disconnect {
+  $poe_kernel->post( $_[0]->session_id() => '_sock_down' );
 }
 
 
@@ -595,6 +606,7 @@ sub _sock_failed {
   my ($self, $op, $errno, $errstr) = @_[OBJECT, ARG0..ARG2];
 
   $self->_send_event( 'irc_socketerr', "$op error $errno: $errstr" );
+  undef;
 }
 
 
@@ -658,6 +670,7 @@ sub _sock_up {
   # If we have queued data waiting, its flush loop has stopped
   # while we were disconnected.  Start that up again.
   $kernel->delay(sl_delayed => 0);
+  undef;
 }
 
 
@@ -701,6 +714,7 @@ sub _stop {
     $kernel->call( $_[SESSION], 'quit', $quitmsg );
     $kernel->call( $_[SESSION], 'shutdown', $quitmsg );
   }
+  undef;
 }
 
 
@@ -713,6 +727,7 @@ sub commasep {
   $state = uc $state;
   $state .= " $args" if defined $args;
   $kernel->yield( 'sl_prioritized', $pri, $state );
+  undef;
 }
 
 
@@ -779,6 +794,7 @@ sub do_connect {
 				    ($self->{localaddr} ?
 				       (BindAddress => $self->{localaddr}) : ()),
 				  );
+  undef;
 }
 
 # got response from POE::Component::Client::DNS
@@ -808,7 +824,7 @@ sub got_dns_response {
   }
 
   $self->_send_event( 'irc_socketerr', "Unable to resolve $self->{'server'}");
-
+  undef;
 }
 
 # Send a CTCP query or reply, with the same syntax as a PRIVMSG event.
@@ -828,6 +844,7 @@ sub ctcp {
   $state = $state eq 'ctcpreply' ? 'notice' : 'privmsg';
 
   $kernel->yield( $state, $to, $message );
+  undef;
 }
 
 
@@ -917,6 +934,7 @@ sub dcc {
 				   clientaddr => $myaddr,
 				 };
   $kernel->alarm( '_dcc_timeout', time() + ($timeout || DCC_TIMEOUT), $factory->ID );
+  undef;
 }
 
 
@@ -988,6 +1006,7 @@ sub dcc_resume
       }# if(open(FILE,">>".$myfile))
     }# if($mysize)
   }
+  undef;
 }# sub dcc_resume
 
 
@@ -1014,6 +1033,7 @@ sub dcc_chat {
   }
 
   $self->{dcc}->{$id}->{wheel}->put( join "\n", @data );
+  undef;
 }
 
 
@@ -1044,6 +1064,7 @@ sub dcc_close {
     delete $self->{dcc}->{$id}->{wheel};
   }
   delete $self->{dcc}->{$id};
+  undef;
 }
 
 
@@ -1070,6 +1091,7 @@ sub ison {
     $tmp .= " $nick";
   }
   $kernel->yield( 'sl_high', $tmp );
+  undef;
 }
 
 
@@ -1085,6 +1107,7 @@ sub kick {
 
   $nick .= " :$message" if defined $message;
   $kernel->yield( 'sl_high', "KICK $chan $nick" );
+  undef;
 }
 
 # Set up a new IRC component. Deprecated.
@@ -1143,6 +1166,7 @@ sub noargs {
     return;
   }
   $kernel->yield( 'sl_prioritized', $pri, $state );
+  undef;
 }
 
 
@@ -1158,6 +1182,7 @@ sub oneandtwoopt {
     $state .= " $arg";
   }
   $kernel->yield( 'sl_prioritized', $pri, $state );
+  undef;
 }
 
 
@@ -1173,6 +1198,7 @@ sub oneoptarg {
     $state .= " $arg";
   }
   $kernel->yield( 'sl_prioritized', $pri, $state );
+  undef;
 }
 
 
@@ -1190,6 +1216,7 @@ sub oneortwo {
   $state = uc( $state ) . " $one";
   $state .= " $two" if defined $two;
   $kernel->yield( 'sl_prioritized', $pri, $state );
+  undef;
 }
 
 
@@ -1208,6 +1235,7 @@ sub onlyonearg {
   $arg = ':' . $arg if $arg =~ /\s/;
   $state .= " $arg";
   $kernel->yield( 'sl_prioritized', $pri, $state );
+  undef;
 }
 
 
@@ -1226,6 +1254,7 @@ sub onlytwoargs {
   $two = ':' . $two if $two =~ /\s/;
   $state .= " $one $two";
   $kernel->yield( 'sl_prioritized', $pri, $state );
+  undef;
 }
 
 
@@ -1252,6 +1281,7 @@ sub privandnotice {
   $state = uc $state;
   $state .= " $to :$message";
   $kernel->yield( 'sl_prioritized', $pri, $state );
+  undef;
 }
 
 
@@ -1282,6 +1312,7 @@ sub register {
   # start hurling session references around at this point :)
 
   $kernel->post( $sender => 'irc_registered' => $self );
+  undef;
 }
 
 sub register_session {
@@ -1307,6 +1338,7 @@ sub register_session {
       $kernel->refcount_increment($sender->ID(), PCI_REFCOUNT_TAG);
     }
   }
+  undef;
 }
 
 # Tell the IRC session to go away.
@@ -1339,6 +1371,7 @@ sub sl_login {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
   my $arg = join '', @_[ARG0 .. $#_];
   $kernel->yield( 'sl_prioritized', PRI_LOGIN, $arg );
+  undef;
 }
 
 
@@ -1348,6 +1381,7 @@ sub sl_high {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
   my $arg = join '', @_[ARG0 .. $#_];
   $kernel->yield( 'sl_prioritized', PRI_HIGH, $arg );
+  undef;
 }
 
 
@@ -1359,6 +1393,7 @@ sub sl {
   my $arg = join '', @_[ARG0 .. $#_];
 
   $kernel->yield( 'sl_prioritized', PRI_NORMAL, $arg );
+  undef;
 }
 
 
@@ -1405,6 +1440,7 @@ sub sl_prioritized {
     $self->{send_time} += 2 + length($msg) / 120;
     $self->{socket}->put($msg);
   }
+  undef;
 }
 
 # Send delayed lines to the ircd.  We manage a virtual "send time"
@@ -1428,6 +1464,7 @@ sub sl_delayed {
 
   $kernel->delay( sl_delayed => $self->{send_time} - $now - 10 )
     if @{$self->{send_queue}};
+  undef;
 }
 
 
@@ -1440,6 +1477,7 @@ sub spacesep {
   $state = uc $state;
   $state .= " $args" if defined $args;
   $kernel->yield( 'sl_prioritized', $pri, $state );
+  undef;
 }
 
 
@@ -1450,6 +1488,7 @@ sub topic {
 
   $chan .= " :$topic" if length $topic;
   $kernel->yield( 'sl_prioritized', PRI_NORMAL, "TOPIC $chan" );
+  undef;
 }
 
 
@@ -1497,6 +1536,7 @@ sub userhost {
     $kernel->yield( 'sl_prioritized', PRI_HIGH,
 		    "USERHOST " . join(' ', splice(@nicks, 0, 5)) );
   }
+  undef;
 }
 
 # Non-event methods
@@ -1571,6 +1611,7 @@ sub irc_ping {
   my ($kernel, $arg) = @_[KERNEL, ARG0];
 
   $kernel->yield( 'sl_login', "PONG $arg" );
+  undef;
 }
 
 # NICK messages for the purposes of determining our current nickname
@@ -1581,6 +1622,7 @@ sub irc_nick {
   if ( $nick eq $self->{RealNick} ) {
 	$self->{RealNick} = $new;
   }
+  undef;
 }
 
 
@@ -1972,6 +2014,10 @@ representing the number of messages that are queued up waiting for dispatch to t
 
 Takes no arguments. Returns true or false depending on whether the component is currently
 connected to an IRC network or not.
+
+=item disconnect
+
+Takes no arguments. Terminates the socket connection disgracefully >;o]
 
 =back
 

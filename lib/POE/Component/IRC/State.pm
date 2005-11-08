@@ -168,6 +168,7 @@ sub _parseline {
     $ev->{name} = 'irc_' . $ev->{name};
     $self->_send_event( $ev->{name}, @{$ev->{args}} );
   }
+  undef;
 }
 
 # Event handlers for tracking the STATE. $self->{STATE} is used as our namespace.
@@ -176,18 +177,22 @@ sub _parseline {
 # Make sure we have a clean STATE when we first join the network and if we inadvertently get disconnected
 sub irc_001 {
   delete ( $_[OBJECT]->{STATE} );
+  undef;
 }
 
 sub irc_disconnected {
   delete ( $_[OBJECT]->{STATE} );
+  undef;
 }
 
 sub irc_error {
   delete ( $_[OBJECT]->{STATE} );
+  undef;
 }
 
 sub irc_socketerr {
   delete ( $_[OBJECT]->{STATE} );
+  undef;
 }
 
 # Channel JOIN messages
@@ -210,6 +215,7 @@ sub irc_join {
         $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{CHANS}->{ u_irc ( $channel ) } = '';
         $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Nicks}->{ u_irc ( $nick ) } = '';
   }
+  undef;
 }
 
 # Channel PART messages
@@ -235,6 +241,7 @@ sub irc_part {
                 delete ( $self->{STATE}->{Nicks}->{ $nick } );
         }
   }
+  undef;
 }
 
 # QUIT messages
@@ -250,6 +257,7 @@ sub irc_quit {
         }
         delete ( $self->{STATE}->{Nicks}->{ u_irc ( $nick ) } );
   }
+  undef;
 }
 
 # Channel KICK messages
@@ -273,6 +281,7 @@ sub irc_kick {
                 delete ( $self->{STATE}->{Nicks}->{ u_irc ( $nick ) } );
         }
   }
+  undef;
 }
 
 # NICK changes
@@ -296,6 +305,7 @@ sub irc_nick {
         }
         $self->{STATE}->{Nicks}->{ u_irc ( $new ) } = $record;
   }
+  undef;
 }
 
 # Channel MODE
@@ -370,6 +380,7 @@ sub irc_mode {
         delete ( $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Mode} );
      }
   }
+  undef;
 }
 
 # RPL_WHOREPLY
@@ -398,6 +409,7 @@ sub irc_352 {
   if ( $status =~ /\*/ ) {
     $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{IRCop} = 1;
   }
+  undef;
 }
 
 #RPL_ENDOFWHO
@@ -416,6 +428,7 @@ sub irc_315 {
   } else {
 	$self->_send_event( 'irc_nick_sync', $channel );
   }
+  undef;
 }
 
 # RPL_CHANNELMODEIS
@@ -445,6 +458,7 @@ sub irc_324 {
 	delete ( $self->{CHANNEL_SYNCH}->{ u_irc ( $channel ) } );
 	$self->_send_event( 'irc_chan_sync', $channel );
   }
+  undef;
 }
 
 # Miscellaneous internal functions

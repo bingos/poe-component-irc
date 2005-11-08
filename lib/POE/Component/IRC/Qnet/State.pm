@@ -234,6 +234,7 @@ sub _parseline {
     $ev->{name} = 'irc_' . $ev->{name};
     $self->_send_event( $ev->{name}, @{$ev->{args}} );
   }
+  undef;
 }
 
 # Qnet extension to RPL_WHOIS
@@ -242,6 +243,7 @@ sub irc_330 {
   my ($nick,$account) = ( split / /, $_[ARG1] )[0..1];
 
   $self->{WHOIS}->{ $nick }->{account} = $account;
+  undef;
 }
 
 # Qnet extension RPL_WHOEXT
@@ -271,6 +273,7 @@ sub irc_354 {
   if ( $status =~ /\*/ ) {
     $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{IRCop} = 1;
   }
+  undef;
 }
 
 #RPL_ENDOFWHO
@@ -293,6 +296,7 @@ sub irc_315 {
            $self->_send_event( 'irc_nick_sync', $channel );
 	}
   }
+  undef;
 }
 
 # Channel JOIN messages
@@ -316,6 +320,7 @@ sub irc_join {
         $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{CHANS}->{ u_irc ( $channel ) } = '';
         $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Nicks}->{ u_irc ( $nick ) } = '';
   }
+  undef;
 }
 
 # Channel MODE
@@ -391,6 +396,7 @@ sub irc_mode {
         delete ( $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Mode} );
      }
   }
+  undef;
 }
 
 sub u_irc {

@@ -221,6 +221,7 @@ sub qnet_bot_commands {
   }
   $command = join(' ',$command,$message) if ( defined ( $message ) );
   $kernel->yield( 'sl_prioritized', $pri, $command );
+  undef;
 }
 
 sub service_bots {
