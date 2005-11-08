@@ -128,7 +128,6 @@ sub _create {
 				      sl_prioritized
 				      topic
 				      unregister
-				      unregister_sessions
 				      userhost ), ( map {( 'irc_' . $_ )} @{ $self->{IRC_EVTS} } ) ];
 
   $self->{OBJECT_STATES_HASHREF} = { @event_map, '_tryclose' => 'dcc_close' };

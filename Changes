@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+4.75  <Date>
+    - Fixed a problem with DCC code. Thanks to ketas for the heads up.
+
 4.74  Wed Oct 26 09:15:21 BST 2005
     - *sigh* another problem fixed with the new dns code.
 

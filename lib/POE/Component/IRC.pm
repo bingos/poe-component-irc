@@ -28,7 +28,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '4.74';
+$VERSION = '4.75';
 $REVISION = do {my@r=(q$Revision: 1.4 $=~/\d+/g);sprintf"%d."."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -153,7 +153,6 @@ sub _create {
 				      sl_prioritized
 				      topic
 				      unregister
-				      unregister_sessions
 				      userhost ), ( map {( 'irc_' . $_ )} @{ $self->{IRC_EVTS} } ) ];
 
   $self->{OBJECT_STATES_HASHREF} = { @event_map, '_tryclose' => 'dcc_close' };
@@ -887,7 +886,7 @@ sub dcc {
       Reuse        => 'yes',
   );
   ($port, $myaddr) = unpack_sockaddr_in( $factory->getsockname() );
-  $myaddr = inet_aton($self->{nat_addr}) || $self->{localaddr} || inet_aton(hostname() || 'localhost');
+  $myaddr = inet_aton( $self->{nat_addr} || '' ) || $self->{localaddr} || inet_aton(hostname() || 'localhost');
   unless ($myaddr) {
     warn "dcc: Can't determine our IP address! ($!)";
     return;
@@ -1323,7 +1322,7 @@ sub shutdown {
   }
 
   #if ( $self->{sessions}->{ $_[SENDER] } ) {
-  #	$kernel->yield ( 'unregister_sessions' );
+  #$kernel->yield ( 'unregister_sessions' );
   #}
   
   # Delete all plugins that are loaded.
@@ -1464,39 +1463,24 @@ sub unregister {
     return;
   }
 
-  foreach (@events) {
+  $self->_unregister($session,$sender,@events);
+  undef;
+}
+
+sub _unregister {
+  my ($self,$session,$sender) = splice @_,0,3;
+
+  foreach (@_) {
     delete $self->{events}->{$_}->{$sender};
     if (--$self->{sessions}->{$sender}->{refcnt} <= 0) {
       delete $self->{sessions}->{$sender};
       unless ($session == $sender) {
-        $kernel->refcount_decrement($sender->ID(), PCI_REFCOUNT_TAG);
+        $poe_kernel->refcount_decrement($sender->ID(), PCI_REFCOUNT_TAG);
       }
     }
   }
+  undef;
 }
-
-sub unregister_sessions {
-  my ($kernel, $self, $session, $called_by) =
-    @_[KERNEL,  OBJECT, SESSION,  SENDER];
-
-  unless ($session eq $called_by) {
-    warn "unregister_sessions: Naughty. Naughty. Only I can call this event";
-    return;
-  }
-
-  foreach my $sender ( keys %{ $self->{sessions} } ) {
-    foreach ( keys %{ $self->{events} } ) {
-      delete $self->{events}->{$_}->{$sender};
-      if (--$self->{sessions}->{$sender}->{refcnt} <= 0) {
-        delete $self->{sessions}->{$sender};
-        unless ($session == $sender) {
-          $kernel->refcount_decrement($sender->ID(), PCI_REFCOUNT_TAG);
-        }
-      }
-    }
-  }
-}
-
 
 # Asks the IRC server for some random information about particular nicks.
 sub userhost {
