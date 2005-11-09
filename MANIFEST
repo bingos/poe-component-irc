@@ -43,4 +43,7 @@ t/2_Qnet_State.t
 t/3_connect.t
 t/4_testharness.t
 t/5_pod.t
+t/plugins/01_connector.t
+t/plugins/02_botaddressed.t
+t/plugins/03_bottraffic.t
 t/testsuite_01_plugin.t

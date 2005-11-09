@@ -151,7 +151,7 @@ sub _reconnect {
 sub _start_time_out {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
 
-  $kernel->delay( '_time_out => $self->{timeout} || 60 );
+  $kernel->delay( '_time_out' => $self->{timeout} || 60 );
   undef;
 }
 
@@ -163,7 +163,7 @@ sub _time_out {
 }
 
 1;
-
+__END__
 =head1 NAME
 
 POE::Component::IRC::Plugin::Connector - A PoCo-IRC plugin that deals with the messy business of staying connected to an IRC server.

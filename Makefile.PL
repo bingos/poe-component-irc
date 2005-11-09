@@ -17,5 +17,6 @@ WriteMakefile(
 							 },
 			  'VERSION_FROM' => 'lib/POE/Component/IRC.pm', # finds $VERSION
 			  'dist' => { 'COMPRESS' => 'gzip --best' },
+			  'test' => { TESTS => 't/*.t t/*/*.t' },
 			 );
 
