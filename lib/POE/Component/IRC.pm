@@ -605,6 +605,7 @@ sub disconnect {
 sub _sock_failed {
   my ($self, $op, $errno, $errstr) = @_[OBJECT, ARG0..ARG2];
 
+  delete $self->{'socketfactory'};
   $self->_send_event( 'irc_socketerr', "$op error $errno: $errstr" );
   undef;
 }

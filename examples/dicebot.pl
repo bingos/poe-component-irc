@@ -9,6 +9,7 @@
 use strict;
 use POE;
 use POE::Component::IRC;
+use Data::Dumper;
 
 my $nick = 'dicebot';
 
@@ -23,7 +24,7 @@ sub _start {
 					             'scissorman.phreeow.net',
 					 Port     => $ARGV[1] || 6667,
 					 Username => 'neenio',
-					 Ircname  => "HELP I'M A ROCK", }
+					 Ircname  => "HELP I'M A ROCK", },
 	       );
 
   $kernel->sig( INT => "sigint" );
@@ -52,11 +53,14 @@ sub irc_error {
 sub irc_socketerr {
   my $err = $_[ARG0];
   print "Couldn't connect to server: $err\n";
+  $poe_kernel->sig( 'INT' );
 }
 
 sub sigint {
   my $kernel = $_[KERNEL];
   $kernel->post( 'dicebot', 'quit', 'Neenios on ice!' );
+  print "Tickles!!!!!!\n";
+  $kernel->sig( 'INT' );
   $kernel->sig_handled();
 }
 

@@ -7,6 +7,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Updates to Connector plugin to fix timeout issues on connection.
     - Added tests for the included plugins: Connector,BotAddressed and
       BotTraffic.
+    - Fixed dicebot.pl in examples/ problem with $SIG{INT}.
 
 4.74  Wed Oct 26 09:15:21 BST 2005
     - *sigh* another problem fixed with the new dns code.
