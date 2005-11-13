@@ -50,6 +50,13 @@ sub S_connected {
   return PCI_EAT_NONE;
 }
 
+sub S_001 {
+  my ($self,$irc) = splice @_, 0, 2;
+
+  $poe_kernel->post( $self->{SESSION_ID}, '_start_ping' );
+  return PCI_EAT_NONE;
+}
+
 sub S_disconnected {
   my ($self,$irc) = splice @_, 0, 2;
 
@@ -107,6 +114,7 @@ sub _start {
 sub _start_ping {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
 
+  $kernel->delay( '_time_out' => undef );
   $kernel->delay( '_auto_ping' => $self->{delay} || 300 );
   undef;
 }
