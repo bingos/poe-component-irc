@@ -2077,7 +2077,7 @@ IRC traffic through a proxy server.  "Proxy"'s value should be the IP
 address or server name of the proxy.  "ProxyPort"'s value should be the
 port on the proxy to connect to.  C<connect()> will default to using the
 I<actual> IRC server's port if you provide a proxy but omit the proxy's
-port.
+port. SOCKS v4 supported.
 
 For those people who run bots behind firewalls and/or Network Address Translation
 there are two additional attributes for DCC. "DCCPorts", is an arrayref of ports
