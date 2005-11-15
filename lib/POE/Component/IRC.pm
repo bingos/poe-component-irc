@@ -1569,6 +1569,17 @@ sub send_queue {
   return 0;
 }
 
+sub raw_events {
+  my ($self) = shift;
+  my ($value) = shift;
+
+  unless ( defined ( $value ) ) {
+	return $self->{raw_events};
+  }
+
+  $self->{raw_events} = $value;
+}
+
 sub session_id {
   my ($self) = shift;
 
@@ -2019,6 +2030,11 @@ connected to an IRC network or not.
 =item disconnect
 
 Takes no arguments. Terminates the socket connection disgracefully >;o]
+
+=item raw_events
+
+With no arguments, returns true or false depending on whether 'irc_raw' events are being 
+generated or not. Provide a true or false argument to enable or disable this feature accordingly.
 
 =back
 
