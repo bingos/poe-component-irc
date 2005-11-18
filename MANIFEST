@@ -4,6 +4,7 @@ lib/POE/Component/IRC/Test/Plugin.pm
 lib/POE/Component/IRC/Plugin/BotAddressed.pm
 lib/POE/Component/IRC/Plugin/BotTraffic.pm
 lib/POE/Component/IRC/Plugin/Connector.pm
+lib/POE/Component/IRC/Plugin/ISupport.pm
 lib/POE/Component/IRC/Plugin/Whois.pm
 lib/POE/Component/IRC/Qnet/State.pm
 lib/POE/Component/IRC/Constants.pm
@@ -46,4 +47,5 @@ t/5_pod.t
 t/plugins/01_connector.t
 t/plugins/02_botaddressed.t
 t/plugins/03_bottraffic.t
+t/plugins/04_isupport.t
 t/testsuite_01_plugin.t

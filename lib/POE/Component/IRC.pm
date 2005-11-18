@@ -18,6 +18,7 @@ use POE qw( Wheel::SocketFactory Wheel::ReadWrite Driver::SysRW
 use POE::Filter::IRC;
 use POE::Filter::CTCP;
 use POE::Component::IRC::Plugin::Whois;
+use POE::Component::IRC::Plugin::ISupport;
 use POE::Component::IRC::Constants;
 use POE::Component::IRC::Pipeline;
 use Carp;
@@ -703,8 +704,10 @@ sub _start {
   $self->{SESSION_ID} = $session->ID();
 
   # Plugin 'irc_whois' and 'irc_whowas' support
-  $self->plugin_add ( 'Whois', POE::Component::IRC::Plugin::Whois->new() );
+  $self->plugin_add ( 'Whois' . $self->{SESSION_ID}, POE::Component::IRC::Plugin::Whois->new() );
 
+  $self->{isupport} = POE::Component::IRC::Plugin::ISupport->new();
+  $self->plugin_add( 'ISupport' . $self->{SESSION_ID}, $self->{isupport} );
   return 1;
 }
 
@@ -1639,6 +1642,16 @@ sub irc_nick {
   undef;
 }
 
+# accesses the ISupport plugin
+sub isupport {
+  my ($self) = shift;
+  return $self->{isupport}->isupport(@_);
+}
+
+sub isupport_dump_keys {
+  return $_[0]->{isupport}->dump_keys();
+}
+
 
 # accesses the plugin pipeline
 sub pipeline {
@@ -2037,6 +2050,14 @@ Takes no arguments. Terminates the socket connection disgracefully >;o]
 
 With no arguments, returns true or false depending on whether 'irc_raw' events are being 
 generated or not. Provide a true or false argument to enable or disable this feature accordingly.
+
+=item isupport
+
+Takes one argument, a server capability to query. Returns undef on failure or a value representing the applicable capability. A full list of capabilities is available at L<http://www.irc.org/tech_docs/005.html>.
+
+=item isupport_dump_keys
+
+Takes no arguments, returns a list of the available server capabilities keys, which can be used with isupport().
 
 =back
 
