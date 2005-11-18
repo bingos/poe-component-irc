@@ -1,6 +1,8 @@
 # $Id: IRC.pm,v 1.4 2005/04/24 10:31:28 chris Exp $
 #
 # POE::Component::IRC, by Dennis Taylor <dennis@funkplanet.com>
+# 
+# Additional enhancements by Chris 'BinGOs' Williams.
 #
 # This module may be used, modified, and distributed under the same
 # terms as Perl itself. Please see the license that came with your Perl

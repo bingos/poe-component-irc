@@ -47,6 +47,7 @@ those, you're in more trouble than we can help with anyways...
 	If the module finds POE::Component::Client::DNS installed it
 will use it to resolve the IP address of the servername given to connect.
 
+	POE::Component::SSLify is required for SSL links.
 
 4. INSTALLATION
 ---------------
