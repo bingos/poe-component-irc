@@ -1649,7 +1649,7 @@ sub isupport {
 }
 
 sub isupport_dump_keys {
-  return $_[0]->{isupport}->dump_keys();
+  return $_[0]->{isupport}->isupport_dump_keys();
 }
 
 
@@ -2665,6 +2665,10 @@ by the component from the IRC server, before it has been mangled by filters and 
 
 Sent once to the requesting session on registration ( see register() ). ARG0 is a reference to
 the component's object.
+
+=item irc_isupport
+
+Emitted by the first event after an irc_005, to indicate that isupport information has been gathered. ARG0 is the L<POE::Component::IRC::Plugin::ISupport|POE::Component::IRC::Plugin::ISupport> object.
 
 =item All numeric events (see RFC 1459)
 

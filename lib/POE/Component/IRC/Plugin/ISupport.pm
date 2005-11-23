@@ -144,7 +144,7 @@ sub isupport {
   undef;
 }
 
-sub dump_keys {
+sub isupport_dump_keys {
   my ($self) = shift;
 
   if ( scalar ( keys %{ $self->{server} } ) > 0 ) {
@@ -166,6 +166,30 @@ POE::Component::IRC::Plugin::ISupport - A PoCo-IRC plugin that handles server ca
 This handles the C<irc_005> messages that come from the server.  They
 define the capabilities support by the server.
 
+=head1 CONSTRUCTOR
+
+=over 
+
+=item new 
+
+Takes no arguments.
+
+=back
+
+=head1 METHODS
+
+=over
+
+=item isupport
+
+Takes one argument. the server capability to query. Returns undef on failure or a value representing the applicable capability. A full list of capabilities is available at L<http://www.irc.org/tech_docs/005.html>.
+
+=item isupport_dump_keys
+
+Takes no arguments, returns a list of the available server capabilities, which can be used with isupport().
+
+=back
+
 =head2 Handlers
 
 This module handles the following PoCo-IRC signals:
@@ -181,6 +205,8 @@ Denotes the capabilities of the server.
 Once the next signal is received that is I<greater> than C<irc_005>, the
 plugin unregisters itself and emits an C<irc_isupport> signal.
 ck
+
+=back
 
 =head2 Signals Emitted
 
