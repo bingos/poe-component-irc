@@ -12,6 +12,8 @@ Revision history for Perl extension POE::Component::IRC.
     - Added raw_events() method to enable/disable/display current irc_raw.
     - README updates. Notably to mention PoCo-SSLify for SSL links.
     - Stole japhy's ISupport plugin for .. erm .. new ISupport plugin >;]
+    - Added CTCP.pm from gumbynet source. Added applicable test for it.
+    - Added Console.pm from gumbynet source. Added applicable test for it.
 
 4.74  Wed Oct 26 09:15:21 BST 2005
     - *sigh* another problem fixed with the new dns code.

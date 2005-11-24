@@ -38,12 +38,14 @@ sub _start {
       POE::Wheel::ReadLine->new( InputEvent => 'got_input' );
     $heap->{readline_wheel}->get("> ");
     $irc->yield( register => 'all' );
+    undef;
 }
 
 sub _stop {
   delete $_[HEAP]->{readline_wheel};
   $irc->yield( unregister => 'all' );
   $irc->yield( 'shutdown' );
+  undef;
 }
 
 sub got_input {
@@ -71,6 +73,7 @@ sub got_input {
     }
 
     $heap->{readline_wheel}->get("> ") if ( $heap->{readline_wheel} );
+    undef;
 }
 
 sub parse_input {
@@ -95,6 +98,7 @@ sub parse_input {
         $heap->{readline_wheel}->put($cmd . " " . join(' ',@args) );
     }
   }
+  undef;
 }
 
 sub _default {
@@ -126,4 +130,5 @@ sub irc_public {
   my ($chan) = $where->[0];
 
   $heap->{readline_wheel}->put($chan . ':<' . $nick . '> ' . $what);
+  undef;
 }
