@@ -72,8 +72,8 @@ sub S_join {
 
 sub S_part {
   my ($self,$irc) = splice @_, 0, 2;
-  my ($joiner) = ( split /!/, ${ $_[0] } )[0];
-  return PCI_EAT_NONE unless $joiner eq $irc->nick_name();
+  my ($partee) = ( split /!/, ${ $_[0] } )[0];
+  return PCI_EAT_NONE unless $partee eq $irc->nick_name();
   my ($channel) = ${ $_[1] };
   delete $self->{current_channels}->{ u_irc( $channel ) };
   return PCI_EAT_NONE;
@@ -81,6 +81,10 @@ sub S_part {
 
 sub S_kick {
   my ($self,$irc) = splice @_, 0, 2;
+  my ($kicked) = u_irc( ${ $_[2] } );
+  return PCI_EAT_NONE unless $kicked eq u_irc( $irc->nick_name() ); 
+  my ($channel) = u_irc ( ${ $_[1] } );
+  delete $self->{current_channels}->{ $channel };
   return PCI_EAT_NONE;
 }
 
@@ -300,11 +304,37 @@ POE::Component::IRC::Plugin::Proxy - A lightweight IRC proxy/bouncer for L<POE::
 
   use strict;
   use warnings;
-  use POE qw(Component::IRC Component::IRC::Plugin::Proxy);
+  use POE qw(Component::IRC Component::IRC::Plugin::Proxy Component::IRC::Connector);
+
+  my ($irc) = POE::Component::IRC->spawn();
+
+  POE::Session->create( 
+        package_states => [ 
+                'main' => [ qw(_start) ],
+        ],
+	heap => { irc => $irc },
+  );
+
+  $poe_kernel->run();
+  exit 0;
+
+  sub _start {
+    my ($kernel,$heap) = @_[KERNEL,HEAP];
+    $heap->{irc}->yield( register => 'all' );
+    $heap->{proxy} = POE::Component::IRC::Plugin::Proxy->new( bindport => 6969, password => "m00m00" );
+    $heap->{irc}->plugin_add( 'Connector' => POE::Component::IRC::Connector->new() );
+    $heap->{irc}->plugin_add( 'Proxy' => $heap->{proxy} );
+    $heap->{irc}->yield ( connect => { Nick => 'testbot', Server => 'someserver.com' } );
+    undef;
+  }
 
 =head1 DESCRIPTION
 
 POE::Component::IRC::Plugin::Proxy is a L<POE::Component::IRC> plugin that provides lightweight IRC proxy/bouncer server to your L<POE::Component::IRC> bots. It enables multiple IRC clients to be hidden behind a single IRC client-server connection.
+
+Spawn a L<POE::Component::IRC> session and add in a POE::Component::IRC::Plugin::Proxy plugin object, specifying a bindport and a password the connecting IRC clients have to use. When the component is connected to an IRC network a listening port is opened by the plugin for multiple IRC clients to connect. 
+
+Neat, huh? >;o)
 
 =head1 CONSTRUCTOR
 
@@ -349,3 +379,13 @@ The plugin emits the following L<POE::Component::IRC> events:
 =item irc_proxy_service
 
 Emitted when the listener is successfully started. ARG0 is the result of the listener getsockname().
+
+=back
+
+=head1 AUTHOR
+
+Chris 'BinGOs' Williams
+
+=head1 SEE ALSO
+
+L<POE::Component::IRC>
