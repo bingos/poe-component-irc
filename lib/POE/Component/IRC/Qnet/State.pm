@@ -399,59 +399,6 @@ sub irc_mode {
   undef;
 }
 
-sub u_irc {
-  my ($value) = shift || return undef;
-
-  $value =~ tr/a-z{}|^/A-Z[]\\~/;
-  return $value;
-}
-
-# Given mode arguments as @_ this function returns a hashref, which contains the split up modes and args.
-# Given @_ = ( '+ovb', 'lamebot', 'nickname', '*!*@*' )
-# Returns { modes => [ '+o', '+v', '+b' ], args => [ 'lamebot', 'nickname', '*!*@*' ] }
-sub parse_mode_line {
-  my ($hashref) = { };
-
-  my ($count) = 0;
-  foreach my $arg ( @_ ) {
-        if ( $arg =~ /^(\+|-)/ or $count == 0 ) {
-           my ($action) = '+';
-           foreach my $char ( split (//,$arg) ) {
-                if ( $char eq '+' or $char eq '-' ) {
-                   $action = $char;
-                } else {
-                   push ( @{ $hashref->{modes} }, $action . $char );
-                }
-           }
-         } else {
-                push ( @{ $hashref->{args} }, $arg );
-         }
-         $count++;
-  }
-  return $hashref;
-}
-
-sub parse_ban_mask {
-  my ($arg) = shift || return undef;
-
-  $arg =~ s/\x2a{2,}/\x2a/g;
-  my (@ban); my ($remainder);
-  if ( $arg !~ /\x21/ and $arg =~ /\x40/ ) {
-     $remainder = $arg;
-  } else {
-     ($ban[0],$remainder) = split (/\x21/,$arg,2);
-  }
-  $remainder =~ s/\x21//g if ( defined ( $remainder ) );
-  @ban[1..2] = split (/\x40/,$remainder,2) if ( defined ( $remainder ) );
-  $ban[2] =~ s/\x40//g if ( defined ( $ban[2] ) );
-  for ( my $i = 0; $i <= 2; $i++ ) {
-    if ( ( not defined ( $ban[$i] ) ) or $ban[$i] eq '' ) {
-       $ban[$i] = '*';
-    }
-  }
-  return $ban[0] . '!' . $ban[1] . '@' . $ban[2];
-}
-
 sub is_nick_authed {
   my ($self) = shift;
   my ($nick) = u_irc ( $_[0] ) || return undef;

@@ -10,6 +10,7 @@ use Date::Format;
 use Socket;
 use Carp;
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Line Filter::IRCD Filter::Stackable);
+use POE::Component::IRC::Common qw(:ALL);
 use POE::Component::Client::DNS;
 use POE::Component::Client::Ident;
 
@@ -2279,28 +2280,6 @@ sub cmd_server_kick {
 
 # Miscellaneous Subroutines
 
-sub parse_mode_line {
-  my ($hashref) = { };
-
-  my ($count) = 0;
-  foreach my $arg ( @_ ) {
-	if ( $arg =~ /^(\+|-)/ or $count == 0 ) {
-	   my ($action) = '+';
-	   foreach my $char ( split (//,$arg) ) {
-		if ( $char eq '+' or $char eq '-' ) {
-		   $action = $char;
-		} else {
-		   push ( @{ $hashref->{modes} }, $action . $char );
-		}
-	   }
-	 } else {
-		push ( @{ $hashref->{args} }, $arg );
-	 }
-	 $count++;
-  }
-  return $hashref;
-}
-
 sub unparse_mode_line {
   my ($line) = $_[0] || return undef;
 
@@ -2344,13 +2323,6 @@ sub validate_channelname {
 	return 1;
   }
   return 0;
-}
-
-sub u_irc {
-  my ($value) = shift || return undef;
-
-  $value =~ tr/a-z{}|^/A-Z[]\\~/;
-  return $value;
 }
 
 sub timestring {

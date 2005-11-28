@@ -7,8 +7,10 @@ lib/POE/Component/IRC/Plugin/Connector.pm
 lib/POE/Component/IRC/Plugin/Console.pm
 lib/POE/Component/IRC/Plugin/CTCP.pm
 lib/POE/Component/IRC/Plugin/ISupport.pm
+lib/POE/Component/IRC/Plugin/Proxy.pm
 lib/POE/Component/IRC/Plugin/Whois.pm
 lib/POE/Component/IRC/Qnet/State.pm
+lib/POE/Component/IRC/Common.pm
 lib/POE/Component/IRC/Constants.pm
 lib/POE/Component/IRC/Pipeline.pm
 lib/POE/Component/IRC/Plugin.pm
@@ -46,10 +48,12 @@ t/2_Qnet_State.t
 t/3_connect.t
 t/4_testharness.t
 t/5_pod.t
+t/6_common.t
 t/plugins/01_connector.t
 t/plugins/02_botaddressed.t
 t/plugins/03_bottraffic.t
 t/plugins/04_isupport.t
 t/plugins/05_ctcp.t
 t/plugins/06_console.t
+t/plugins/07_proxy.t
 t/testsuite_01_plugin.t

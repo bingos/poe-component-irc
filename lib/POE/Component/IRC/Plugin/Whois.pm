@@ -11,6 +11,7 @@ our $VERSION = '0.01';
 
 # Import the stuff from Plugin
 use POE::Component::IRC::Plugin qw( PCI_EAT_NONE );
+use POE::Component::IRC::Common qw(:ALL);
 
 # The constructor
 sub new {
@@ -168,13 +169,6 @@ sub S_369 {
   }
 
   return PCI_EAT_NONE;
-}
-
-sub u_irc {
-  my ($value) = shift || return undef;
-
-  $value =~ tr/a-z{}|^/A-Z[]\\~/;
-  return $value;
 }
 
 1;
