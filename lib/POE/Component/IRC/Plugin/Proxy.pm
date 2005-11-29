@@ -35,9 +35,8 @@ sub PCI_register {
 
 sub PCI_unregister {
   my ($self,$irc) = splice @_, 0, 2;
-  delete ( $self->{irc} );
   $irc->raw_events( $self->{raw_events} );
-  $poe_kernel->post( $self->{SESSION_ID} => '_shutdown' );
+  $poe_kernel->post( $self->{SESSION_ID} => '_shutdown' => delete ( $self->{irc} ) );
   $poe_kernel->refcount_decrement( $self->{SESSION_ID}, __PACKAGE__ );
   return 1;
 }
@@ -132,9 +131,18 @@ sub S_raw {
 sub _stash_line {
   my ($self,$line) = splice @_, 0, 2;
   return unless $line;
-  my ($numeric) = ( split / /, $line )[1];
-  return unless ( $numeric and $numeric =~ /^\d{3,3}$/ );
   return if $self->{stashed};
+  my ($prefix,$numeric) = ( split / /, $line )[0..1];
+  if ( $prefix eq 'NOTICE' ) {
+    push( @{ $self->{stash} }, $line );
+    return;
+  }
+  $prefix =~ s/^://;
+  if ( $numeric eq 'NOTICE' and $prefix eq $self->{irc}->server_name() ) {
+    push( @{ $self->{stash} }, $line );
+    return;
+  }
+  return unless ( $numeric and $numeric =~ /^\d{3,3}$/ );
   if ( $numeric eq '376' or $numeric eq '422' ) {
     push( @{ $self->{stash} }, $line );
     $self->{stashed} = 1;
@@ -150,6 +158,13 @@ sub _send_to_client {
   return unless $self->{wheels}->{ $wheel_id }->{reg};
   $self->{wheels}->{ $wheel_id }->{wheel}->put( $line );
   return 1;
+}
+
+sub _close_wheel {
+  my ($self,$wheel_id) = splice @_, 0, 2;
+  return unless defined $self->{wheels}->{ $wheel_id };
+  delete $self->{wheels}->{ $wheel_id };
+  $self->{irc}->_send_event( 'irc_proxy_close' => $wheel_id );
 }
 
 sub _start {
@@ -181,7 +196,7 @@ sub _spawn_listener {
 	$irc->plugin_del( $self );
 	return undef;
   }
-  $self->{irc}->_send_event( 'irc_proxy_service' => $self->{listener}->getsockname() );
+  $self->{irc}->_send_event( 'irc_proxy_up' => $self->{listener}->getsockname() );
   undef;
 }
 
@@ -221,7 +236,7 @@ sub _client_flush {
   my ($kernel,$self,$wheel_id) = @_[KERNEL,OBJECT,ARG0];
 
   return unless defined ( $self->{wheels}->{ $wheel_id } ) and $self->{wheels}->{ $wheel_id }->{quiting};
-  delete $self->{wheels}->{ $wheel_id };
+  $self->_close_wheel( $wheel_id );
   undef;
 }
 
@@ -233,7 +248,7 @@ sub _client_input {
 	last SWITCH;
     }
     if ( $input->{command} eq 'QUIT' ) {
-	delete ( $self->{wheels}->{ $wheel_id } );
+  	$self->_close_wheel( $wheel_id );
 	last SWITCH;
     }
     if ( $input->{command} eq 'PASS' and $self->{wheels}->{ $wheel_id }->{reg} < 2 ) {
@@ -294,23 +309,29 @@ sub _client_input {
 sub _client_error {
   my ($self,$wheel_id) = @_[OBJECT,ARG3];
 
-  delete ( $self->{wheels}->{ $wheel_id } );
-  $self->{irc}->_send_event( 'irc_proxy_close' => $wheel_id );
+  $self->_close_wheel( $wheel_id );
   undef;
 }
 
 sub _shutdown {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
 
+  my $irc = $self->{irc} || $_[ARG0];
+
   delete $self->{current_channels};
-  delete ( $self->{listener} );
-  delete ( $self->{wheels} );
+  my $mysockaddr = $self->getsockname();
+  delete $self->{listener};
+  foreach my $wheel_id ( $self->list_wheels() ) {
+	$self->_close_wheel( $wheel_id );
+  }
+  delete $self->{wheels};
+  $irc->_send_event( 'irc_proxy_down' => $mysockaddr );
   undef;
 }
 
 sub getsockname {
   my $self = shift;
-  return undef unless ( $self->{listener} );
+  return undef unless $self->{listener};
   return $self->{listener}->getsockname();
 }
 
@@ -411,7 +432,7 @@ The plugin emits the following L<POE::Component::IRC> events:
 
 =over
 
-=item irc_proxy_service
+=item irc_proxy_up
 
 Emitted when the listener is successfully started. ARG0 is the result of the listener getsockname().
 
@@ -431,7 +452,15 @@ Emitted when a connecting client successfully negotiates an IRC session with the
 
 Emitted when a connected client disconnects. ARG0 is the wheel ID of the client.
 
+=item irc_proxy_down
+
+Emitted when the listener is successfully shutdown. ARG0 is the result of the listener getsockname().
+
 =back
+
+=head1 QUIRKS
+
+Connecting IRC clients will not be able to change nickname. This is a feature.
 
 =head1 AUTHOR
 
