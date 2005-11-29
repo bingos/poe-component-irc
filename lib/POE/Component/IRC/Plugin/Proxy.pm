@@ -20,7 +20,8 @@ sub PCI_register {
   $self->{raw_events} = $irc->raw_events();
   $irc->raw_events( '1' );
   $self->{irc} = $irc;
-  $irc->plugin_register( $self, 'SERVER', qw(raw 001 disconnected socketerr error msg join part kick) );
+  #$irc->plugin_register( $self, 'SERVER', qw(raw 001 disconnected socketerr error msg join part kick) );
+  $irc->plugin_register( $self, 'SERVER', qw(all) );
 
   $self->{SESSION_ID} = POE::Session->create(
 	object_states => [
@@ -41,10 +42,17 @@ sub PCI_unregister {
   return 1;
 }
 
+sub S_connected {
+  my ($self,$irc) = splice @_, 0, 2;
+  delete $self->{iamthis};
+  $self->{stashed} = 0;
+  $self->{stash} = [ ];
+  return PCI_EAT_NONE;
+}
+
 sub S_001 {
   my ($self,$irc) = splice @_, 0, 2;
 
-  delete $self->{iamthis};
   $poe_kernel->post( $self->{SESSION_ID} => '_shutdown' );
   $irc->yield( 'privmsg' => $irc->nick_name() => "Who am I?" );
   return PCI_EAT_NONE;
@@ -66,7 +74,7 @@ sub S_join {
   return PCI_EAT_NONE unless $joiner eq $irc->nick_name();
   my ($channel) = ${ $_[1] };
   delete $self->{current_channels}->{ u_irc( $channel ) };
-  $self->{current_channels}->{ u_irc( $channel ) } = time();
+  $self->{current_channels}->{ u_irc( $channel ) } = $channel;
   return PCI_EAT_NONE;
 }
 
@@ -74,8 +82,8 @@ sub S_part {
   my ($self,$irc) = splice @_, 0, 2;
   my ($partee) = ( split /!/, ${ $_[0] } )[0];
   return PCI_EAT_NONE unless $partee eq $irc->nick_name();
-  my ($channel) = ${ $_[1] };
-  delete $self->{current_channels}->{ u_irc( $channel ) };
+  my ($channel) = u_irc( ${ $_[1] } );
+  delete $self->{current_channels}->{ $channel };
   return PCI_EAT_NONE;
 }
 
@@ -117,13 +125,30 @@ sub S_raw {
   foreach my $wheel_id ( keys %{ $self->{wheels} } ) {
 	$self->_send_to_client( $wheel_id, $line );
   }
+  $self->_stash_line( $line );
   return PCI_EAT_ALL;
+}
+
+sub _stash_line {
+  my ($self,$line) = splice @_, 0, 2;
+  return unless $line;
+  my ($numeric) = ( split / /, $line )[1];
+  return unless ( $numeric and $numeric =~ /^\d{3,3}$/ );
+  return if $self->{stashed};
+  if ( $numeric eq '376' or $numeric eq '422' ) {
+    push( @{ $self->{stash} }, $line );
+    $self->{stashed} = 1;
+    return;
+  }
+  push( @{ $self->{stash} }, $line );
+  undef;
 }
 
 sub _send_to_client {
   my ($self,$wheel_id,$line) = splice @_, 0, 3;
-
-  $self->{wheels}->{ $wheel_id }->{wheel}->put( $line ) if ( defined ( $self->{wheels}->{ $wheel_id }->{wheel} ) and $self->{wheels}->{ $wheel_id}->{reg} );
+  return unless defined ( $self->{wheels}->{ $wheel_id }->{wheel} );
+  return unless $self->{wheels}->{ $wheel_id }->{reg};
+  $self->{wheels}->{ $wheel_id }->{wheel}->put( $line );
   return 1;
 }
 
@@ -179,6 +204,7 @@ sub _listener_accept {
 	$self->{wheels}->{ $wheel_id }->{peer} = inet_ntoa( $peeradr );
 	$self->{wheels}->{ $wheel_id }->{start} = time();
 	$self->{wheels}->{ $wheel_id }->{reg} = 0;
+	$self->{wheels}->{ $wheel_id }->{register} = 0;
 	$self->{irc}->_send_event( 'irc_proxy_connect' => $wheel_id );
   } else {
 	$self->{irc}->_send_event( 'irc_proxy_rw_fail' => inet_ntoa( $peeradr ) => $peerport );
@@ -214,6 +240,7 @@ sub _client_input {
 	$self->{wheels}->{ $wheel_id }->{pass} = $input->{params}->[0];
     }
     if ( $input->{command} eq 'NICK' and $self->{wheels}->{ $wheel_id }->{reg} < 2 ) {
+	$self->{wheels}->{ $wheel_id }->{nick} = $input->{params}->[0];
 	$self->{wheels}->{ $wheel_id }->{register}++;
     }
     if ( $input->{command} eq 'USER' and $self->{wheels}->{ $wheel_id }->{reg} < 2 ) {
@@ -222,23 +249,30 @@ sub _client_input {
     }
     if ( ( not $self->{wheels}->{ $wheel_id }->{reg} ) and $self->{wheels}->{ $wheel_id }->{register} >= 2 ) {
 	my $password = delete $self->{wheels}->{ $wheel_id }->{pass};
+	$self->{wheels}->{ $wheel_id }->{reg} = 1;
 	unless ( $password and $password eq $self->{password} ) {
 		$self->_send_to_client( $wheel_id => 'ERROR :Closing Link: * [' . ( $self->{wheels}->{ $wheel_id }->{user} || "unknown" ) . '@' . $self->{wheels}->{ $wheel_id }->{peer} . '] (Unauthorised connection)' );
 		$self->{wheels}->{ $wheel_id }->{quiting}++;
 		last SWITCH;
 	}
-	$self->{wheels}->{ $wheel_id }->{reg} = 1;
 	my ($nickname) = $self->{irc}->nick_name();
 	my ($fullnick) = join('!', $nickname, $self->{iamthis} );
-	$self->_send_to_client( $wheel_id, ':' . $self->{irc}->server_name() . " 001 $nickname :Welcome to the Internet Relay Network $fullnick" );
-	foreach my $channel ( keys %{ $self->{irc}->channels() } ) {
+	if ( $nickname ne $self->{wheels}->{ $wheel_id }->{nick} ) {
+	  $self->_send_to_client( $wheel_id, $self->{wheels}->{ $wheel_id }->{nick} . " NICK :$nickname" );
+	}
+	foreach my $line ( @{ $self->{stash} } ) {
+	  $self->_send_to_client( $wheel_id, $line );
+	}
+	foreach my $channel ( keys %{ $self->{current_channels} } ) {
+	  $channel = $self->{current_channels}->{ $channel };
 	  $self->_send_to_client( $wheel_id, ":$fullnick JOIN $channel" );
 	  $self->{irc}->yield( 'names' => $channel );
 	  $self->{irc}->yield( 'topic' => $channel );
 	}
+	$self->{irc}->_send_event( 'irc_proxy_authed' => $wheel_id );
 	last SWITCH;
     }
-    if ( $self->{wheels}->{ $wheel_id }->{reg} < 2 ) {
+    if ( not $self->{wheels}->{ $wheel_id }->{reg} ) {
 	last SWITCH;
     }
     if ( $input->{command} eq 'NICK' or $input->{command} eq 'USER' or $input->{command} eq 'PASS' ) {
@@ -268,6 +302,7 @@ sub _client_error {
 sub _shutdown {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
 
+  delete $self->{current_channels};
   delete ( $self->{listener} );
   delete ( $self->{wheels} );
   undef;
@@ -379,6 +414,22 @@ The plugin emits the following L<POE::Component::IRC> events:
 =item irc_proxy_service
 
 Emitted when the listener is successfully started. ARG0 is the result of the listener getsockname().
+
+=item irc_proxy_connect
+
+Emitted when a client connects to the listener. ARG0 is the wheel ID of the client.
+
+=item irc_proxy_rw_fail
+
+Emitted when the Wheel::ReadWrite fails on a connection. ARG0 is the wheel ID of the client.
+
+=item irc_proxy_authed
+
+Emitted when a connecting client successfully negotiates an IRC session with the plugin. ARG0 is the wheel ID of the client.
+
+=item irc_proxy_close
+
+Emitted when a connected client disconnects. ARG0 is the wheel ID of the client.
 
 =back
 
