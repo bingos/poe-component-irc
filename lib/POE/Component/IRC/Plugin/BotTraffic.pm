@@ -4,7 +4,7 @@ use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Filter::IRCD;
 
 sub new {
-  return bless { @_[1..$#_] }, $_[0];
+  return bless { PrivEvent => 'irc_bot_msg', PubEvent => 'irc_bot_public', @_[1..$#_] }, $_[0];
 }
 
 sub PCI_register {
@@ -29,8 +29,8 @@ sub U_privmsg {
 	my ($text) = $line->{params}->[1];
 	next if ( $text =~ /^\001/ ); # Skip over CTCPs
 	foreach my $recipient ( split(/,/,$line->{params}->[0]) ) {
-		my $event = 'irc_msg';
-		$event = 'irc_bot_public' if ( $recipient =~ /^(\x23|\x26|\x2B)/ );
+		my $event = $self->{PrivEvent};
+		$event = $self->{PubEvent} if ( $recipient =~ /^(\x23|\x26|\x2B)/ );
 		$irc->_send_event( $event => [ $recipient ] => $text );
 	}
   }
@@ -94,3 +94,7 @@ ARG0 will be an arrayref of recipients. ARG1 will be the text sent.
 =head1 AUTHOR
 
 Chris 'BinGOs' Williams [chris@bingosnet.co.uk]
+
+=head1 SEE ALSO
+
+L<POE::Component::IRC>

@@ -8,7 +8,7 @@ WriteMakefile(
 			  'NAME'	=> 'POE::Component::IRC',
 			  'PREREQ_PM' => {
 							  'POE'    => 0.06_07,
-							  'POE::Filter::IRCD' => 0,
+							  'POE::Filter::IRCD' => 1.4,
 							  'POE::Component::Client::DNS' => 0.98,
 							  'POE::Component::Client::Ident' => 0.7,
 							  'Carp'   => 0,

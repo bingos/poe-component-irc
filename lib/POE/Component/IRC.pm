@@ -14,8 +14,9 @@ package POE::Component::IRC;
 use strict;
 use warnings;
 use POE qw( Wheel::SocketFactory Wheel::ReadWrite Driver::SysRW
-	    Filter::Line Filter::Stream );
-use POE::Filter::IRC;
+	    Filter::Line Filter::Stream Filter::Stackable);
+use POE::Filter::IRCD;
+use POE::Filter::IRC::Compat;
 use POE::Filter::CTCP;
 use POE::Component::IRC::Plugin::Whois;
 use POE::Component::IRC::Plugin::ISupport;
@@ -209,8 +210,7 @@ sub _configure {
     $self->{'user_bitmode'} = $arg{'bitmode'} if exists $arg{'bitmode'};
     if (exists $arg{'debug'}) {
       $self->{'debug'} = $arg{'debug'};
-      $self->{irc_filter}->debug( $arg{'debug'} );
-      $self->{ctcp_filter}->debug( $arg{'debug'} );
+      $self->{ircd_filter}->{DEBUG} = $arg{'debug'};
     }
     my ($dccport) = delete ( $arg{'dccports'} );
     $self->{'UseSSL'} = $arg{'usessl'} if exists $arg{'usessl'};
@@ -332,7 +332,7 @@ sub debug {
     }
 
     $self->{debug} = $switch;
-    $self->{irc_filter}->debug( $switch );
+    $self->{ircd_filter}->debug( $switch );
     $self->{ctcp_filter}->debug( $switch );
 }
 
@@ -494,24 +494,38 @@ sub _dcc_up {
   undef;
 }
 
+sub _cook_events {
+  my ($self,$line) = splice @_, 0, 2;
+  return unless $line;
+  return ($line =~ tr/\001// ? @{$self->{ctcp_filter}->get( [$line] )}
+	  : @{$self->{irc_filter}->get( [$line] )} );
+  return @{$self->{ctcp_filter}->get( [$line] )} if $line =~ tr/\001//;
+  my (@result);
+  
+  foreach my $irc ( @{$self->{irc_filter}->get( [$line] )} ) {
+	if ( $irc->{command} =~ /^\d{3,3}$/ ) {
+		$irc->{name} = delete $irc->{command};
+	}
+	push( @result, $irc );
+  }
+}
+
 
 # Parse a message from the IRC server and generate the appropriate
 # event(s) for listening sessions.
 sub _parseline {
-  my ($session, $self, $line) = @_[SESSION, OBJECT, ARG0];
-  my (@events, @cooked);
+  my ($session, $self, $ev) = @_[SESSION, OBJECT, ARG0];
 
-  $self->_send_event( 'irc_raw' => $line ) if ( $self->{raw_events} );
+  $self->_send_event( 'irc_raw' => $ev->{raw_line} ) if ( $self->{raw_events} );
 
   # Feed the proper Filter object the raw IRC text and get the
   # "cooked" events back for sending, then deliver each event. We
   # handle CTCPs separately from normal IRC messages here, to avoid
   # silly module dependencies later.
 
-  @cooked = ($line =~ tr/\001// ? @{$self->{ctcp_filter}->get( [$line] )}
-	     : @{$self->{irc_filter}->get( [$line] )} );
+  #@cooked = $self->_cook_events( $line );
 
-  foreach my $ev (@cooked) {
+  #foreach my $ev (@cooked) {
     if ( $ev->{name} eq 'part' and not $self->{'dont_partfix'} ) {
 	(@{$ev->{args}}[1..2]) = split(/ /,$ev->{args}->[1],2);
 	$ev->{args}->[2] =~ s/^:// if ( defined ( $ev->{args}->[2] ) );
@@ -520,11 +534,11 @@ sub _parseline {
     if ( $ev->{name} eq '001' ) {
 	$self->{INFO}->{ServerName} = $ev->{args}->[0];
 	# Kind of assuming that $line is a single line of IRC protocol.
-	$self->{RealNick} = ( split / /, $line )[2];
+	$self->{RealNick} = ( split / /, $ev->{raw_line} )[2];
     }
     $ev->{name} = 'irc_' . $ev->{name};
     $self->_send_event( $ev->{name}, @{$ev->{args}} );
-  }
+  #}
   undef;
 }
 
@@ -638,12 +652,12 @@ sub _sock_up {
 
   # Create a new ReadWrite wheel for the connected socket.
   $self->{'socket'} = new POE::Wheel::ReadWrite
-    ( Handle     => $socket,
-      Driver     => POE::Driver::SysRW->new(),
-      Filter     => POE::Filter::Line->new( InputRegexp => '\015?\012',
-					    OutputLiteral => "\015\012" ),
-      InputEvent => '_parseline',
-      ErrorEvent => '_sock_down',
+    ( Handle       => $socket,
+      Driver       => POE::Driver::SysRW->new(),
+      InputFilter  => $self->{srv_filter},
+      OutputFilter => $self->{out_filter},
+      InputEvent   => '_parseline',
+      ErrorEvent   => '_sock_down',
     );
 
   if ($self->{'socket'}) {
@@ -698,8 +712,18 @@ sub _start {
   }
 
   $kernel->yield( 'register', @{ $self->{IRC_EVTS} } );
-  $self->{irc_filter} = POE::Filter::IRC->new();
+  $self->{ircd_filter} = POE::Filter::IRCD->new( DEBUG => $self->{debug} );
+  $self->{ircd_compat} = POE::Filter::IRC::Compat->new( DEBUG => $self->{debug} );
   $self->{ctcp_filter} = POE::Filter::CTCP->new();
+  my $filters = [
+		   POE::Filter::Line->new( InputRegexp => '\015?\012',
+					    OutputLiteral => "\015\012" ),
+		   $self->{ircd_filter},
+		   $self->{ircd_compat},
+		];
+		   
+  $self->{srv_filter} = POE::Filter::Stackable->new( Filters => $filters );
+  $self->{out_filter} = POE::Filter::Stackable->new( Filters => [ POE::Filter::Line->new( OutputLiteral => "\015\012" ) ] );
 
   $self->{SESSION_ID} = $session->ID();
 

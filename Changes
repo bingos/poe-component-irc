@@ -16,6 +16,13 @@ Revision history for Perl extension POE::Component::IRC.
     - Added Console.pm from gumbynet source. Added applicable test for it.
     - Moved common functions to Common.pm. Amended relevant code to import 
       functions from there.
+    - Added Proxy.pm from gumbynet source. Hacked to make much more useful
+      and robust. Added applicable test for it and added ircproxy.pl to
+      examples/ folder.
+    - Patch applied to BotTraffic plugin from immute.
+    - Completely rehacked how the component handles parsing irc traffic to
+      events. Now using Filter::IRCD with Filter::IRC::Compat to process all
+      input. Input and output filters are stackable.
 
 4.74  Wed Oct 26 09:15:21 BST 2005
     - *sigh* another problem fixed with the new dns code.

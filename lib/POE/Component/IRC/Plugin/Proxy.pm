@@ -278,8 +278,7 @@ sub _client_input {
 	foreach my $line ( @{ $self->{stash} } ) {
 	  $self->_send_to_client( $wheel_id, $line );
 	}
-	foreach my $channel ( keys %{ $self->{current_channels} } ) {
-	  $channel = $self->{current_channels}->{ $channel };
+	foreach my $channel ( $self->current_channels() ) {
 	  $self->_send_to_client( $wheel_id, ":$fullnick JOIN $channel" );
 	  $self->{irc}->yield( 'names' => $channel );
 	  $self->{irc}->yield( 'topic' => $channel );
@@ -349,6 +348,12 @@ sub wheel_info {
   return map { $self->{wheels}->{ $wheel_id }->{$_} } qw(peer port start lag);
 }
 
+sub current_channels {
+  my $self = shift;
+  return unless defined ( $self->{current_channels} ) and scalar keys %{ $self->{current_channels} } > 0;
+  return ( map { $self->{current_channels}->{ $_ } } keys %{ $self->{current_channels} } );
+}
+
 1;
 __END__
 
@@ -411,6 +416,10 @@ Returns an object suitable for passing to L<POE::Component::IRC>'s plugin_add() 
 =head1 METHODS
 
 =over 
+
+=item current_channels
+
+Takes no arguments, returns a list of the channels that the component is currently a member of.
 
 =item getsockname
 

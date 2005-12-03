@@ -21,6 +21,7 @@ lib/POE/Component/IRC/State/Lite.pm
 lib/POE/Component/IRC.pm
 lib/POE/Filter/CTCP.pm
 lib/POE/Filter/IRC.pm
+lib/POE/Filter/IRC/Compat.pm
 MANIFEST
 MANIFEST.SKIP
 Makefile.PL
@@ -37,9 +38,11 @@ examples/dicebot.pl
 examples/moo.pl
 examples/dcctest.pl
 examples/eliza.pl
+examples/ircproxy.pl
 examples/tinyurl.pl
 examples/aimproxy.pl
 examples/simpleclient.pl
+t/1_filter_compat.t
 t/1_new.t
 t/1_spawn.t
 t/2_State.t
