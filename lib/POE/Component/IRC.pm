@@ -189,12 +189,6 @@ sub _configure {
       $self->{'raw_events'} = 0 unless ( $self->{'raw_events'} );
     }
 
-    if (exists $arg{'partfix'} and ( not $arg{'partfix'} ) ) {
-      $self->{'dont_partfix'} = 1;
-    } else {
-      $self->{'dont_partfix'} = 0 unless ( $self->{'dont_partfix'} );
-    }
-
     $self->{'password'} = $arg{'password'} if exists $arg{'password'};
     $self->{'localaddr'} = $arg{'localaddr'} if exists $arg{'localaddr'};
     $self->{'localport'} = $arg{'localport'} if exists $arg{'localport'};
@@ -1993,11 +1987,23 @@ Glues an irc bot to an IRC network, ie. deals with maintaining ircd connections.
 
 =item L<POE::Component::IRC::Plugin::BotTraffic>
 
-Under normal circumstances irc bots do not normal see the msgs and public msgs that they generate themselves. This plugin enables you to handle those events.
+Under normal circumstances irc bots do not normal the msgs and public msgs that they generate themselves. This plugin enables you to handle those events.
 
 =item L<POE::Component::IRC::Plugin::BotAddressed>
 
 Generates 'irc_bot_addressed' events whenever someone addresses your bot by name in a channel.
+
+=item L<POE::Component::IRC::Plugin::Console>
+
+See inside the component. See what events are being sent. Generate irc commands manually. A TCP based console.
+
+=item L<POE::Component::IRC::Plugin::Proxy>
+
+A lightweight IRC proxy/bouncer.
+
+=item L<POE::Component::IRC::Plugin::CTCP>
+
+Automagically generates replies to ctcp version, time and userinfo queries.
 
 =back
 
@@ -2007,9 +2013,12 @@ Generates 'irc_bot_addressed' events whenever someone addresses your bot by name
 
 =item spawn
 
-Takes a number of arguments. "alias", a name (kernel alias) that this
-instance of the component will be known by; "options", a hashref containing
-POE::Session options for the component's session. See 'connect()' for additional
+Takes a number of arguments: 
+
+	"alias", a name (kernel alias) that this instance will be known by;
+	"options", a hashref containing POE::Session options;
+
+See 'connect()' for additional
 arguments that this method accepts. All arguments are optional.
 
 =item new
