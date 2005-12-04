@@ -26,7 +26,7 @@ sub S_public {
   my ($cmd) = $what =~ m/^\s*\Q$mynick\E[\:\,\;\.]?\s*(.*)$/i;
   return PCI_EAT_NONE unless ( $cmd );
 
-  $irc->_send_event( 'irc_bot_addressed' => $who => [ $channel ] => $cmd );
+  $irc->_send_event( ( $self->{Event} || 'irc_bot_addressed' ) => $who => [ $channel ] => $cmd );
   return PCI_EAT_NONE;
 }
 

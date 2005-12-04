@@ -23,6 +23,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Completely rehacked how the component handles parsing irc traffic to
       events. Now using Filter::IRCD with Filter::IRC::Compat to process all
       input. Input and output filters are stackable.
+    - Patch applied to BotAddressed plugin from immute.
 
 4.74  Wed Oct 26 09:15:21 BST 2005
     - *sigh* another problem fixed with the new dns code.

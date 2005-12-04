@@ -608,6 +608,10 @@ sub _sock_down {
   $self->{send_time}  = 0;
   $kernel->delay( sl_delayed => undef );
 
+  # Reset the filters if necessary
+  $self->compress_uplink( 0 );
+  $self->compress_downlink( 0 );
+
   # post a 'irc_disconnected' to each session that cares
   $self->_send_event( 'irc_disconnected', $self->{server} );
   undef;
@@ -725,6 +729,10 @@ sub _start {
   $self->{srv_filter} = POE::Filter::Stackable->new( Filters => $filters );
   $self->{out_filter} = POE::Filter::Stackable->new( Filters => [ POE::Filter::Line->new( OutputLiteral => "\015\012" ) ] );
 
+  eval{ 
+	require POE::Filter::Zlib;
+  };
+  $self->{can_do_zlib} = 1 unless ( $@ );
   $self->{SESSION_ID} = $session->ID();
 
   # Plugin 'irc_whois' and 'irc_whowas' support
@@ -1643,6 +1651,34 @@ sub connected {
   my ($self) = shift;
 
   return $self->{connected};
+}
+
+sub compress_uplink {
+  my ($self,$value) = splice @_, 0, 2;
+  return unless $self->{can_do_zlib};
+  return $self->{uplink} unless defined $value;
+  if ( $value ) {
+	$self->{out_filter}->unshift( POE::Filter::Zlib->new() ) unless $self->{uplink};
+	$self->{uplink} = 1;
+  } else {
+	$self->{out_filter}->shift() if $self->{uplink};
+	$self->{uplink} = 0;
+  }
+  return $self->{uplink};
+}
+
+sub compress_downlink {
+  my ($self,$value) = splice @_, 0, 2;
+  return unless $self->{can_do_zlib};
+  return $self->{downlink} unless defined $value;
+  if ( $value ) {
+	$self->{srv_filter}->unshift( POE::Filter::Zlib->new() ) unless $self->{downlink};
+	$self->{downlink} = 1;
+  } else {
+	$self->{srv_filter}->shift() if $self->{uplink};
+	$self->{downlink} = 0;
+  }
+  return $self->{downlink};
 }
 
 # Automatically replies to a PING from the server. Do not confuse this
@@ -2705,7 +2741,7 @@ lists. Ack!) As an example, say you wanted to handle event 376
 (RPL_ENDOFMOTD, which signals the end of the MOTD message). You'd
 register for '376', and listen for 'irc_376' events. Simple, no? ARG0
 is the name of the server which sent the message. ARG1 is the text of
-the message.
+the message. ARG2 is an ARRAYREF of the parsed message.
 
 =back
 
