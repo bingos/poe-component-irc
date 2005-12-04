@@ -494,23 +494,6 @@ sub _dcc_up {
   undef;
 }
 
-sub _cook_events {
-  my ($self,$line) = splice @_, 0, 2;
-  return unless $line;
-  return ($line =~ tr/\001// ? @{$self->{ctcp_filter}->get( [$line] )}
-	  : @{$self->{irc_filter}->get( [$line] )} );
-  return @{$self->{ctcp_filter}->get( [$line] )} if $line =~ tr/\001//;
-  my (@result);
-  
-  foreach my $irc ( @{$self->{irc_filter}->get( [$line] )} ) {
-	if ( $irc->{command} =~ /^\d{3,3}$/ ) {
-		$irc->{name} = delete $irc->{command};
-	}
-	push( @result, $irc );
-  }
-}
-
-
 # Parse a message from the IRC server and generate the appropriate
 # event(s) for listening sessions.
 sub _parseline {
@@ -518,27 +501,14 @@ sub _parseline {
 
   $self->_send_event( 'irc_raw' => $ev->{raw_line} ) if ( $self->{raw_events} );
 
-  # Feed the proper Filter object the raw IRC text and get the
-  # "cooked" events back for sending, then deliver each event. We
-  # handle CTCPs separately from normal IRC messages here, to avoid
-  # silly module dependencies later.
-
-  #@cooked = $self->_cook_events( $line );
-
-  #foreach my $ev (@cooked) {
-    if ( $ev->{name} eq 'part' and not $self->{'dont_partfix'} ) {
-	(@{$ev->{args}}[1..2]) = split(/ /,$ev->{args}->[1],2);
-	$ev->{args}->[2] =~ s/^:// if ( defined ( $ev->{args}->[2] ) );
-    }
-    # If its 001 event grab the server name and stuff it into {INFO}
-    if ( $ev->{name} eq '001' ) {
+  # If its 001 event grab the server name and stuff it into {INFO}
+  if ( $ev->{name} eq '001' ) {
 	$self->{INFO}->{ServerName} = $ev->{args}->[0];
 	# Kind of assuming that $line is a single line of IRC protocol.
 	$self->{RealNick} = ( split / /, $ev->{raw_line} )[2];
-    }
-    $ev->{name} = 'irc_' . $ev->{name};
-    $self->_send_event( $ev->{name}, @{$ev->{args}} );
-  #}
+  }
+  $ev->{name} = 'irc_' . $ev->{name};
+  $self->_send_event( $ev->{name}, @{$ev->{args}} );
   undef;
 }
 

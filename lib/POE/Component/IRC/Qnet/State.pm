@@ -209,25 +209,16 @@ sub _parseline {
 
   $self->_send_event( 'irc_raw' => $ev->{raw_line} ) if ( $self->{raw_events} );
 
-  # Feed the proper Filter object the raw IRC text and get the
-  # "cooked" events back for sending, then deliver each event. We
-  # handle CTCPs separately from normal IRC messages here, to avoid
-  # silly module dependencies later.
-
-  #@cooked = $self->_cook_events( $line );
-
-  #foreach my $ev (@cooked) {
-    # If its 001 event grab the server name and stuff it into {INFO}
-    if ( $ev->{name} eq '001' ) {
+  # If its 001 event grab the server name and stuff it into {INFO}
+  if ( $ev->{name} eq '001' ) {
         $self->{INFO}->{ServerName} = $ev->{args}->[0];
         $self->{RealNick} = ( split / /, $ev->{raw_line} )[2];
-    }
-    if ( $ev->{name} eq 'nick' or $ev->{name} eq 'quit' ) {
+  }
+  if ( $ev->{name} eq 'nick' or $ev->{name} eq 'quit' ) {
         push ( @{$ev->{args}}, [ $self->nick_channels( ( split( /!/, $ev->{args}->[0] ) )[0] ) ] );
-    }
-    $ev->{name} = 'irc_' . $ev->{name};
-    $self->_send_event( $ev->{name}, @{$ev->{args}} );
-  #}
+  }
+  $ev->{name} = 'irc_' . $ev->{name};
+  $self->_send_event( $ev->{name}, @{$ev->{args}} );
   undef;
 }
 
