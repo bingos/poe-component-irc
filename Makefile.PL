@@ -7,7 +7,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
 			  'NAME'	=> 'POE::Component::IRC',
 			  'PREREQ_PM' => {
-							  'POE'    => 0.06_07,
+							  'POE'    => 0.3202,
 							  'POE::Filter::IRCD' => 1.4,
 							  'POE::Component::Client::DNS' => 0.98,
 							  'POE::Component::Client::Ident' => 0.7,

@@ -186,7 +186,7 @@ POE::Component::IRC::Plugin::Console - a lightweight debugging and control conso
   my ($port) = 6667;
   my ($bindport) = 6969;
 
-  my (@channels) = ( '#Blah', #Foo', '#Bar' );
+  my (@channels) = ( '#Blah', '#Foo', '#Bar' );
 
   my ($irc) = POE::Component::IRC->spawn( 
         nick => $nickname,
