@@ -206,6 +206,7 @@ sub _configure {
       $self->{'debug'} = $arg{'debug'};
       $self->{ircd_filter}->{DEBUG} = $arg{'debug'};
     }
+    $self->{plugin_debug} = $arg{'plugin_debug'} if exists $arg{'plugin_debug'};
     my ($dccport) = delete ( $arg{'dccports'} );
     $self->{'UseSSL'} = $arg{'usessl'} if exists $arg{'usessl'};
 
@@ -1833,7 +1834,9 @@ sub _plugin_process {
     my $ret = PCI_EAT_NONE;
 
     eval { $ret = $plugin->$sub($self, @args) };
+    warn "$sub call failed with $@\n" if $@ and $self->{plugin_debug};
     eval { $ret = $plugin->_default($self, $sub, @args) } if $@;
+    warn "_default call failed with $@\n" if $@ and $self->{plugin_debug};
 
     return $return if $ret == PCI_EAT_PLUGIN;
     $return = PCI_EAT_ALL if $ret == PCI_EAT_CLIENT;
@@ -2135,6 +2138,7 @@ connection are:
   "NATAddr", what other clients see as your IP address.
   "DCCPorts", an arrayref containing tcp ports that can be used for DCC sends.
   "Resolver", provide a POE::Component::Client::DNS object for the component to use.
+  "plugin_debug", set to some true value to print plugin debug info, default 0.
 
 C<connect()> will supply
 reasonable defaults for any of these attributes which are missing, so
@@ -2176,6 +2180,8 @@ dns lookups using it.
 
 'Resolver', requires a POE::Component::Client::DNS object. Useful when spawning multiple poco-irc sessions
 , saves the overhead of multiple dns sessions.
+
+'plugin_debug', setting to true enables plugin debug info. Plugins are processed inside an eval, so debugging them can be hard. This should help with that.
 
 =item ctcp and ctcpreply
 

@@ -3,6 +3,8 @@ Revision history for Perl extension POE::Component::IRC.
 4.76  <Date>
     - Documentation bugs in the main IRC.pm SYNOPSIS. Bad BinGOs :( 
       Spotted and reported by Mulander via email.
+    - Added 'plugin_debug' option to dump after plugin evals if 
+      applicable.
 
 4.75  Sun Dec 04 17:45:20 GMT 2005
     - Fixed a problem with DCC code. Thanks to ketas for the heads up.
