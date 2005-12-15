@@ -724,7 +724,13 @@ sub _stop {
 # The handler for commands which have N arguments, separated by commas.
 sub commasep {
   my ($kernel, $self, $state) = @_[KERNEL, OBJECT, STATE];
-  my $args = join ',', @_[ARG0 .. $#_];
+  my @args = @_[ARG0 .. $#_]; my $args;
+  if ( $state eq 'whois' and scalar @args > 1 ) {
+	$args = shift @args;
+	$args .= ' ' . join ',', @args;
+  } else {
+	$args = join ',', @args;
+  }
   my $pri = $self->{IRC_CMDS}->{$state}->[CMD_PRI];
 
   $state = uc $state;

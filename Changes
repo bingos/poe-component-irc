@@ -5,6 +5,9 @@ Revision history for Perl extension POE::Component::IRC.
       Spotted and reported by Mulander via email.
     - Added 'plugin_debug' option to dump after plugin evals if 
       applicable.
+    - Spotted a bug with the 'whois' handler. Looks like it has 
+      never worked ( properly ). Adjusted 'commasep' for the special
+      case WHOIS <target> mask,mask.
 
 4.75  Sun Dec 04 17:45:20 GMT 2005
     - Fixed a problem with DCC code. Thanks to ketas for the heads up.
