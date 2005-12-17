@@ -26,7 +26,7 @@ sub get {
     if ( ref( $record ) eq 'HASH' and $record->{command} and $record->{params} ) {
       my $event = { raw_line => $record->{raw_line} };
       SWITCH:{
-        if ( $record->{raw_line} =~ tr/\001// ) {
+        if ( $record->{raw_line} and $record->{raw_line} =~ tr/\001// ) {
            $event = shift( @{ $self->{_ctcp}->get( [$record->{raw_line}] ) } );
            last SWITCH;
         }
@@ -34,7 +34,7 @@ sub get {
         if ( $event->{name} =~ /^\d{3,3}$/ ) {
           $event->{args}->[0] = _decolon( $record->{prefix} );
           shift @{ $record->{params} };
-          if ( $record->{params}->[0] =~ /\s+/ ) {
+          if ( $record->{params}->[0] and $record->{params}->[0] =~ /\s+/ ) {
             $event->{args}->[1] = $record->{params}->[0];
           } else {
             $event->{args}->[1] = join(' ', ( map { /\s+/ ? ':' . $_ : $_; } @{ $record->{params} } ) );
@@ -85,7 +85,7 @@ sub get_one {
     if ( ref( $record ) eq 'HASH' and $record->{command} and $record->{params} ) {
       my $event = { raw_line => $record->{raw_line} };
       SWITCH:{
-        if ( $record->{raw_line} =~ tr/\001// ) {
+        if ( $record->{raw_line} and $record->{raw_line} =~ tr/\001// ) {
            $event = shift( @{ $self->{_ctcp}->get( [$record->{raw_line}] ) } );
            last SWITCH;
         }
@@ -93,7 +93,7 @@ sub get_one {
         if ( $event->{name} =~ /^\d{3,3}$/ ) {
           $event->{args}->[0] = _decolon( $record->{prefix} );
           shift @{ $record->{params} };
-          if ( $record->{params}->[0] =~ /\s+/ ) {
+          if ( $record->{params}->[0] and $record->{params}->[0] =~ /\s+/ ) {
             $event->{args}->[1] = $record->{params}->[0];
           } else {
             $event->{args}->[1] = join(' ', ( map { /\s+/ ? ':' . $_ : $_; } @{ $record->{params} } ) );

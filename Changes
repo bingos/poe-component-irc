@@ -8,6 +8,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Spotted a bug with the 'whois' handler. Looks like it has 
       never worked ( properly ). Adjusted 'commasep' for the special
       case WHOIS <target> mask,mask.
+    - Minor fixes to Filter-IRC-Compat for argument handling.
 
 4.75  Sun Dec 04 17:45:20 GMT 2005
     - Fixed a problem with DCC code. Thanks to ketas for the heads up.
