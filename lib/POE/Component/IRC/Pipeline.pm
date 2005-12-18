@@ -137,7 +137,7 @@ sub remove {
     ($self->{PLUGS}{$old}, $old) :
     ($old, $self->{PLUGS}{$old});
 
-  $@ = "Plugin '$old_a' ($old_p) does not exist", return
+  $@ = "Plugin '$old_a' () does not exist", return
     unless $old_p;
 
   delete $self->{PLUGS}{$old_p};

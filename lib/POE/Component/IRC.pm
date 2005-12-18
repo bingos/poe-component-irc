@@ -1714,7 +1714,9 @@ sub plugin_del {
     return;
   }
 
-  return scalar $self->pipeline->remove($name);
+  my $return = scalar $self->pipeline->remove($name);
+  warn "$@\n" if $@;
+  return $return;
 }
 
 # Gets the plugin object

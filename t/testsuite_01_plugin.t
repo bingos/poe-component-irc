@@ -5,7 +5,7 @@
 
 # change 'tests => 1' to 'tests => last_test_to_print';
 
-use Test::More tests => 6;
+use Test::More tests => 16;
 BEGIN { use_ok('POE::Component::IRC') };
 BEGIN { use_ok('POE::Component::IRC::Test::Plugin') };
 
@@ -38,6 +38,7 @@ sub test_start {
   my $plugin = POE::Component::IRC::Test::Plugin->new();
   isa_ok ( $plugin, 'POE::Component::IRC::Test::Plugin' );
   
+  $heap->{counter} = 6;
   unless ( $self->plugin_add( 'TestPlugin' => $plugin ) ) {
 	fail( 'plugin_add' );
   	$self->yield( 'unregister' => 'all' );
@@ -64,8 +65,16 @@ sub irc_plugin_del {
   my ($kernel,$heap,$desc,$plugin) = @_[KERNEL,HEAP,ARG0,ARG1];
 
   isa_ok ( $plugin, 'POE::Component::IRC::Test::Plugin' );
-  
-  $self->yield( 'unregister' => 'all' );
-  $self->yield( 'shutdown' );
+  $heap->{counter}--;
+  if ( $heap->{counter} <= 0 ) {
+    $self->yield( 'unregister' => 'all' );
+    $self->yield( 'shutdown' );
+  } else {
+    unless ( $self->plugin_add( 'TestPlugin' => $plugin ) ) {
+	fail( 'plugin_add' );
+  	$self->yield( 'unregister' => 'all' );
+  	$self->yield( 'shutdown' );
+    }
+  }
   undef;
 }
