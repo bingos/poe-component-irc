@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+4.77  Mon Dec 26 17:00:01 GMT 2005
+    - Forgot to add use ::Common to Qnet::State. Doh.
+
 4.76  Fri Dec 23 15:20:20 GMT 2005
     - Documentation bugs in the main IRC.pm SYNOPSIS. Bad BinGOs :( 
       Spotted and reported by Mulander via email.

@@ -13,6 +13,7 @@ use strict;
 use Carp;
 use POE qw(Component::IRC::Plugin::Whois);
 use POE::Component::IRC::Constants;
+use POE::Component::IRC::Common qw(:ALL);
 use vars qw($VERSION);
 use base qw(POE::Component::IRC::Qnet POE::Component::IRC::State);
 
