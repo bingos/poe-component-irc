@@ -32,7 +32,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '4.77';
+$VERSION = '4.78';
 $REVISION = do {my@r=(q$Revision: 1.4 $=~/\d+/g);sprintf"%d."."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -2683,6 +2683,11 @@ the clever, witty message they left behind on the way out.
 
 Sent when a connection couldn't be established to the IRC server. ARG0
 is probably some vague and/or misleading reason for what failed.
+
+=item irc_topic
+
+Sent when a channel topic is set or unset. ARG0 is the nick!hostmask of the sender. ARG1 is the channel affected. ARG2 will be either: a string if the topic is being set; or a zero-length string (ie. '') if the topic is being unset. Note: replies to queries about what a channel topic *is* (ie. TOPIC #channel) , are returned as numerics, not with this event.
+
 
 =item irc_whois
 
