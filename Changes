@@ -3,6 +3,8 @@ Revision history for Perl extension POE::Component::IRC.
 4.78  <Date>
     - Documentation bug. 'irc_topic' event wasn't documented.
       Reported by bluepunk @ efnet, through dngor :)
+    - Finally got around to switch session registering from using 
+      POE::Session ( ew, nasty ) to session IDs instead.
 
 4.77  Mon Dec 26 17:00:01 GMT 2005
     - Forgot to add use ::Common to Qnet::State. Doh.

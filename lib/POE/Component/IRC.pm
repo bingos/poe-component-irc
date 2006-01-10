@@ -1304,14 +1304,15 @@ sub register {
     return;
   }
 
+  my $sender_id = $sender->ID();
   # FIXME: What "special" event names go here? (ie, "errors")
   # basic, dcc (implies ctcp), ctcp, oper ...what other categories?
   foreach (@events) {
     $_ = "irc_" . $_ unless /^_/;
-    $self->{events}->{$_}->{$sender} = $sender;
-    $self->{sessions}->{$sender}->{'ref'} = $sender;
-    unless ($self->{sessions}->{$sender}->{refcnt}++ or $session == $sender) {
-      $kernel->refcount_increment($sender->ID(), PCI_REFCOUNT_TAG);
+    $self->{events}->{$_}->{$sender_id} = $sender_id;
+    $self->{sessions}->{$sender}->{'ref'} = $sender_id;
+    unless ($self->{sessions}->{$sender_id}->{refcnt}++ or $session == $sender) {
+      $kernel->refcount_increment($sender_id, PCI_REFCOUNT_TAG);
     }
   }
   # BINGOS:
@@ -1517,13 +1518,14 @@ sub unregister {
 
 sub _unregister {
   my ($self,$session,$sender) = splice @_,0,3;
+  my $sender_id = $sender->ID();
 
   foreach (@_) {
-    delete $self->{events}->{$_}->{$sender};
-    if (--$self->{sessions}->{$sender}->{refcnt} <= 0) {
-      delete $self->{sessions}->{$sender};
+    delete $self->{events}->{$_}->{$sender_id};
+    if (--$self->{sessions}->{$sender_id}->{refcnt} <= 0) {
+      delete $self->{sessions}->{$sender_id};
       unless ($session == $sender) {
-        $poe_kernel->refcount_decrement($sender->ID(), PCI_REFCOUNT_TAG);
+        $poe_kernel->refcount_decrement($sender_id, PCI_REFCOUNT_TAG);
       }
     }
   }
