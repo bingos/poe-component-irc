@@ -523,10 +523,10 @@ sub __send_event {
 # Changed to a method by BinGOs, 21st January 2005.
 # Amended by BinGOs (2nd February 2005) use call to send events to *our* session first.
 sub _send_event  {
-  my ($self) = shift;
+  my $self = shift;
   my ($event, @args) = @_;
   my $kernel = $POE::Kernel::poe_kernel;
-  my ($session) = $kernel->get_active_session();
+  my $session = $kernel->get_active_session()->ID();
   my %sessions;
 
   # Let the plugin system process this
@@ -539,22 +539,16 @@ sub _send_event  {
   # 'irc_disconnected' events to every registered session regardless of whether
   # that session had registered from them or not.
   if ( $event =~ /connected$/ ) {
-    foreach (keys %{$self->{sessions}}) {
-      $kernel->post( $self->{sessions}->{$_}->{'ref'},
-		   $event, @args );
-    }
+    $kernel->post( $self->{sessions}->{$_}->{'ref'},
+		   $event, @args ) for keys %{ $self->{sessions} };
     return 1;
   }
 
-  foreach (values %{$self->{events}->{'irc_all'}},
-	   values %{$self->{events}->{$event}}) {
-    $sessions{$_} = $_;
-  }
+  $sessions{$_} = $_ for (values %{$self->{events}->{'irc_all'}}, values %{$self->{events}->{$event}});
+
   # Make sure our session gets notified of any requested events before any other bugger
-  $self->call( $event => @args ) if ( defined ( $sessions{$session} ) );
-  foreach (values %sessions) {
-    $kernel->post( $_, $event, @args ) unless ( $_ eq $session );
-  }
+  $self->call( $session => $event => @args ) if delete $sessions{$session};
+  $kernel->post( $_, $event, @args ) for values %sessions;
   undef;
 }
 

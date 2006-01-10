@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-4.78  <Date>
+4.78  Tue Jan 10 22:01:09 GMT 2006
     - Documentation bug. 'irc_topic' event wasn't documented.
       Reported by bluepunk @ efnet, through dngor :)
     - Finally got around to switch session registering from using 
