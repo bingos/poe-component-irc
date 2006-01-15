@@ -1,5 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
+4.79  Sun Jan 15 17:15:01 GMT 2006
+    - Serious bug in _send_event() spotted by ikaros @ freenode.
+      The component wasn't dispatching events to itself since 4.78.
+
 4.78  Tue Jan 10 22:01:09 GMT 2006
     - Documentation bug. 'irc_topic' event wasn't documented.
       Reported by bluepunk @ efnet, through dngor :)

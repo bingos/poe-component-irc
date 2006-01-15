@@ -32,7 +32,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '4.78';
+$VERSION = '4.79';
 $REVISION = do {my@r=(q$Revision: 1.4 $=~/\d+/g);sprintf"%d."."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -547,8 +547,8 @@ sub _send_event  {
   $sessions{$_} = $_ for (values %{$self->{events}->{'irc_all'}}, values %{$self->{events}->{$event}});
 
   # Make sure our session gets notified of any requested events before any other bugger
-  $self->call( $session => $event => @args ) if delete $sessions{$session};
-  $kernel->post( $_, $event, @args ) for values %sessions;
+  $kernel->call( $session => $event => @args ) if delete $sessions{$session};
+  $kernel->post( $_ => $event => @args ) for values %sessions;
   undef;
 }
 
