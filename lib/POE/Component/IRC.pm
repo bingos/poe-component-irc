@@ -32,7 +32,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '4.79';
+$VERSION = '4.80';
 $REVISION = do {my@r=(q$Revision: 1.4 $=~/\d+/g);sprintf"%d."."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -46,8 +46,8 @@ $REVISION = do {my@r=(q$Revision: 1.4 $=~/\d+/g);sprintf"%d."."%04d"x$#r,@r};
 #	  $self->{IRC_CMDS} contains the traditional %irc_commands, mapping commands to events
 #		and the priority that the command has.
 
-my ($GOT_SSL);
-my ($GOT_CLIENT_DNS);
+my $GOT_SSL;
+my $GOT_CLIENT_DNS;
 
 # Check for SSL availability
 BEGIN {
@@ -69,13 +69,9 @@ BEGIN {
 }
 
 sub _create {
-  my ($package) = shift;
+  my $package = shift;
 
-  my $self = bless ( { }, $package );
-
-  #if ( $GOT_CLIENT_DNS ) {
-  #  POE::Component::Client::DNS->spawn( Alias => "irc_resolver" );
-  #}
+  my $self = bless { }, $package;
 
   $self->{IRC_CMDS} =
   { 'rehash'    => [ PRI_HIGH,   'noargs',        ],
@@ -123,7 +119,7 @@ sub _create {
 
   $self->{IRC_EVTS} = [ qw(nick ping) ];
 
-  my (@event_map) = map {($_, $self->{IRC_CMDS}->{$_}->[CMD_SUB])} keys %{ $self->{IRC_CMDS} };
+  my @event_map = map {($_, $self->{IRC_CMDS}->{$_}->[CMD_SUB])} keys %{ $self->{IRC_CMDS} };
 
   $self->{OBJECT_STATES_ARRAYREF} = [qw( _dcc_failed
 				      _dcc_read
@@ -168,14 +164,12 @@ sub _create {
 #	  _configure() deals with this.
 
 sub _configure {
-  my ($self) = shift;
-
-  my ($spawned) = 0;
-
-  my ($args) = shift;
+  my $self = shift;
+  my $spawned = 0;
+  my $args = shift;
 
   if ( defined ( $args ) and ref $args eq 'HASH' ) {
-    my (%arg) = %$args;
+    my %arg = %$args;
 
     if (exists $arg{'flood'} and $arg{'flood'}) {
       $self->{'dont_flood'} = 0;
@@ -207,7 +201,7 @@ sub _configure {
       $self->{ircd_filter}->{DEBUG} = $arg{'debug'};
     }
     $self->{plugin_debug} = $arg{'plugin_debug'} if exists $arg{'plugin_debug'};
-    my ($dccport) = delete ( $arg{'dccports'} );
+    my $dccport = delete $arg{'dccports'};
     $self->{'UseSSL'} = $arg{'usessl'} if exists $arg{'usessl'};
 
     if ( defined ( $dccport ) and ref ( $dccport ) eq 'ARRAY' ) {
@@ -224,7 +218,7 @@ sub _configure {
     $spawned = $arg{'CALLED_FROM_SPAWN'} if exists $arg{'CALLED_FROM_SPAWN'};
   }
 
-  if ( $spawned and ( not $self->{NoDNS} ) and $GOT_CLIENT_DNS and ( not $self->{resolver} ) ) {
+  if ( $spawned and !$self->{NoDNS} and $GOT_CLIENT_DNS and !$self->{resolver} ) {
 	$self->{resolver} = POE::Component::Client::DNS->spawn( Alias => "resolver" . $self->session_id() );
   }
 
@@ -499,7 +493,6 @@ sub _parseline {
   # If its 001 event grab the server name and stuff it into {INFO}
   if ( $ev->{name} eq '001' ) {
 	$self->{INFO}->{ServerName} = $ev->{args}->[0];
-	# Kind of assuming that $line is a single line of IRC protocol.
 	$self->{RealNick} = ( split / /, $ev->{raw_line} )[2];
   }
   $ev->{name} = 'irc_' . $ev->{name};
@@ -691,7 +684,7 @@ sub _start {
   eval{ 
 	require POE::Filter::Zlib;
   };
-  $self->{can_do_zlib} = 1 unless ( $@ );
+  $self->{can_do_zlib} = 1 unless $@;
   $self->{SESSION_ID} = $session->ID();
 
   # Plugin 'irc_whois' and 'irc_whowas' support
@@ -759,7 +752,7 @@ sub connect {
   $self->_configure( \%arg );
 
   # try and use non-blocking resolver if needed
-  if ( $self->{resolver} && !($self->{'server'} =~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/) && ( not $self->{'NoDNS'} ) ) {
+  if ( $self->{resolver} && $self->{'server'} !~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/ && !$self->{'NoDNS'} ) {
     my $response = $self->{resolver}->resolve( event => "got_dns_response", host =>  $self->{'server'}, context => { } );
     if ( $response ) {
 	$kernel->yield( got_dns_response => $response );
@@ -767,11 +760,6 @@ sub connect {
   } else {
     $kernel->yield("do_connect");
   }
-
-  # Is the calling session registered or not.
-  #if ( not $self->{sessions}->{$sender} ) {
-  #	$kernel->call( $session => 'register_session' => $sender => 'all' );
-  #}
 
   $self->{RealNick} = $self->{nick};
   undef;
@@ -782,9 +770,7 @@ sub do_connect {
   my ($kernel, $self, $session, $args) = @_[KERNEL, OBJECT, SESSION];
 
   # Disconnect if we're already logged into a server.
-  if ($self->{'sock'}) {
-    $kernel->call( $session, 'quit' );
-  }
+  $kernel->call( $session, 'quit' ) if $self->{'sock'};
 
   $self->{'socketfactory'} =
     POE::Wheel::SocketFactory->new( SocketDomain   => AF_INET,
