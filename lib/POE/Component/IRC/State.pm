@@ -18,8 +18,8 @@ use vars qw($VERSION);
 
 $VERSION = '1.2';
 
-my ($GOT_CLIENT_DNS);
-my ($GOT_SSL);
+my $GOT_CLIENT_DNS;
+my $GOT_SSL;
 
 BEGIN {
     $GOT_CLIENT_DNS = 0;
@@ -39,7 +39,7 @@ BEGIN {
 }
 
 sub _create {
-  my ($package) = shift;
+  my $package = shift;
 
   my $self = bless ( { }, $package );
 
@@ -162,34 +162,34 @@ sub _parseline {
 
 # Make sure we have a clean STATE when we first join the network and if we inadvertently get disconnected
 sub irc_001 {
-  delete ( $_[OBJECT]->{STATE} );
+  delete $_[OBJECT]->{STATE};
   undef;
 }
 
 sub irc_disconnected {
-  delete ( $_[OBJECT]->{STATE} );
+  delete $_[OBJECT]->{STATE};
   undef;
 }
 
 sub irc_error {
-  delete ( $_[OBJECT]->{STATE} );
+  delete $_[OBJECT]->{STATE};
   undef;
 }
 
 sub irc_socketerr {
-  delete ( $_[OBJECT]->{STATE} );
+  delete $_[OBJECT]->{STATE};
   undef;
 }
 
 # Channel JOIN messages
 sub irc_join {
   my ($kernel,$self,$who,$channel) = @_[KERNEL,OBJECT,ARG0,ARG1];
-  my ($nick) = ( split /!/, $who )[0];
-  my ($userhost) = ( split /!/, $who )[1];
+  my $nick = ( split /!/, $who )[0];
+  my $userhost = ( split /!/, $who )[1];
   my ($user,$host) = split(/\@/,$userhost);
 
   if ( u_irc ( $nick ) eq u_irc ( $self->{RealNick} ) ) {
-	delete ( $self->{STATE}->{Chans}->{ u_irc ( $channel ) } );
+	delete $self->{STATE}->{Chans}->{ u_irc ( $channel ) };
 	$self->{CHANNEL_SYNCH}->{ u_irc ( $channel ) } = { MODE => 0, WHO => 0 };
         $kernel->yield ( 'who' => $channel );
         $kernel->yield ( 'mode' => $channel );
@@ -207,24 +207,24 @@ sub irc_join {
 # Channel PART messages
 sub irc_part {
   my ($kernel,$self,$who) = @_[KERNEL,OBJECT,ARG0];
-  my ($channel) = u_irc ( $_[ARG1] );
-  my ($nick) = u_irc ( ( split /!/, $who )[0] );
+  my $channel = u_irc $_[ARG1];
+  my $nick = u_irc ( ( split /!/, $who )[0] );
 
   if ( $nick eq u_irc ( $self->nick_name() ) ) {
-        delete ( $self->{STATE}->{Nicks}->{ $nick }->{CHANS}->{ $channel } );
-        delete ( $self->{STATE}->{Chans}->{ $channel }->{Nicks}->{ $nick } );
+        delete $self->{STATE}->{Nicks}->{ $nick }->{CHANS}->{ $channel };
+        delete $self->{STATE}->{Chans}->{ $channel }->{Nicks}->{ $nick };
         foreach my $member ( keys %{ $self->{STATE}->{Chans}->{ $channel }->{Nicks} } ) {
-           delete ( $self->{STATE}->{Nicks}->{ $member }->{CHANS}->{ $channel } );
-           if ( scalar ( keys %{ $self->{STATE}->{Nicks}->{ $member }->{CHANS} } ) <= 0 ) {
-                delete ( $self->{STATE}->{Nicks}->{ $member } );
+           delete $self->{STATE}->{Nicks}->{ $member }->{CHANS}->{ $channel };
+           if ( scalar keys %{ $self->{STATE}->{Nicks}->{ $member }->{CHANS} } <= 0 ) {
+                delete $self->{STATE}->{Nicks}->{ $member };
            }
         }
-	delete ( $self->{STATE}->{Chans}->{ $channel } );
+	delete $self->{STATE}->{Chans}->{ $channel };
   } else {
-        delete ( $self->{STATE}->{Nicks}->{ $nick }->{CHANS}->{ $channel } );
-        delete ( $self->{STATE}->{Chans}->{ $channel }->{Nicks}->{ $nick } );
-        if ( scalar ( keys %{ $self->{STATE}->{Nicks}->{ $nick }->{CHANS} } ) <= 0 ) {
-                delete ( $self->{STATE}->{Nicks}->{ $nick } );
+        delete $self->{STATE}->{Nicks}->{ $nick }->{CHANS}->{ $channel };
+        delete $self->{STATE}->{Chans}->{ $channel }->{Nicks}->{ $nick };
+        if ( scalar keys %{ $self->{STATE}->{Nicks}->{ $nick }->{CHANS} } <= 0 ) {
+                delete $self->{STATE}->{Nicks}->{ $nick };
         }
   }
   undef;
@@ -233,15 +233,15 @@ sub irc_part {
 # QUIT messages
 sub irc_quit {
   my ($kernel,$self,$who) = @_[KERNEL,OBJECT,ARG0];
-  my ($nick) = ( split /!/, $who )[0];
+  my $nick = ( split /!/, $who )[0];
 
   if ( u_irc ( $nick ) eq u_irc ( $self->{RealNick} ) ) {
-        delete ( $self->{STATE} );
+        delete $self->{STATE};
   } else {
         foreach my $channel ( keys %{ $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{CHANS} } ) {
-                delete ( $self->{STATE}->{Chans}->{ $channel }->{Nicks}->{ u_irc ( $nick ) } );
+                delete $self->{STATE}->{Chans}->{ $channel }->{Nicks}->{ u_irc ( $nick ) };
         }
-        delete ( $self->{STATE}->{Nicks}->{ u_irc ( $nick ) } );
+        delete $self->{STATE}->{Nicks}->{ u_irc ( $nick ) };
   }
   undef;
 }
@@ -251,20 +251,20 @@ sub irc_kick {
   my ($kernel,$self,$channel,$nick) = @_[KERNEL,OBJECT,ARG1,ARG2];
 
   if ( u_irc ( $nick ) eq u_irc ( $self->{RealNick} ) ) {
-        delete ( $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{CHANS}->{ u_irc ( $channel ) } );
-        delete ( $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Nicks}->{ u_irc ( $nick ) } );
-        foreach my $member ( keys %{ $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Nicks} } ) {
-           delete ( $self->{STATE}->{Nicks}->{ u_irc ( $member ) }->{CHANS}->{ u_irc ( $channel ) } );
-           if ( scalar ( keys %{ $self->{STATE}->{Nicks}->{ u_irc ( $member ) }->{CHANS} } ) <= 0 ) {
-                delete ( $self->{STATE}->{Nicks}->{ u_irc ( $member ) } );
+        delete $self->{STATE}->{Nicks}->{ u_irc $nick }->{CHANS}->{ u_irc $channel };
+        delete $self->{STATE}->{Chans}->{ u_irc $channel }->{Nicks}->{ u_irc $nick };
+        foreach my $member ( keys %{ $self->{STATE}->{Chans}->{ u_irc $channel }->{Nicks} } ) {
+           delete $self->{STATE}->{Nicks}->{ u_irc $member }->{CHANS}->{ u_irc $channel };
+           if ( scalar keys %{ $self->{STATE}->{Nicks}->{ u_irc $member }->{CHANS} } <= 0 ) {
+                delete $self->{STATE}->{Nicks}->{ u_irc $member };
            }
         }
-	delete ( $self->{STATE}->{Chans}->{ u_irc ( $channel ) } );
+	delete $self->{STATE}->{Chans}->{ u_irc $channel };
   } else {
-        delete ( $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{CHANS}->{ u_irc ( $channel ) } );
-        delete ( $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Nicks}->{ u_irc ( $nick ) } );
-        if ( scalar ( keys %{ $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{CHANS} } ) <= 0 ) {
-                delete ( $self->{STATE}->{Nicks}->{ u_irc ( $nick ) } );
+        delete $self->{STATE}->{Nicks}->{ u_irc $nick }->{CHANS}->{ u_irc $channel };
+        delete $self->{STATE}->{Chans}->{ u_irc $channel }->{Nicks}->{ u_irc $nick };
+        if ( scalar keys %{ $self->{STATE}->{Nicks}->{ u_irc $nick }->{CHANS} } <= 0 ) {
+                delete $self->{STATE}->{Nicks}->{ u_irc $nick };
         }
   }
   undef;
@@ -273,7 +273,7 @@ sub irc_kick {
 # NICK changes
 sub irc_nick {
   my ($kernel,$self,$who,$new) = @_[KERNEL,OBJECT,ARG0,ARG1];
-  my ($nick) = ( split /!/, $who )[0];
+  my $nick = ( split /!/, $who )[0];
 
   if ( $nick eq $self->{RealNick} ) {
 	$self->{RealNick} = $new;
@@ -281,15 +281,15 @@ sub irc_nick {
 
   if ( u_irc ( $nick ) eq u_irc ( $new ) ) {
         # Case Change
-        $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{Nick} = $new;
+        $self->{STATE}->{Nicks}->{ u_irc $nick }->{Nick} = $new;
   } else {
-        my ($record) = delete ( $self->{STATE}->{Nicks}->{ u_irc ( $nick ) } );
+        my $record = delete $self->{STATE}->{Nicks}->{ u_irc $nick };
         $record->{Nick} = $new;
         foreach my $channel ( keys %{ $record->{CHANS} } ) {
-           $self->{STATE}->{Chans}->{ $channel }->{Nicks}->{ u_irc ( $new ) } = $record->{CHANS}->{ $channel };
-           delete ( $self->{STATE}->{Chans}->{ $channel }->{Nicks}->{ u_irc ( $nick ) } );
+           $self->{STATE}->{Chans}->{ $channel }->{Nicks}->{ u_irc $new } = $record->{CHANS}->{ $channel };
+           delete $self->{STATE}->{Chans}->{ $channel }->{Nicks}->{ u_irc $nick };
         }
-        $self->{STATE}->{Nicks}->{ u_irc ( $new ) } = $record;
+        $self->{STATE}->{Nicks}->{ u_irc $new } = $record;
   }
   undef;
 }
@@ -300,7 +300,7 @@ sub irc_mode {
 
   # Do nothing if it is UMODE
   if ( u_irc ( $channel ) ne u_irc ( $self->{RealNick} ) ) {
-     my ($parsed_mode) = parse_mode_line( @_[ARG2 .. $#_] );
+     my $parsed_mode = parse_mode_line( @_[ARG2 .. $#_] );
      while ( my $mode = shift ( @{ $parsed_mode->{modes} } ) ) {
         my ($arg);
         $arg = shift ( @{ $parsed_mode->{args} } ) if ( $mode =~ /^(\+[hovklbIeaqfL]|-[hovbIeaq])/ );
@@ -859,6 +859,14 @@ Expects a channel and a single mode flag [A-Za-z]. Returns 1 if that mode is set
 =item channel_modes
 
 Expects a channel as parameter. Returns channel modes or undef.
+
+=item channel_limit
+
+Expects a channel as parameter. Returns the channel limit or undef.
+
+=item channel_key
+
+Expects a channel as parameter. Returns the channel key or undef.
 
 =item is_channel_member
 

@@ -3,6 +3,7 @@ Revision history for Perl extension POE::Component::IRC.
 4.80  <TBA>
     - Code tidy up.
     - Fixed DCC bug. As reported by helios.
+    - POD fix to ::State, missed two methods.
 
 4.79  Sun Jan 15 17:15:01 GMT 2006
     - Serious bug in _send_event() spotted by ikaros @ freenode.

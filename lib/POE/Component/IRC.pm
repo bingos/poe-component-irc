@@ -1846,6 +1846,8 @@ POE::Component::IRC - a fully event-driven IRC client module.
 
   # A simple Rot13 'encryption' bot
 
+  use strict;
+  use warnings;
   use POE qw(Component::IRC);
 
   my $nickname = 'Flibble' . $$;
@@ -1873,9 +1875,10 @@ POE::Component::IRC - a fully event-driven IRC client module.
   exit 0;
 
   sub _start {
-    my $heap = $_[HEAP];
-    $heap->{irc}->yield( register => 'all' );
-    $heap->{irc}->yield( connect => { } );
+    my ($kernel,$heap) = @_[KERNEL,HEAP];
+    my $irc_session = $heap->{irc}->session_id();
+    $kernel->post( $irc_session => register => 'all' );
+    $kernel->post( $irc_session => connect => { } );
     undef;
   }
 
@@ -1892,7 +1895,7 @@ POE::Component::IRC - a fully event-driven IRC client module.
 
     if ( my ($rot13) = $what =~ /^rot13 (.+)/ ) {
 	$rot13 =~ tr[a-zA-Z][n-za-mN-ZA-M];
-	$kernel->post( $sender => privmsg => $channel => $rot13 );
+	$kernel->post( $sender => privmsg => $channel => "$nick: $rot13" );
     }
     undef;
   }
@@ -1930,10 +1933,9 @@ program. Needless to say, you'll also need a good working knowledge of
 POE, or this document will be of very little use to you.]
 
 POE::Component::IRC consists of a POE::Session that manages the IRC connection and 
+dispatches 'irc_' prefixed events to interested sessions and 
 an object that can be used to access additional information using methods.
 
-The component generates POE events that map to IRC events and one creates event handlers to 
-deal with these events.
 
 =head1 The Plugin system
 
