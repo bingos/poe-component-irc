@@ -664,7 +664,7 @@ sub _start {
   if ( $alias ) {
      $kernel->alias_set($alias);
   } else {
-     $kernel->alias_set('PoCo-IRC-' . $session->ID() );
+     $kernel->alias_set("$self");
   }
 
   $kernel->yield( 'register', @{ $self->{IRC_EVTS} } );
@@ -1936,6 +1936,29 @@ POE::Component::IRC consists of a POE::Session that manages the IRC connection a
 dispatches 'irc_' prefixed events to interested sessions and 
 an object that can be used to access additional information using methods.
 
+Sessions register their interest in receiving 'irc_' events by sending 'register' to the component. One would usually do this in your _start handler. Your session will continue to receive events until you 'unregister'. The component will continue to stay around until you tell it not to with 'shutdown'.
+
+The SYNOPSIS demonstrates a fairly basic bot.
+
+=head1 Useful subclasses
+
+Included with POE::Component::IRC are a number of useful subclasses. As they are subclasses they support all the methods, etc. documented here and have additional methods and quirks which are documented separately:
+
+=over
+
+=item L<POE::Component::IRC::State>
+
+POE::Component::IRC::State provides all the functionality of POE::Component::IRC but also tracks IRC state entities such as nicks and channels.
+
+=item L<POE::Component::IRC::Qnet>
+
+POE::Component::IRC::Qnet is POE::Component::IRC tweaked for use on Quakenet IRC network.
+
+=item L<POE::Component::IRC::Qnet::State>
+
+POE::Component::IRC::Qnet::State is a tweaked version of POE::Component::IRC::State for use on Quakenet IRC network. 
+
+=back
 
 =head1 The Plugin system
 
@@ -2018,22 +2041,6 @@ events to the component.
 
 $kernel->post( $irc->session_id() => 'mode' => $channel => '+o' => $dude );
 
-=item yield
-
-This method provides an alternative object based means of posting events to the component.
-First argument is the event to post, following arguments are sent as arguments to the resultant
-post.
-
-$irc->yield( 'mode' => $channel => '+o' => $dude );
-
-=item call
-
-This method provides an alternative object based means of calling events to the component.
-First argument is the event to call, following arguments are sent as arguments to the resultant
-call.
-
-$irc->call( 'mode' => $channel => '+o' => $dude );
-
 =item version
 
 Takes no arguments. Returns the version number of the module.
@@ -2065,11 +2072,29 @@ Takes one argument, a server capability to query. Returns undef on failure or a 
 
 Takes no arguments, returns a list of the available server capabilities keys, which can be used with isupport().
 
+=item yield
+
+This method provides an alternative object based means of posting events to the component.
+First argument is the event to post, following arguments are sent as arguments to the resultant
+post.
+
+$irc->yield( 'mode' => $channel => '+o' => $dude );
+
+=item call
+
+This method provides an alternative object based means of calling events to the component.
+First argument is the event to call, following arguments are sent as arguments to the resultant
+call.
+
+$irc->call( 'mode' => $channel => '+o' => $dude );
+
 =back
 
 =head1 INPUT
 
 How to talk to your new IRC component... here's the events we'll accept.
+These are events that are posted to the component, either via $poe_kernel->post() or via 
+the object method yield().
 
 =head2 Important Commands
 
