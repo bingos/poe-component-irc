@@ -2897,4 +2897,6 @@ L<http://www.infobot.org/>,
 Some good examples reside in the POE cookbook which has a whole section devoted to
 IRC programming L<http://poe.perl.org/?POE_Cookbook>.
 
+The examples/ folder of this distribution.
+
 =cut

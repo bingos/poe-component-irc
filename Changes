@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-4.80  <TBA>
+4.80  Thu Mar 16 17:00:01 GMT 2006
     - Code tidy up.
     - Fixed DCC bug. As reported by helios.
     - POD fix to ::State, missed two methods.
