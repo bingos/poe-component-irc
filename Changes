@@ -5,6 +5,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Fixed DCC bug. As reported by helios.
     - POD fix to ::State, missed two methods.
     - Changed default alias to "$self". Thanks dngor.
+    - General POD rewrite.
 
 4.79  Sun Jan 15 17:15:01 GMT 2006
     - Serious bug in _send_event() spotted by ikaros @ freenode.

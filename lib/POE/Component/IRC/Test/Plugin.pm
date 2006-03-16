@@ -1,5 +1,7 @@
 package POE::Component::IRC::Test::Plugin;
 
+use strict;
+use warnings;
 use POE::Component::IRC::Plugin qw( :ALL );
 
 sub new {

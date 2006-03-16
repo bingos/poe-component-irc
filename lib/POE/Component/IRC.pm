@@ -1857,6 +1857,7 @@ POE::Component::IRC - a fully event-driven IRC client module.
 
   my @channels = ( '#Blah', '#Foo', '#Bar' );
 
+  # We create a new PoCo-IRC object and component.
   my $irc = POE::Component::IRC->spawn( 
 	nick => $nickname,
 	server => $ircserver,
@@ -1876,6 +1877,9 @@ POE::Component::IRC - a fully event-driven IRC client module.
 
   sub _start {
     my ($kernel,$heap) = @_[KERNEL,HEAP];
+
+    # We get the session ID of the component from the object
+    # and register and connect to the specified server.
     my $irc_session = $heap->{irc}->session_id();
     $kernel->post( $irc_session => register => 'all' );
     $kernel->post( $irc_session => connect => { } );
@@ -1884,6 +1888,8 @@ POE::Component::IRC - a fully event-driven IRC client module.
 
   sub irc_001 {
     my ($kernel,$sender) = @_[KERNEL,SENDER];
+
+    # In any irc_* events SENDER will be the PoCo-IRC session
     $kernel->post( $sender => join => $_ ) for @channels;
     undef;
   }
@@ -1900,6 +1906,7 @@ POE::Component::IRC - a fully event-driven IRC client module.
     undef;
   }
 
+  # We registered for all events, this will produce some debug info.
   sub _default {
     my ($event, $args) = @_[ARG0 .. $#_];
     my @output = ( "$event: " );
@@ -1927,10 +1934,13 @@ things by sending it events. That's all there is to it. Cool, no?
 [Note that using this module requires some familiarity with the
 details of the IRC protocol. I'd advise you to read up on the gory
 details of RFC 1459
-E<lt>http://cs-pub.bu.edu/pub/irc/support/rfc1459.txtE<gt> before you
+E<lt>http://www.faqs.org/rfcs/rfc1459.htmlE<gt> before you
 get started. Keep the list of server numeric codes handy while you
 program. Needless to say, you'll also need a good working knowledge of
 POE, or this document will be of very little use to you.]
+
+The POE::Component::IRC distribution has a docs/ folder with a collection of
+salient documentation including the pertinent RFCs.
 
 POE::Component::IRC consists of a POE::Session that manages the IRC connection and 
 dispatches 'irc_' prefixed events to interested sessions and 
@@ -2178,7 +2188,10 @@ Sends a CTCP query or response to the nick(s) or channel(s) which you
 specify. Takes 2 arguments: the nick or channel to send a message to
 (use an array reference here to specify multiple recipients), and the
 plain text of the message to send (the CTCP quoting will be handled
-for you).
+for you). The "/me" command in popular IRC clients is actually a CTCP action.
+
+   # Doing a /me 
+   $poe_kernel->post( $irc_session => ctcp => $channel => "ACTION dances." );
 
 =item dcc
 
@@ -2636,7 +2649,7 @@ message.
 =item irc_part
 
 Sent whenever someone leaves a channel that you're on. ARG0 is the
-person's nick!hostmask. ARG1 is the channel name.
+person's nick!hostmask. ARG1 is the channel name. ARG2 is the part message.
 
 =item irc_ping
 
@@ -2859,7 +2872,7 @@ Chris 'BinGOs' Williams E<lt>chris@bingosnet.co.uk<gt>
 
 =head1 AUTHOR
 
-Dennis Taylor, E<lt>dennis@funkplanet.comE<gt>
+Dennis Taylor.
 
 =head1 MAD PROPS
 
