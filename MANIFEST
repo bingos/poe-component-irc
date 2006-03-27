@@ -28,11 +28,11 @@ MANIFEST.SKIP
 Makefile.PL
 README
 META.yml
-docs/rfc1459.txt
-docs/rfc2810.txt
-docs/rfc2811.txt
-docs/rfc2812.txt
-docs/rfc2813.txt
+docs/rfc1459.html
+docs/rfc2810.html
+docs/rfc2811.html
+docs/rfc2812.html
+docs/rfc2813.html
 docs/dccspec.html
 docs/ctcpspec.html
 examples/dicebot.pl
