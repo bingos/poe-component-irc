@@ -663,6 +663,7 @@ sub _start {
 
   if ( $alias ) {
      $kernel->alias_set($alias);
+     $self->{alias} = $alias;
   } else {
      $kernel->alias_set("$self");
   }
@@ -1120,16 +1121,13 @@ sub spawn {
   croak "$package requires an even number of parameters" if @_ & 1;
 
   my %parms = @_;
+  $parms{ lc $_ } = delete $parms{$_} for keys %parms;
 
-  foreach my $key ( keys %parms ) {
-	$parms{ lc $key } = delete $parms{$key};
-  }
+  delete $parms{'options'} unless ( ref ( $parms{'options'} ) eq 'HASH' );
 
-  delete ( $parms{'options'} ) unless ( ref ( $parms{'options'} ) eq 'HASH' );
+  my $self = $package->_create();
 
-  my ($self) = $package->_create();
-
-  my ($alias) = delete ( $parms{'alias'} );
+  my $alias = delete $parms{'alias'};
 
   POE::Session->create(
 		object_states => [
@@ -1574,6 +1572,11 @@ sub session_id {
   my ($self) = shift;
 
   return $self->{SESSION_ID};
+}
+
+sub session_alias {
+  my $self = shift;
+  return $self->{alias};
 }
 
 sub yield {
@@ -2050,6 +2053,10 @@ Takes no arguments. Returns the ID of the component's session. Ideal for posting
 events to the component.
 
 $kernel->post( $irc->session_id() => 'mode' => $channel => '+o' => $dude );
+
+=item session_alias
+
+Takes no arguments. Returns the session alias that has been set through spawn()'s alias argument. 
 
 =item version
 

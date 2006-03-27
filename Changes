@@ -3,6 +3,7 @@ Revision history for Perl extension POE::Component::IRC.
 4.81  <Date>
     - Added PlugMan plugin manager and associated test.
     - Fixed the RFC docs in docs/. Spotted by integral. Thanks.
+    - Added session_alias() method as suggested by Albert Kayda.
 
 4.80  Thu Mar 16 17:00:01 GMT 2006
     - Code tidy up.
