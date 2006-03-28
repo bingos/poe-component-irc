@@ -4,6 +4,9 @@ Revision history for Perl extension POE::Component::IRC.
     - Added PlugMan plugin manager and associated test.
     - Fixed the RFC docs in docs/. Spotted by integral. Thanks.
     - Added session_alias() method as suggested by Chris Thompson.
+    - The component's HEAP is now the object. So is retrievable via 
+      $_[SENDER]->get_heap() in event handlers. Thanks to CT for the 
+      idea.
 
 4.80  Thu Mar 16 17:00:01 GMT 2006
     - Code tidy up.

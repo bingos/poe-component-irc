@@ -15,7 +15,7 @@ if ($^O eq "cygwin") {
 
 warn "\n***************************\nThese next tests will hang if you are firewalling localhost interfaces\n";
 
-plan tests => 7;
+plan tests => 8;
 
 #########################
 
@@ -121,9 +121,13 @@ sub irc_socketerr {
 }
 
 sub irc_001 {
-  my ($heap) = $_[HEAP];
+  my ($heap,$sender) = @_[HEAP,SENDER];
 
   pass('irc_001');
+
+  my $poco_object = $sender->get_heap();
+
+  isa_ok( $poco_object, 'POE::Component::IRC' );
 
   $self->yield( 'unregister' => 'all' );
   $self->yield( 'shutdown');

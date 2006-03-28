@@ -556,7 +556,7 @@ sub _sock_down {
 
   # Stop any delayed sends.
   $self->{send_queue} = [ ];
-  $_[HEAP]->{send_queue} = $self->{send_queue};
+  #$_[HEAP]->{send_queue} = $self->{send_queue};
   $self->{send_time}  = 0;
   $kernel->delay( sl_delayed => undef );
 
@@ -656,7 +656,7 @@ sub _start {
   # Send queue is used to hold pending lines so we don't flood off.
   # The count is used to track the number of lines sent at any time.
   $self->{send_queue} = [ ];
-  $_[HEAP]->{send_queue} = $self->{send_queue};
+  #$_[HEAP]->{send_queue} = $self->{send_queue};
   $self->{send_time}  = 0;
 
   $session->option( @options ) if @options;
@@ -1104,26 +1104,22 @@ sub kick {
 sub new {
   my ($package, $alias) = splice @_, 0, 2;
 
-  unless ($alias) {
-    croak "Not enough arguments to POE::Component::IRC::new()";
-  }
-
+  croak "Not enough arguments to POE::Component::IRC::new()" unless $alias;
   warn "Use of ->new() is deprecated, please use spawn()\n";
-
-  my ($self) = $package->spawn ( alias => $alias, options => { @_ } );
+  my $self = $package->spawn ( alias => $alias, options => { @_ } );
 
   return $self;
 }
 
 # Set up a new IRC component. New interface.
 sub spawn {
-  my ($package) = shift;
+  my $package = shift;
   croak "$package requires an even number of parameters" if @_ & 1;
 
   my %parms = @_;
   $parms{ lc $_ } = delete $parms{$_} for keys %parms;
 
-  delete $parms{'options'} unless ( ref ( $parms{'options'} ) eq 'HASH' );
+  delete $parms{'options'} unless ref ( $parms{'options'} ) eq 'HASH';
 
   my $self = $package->_create();
 
@@ -1134,7 +1130,8 @@ sub spawn {
 		     $self => $self->{OBJECT_STATES_HASHREF},
 		     $self => $self->{OBJECT_STATES_ARRAYREF}, ],
 		( defined ( $parms{'options'} ) ? ( options => $parms{'options'} ) : () ),
-		args => [ $alias ] );
+		args => [ $alias ],
+		heap => $self, );
 
   $parms{'CALLED_FROM_SPAWN'} = 1;
   $self->_configure( \%parms );
