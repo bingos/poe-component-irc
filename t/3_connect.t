@@ -15,7 +15,7 @@ if ($^O eq "cygwin") {
 
 warn "\n***************************\nThese next tests will hang if you are firewalling localhost interfaces\n";
 
-plan tests => 8;
+plan tests => 14;
 
 #########################
 
@@ -26,7 +26,7 @@ use Socket;
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Line);
 use_ok('POE::Component::IRC');
 
-my ($self) = POE::Component::IRC->spawn();
+my $self = POE::Component::IRC->spawn( alias => 'blahblah' );
 
 isa_ok ( $self, 'POE::Component::IRC' );
 
@@ -38,6 +38,7 @@ POE::Session->create(
 			   client_error => \&client_error,
 			   irc_connected => \&irc_connected,
 			   irc_socketerr => \&irc_socketerr,
+			   irc_registered => \&irc_registered,
 			   irc_001 => \&irc_001,
 			 },
 );
@@ -66,6 +67,7 @@ sub test_start {
 			       Port => $heap->{bindport},
 			       Username => 'testbot',
 			       Ircname => 'testbot 1.1', } );
+  undef;
 }
 
 sub accept_client {
@@ -78,10 +80,12 @@ sub accept_client {
         Filter => POE::Filter::Line->new( Literal => "\x0D\x0A" ),
    );
    $heap->{client}->{ $wheel->ID() } = $wheel;
+  undef;
 }
 
 sub factory_failed {
-  delete ( $_[HEAP]->{sockfactory} );
+  delete $_[HEAP]->{sockfactory};
+  undef;
 }
 
 sub client_input {
@@ -103,21 +107,30 @@ sub client_input {
 	# Send back irc_001
 	$heap->{client}->{ $wheel_id }->put(':test.script 001 testbot :Welcome to poconet Internet Relay Chat Network testbot!testbot@127.0.0.1');
   }
+  undef;
 }
 
 sub client_error {
     my ( $heap, $wheel_id ) = @_[ HEAP, ARG3 ];
-    delete ( $heap->{client}->{$wheel_id} ); 
-    delete ( $heap->{sockfactory} );
+    delete $heap->{client}->{$wheel_id}; 
+    delete $heap->{sockfactory};
+  undef;
 }
 
 sub irc_connected {
   pass('connected');
+  undef;
 }
 
 sub irc_socketerr {
   fail('connected');
   $self->yield( 'shutdown' );
+  undef;
+}
+
+sub irc_registered {
+  isa_ok( $_[ARG0], 'POE::Component::IRC' );
+  undef;
 }
 
 sub irc_001 {
@@ -129,6 +142,13 @@ sub irc_001 {
 
   isa_ok( $poco_object, 'POE::Component::IRC' );
 
+  ok( $poco_object->session_id() eq $sender->ID(), "Session ID" );
+  ok( $poco_object->session_alias() eq 'blahblah', "Alias name" );
+  ok( $poco_object->connected(), "Connected test" );
+  ok( $poco_object->server_name() eq 'test.script', "Server Name" );
+  ok( $poco_object->nick_name() eq 'testbot', "Nick Name" );
+
   $self->yield( 'unregister' => 'all' );
   $self->yield( 'shutdown');
+  undef;
 }

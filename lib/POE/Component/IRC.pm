@@ -1646,11 +1646,8 @@ sub irc_ping {
 # NICK messages for the purposes of determining our current nickname
 sub irc_nick {
   my ($kernel,$self,$who,$new) = @_[KERNEL,OBJECT,ARG0,ARG1];
-  my ($nick) = ( split /!/, $who )[0];
-
-  if ( $nick eq $self->{RealNick} ) {
-	$self->{RealNick} = $new;
-  }
+  my $nick = ( split /!/, $who )[0];
+  $self->{RealNick} = $new if ( $nick eq $self->{RealNick} );
   undef;
 }
 
@@ -1889,6 +1886,11 @@ POE::Component::IRC - a fully event-driven IRC client module.
   sub irc_001 {
     my ($kernel,$sender) = @_[KERNEL,SENDER];
 
+    # Get the component's object at any time by accessing the heap of
+    # the SENDER
+    my $poco_object = $sender->get_heap();
+    print "Connected to ", $poco_object->server_name(), "\n";
+
     # In any irc_* events SENDER will be the PoCo-IRC session
     $kernel->post( $sender => join => $_ ) for @channels;
     undef;
@@ -2003,9 +2005,16 @@ A lightweight IRC proxy/bouncer.
 
 Automagically generates replies to ctcp version, time and userinfo queries.
 
+=item L<POE::Component::IRC::Plugin::PlugMan>
+
+An experimental Plugin Manager plugin.
+
 =back
 
 =head1 CONSTRUCTORS
+
+Both CONSTRUCTORS return an object. The object is also available within 'irc_' event handlers by using 
+$_[SENDER]->get_heap(). See also 'register' and 'irc_registered'.
 
 =over
 
@@ -2556,6 +2565,10 @@ listen for. FIXME: I'd really like to classify these somewhat
 ("basic", "oper", "ctcp", "dcc", "raw" or some such), and I'd welcome
 suggestions for ways to make this easier on the user, if you can think
 of some.
+
+In your event handlers, $_[SENDER] is the particular component session that
+sent you the event. $_[SENDER]->get_heap() will retrieve the component's 
+object. Useful if you want on-the-fly access to the object and it's methods.
 
 =head2 Important Events
 
