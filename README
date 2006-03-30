@@ -18,7 +18,7 @@ Table of Contents
 1. INTRODUCTION
 ---------------
 
-	POE::Component::IRC is a POE (Perl Object Environment) component
+POE::Component::IRC is a POE (Perl Object Environment) component
 which provides a convenient way for POE applications to create a tiny
 IRC client session and send and receive IRC events through it. If that
 first sentence was a bit too much, go read the POE documentation over
@@ -40,19 +40,19 @@ available at https://www.bingosnet.net/svn/pocoirc/
 3. PREREQUISITES
 ----------------
 
-	POE. (Duh. :-)  Specifically, version 0.17 or better. It also
+POE. (Duh. :-)  Specifically, version 0.17 or better. It also
 requires Carp and Socket, but if you find yourself lacking either of
 those, you're in more trouble than we can help with anyways...
 
-	If the module finds POE::Component::Client::DNS installed it
+If the module finds POE::Component::Client::DNS installed it
 will use it to resolve the IP address of the servername given to connect.
 
-	POE::Component::SSLify is required for SSL links.
+POE::Component::SSLify is required for SSL links.
 
 4. INSTALLATION
 ---------------
 
-	Same as any other Perl module, right? Unpack the tarfile, cd into
+Same as any other Perl module, right? Unpack the tarfile, cd into
 the resulting POE-Component-IRC-whatever directory, and do this:
 
 	perl Makefile.PL
@@ -66,19 +66,19 @@ these scripts make a good template for your own bots, if you need one.
 5. BUGS AND WISH LIST AND PATCHES
 ---------------------------------
 
-	To report bugs, email the maintainer or preferably
-	use http://rt.cpan.org/
+To report bugs, email the maintainer or preferably
+use http://rt.cpan.org/
 
-	Patches against the current CPAN distribution will be accepted.
+Patches against the current CPAN distribution will be accepted.
 
 6. DISCLAIMER
 -------------
 
-	This module is provided "as is". If it makes your computer
+This module is provided "as is". If it makes your computer
 explode, your hair fall out, your cat develop rabies, your house burn
 down, whatever -- it's not our fault. Period. Ha ha, so there! :-)
 
-	Furthermore, note that this module is still under active
+Furthermore, note that this module is still under active
 development. The author reserves the right to gratuitously break old
 code for the good of the rest of mankind, although it's unlikely that
 that sort of thing will happen often.
@@ -87,7 +87,7 @@ that sort of thing will happen often.
 7. COPYRIGHT
 ------------
 
-	The copyright for POE::Component::IRC belongs to Dennis Taylor,
+The copyright for POE::Component::IRC belongs to Dennis Taylor,
 the poor bastard who wrote this thing up in the first place. It's
 distributed under the same terms as Perl itself (that is, either the
 Artistic License or GPL as you prefer). Please see the license that
@@ -97,10 +97,10 @@ came with your Perl distribution for details.
 8. DEVELOPER INFORMATION
 ------------------------
 
-	Current maintainer Chris "BinGOs" Williams
-			   <chris@bingosnet.co.uk>
+Current maintainer Chris "BinGOs" Williams
+		   <chris@bingosnet.co.uk>
 
-	POE::Component::IRC was conceived and written by Dennis "fimmtiu"
+POE::Component::IRC was conceived and written by Dennis "fimmtiu"
 Taylor, with piles of ideas and advice donated by Rocco "dngor"
 Caputo, of POE fame, and Kevin "oznoid" Lenzo. Further testing,
 support and encouragement were provided by the exceedingly tolerant
@@ -113,6 +113,6 @@ members of the EFnet channel #perl. Thanks to the following IRCers:
 	stimps, for an excellent chili recipie
 	and last but not least, my spleen! ("purl, spleen cheer!")
 
-	Apologies to anyone I forgot!
+Apologies to anyone I forgot!
 
-	Check the Changes file for further contributors.
+Check the Changes file for further contributors.

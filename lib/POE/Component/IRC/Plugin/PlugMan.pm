@@ -18,8 +18,10 @@ sub new {
 sub PCI_register {
   my ($self,$irc) = @_;
 
-  die "This plugin must be loaded into POE::Component::IRC::State or subclasses\n" 
-	unless $irc->isa('POE::Component::IRC::State');
+  if ( $self->{botowner} and !$irc->isa('POE::Component::IRC::State') ) {
+     warn "This plugin must be loaded into POE::Component::IRC::State or subclasses\n";
+     return 0;
+  }
 
   $self->{irc} = $irc;
 
@@ -195,6 +197,7 @@ sub _bot_owner {
 
 sub load {
   my ($self,$desc,$plugin) = splice @_, 0, 3;
+  return unless $desc and $plugin;
 
   my $loaded = 0;
 
@@ -217,7 +220,7 @@ sub load {
 
   return 0 unless $object;
   
-  my ($args) = [ @_ ];
+  my $args = [ @_ ];
 
   $self->{plugins}->{ $desc }->{module} = $module;
 
@@ -234,6 +237,7 @@ sub load {
 
 sub unload {
   my ($self,$desc) = splice @_, 0, 2;
+  return unless $desc;
 
   my $plugin = $self->{irc}->plugin_del( $desc );
   return 0 unless $plugin;
@@ -245,6 +249,7 @@ sub unload {
 
 sub reload {
   my ($self,$desc) = splice @_, 0, 2;
+  return unless $desc;
 
   my $plugin_state = $self->{plugins}->{ $desc };
   return 0 unless $plugin_state;
@@ -278,3 +283,151 @@ sub l_irc {
 }
 
 1;
+__END__
+=head1 NAME
+
+POE::Component::IRC::Plugin::PlugMan, a POE::Component::IRC plugin that provides plugin management services. 
+
+=head1 SYNOPSIS
+
+   use strict;
+   use warnings;
+   use POE qw(Component::IRC::State);
+   use POE::Component::IRC::Plugin::PlugMan;
+
+   my $botowner = 'somebody!*@somehost.com';
+   my $irc = POE::Component::IRC::State->spawn();
+
+   POE::Session->create( 
+        package_states => [ 
+                'main' => [ qw(_start irc_plugin_add) ],
+        ],
+   );
+
+   sub _start {
+     $irc->yield( register => 'all' );
+     $irc->plugin_add( 'PlugMan' => POE::Component::IRC::Plugin::PlugMan->new( botowner => $botowner ) );
+     undef;
+   }
+
+   sub irc_plugin_add {
+     my ( $desc, $plugin ) = @_[ARG0,ARG1];
+     
+     if ( $desc eq 'PlugMan' ) {
+	$plugin->load( 'Connector', 'POE::Component::IRC::Plugin::Connector' );
+     }
+     undef;
+   }
+
+=head1 DESCRIPTION
+
+POE::Component::IRC::Plugin::PlugMan is a POE::Component::IRC plugin management plugin. It provides support for
+'on-the-fly' loading, reloading and unloading of plugin modules, via object methods that you can incorporate into
+your own code and a handy IRC interface.
+
+=head1 CONSTRUCTOR
+
+=over
+
+=item new
+
+Takes two optional arguments:
+
+   "botowner", an IRC mask to match against for people issuing commands via the IRC interface;
+   "debug", set to a true value to see when stuff goes wrong;
+
+Not setting a "botowner" effectively disables the IRC interface. 
+
+If "botowner" is specified the plugin checks that it is being loaded into a
+L<POE::Component::IRC::State> or sub-class and will fail to load otherwise.
+
+Returns a plugin object suitable for feeding to L<POE::Component::IRC>'s plugin_add() method.
+
+=back
+
+=head1 METHODS
+
+=over
+
+=item load
+
+Loads a managed plugin.
+
+Takes two mandatory arguments, a plugin descriptor and a plugin package name. Any other arguments are used as
+options to the loaded plugin constructor.
+
+   $plugin->load( 'Connector', 'POE::Component::IRC::Plugin::Connector', delay, 120 );
+
+Returns true or false depending on whether the load was successfully or not.
+
+You may check $@ for error messages.
+
+=item unload
+
+Unloads a managed plugin.
+
+Takes one mandatory argument, a plugin descriptor.
+
+   $plugin->unload( 'Connector' );
+
+Returns true or false depending on whether the unload was successfully or not.
+
+=item reload
+
+Unloads and loads a managed plugin, with applicable plugin options.
+
+Takes one mandatory argument, a plugin descriptor.
+
+   $plugin->reload( 'Connector' );
+
+You may check $@ for error messages.
+
+=item loaded
+
+Takes no arguments.
+
+   $plugin->loaded();
+
+Returns a list of descriptors of managed plugins.
+
+=back
+
+=head1 IRC INTERFACE
+
+The IRC interface is enabled by specifying a "botowner" mask to new(). Commands may be either invoked via
+a PRIVMSG directly to your bot or in a channel by prefixing the command with the nickname of your bot. One
+caveat, the parsing of the irc command is very rudimentary ( it merely splits the line on \s+ ). 
+
+=over
+
+=item plugin_add
+
+Takes the same arguments as load().
+
+=item plugin_del
+
+Takes the same arguments as unload().
+
+=item plugin_reload
+
+Takes the same arguments as reload().
+
+=item plugin_loaded
+
+Returns a list of descriptors of managed plugins.
+
+=item plugin_list
+
+Returns a list of descriptors of *all* plugins loaded into the current PoCo-IRC component.
+
+=back
+
+=head1 AUTHOR
+
+Chris 'BinGOs' Williams
+
+=head1 SEE ALSO
+
+L<POE::Component::IRC::State>
+
+L<POE::Component::IRC::Plugin>

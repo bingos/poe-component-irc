@@ -82,7 +82,7 @@ POE::Component::IRC::Plugin - Provides plugin documentation for PoCo-IRC
 
 Certain individuals in #PoE on MAGNet said we didn't need to bloat the PoCo-IRC code...
 
-Me and BinGOs, the current maintainer of the module, have heartily agreed that this is a wise choice.
+BinGOs, the current maintainer of the module, and I heartily agreed that this is a wise choice.
 
 One example:
 

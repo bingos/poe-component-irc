@@ -1346,6 +1346,8 @@ sub shutdown {
   foreach my $plugin_alias ( keys %{ $self->plugin_list() } ) {
 	$self->plugin_del( $plugin_alias );
   }
+
+  $self->{resolver}->shutdown() if $self->{resolver};
   undef;
 }
 
@@ -2750,7 +2752,8 @@ lists. Ack!) As an example, say you wanted to handle event 376
 (RPL_ENDOFMOTD, which signals the end of the MOTD message). You'd
 register for '376', and listen for 'irc_376' events. Simple, no? ARG0
 is the name of the server which sent the message. ARG1 is the text of
-the message. ARG2 is an ARRAYREF of the parsed message.
+the message. ARG2 is an ARRAYREF of the parsed message, so there is no
+need to parse ARG1 yourself.
 
 =back
 
@@ -2885,7 +2888,7 @@ L<http://rt.cpan.org/> to report any. Alternatively, email the current maintaine
 
 =head1 MAINTAINER
 
-Chris 'BinGOs' Williams E<lt>chris@bingosnet.co.uk<gt>
+Chris 'BinGOs' Williams E<lt>chris@bingosnet.co.ukE<gt>
 
 =head1 AUTHOR
 

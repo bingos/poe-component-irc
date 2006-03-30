@@ -62,3 +62,4 @@ t/plugins/05_ctcp.t
 t/plugins/06_console.t
 t/plugins/07_proxy.t
 t/testsuite_01_plugin.t
+t/testsuite_02_connect.t

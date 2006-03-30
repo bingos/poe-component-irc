@@ -174,12 +174,16 @@ sub ircd_shutdown {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
 
   $kernel->call ( 'Ident-Client' => 'shutdown' ); 
+  $self->{ $self->{Resolver} }->shutdown();
 
-  delete ( $self->{Clients} );
+  delete $self->{Clients};
+  delete $self->{Listeners};
 
   $kernel->alias_remove ( $self->{Alias} );
 
-  $kernel->delay ( 'poll_connections' => undef );
+  #$kernel->delay ( 'poll_connections' => undef );
+  $kernel->alarm_remove_all();
+  undef;
 }
 
 sub register {
