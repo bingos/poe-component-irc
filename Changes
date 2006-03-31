@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-4.81  <Date>
+4.81  Fri Mar 31 17:00:38 BST 2006
     - Added PlugMan plugin manager and associated test.
     - Fixed the RFC docs in docs/. Spotted by integral. Thanks.
     - Added session_alias() method as suggested by Chris Thompson.
@@ -11,6 +11,10 @@ Revision history for Perl extension POE::Component::IRC.
     - Expanded the testsuite with 2 new tests. One uses Test::Harness,
       the other is an online test and tries to connect to freenode.
     - Fixed all the examples to use POE::Session->create().
+    - Added a warning to Makefile.PL about the online test.
+    - Added delay() method for posting delayed commands.
+    - Added a test to testsuite for ::State.
+    - Added examples to Plugin docs.
 
 4.80  Thu Mar 16 17:00:01 GMT 2006
     - Code tidy up.
