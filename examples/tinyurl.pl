@@ -165,8 +165,8 @@ sub _get_shorter {
 
 POE::Component::IRC->new( 'urlbot' ) or
   die "Can't instantiate new IRC component!\n";
-POE::Session->new( 'main' => [qw(_start _stop irc_001 irc_disconnected
-                                 irc_socketerr irc_error irc_public irc_msg)] );
+POE::Session->create( package_states => [ 'main' => [qw(_start _stop irc_001 irc_disconnected
+                                 irc_socketerr irc_error irc_public irc_msg)],], );
 $poe_kernel->run();
 
 exit 0;

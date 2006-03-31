@@ -365,12 +365,14 @@ sub irc_socketerr {
 }
 
 
-POE::Session->new( 'main' => [qw( _start _stop aim_buddy_update aim_friends
+POE::Session->create( package_states => [ 
+		   'main' => [qw( _start _stop aim_buddy_update aim_friends
 				  aim_got_message aim_listen aim_queue aim_send
 				  irc_001 irc_433 irc_ctcp_action
                                   irc_disconnected irc_error irc_join irc_kick
 				  irc_mode irc_msg irc_nick irc_notice irc_part
-				  irc_public irc_quit irc_socketerr )]
+				  irc_public irc_quit irc_socketerr )],
+		   ],
 		  );
 $poe_kernel->run();
 

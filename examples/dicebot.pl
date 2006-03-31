@@ -99,8 +99,9 @@ sub irc_public {
 
 POE::Component::IRC->new( 'dicebot' ) or
   die "Can't instantiate new IRC component!\n";
-POE::Session->new( 'main' => [qw(_start _stop irc_001 irc_disconnected sigint
-                                 irc_socketerr irc_error irc_public)] );
+POE::Session->create( package_states => [
+			'main' => [qw(_start _stop irc_001 irc_disconnected sigint
+                                 irc_socketerr irc_error irc_public)],], );
 $poe_kernel->run();
 
 exit 0;

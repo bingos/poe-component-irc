@@ -207,11 +207,11 @@ sub irc_socketerr {
 
 POE::Component::IRC->new( 'irc', trace => undef ) or
   die "Can't instantiate new IRC component!\n";
-POE::Session->new( 'main' => [qw( _start _stop _connected sigint
+POE::Session->create( package_states => [ 'main' => [qw( _start _stop _connected sigint
 				  _connect_failed _conn_data _conn_error
 				  irc_001 irc_error irc_disconnected
 				  irc_socketerr irc_dcc_start irc_dcc_done
-				  irc_dcc_chat irc_dcc_error irc_dcc_request)]
+				  irc_dcc_chat irc_dcc_error irc_dcc_request)], ],
 		 );
 $poe_kernel->run();
 

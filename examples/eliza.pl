@@ -110,12 +110,12 @@ my ($object) = POE::Component::IRC->spawn(
 				      Ircname  => 'Ask me about my colon!' ) or
   die "Can't instantiate new IRC component!\n";
 
-POE::Session->new( 'main' =>
+POE::Session->create( package_states => [ 'main' =>
                    [ qw( _start _stop irc_001 irc_kick irc_disconnected
 			 irc_error irc_socketerr irc_public
                        )
-                   ],
-		   [ $object ],
+                   ], ],
+		   args => [ $object ],
                  );
 $poe_kernel->run();
 

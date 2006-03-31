@@ -5,14 +5,14 @@ use Getopt::Long;
 
 use POE qw(Component::IRC Component::IRC::Plugin::Proxy);
 
-my ($nick);
-my ($user);
-my ($server);
-my ($port);
-my ($ircname);
-my ($bindaddr);
-my ($bindport);
-my ($password);
+my $nick;
+my $user;
+my $server;
+my $port;
+my $ircname;
+my $bindaddr;
+my $bindport;
+my $password;
 
 GetOptions(
 "address=s" => \$bindaddr,
@@ -27,7 +27,7 @@ GetOptions(
 
 die "Please specify a nickname and a servername\n" unless ( $nick and $server );
 
-my ($poco) = POE::Component::IRC->spawn(Nick => $nick, Server => $server, Port => $port, Ircname => $ircname, Username => $user);
+my $poco = POE::Component::IRC->spawn(Nick => $nick, Server => $server, Port => $port, Ircname => $ircname, Username => $user);
 
 POE::Session->create(
   package_states => [ 
