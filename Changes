@@ -6,7 +6,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Added session_alias() method as suggested by Chris Thompson.
     - The component's HEAP is now the object. So is retrievable via 
       $_[SENDER]->get_heap() in event handlers. Thanks to CT for the 
-      idea.
+      idea. Now why didn't I think of that sooner =[
     - Various fixes to Test::Harness ircd.
     - Expanded the testsuite with 2 new tests. One uses Test::Harness,
       the other is an online test and tries to connect to freenode.

@@ -125,6 +125,7 @@ sub _create {
 				      _dcc_read
 				      _dcc_timeout
 				      _dcc_up
+				      _delayed_cmd
 				      _parseline
 				      __send_event
 				      _sock_down
@@ -1329,24 +1330,11 @@ sub register_session {
 # Tell the IRC session to go away.
 sub shutdown {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
-
-  foreach ($kernel->alias_list( $_[SESSION] )) {
-    $kernel->alias_remove( $_ );
-  }
-
-  foreach (qw(socket sock socketfactory dcc wheelmap)) {
-    delete $self->{$_};
-  }
-
-  #if ( $self->{sessions}->{ $_[SENDER] } ) {
-  #$kernel->yield ( 'unregister_sessions' );
-  #}
-  
+  $kernel->alarm_remove_all();
+  $kernel->alias_remove( $_ ) for $kernel->alias_list( $_[SESSION] );
+  delete $self->{$_} for qw(socket sock socketfactory dcc wheelmap);
   # Delete all plugins that are loaded.
-  foreach my $plugin_alias ( keys %{ $self->plugin_list() } ) {
-	$self->plugin_del( $plugin_alias );
-  }
-
+  $self->plugin_del( $_ ) for keys %{ $self->plugin_list() };
   $self->{resolver}->shutdown() if $self->{resolver};
   undef;
 }
@@ -1579,15 +1567,32 @@ sub session_alias {
 }
 
 sub yield {
-  my ($self) = shift;
-
+  my $self = shift;
   $poe_kernel->post( $self->session_id() => @_ );
 }
 
 sub call {
-  my ($self) = shift;
-
+  my $self = shift;
   $poe_kernel->call( $self->session_id() => @_ );
+}
+
+sub delay {
+  my $self = shift;
+  my $arrayref = shift || return;
+  unless ( ref $arrayref eq 'ARRAY' ) {
+	warn "First argument to delay() must be an ARRAYREF\n";
+	return;
+  }
+  $poe_kernel->call( $self->session_id() => '_delayed_cmd' => $arrayref => @_ );
+}
+
+sub _delayed_cmd {
+  my ($kernel,$self,$arrayref,$time) = @_[KERNEL,OBJECT,ARG0,ARG1];
+  return unless scalar @{ $arrayref };
+  return unless $time;
+  my $event = shift @{ $arrayref };
+  $kernel->delay_set( $event => $time => @{ $arrayref } );
+  undef;
 }
 
 sub _validate_command {
@@ -2103,7 +2108,7 @@ This method provides an alternative object based means of posting events to the 
 First argument is the event to post, following arguments are sent as arguments to the resultant
 post.
 
-$irc->yield( 'mode' => $channel => '+o' => $dude );
+  $irc->yield( 'mode' => $channel => '+o' => $dude );
 
 =item call
 
@@ -2111,7 +2116,15 @@ This method provides an alternative object based means of calling events to the 
 First argument is the event to call, following arguments are sent as arguments to the resultant
 call.
 
-$irc->call( 'mode' => $channel => '+o' => $dude );
+  $irc->call( 'mode' => $channel => '+o' => $dude );
+
+=item delay
+
+This method provides a way of posting delayed events to the component. The first argument
+is an arrayref consisting of the delayed command to post and any command arguments. The 
+second argument is the time in seconds that one wishes to delay the command being posted.
+
+  $irc->delay( [ 'mode' => $channel => '+o' => $dude ], 60 );
 
 =back
 

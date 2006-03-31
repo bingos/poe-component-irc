@@ -6,7 +6,7 @@ use strict qw(subs vars refs);				# Make sure we can't mess up
 use warnings FATAL => 'all';				# Enable warnings to catch errors
 
 # Initialize our version
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 # We export some stuff
 require Exporter;
@@ -31,6 +31,10 @@ POE::Component::IRC::Plugin - Provides plugin documentation for PoCo-IRC
 	Provides plugin documentation for PoCo-IRC
 
 =head1 CHANGES
+
+=head2 0.08
+
+	Added EXAMPLES section.
 
 =head2 0.07
 
@@ -415,9 +419,118 @@ See L<POE::Component::IRC::Pipeline|POE::Component::IRC::Pipeline>
 	Exports the return constants for plugins to use in @EXPORT_OK
 	Also, the ':ALL' tag can be used to get all of them
 
+=head1 EXAMPLES
+
+=over
+
+=item A simple ROT13 'encryption' plugin
+
+  package Rot13;
+
+  use strict qw(subs vars refs);    # Make sure we can't mess up
+  use warnings FATAL => 'all';
+  use POE::Component::IRC::Plugin qw( :ALL );
+
+  # Plugin object constructor
+  sub new {
+    my $package = shift;
+    return bless {}, $package;
+  }
+
+  sub PCI_register {
+    my ( $self, $irc ) = splice @_, 0, 2;
+
+    $irc->plugin_register( $self, 'SERVER', qw(public) );
+    return 1;
+  }
+
+  # This is method is mandatory but we don't actually have anything to do.
+  sub PCI_unregister {
+    return 1;
+  }
+
+  sub S_public {
+    my ( $self, $irc ) = splice @_, 0, 2;
+
+    # Parameters are passed as scalar-refs including arrayrefs.
+    my $nick    = ( split /!/, ${ $_[0] } )[0];
+    my $channel = ${ $_[1] }->[0];
+    my $msg     = ${ $_[2] };
+
+    if ( my ($rot13) = $msg =~ /^rot13 (.+)/ ) {
+        $rot13 =~ tr[a-zA-Z][n-za-mN-ZA-M];
+
+        # Send a response back to the server.
+        $irc->yield( privmsg => $channel => $rot13 );
+        return PCI_EAT_PLUGIN;    # We don't want other plugins to process this
+    }
+
+    return PCI_EAT_NONE; # Default action is to allow other plugins to process it.
+  }
+
+=item A template for a plugin with it's own L<POE::Session>
+
+  package POE-Plugin-Template;
+
+  use POE;
+  use POE::Component::IRC::Plugin qw( :ALL );
+
+  sub new {
+    my $package = shift;
+    my $self = bless {@_}, $package;
+    return $self;
+  }
+
+  sub PCI_register {
+    my ( $self, $irc ) = splice @_, 0, 2;
+
+    # We store a ref to the $irc object so we can use it in our
+    # session handlers.
+    $self->{irc} = $irc;
+
+    $irc->plugin_register( $self, 'SERVER', qw(blah blah blah) );
+
+    $self->{SESSION_ID} = POE::Session->create(
+        object_states => [
+            $self => [qw(_start _shutdown)],
+        ],
+    )->ID();
+
+    return 1;
+  }
+
+  sub PCI_unregister {
+    my ( $self, $irc ) = splice @_, 0, 2;
+    # Plugin is dying make sure our POE session does as well.
+    $poe_kernel->call( $self->{SESSION_ID} => '_shutdown' );
+    delete $self->{irc};
+    return 1;
+  }
+
+  sub _start {
+    my ( $kernel, $self ) = @_[ KERNEL, OBJECT ];
+    $self->{SESSION_ID} = $_[SESSION]->ID();
+    # Make sure our POE session stays around. Could use aliases but that is so messy :)
+    $kernel->refcount_increment( $self->{SESSION_ID}, __PACKAGE__ );
+    undef;
+  }
+
+  sub _shutdown {
+    my ($kernel, $self) = @_[ KERNEL, OBJECT ];
+    $kernel->alarm_remove_all();
+    $kernel->refcount_decrement( $self->{SESSION_ID}, __PACKAGE__ );
+    undef;
+  }
+
+=back
+
 =head1 SEE ALSO
 
-L<POE::Component::IRC> L<POE::Component::IRC::Pipeline|POE::Component::IRC::Pipeline>
+L<POE::Component::IRC> 
+
+L<POE::Component::IRC::Pipeline>
+
+L<POE::Session>
 
 =head1 AUTHOR
 

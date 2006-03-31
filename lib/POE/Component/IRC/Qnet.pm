@@ -100,6 +100,7 @@ sub _create {
 				      _dcc_read
 				      _dcc_timeout
 				      _dcc_up
+				      _delayed_cmd
 				      _parseline
 				      __send_event
 				      _sock_down
