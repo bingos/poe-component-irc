@@ -8,6 +8,9 @@ Revision history for Perl extension POE::Component::IRC.
     - Added subclass test to the testsuite.
     - Added DCC test scripts to the testsuite.
     - Fixed a bug in DCC code for CHAT.
+    - Added nick and nick_state tests.
+    - Amended processing order in _send_event() so that the 
+      poco session can process events *before* the plugins do.
 
 4.81  Fri Mar 31 17:00:38 BST 2006
     - Added PlugMan plugin manager and associated test.

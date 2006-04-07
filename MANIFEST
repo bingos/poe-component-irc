@@ -71,3 +71,5 @@ t/testsuite_06_dcc_timeout.t
 t/testsuite_07_dcc_chat.t
 t/testsuite_08_subclass.t
 t/testsuite_09_dcc_send.t
+t/testsuite_10_nick.t
+t/testsuite_11_nick_state.t

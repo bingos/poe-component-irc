@@ -523,6 +523,15 @@ sub _send_event  {
   my $session = $kernel->get_active_session()->ID();
   my %sessions;
 
+  # BINGOS:
+  # I've moved these above the plugin system call to ensure that pesky plugins 
+  # don't eat the events before *our* session can process them. *sigh*
+
+  $sessions{$_} = $_ for (values %{$self->{events}->{'irc_all'}}, values %{$self->{events}->{$event}});
+
+  # Make sure our session gets notified of any requested events before any other bugger
+  $kernel->call( $session => $event => @args ) if delete $sessions{$session};
+
   # Let the plugin system process this
   if ( $self->_plugin_process( 'SERVER', $event, \( @args ) ) == PCI_EAT_ALL ) {
   	return 1;
@@ -538,10 +547,6 @@ sub _send_event  {
     return 1;
   }
 
-  $sessions{$_} = $_ for (values %{$self->{events}->{'irc_all'}}, values %{$self->{events}->{$event}});
-
-  # Make sure our session gets notified of any requested events before any other bugger
-  $kernel->call( $session => $event => @args ) if delete $sessions{$session};
   $kernel->post( $_ => $event => @args ) for values %sessions;
   undef;
 }
