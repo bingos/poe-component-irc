@@ -61,7 +61,13 @@ t/plugins/04_isupport.t
 t/plugins/05_ctcp.t
 t/plugins/06_console.t
 t/plugins/07_proxy.t
+t/testsuite_00_socketerr.t
 t/testsuite_01_plugin.t
 t/testsuite_02_connect.t
 t/testsuite_03_online.t
 t/testsuite_04_state.t
+t/testsuite_05_multiple.t
+t/testsuite_06_dcc_timeout.t
+t/testsuite_07_dcc_chat.t
+t/testsuite_08_subclass.t
+t/testsuite_09_dcc_send.t

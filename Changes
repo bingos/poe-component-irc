@@ -1,5 +1,14 @@
 Revision history for Perl extension POE::Component::IRC.
 
+4.82  <Date>
+    - Sorted out Test::Harness, brought it up to PoCo-Server-IRC-0.3
+      standard.
+    - Added a multiple client test to the testsuite.
+    - Added socketerr test to the testsuite.
+    - Added subclass test to the testsuite.
+    - Added DCC test scripts to the testsuite.
+    - Fixed a bug in DCC code for CHAT.
+
 4.81  Fri Mar 31 17:00:38 BST 2006
     - Added PlugMan plugin manager and associated test.
     - Fixed the RFC docs in docs/. Spotted by integral. Thanks.

@@ -280,7 +280,7 @@ sub _dcc_failed {
   $self->{dcc}->{$id}->{type} eq "CHAT") {
     $self->_send_event( 'irc_dcc_done', $id,
     @{$self->{dcc}->{$id}}{ qw(nick type port done listenport clientaddr) } );
-    close $self->{dcc}->{$id}->{fh};
+    #close $self->{dcc}->{$id}->{fh};
     delete $self->{wheelmap}->{$self->{dcc}->{$id}->{wheel}->ID} if $self->{dcc}->{$id}->{wheel};
     delete $self->{dcc}->{$id}->{wheel};
     delete $self->{dcc}->{$id};
@@ -876,7 +876,7 @@ sub dcc {
     $self->{localaddr} = inet_aton( $self->{localaddr} );
   }
 
-  my ($bindport) = 0;
+  my $bindport = 0;
 
   if ( $self->{dcc_bind_port} ) {
 	$bindport = shift @{ $self->{dcc_bind_port} };
@@ -1518,26 +1518,21 @@ sub userhost {
 # Non-event methods
 
 sub version {
-  my ($self) = shift;
-
   return $VERSION;
 }
 
 sub server_name {
-  my ($self) = shift;
-
+  my $self = shift;
   return $self->{INFO}->{ServerName};
 }
 
 sub nick_name {
-  my ($self) = shift;
-
+  my $self = shift;
   return $self->{RealNick};
 }
 
 sub send_queue {
-  my ($self) = shift;
-
+  my $self = shift;
   if ( defined ( $self->{send_queue} ) and ref ( $self->{send_queue} ) eq 'ARRAY' ) {
 	return scalar @{ $self->{send_queue} };
   }
@@ -1545,19 +1540,14 @@ sub send_queue {
 }
 
 sub raw_events {
-  my ($self) = shift;
-  my ($value) = shift;
-
-  unless ( defined ( $value ) ) {
-	return $self->{raw_events};
-  }
-
+  my $self = shift;
+  my $value = shift;
+  return $self->{raw_events} unless defined $value;
   $self->{raw_events} = $value;
 }
 
 sub session_id {
-  my ($self) = shift;
-
+  my $self = shift;
   return $self->{SESSION_ID};
 }
 
@@ -1596,8 +1586,8 @@ sub _delayed_cmd {
 }
 
 sub _validate_command {
-  my ($self) = shift;
-  my ($cmd) = lc ( $_[0] ) || return 0;
+  my $self = shift;
+  my $cmd = lc ( $_[0] ) || return 0;
 
   foreach my $command ( keys %{ $self->{IRC_CMDS} } ) {
 	if ( $cmd eq $command ) {
@@ -1608,8 +1598,7 @@ sub _validate_command {
 }
 
 sub connected {
-  my ($self) = shift;
-
+  my $self = shift;
   return $self->{connected};
 }
 

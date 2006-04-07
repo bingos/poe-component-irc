@@ -13,8 +13,6 @@ if ($^O eq "cygwin") {
   plan skip_all => "Cygwin seems to thwart this test.";
 }
 
-warn "\n***************************\nThese next tests will hang if you are firewalling localhost interfaces\n";
-
 plan tests => 14;
 
 #########################
