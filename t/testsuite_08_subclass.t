@@ -1,9 +1,20 @@
-use Test::More tests => 13;
+use Test::More tests => 18;
 
 {
   package SubclassIRC;
   use base qw(POE::Component::IRC);
+  use Test::More;
   my $VERSION = 1;
+
+  sub S_001 {
+     my ($self1,$self2) = splice @_, 0, 2;
+     pass("PoCo as plugin");
+     isa_ok ( $self1, 'POE::Component::IRC' );
+     isa_ok ( $self2, 'POE::Component::IRC' );
+     ok( $self1->server_name() eq 'poco.server.irc', "Server Name Test" );
+     ok( $self2->nick_name() eq 'TestBot', "Nick Name Test" );
+     return;
+  }
 }
 
 BEGIN { use_ok('POE::Component::IRC::Test::Harness') };

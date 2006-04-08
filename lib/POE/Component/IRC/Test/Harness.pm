@@ -8,7 +8,7 @@ package POE::Component::IRC::Test::Harness;
 
 use strict;
 use warnings;
-use Date::Format;
+use POSIX;
 use Socket;
 use Carp;
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Line Filter::IRCD Filter::Stackable);
@@ -3353,13 +3353,13 @@ sub is_server_me {
 sub server_created {
   my ($self) = shift;
 
-  return time2str("%a %h %d %Y at %H:%M:%S %Z",$self->{StartTime});
+  return strftime("%a %h %d %Y at %H:%M:%S %Z",localtime( $self->{StartTime} ) );
 }
 
 sub current_time {
   my ($self) = shift;
 
-  return time2str("%A %B %e %Y -- %H:%M %z",time);
+  return strftime("%A %B %e %Y -- %H:%M %z", localtime );
 }
 
 sub lowest_ping_frequency {

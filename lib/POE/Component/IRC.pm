@@ -533,9 +533,7 @@ sub _send_event  {
   $kernel->call( $session => $event => @args ) if delete $sessions{$session};
 
   # Let the plugin system process this
-  if ( $self->_plugin_process( 'SERVER', $event, \( @args ) ) == PCI_EAT_ALL ) {
-  	return 1;
-  }
+  return 1 if $self->_plugin_process( 'SERVER', $event, \( @args ) ) == PCI_EAT_ALL;
 
   # BINGOS:
   # We have a hack here, because the component used to send 'irc_connected' and
@@ -1813,7 +1811,10 @@ sub _plugin_process {
   my $sub = ($type eq 'SERVER' ? "S" : "U") . "_$event";
   my $return = PCI_EAT_NONE;
 
+  $self->$sub( $self, @args ) if $self->can($sub);
+
   for my $plugin (@{ $pipeline->{PIPELINE} }) {
+    next if $self eq $plugin;
     next
       unless $pipeline->{HANDLES}{$plugin}{$type}{$event}
       or $pipeline->{HANDLES}{$plugin}{$type}{all};

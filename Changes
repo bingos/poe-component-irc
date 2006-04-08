@@ -11,6 +11,9 @@ Revision history for Perl extension POE::Component::IRC.
     - Added nick and nick_state tests.
     - Amended processing order in _send_event() so that the 
       poco session can process events *before* the plugins do.
+    - Plugin system will automagically check whether the poco
+      object has any plugin handlers. These get processed first.
+    - Removed the dependency on Date::Format, switched to POSIX::strftime.
 
 4.81  Fri Mar 31 17:00:38 BST 2006
     - Added PlugMan plugin manager and associated test.
