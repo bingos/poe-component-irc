@@ -1,4 +1,4 @@
-use Test::More tests => 14;
+use Test::More tests => 29;
 
 BEGIN { use_ok('POE::Component::IRC::Test::Harness') };
 BEGIN { use_ok('POE::Component::IRC') };
@@ -18,11 +18,14 @@ POE::Session->create(
 	package_states => [
 	   'main' => [qw(_config_ircd 
 			 _shutdown 
+			 _default
 			 irc_registered 
 			 irc_connected 
 			 irc_001 
+			 irc_391
 			 irc_whois 
 			 irc_join
+			 irc_isupport
 			 irc_error
 			 irc_disconnected
 	   )],
@@ -67,6 +70,7 @@ sub _config_ircd {
   my ($kernel,$heap,$port) = @_[KERNEL,HEAP,ARG0];
   $kernel->post ( 'ircd' => 'add_i_line' );
   $kernel->post ( 'ircd' => 'add_listener' => { Port => $port } );
+  isa_ok( $irc->resolver(), 'POE::Component::Client::DNS' );
   $irc->yield( 'register' => 'all' );
   $irc->yield( connect => { nick => 'TestBot',
         server => '127.0.0.1',
@@ -93,7 +97,21 @@ sub irc_001 {
   pass( 'connect' );
   ok( $ircobj->server_name() eq 'poco.server.irc', "Server Name Test" );
   ok( $ircobj->nick_name() eq 'TestBot', "Nick Name Test" );
+  $ircobj->yield( 'time' );
   $ircobj->yield( 'whois' => 'TestBot' );
+  undef;
+}
+
+sub irc_391 {
+  my ($sender,$time) = @_[SENDER,ARG1];
+  pass( "Got the time, baby" );
+  warn "# $time\n";
+  undef;
+}
+
+sub irc_isupport {
+  my $isupport = $_[ARG0];
+  isa_ok( $isupport, 'POE::Component::IRC::Plugin::ISupport' );
   undef;
 }
 
@@ -122,5 +140,12 @@ sub irc_error {
 sub irc_disconnected {
   pass( "irc_disconnected" );
   $poe_kernel->yield( '_shutdown' );
+  undef;
+}
+
+sub _default {
+  my ($event,$parms) = @_[ARG0,ARG1];
+  return 0 unless $event =~ /^irc_(002|003|004|422|251|255|311|312|317|318|353|366)$/;
+  pass( "$event" );
   undef;
 }

@@ -716,12 +716,16 @@ sub _stop {
 sub commasep {
   my ($kernel, $self, $state) = @_[KERNEL, OBJECT, STATE];
   my @args = @_[ARG0 .. $#_]; my $args;
-  if ( $state eq 'whois' and scalar @args > 1 ) {
+
+  SWITCH: {
+    if ( $state eq 'whois' and scalar @args > 1 ) {
 	$args = shift @args;
 	$args .= ' ' . join ',', @args;
-  } else {
-	$args = join ',', @args;
+	last SWITCH;
+    }
+    $args = join ',', @args;
   }
+
   my $pri = $self->{IRC_CMDS}->{$state}->[CMD_PRI];
 
   $state = uc $state;
@@ -2924,12 +2928,23 @@ Further props to a few of the studly bughunters who made this module not
 suck: Abys <abys@web1-2-3.com>, Addi <addi@umich.edu>, ResDev
 <ben@reser.org>, and Roderick <roderick@argon.org>. Woohoo!
 
+Kudos to Apocalypse, <apocal@cpan.org>, for the plugin system and to
+Jeff 'japhy' Pinyan, <japhy@perlmonk.org>, for Pipeline.
+
+Thanks to the merry band of POE pixies from #PoE @ irc.perl.org,
+including ( but not limited to ), ketas, ct, dec, integral, webfox,
+immute, perigrin, paulv, alias.
+
 Check out the Changes file for further contributors.
 
 =head1 SEE ALSO
 
-RFC 1459 L<http://www.faqs.org/rfcs/rfc1459.html>, L<http://www.irchelp.org/>,
+RFC 1459 L<http://www.faqs.org/rfcs/rfc1459.html> 
+
+L<http://www.irchelp.org/>,
+
 L<http://poe.perl.org/>,
+
 L<http://www.infobot.org/>,
 
 Some good examples reside in the POE cookbook which has a whole section devoted to

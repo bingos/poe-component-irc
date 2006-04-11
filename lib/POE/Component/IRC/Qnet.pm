@@ -10,34 +10,13 @@
 package POE::Component::IRC::Qnet;
 
 use strict;
+use warnings;
 use Carp;
-use POE;
-#use POE::Component::IRC::Plugin::Whois;
-use POE::Component::IRC::Constants;
+use POE qw(Component::IRC::Constants);
 use vars qw($VERSION);
 use base qw(POE::Component::IRC);
 
-$VERSION = '1.1';
-
-#my ($GOT_SSL);
-#my ($GOT_CLIENT_DNS);
-
-#BEGIN {
-#    $GOT_CLIENT_DNS = 0;
-#    eval {
-#      require POE::Component::Client::DNS;
-#      $GOT_CLIENT_DNS = 1;
-#    };
-#}
-
-#BEGIN {
-#    $GOT_SSL = 0;
-#    eval {
-#      require POE::Component::SSLify;
-#      import POE::Component::SSLify qw( Client_SSLify );
-#      $GOT_SSL = 1;
-#    };
-#}
+$VERSION = '1.3';
 
 sub _create {
   my $self = shift;
@@ -150,23 +129,89 @@ POE::Component::IRC::Qnet - a fully event-driven IRC client module for Quakenet.
 
 =head1 SYNOPSIS
 
-  use POE::Component::IRC::Qnet;
+  use strict;
+  use warnings;
+  use POE qw(Component::IRC::Qnet);
 
-  # Do this when you create your sessions. 'my client' is just a
-  # kernel alias to christen the new IRC connection with.
-  my ($object) = POE::Component::IRC::Qnet->new('my client') or die "Oh noooo! $!";
+  my $nickname = 'Flibble' . $$;
+  my $ircname = 'Flibble the Sailor Bot';
+  my $port = 6667;
+  my $qauth = 'FlibbleBOT';
+  my $qpass = 'fubar';
 
-  # Do stuff like this from within your sessions. This line tells the
-  # connection named "my client" to send your session the following
-  # events when they happen.
-  $kernel->post('my client', 'register', qw(connected msg public cdcc cping));
-  # You can guess what this line does.
-  $kernel->post('my client', 'connect',
-	        { Nick     => 'Boolahman',
-		  Server   => 'irc-w.primenet.com',
-		  Port     => 6669,
-		  Username => 'quetzal',
-		  Ircname  => 'Ask me about my colon!', } );
+  my @channels = ( '#Blah', '#Foo', '#Bar' );
+
+  # We create a new PoCo-IRC object and component.
+  my $irc = POE::Component::IRC::Qnet->spawn( 
+        nick => $nickname,
+        port => $port,
+        ircname => $ircname,
+  ) or die "Oh noooo! $!";
+
+  POE::Session->create(
+        package_states => [
+                'main' => [ qw(_default _start irc_001 irc_public) ],
+        ],
+        heap => { irc => $irc },
+  );
+
+  $poe_kernel->run();
+  exit 0;
+
+  sub _start {
+    my ($kernel,$heap) = @_[KERNEL,HEAP];
+
+    # We get the session ID of the component from the object
+    # and register and connect to the specified server.
+    my $irc_session = $heap->{irc}->session_id();
+    $kernel->post( $irc_session => register => 'all' );
+    $kernel->post( $irc_session => connect => { } );
+    undef;
+  }
+
+  sub irc_001 {
+    my ($kernel,$sender) = @_[KERNEL,SENDER];
+
+    # Get the component's object at any time by accessing the heap of
+    # the SENDER
+    my $poco_object = $sender->get_heap();
+    print "Connected to ", $poco_object->server_name(), "\n";
+
+    # Lets authenticate with Quakenet's Q bot
+    $kernel->post( $sender => qbot_auth => $qauth => $qpass );
+
+    # In any irc_* events SENDER will be the PoCo-IRC session
+    $kernel->post( $sender => join => $_ ) for @channels;
+    undef;
+  }
+
+  sub irc_public {
+    my ($kernel,$sender,$who,$where,$what) = @_[KERNEL,SENDER,ARG0,ARG1,ARG2];
+    my $nick = ( split /!/, $who )[0];
+    my $channel = $where->[0];
+
+    if ( my ($rot13) = $what =~ /^rot13 (.+)/ ) {
+        $rot13 =~ tr[a-zA-Z][n-za-mN-ZA-M];
+        $kernel->post( $sender => privmsg => $channel => "$nick: $rot13" );
+    }
+    undef;
+  }
+
+  # We registered for all events, this will produce some debug info.
+  sub _default {
+    my ($event, $args) = @_[ARG0 .. $#_];
+    my @output = ( "$event: " );
+
+    foreach my $arg ( @$args ) {
+        if ( ref($arg) eq 'ARRAY' ) {
+                push( @output, "[" . join(" ,", @$arg ) . "]" );
+        } else {
+                push ( @output, "'$arg'" );
+        }
+    }
+    print STDOUT join ' ', @output, "\n";
+    return 0;
+  }
 
 =head1 DESCRIPTION
 
@@ -244,6 +289,7 @@ Dennis Taylor, E<lt>dennis@funkplanet.comE<gt>
 =head1 SEE ALSO
 
 L<POE::Component::IRC|POE::Component::IRC>
+
 L<http://www.quakenet.org/>
 
 =cut
