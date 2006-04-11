@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-4.82  <Date>
+4.82  Tue Apr 11 19:32:45 BST 2006
     - Sorted out Test::Harness, brought it up to PoCo-Server-IRC-0.3
       standard.
     - Added a multiple client test to the testsuite.
