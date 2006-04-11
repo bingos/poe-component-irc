@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+4.83  Tue Apr 11 20:45:04 BST 2006
+    - Changes to two of the DCC tests. DAMN YOU WINDOWS!
+
 4.82  Tue Apr 11 19:32:45 BST 2006
     - Sorted out Test::Harness, brought it up to PoCo-Server-IRC-0.3
       standard.
