@@ -1,4 +1,4 @@
-use Test::More tests => 29;
+use Test::More tests => 30;
 
 BEGIN { use_ok('POE::Component::IRC::Test::Harness') };
 BEGIN { use_ok('POE::Component::IRC') };
@@ -97,6 +97,7 @@ sub irc_001 {
   pass( 'connect' );
   ok( $ircobj->server_name() eq 'poco.server.irc', "Server Name Test" );
   ok( $ircobj->nick_name() eq 'TestBot', "Nick Name Test" );
+  ok( $ircobj->session_alias() eq "$ircobj", "Alias Test" );
   $ircobj->yield( 'time' );
   $ircobj->yield( 'whois' => 'TestBot' );
   undef;

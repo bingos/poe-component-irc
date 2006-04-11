@@ -29,9 +29,7 @@ and over until it makes some sense.
 ---------------
 
 The latest stable version of POE::Component::IRC will be available on
-CPAN, in the directory /authors/id/B/BI/BINGOS/ . A more complete mirror,
-which includes recent alpha or beta releases, can be found at
-http://www.gumbynet.org.uk/poe/ .
+CPAN, in the directory /authors/id/B/BI/BINGOS/
 
 The real bleeding-edge stuff is in the PoCo-IRC svn repository, which is
 available at https://www.bingosnet.net/svn/pocoirc/

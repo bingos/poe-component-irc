@@ -669,6 +669,7 @@ sub _start {
      $self->{alias} = $alias;
   } else {
      $kernel->alias_set("$self");
+     $self->{alias} = "$self";
   }
 
   $kernel->yield( 'register', @{ $self->{IRC_EVTS} } ) if $self->{IRC_EVTS} and scalar @{ $self->{IRC_EVTS} };
