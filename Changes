@@ -20,6 +20,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Refactored State.pm, Qnet.pm and Qnet/State.pm, handlers are all 
       processed by plugin system now. Implemented better inheritance.
     - Expanded the SYNOPSIS sections of Qnet.pm, State.pm and Qnet/State.pm.
+    - Added NickReclaim plugin and associated test.
 
 4.81  Fri Mar 31 17:00:38 BST 2006
     - Added PlugMan plugin manager and associated test.
