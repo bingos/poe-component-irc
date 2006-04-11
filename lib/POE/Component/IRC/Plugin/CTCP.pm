@@ -3,7 +3,7 @@ package POE::Component::IRC::Plugin::CTCP;
 use strict;
 use warnings;
 use POE::Component::IRC::Plugin qw( :ALL );
-use Date::Format;
+use POSIX;
 use vars qw($VERSION);
 
 $VERSION = '1.0';
@@ -35,7 +35,7 @@ sub S_ctcp_version {
   my ($nick) = ( split /!/, ${ $_[0] } )[0];
   
   $irc->yield( ctcpreply => $nick => 'VERSION ' . ( $self->{version} ? $self->{version} : "POE::Component::IRC-" . $POE::Component::IRC::VERSION ) );
-  return PCI_EAT_CLIENT if ( $self->eat() );
+  return PCI_EAT_CLIENT if $self->eat();
   return PCI_EAT_NONE;
 }
 
@@ -43,8 +43,8 @@ sub S_ctcp_time {
   my ($self,$irc) = splice @_, 0, 2;
   my ($nick) = ( split /!/, ${ $_[0] } )[0];
   
-  $irc->yield( ctcpreply => $nick => 'TIME ' . time2str( "%a %h %e %T %Y %Z", time() ) );
-  return PCI_EAT_CLIENT if ( $self->eat() );
+  $irc->yield( ctcpreply => $nick => strftime( "TIME %a %h %e %T %Y %Z", localtime ) );
+  return PCI_EAT_CLIENT if $self->eat();
   return PCI_EAT_NONE;
 }
 
@@ -53,7 +53,7 @@ sub S_ctcp_userinfo {
   my ($nick) = ( split /!/, ${ $_[0] } )[0];
 
   $irc->yield( ctcpreply => $nick => 'USERINFO ' . ( $self->{userinfo} ? $self->{userinfo} : 'm33p' ) );
-  return PCI_EAT_CLIENT if ( $self->eat() );
+  return PCI_EAT_CLIENT if $self->eat();
   return PCI_EAT_NONE;
 }
 

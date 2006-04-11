@@ -5,7 +5,7 @@
 
 # change 'tests => 1' to 'tests => last_test_to_print';
 
-use Test::More tests => 3;
+use Test::More tests => 4;
 BEGIN { use_ok('POE::Component::IRC::Qnet') };
 
 #########################
@@ -31,7 +31,7 @@ exit 0;
 
 sub test_start {
   my ($kernel,$heap) = @_[KERNEL,HEAP];
-
+  isa_ok( $self->resolver(), 'POE::Component::Client::DNS' );
   pass('blah');
   $kernel->post( $self->session_id() => 'shutdown' );
 }

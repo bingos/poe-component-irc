@@ -5,7 +5,7 @@
 
 # change 'tests => 1' to 'tests => last_test_to_print';
 
-use Test::More tests => 3;
+use Test::More tests => 4;
 BEGIN { use_ok('POE::Component::IRC') };
 
 #########################
@@ -18,7 +18,7 @@ BEGIN { use_ok('POE::Component::IRC') };
 #use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Line);
 use POE;
 
-my ($self) = POE::Component::IRC->spawn( dccports => '1024,1048-1098,abc' );
+my $self = POE::Component::IRC->spawn();
 
 isa_ok ( $self, 'POE::Component::IRC' );
 
@@ -31,7 +31,7 @@ exit 0;
 
 sub test_start {
   my ($kernel,$heap) = @_[KERNEL,HEAP];
-
   pass('blah');
+  isa_ok( $self->resolver(), 'POE::Component::Client::DNS' );
   $self->yield( 'shutdown' );
 }

@@ -12,124 +12,37 @@ package POE::Component::IRC::Qnet;
 use strict;
 use Carp;
 use POE;
-use POE::Component::IRC::Plugin::Whois;
+#use POE::Component::IRC::Plugin::Whois;
 use POE::Component::IRC::Constants;
 use vars qw($VERSION);
 use base qw(POE::Component::IRC);
 
 $VERSION = '1.1';
 
-my ($GOT_SSL);
-my ($GOT_CLIENT_DNS);
+#my ($GOT_SSL);
+#my ($GOT_CLIENT_DNS);
 
-BEGIN {
-    $GOT_CLIENT_DNS = 0;
-    eval {
-      require POE::Component::Client::DNS;
-      $GOT_CLIENT_DNS = 1;
-    };
-}
+#BEGIN {
+#    $GOT_CLIENT_DNS = 0;
+#    eval {
+#      require POE::Component::Client::DNS;
+#      $GOT_CLIENT_DNS = 1;
+#    };
+#}
 
-BEGIN {
-    $GOT_SSL = 0;
-    eval {
-      require POE::Component::SSLify;
-      import POE::Component::SSLify qw( Client_SSLify );
-      $GOT_SSL = 1;
-    };
-}
+#BEGIN {
+#    $GOT_SSL = 0;
+#    eval {
+#      require POE::Component::SSLify;
+#      import POE::Component::SSLify qw( Client_SSLify );
+#      $GOT_SSL = 1;
+#    };
+#}
 
 sub _create {
-  my ($package) = shift;
+  my $self = shift;
 
-  my $self = bless ( { }, $package );
-
-  if ( $GOT_CLIENT_DNS ) {
-    POE::Component::Client::DNS->spawn( Alias => "irc_resolver" );
-  }
-
-  $self->{IRC_CMDS} =
-  { 'rehash'    => [ PRI_HIGH,   'noargs',        ],
-    'restart'   => [ PRI_HIGH,   'noargs',        ],
-    'quit'      => [ PRI_NORMAL, 'oneoptarg',     ],
-    'version'   => [ PRI_HIGH,   'oneoptarg',     ],
-    'time'      => [ PRI_HIGH,   'oneoptarg',     ],
-    'trace'     => [ PRI_HIGH,   'oneoptarg',     ],
-    'admin'     => [ PRI_HIGH,   'oneoptarg',     ],
-    'info'      => [ PRI_HIGH,   'oneoptarg',     ],
-    'away'      => [ PRI_HIGH,   'oneoptarg',     ],
-    'users'     => [ PRI_HIGH,   'oneoptarg',     ],
-    'locops'    => [ PRI_HIGH,   'oneoptarg',     ],
-    'operwall'  => [ PRI_HIGH,   'oneoptarg',     ],
-    'wallops'   => [ PRI_HIGH,   'oneoptarg',     ],
-    'motd'      => [ PRI_HIGH,   'oneoptarg',     ],
-    'who'       => [ PRI_HIGH,   'oneoptarg',     ],
-    'nick'      => [ PRI_HIGH,   'onlyonearg',    ],
-    'oper'      => [ PRI_HIGH,   'onlytwoargs',   ],
-    'invite'    => [ PRI_HIGH,   'onlytwoargs',   ],
-    'squit'     => [ PRI_HIGH,   'onlytwoargs',   ],
-    'kill'      => [ PRI_HIGH,   'onlytwoargs',   ],
-    'privmsg'   => [ PRI_NORMAL, 'privandnotice', ],
-    'privmsglo' => [ PRI_NORMAL+1, 'privandnotice', ],
-    'privmsghi' => [ PRI_NORMAL-1, 'privandnotice', ],
-    'notice'    => [ PRI_NORMAL, 'privandnotice', ],
-    'noticelo'  => [ PRI_NORMAL+1, 'privandnotice', ],   
-    'noticehi'  => [ PRI_NORMAL-1, 'privandnotice', ],   
-    'join'      => [ PRI_HIGH,   'oneortwo',      ],
-    'summon'    => [ PRI_HIGH,   'oneortwo',      ],
-    'sconnect'  => [ PRI_HIGH,   'oneandtwoopt',  ],
-    'whowas'    => [ PRI_HIGH,   'oneandtwoopt',  ],
-    'stats'     => [ PRI_HIGH,   'spacesep',      ],
-    'links'     => [ PRI_HIGH,   'spacesep',      ],
-    'mode'      => [ PRI_HIGH,   'spacesep',      ],
-    'part'      => [ PRI_HIGH,   'commasep',      ],
-    'names'     => [ PRI_HIGH,   'commasep',      ],
-    'list'      => [ PRI_HIGH,   'commasep',      ],
-    'whois'     => [ PRI_HIGH,   'commasep',      ],
-    'ctcp'      => [ PRI_HIGH,   'ctcp',          ],
-    'ctcpreply' => [ PRI_HIGH,   'ctcp',          ],
-    'ping'      => [ PRI_HIGH,   'oneortwo',      ],
-    'pong'      => [ PRI_HIGH,   'oneortwo',      ],
-  };
-
-  $self->{IRC_EVTS} = [ qw(nick ping) ];
-
-  my (@event_map) = map {($_, $self->{IRC_CMDS}->{$_}->[CMD_SUB])} keys %{ $self->{IRC_CMDS} };
-
-  $self->{OBJECT_STATES_ARRAYREF} = [qw( _dcc_failed
-				      _dcc_read
-				      _dcc_timeout
-				      _dcc_up
-				      _delayed_cmd
-				      _parseline
-				      __send_event
-				      _sock_down
-				      _sock_failed
-				      _sock_up
-				      _start
-				      _stop
-				      debug
-				      connect
-				      dcc
-				      dcc_accept
-				      dcc_resume
-				      dcc_chat
-				      dcc_close
-				      do_connect
-				      got_dns_response
-				      ison
-				      kick
-				      register
-				      shutdown
-				      sl
-				      sl_login
-				      sl_high
-                                      sl_delayed
-				      sl_prioritized
-				      topic
-				      unregister
-				      userhost ), ( map {( 'irc_' . $_ )} @{ $self->{IRC_EVTS} } ) ];
-
+  $self->SUPER::_create();
 
   # Stuff specific to IRC-Qnet
 
@@ -193,16 +106,13 @@ sub _create {
         requestowner
         );
 
-  my @qbot_map = map {('qbot_' . $_, 'qnet_bot_commands')} @qbot_commands;
-  my @lbot_map = map {('lbot_' . $_, 'qnet_bot_commands')} @lbot_commands;
-
-  $self->{OBJECT_STATES_HASHREF} = { @event_map, @qbot_map, @lbot_map, '_tryclose' => 'dcc_close' };
-
+  $self->{OBJECT_STATES_HASHREF}->{'qbot_' . $_} = 'qnet_bot_commands' for @qbot_commands;
+  $self->{OBJECT_STATES_HASHREF}->{'lbot_' . $_} = 'qnet_bot_commands' for @lbot_commands;
   $self->{server} = 'irc.quakenet.org';
   $self->{QBOT} = 'Q@Cserve.quakenet.org';
   $self->{LBOT} = 'L@lightweight.quakenet.org';
 
-  return $self;
+  return 1;
 }
 
 sub qnet_bot_commands {
@@ -210,23 +120,15 @@ sub qnet_bot_commands {
   my $message = join ' ', @_[ARG0 .. $#_];
   my $pri = $self->{IRC_CMDS}->{'privmsghi'}->[CMD_PRI];
   my $command = "PRIVMSG ";
-
   my ($target,$cmd) = split(/_/,$state);
-
-  SWITCH: {
-    if ( uc ( $target ) eq 'QBOT' ) {
-	$command .= join(' :',$self->{QBOT},uc($cmd));
-	last SWITCH;
-    }
-    $command .= join(' :',$self->{LBOT},uc($cmd));
-  }
-  $command = join(' ',$command,$message) if ( defined ( $message ) );
+  $command .= join(' :',$self->{uc $target},uc($cmd));
+  $command = join(' ',$command,$message) if defined ( $message );
   $kernel->yield( 'sl_prioritized', $pri, $command );
   undef;
 }
 
 sub service_bots {
-  my ($self) = shift;
+  my $self = shift;
   croak "Method requires an even number of parameters" if @_ % 2;
 
   my (%args) = @_;

@@ -73,3 +73,4 @@ t/testsuite_08_subclass.t
 t/testsuite_09_dcc_send.t
 t/testsuite_10_nick.t
 t/testsuite_11_nick_state.t
+t/testsuite_12_resolver.t

@@ -1,6 +1,6 @@
 # $Id: State.pm,v 1.4 2005/04/28 14:18:19 chris Exp $
 #
-# POE::Component::IRC, by Dennis Taylor <dennis@funkplanet.com>
+# POE::Component::IRC::State, by Chris Williams
 #
 # This module may be used, modified, and distributed under the same
 # terms as Perl itself. Please see the license that came with your Perl
@@ -13,6 +13,7 @@ use strict;
 use POE qw(Component::IRC::Plugin::Whois);
 use POE::Component::IRC::Constants;
 use POE::Component::IRC::Common qw(:ALL);
+use POE::Component::IRC::Plugin qw(:ALL);
 use base qw(POE::Component::IRC);
 use vars qw($VERSION);
 
@@ -38,178 +39,72 @@ BEGIN {
     };
 }
 
-sub _create {
-  my $package = shift;
-
-  my $self = bless ( { }, $package );
-
-  if ( $GOT_CLIENT_DNS ) {
-    POE::Component::Client::DNS->spawn( Alias => "irc_resolver" );
-  }
-
-  $self->{IRC_CMDS} =
-  { 'rehash'    => [ PRI_HIGH,   'noargs',        ],
-    'restart'   => [ PRI_HIGH,   'noargs',        ],
-    'quit'      => [ PRI_NORMAL, 'oneoptarg',     ],
-    'version'   => [ PRI_HIGH,   'oneoptarg',     ],
-    'time'      => [ PRI_HIGH,   'oneoptarg',     ],
-    'trace'     => [ PRI_HIGH,   'oneoptarg',     ],
-    'admin'     => [ PRI_HIGH,   'oneoptarg',     ],
-    'info'      => [ PRI_HIGH,   'oneoptarg',     ],
-    'away'      => [ PRI_HIGH,   'oneoptarg',     ],
-    'users'     => [ PRI_HIGH,   'oneoptarg',     ],
-    'locops'    => [ PRI_HIGH,   'oneoptarg',     ],
-    'operwall'  => [ PRI_HIGH,   'oneoptarg',     ],
-    'wallops'   => [ PRI_HIGH,   'oneoptarg',     ],
-    'motd'      => [ PRI_HIGH,   'oneoptarg',     ],
-    'who'       => [ PRI_HIGH,   'oneoptarg',     ],
-    'nick'      => [ PRI_HIGH,   'onlyonearg',    ],
-    'oper'      => [ PRI_HIGH,   'onlytwoargs',   ],
-    'invite'    => [ PRI_HIGH,   'onlytwoargs',   ],
-    'squit'     => [ PRI_HIGH,   'onlytwoargs',   ],
-    'kill'      => [ PRI_HIGH,   'onlytwoargs',   ],
-    'privmsg'   => [ PRI_NORMAL, 'privandnotice', ],
-    'privmsglo' => [ PRI_NORMAL+1, 'privandnotice', ],
-    'privmsghi' => [ PRI_NORMAL-1, 'privandnotice', ],
-    'notice'    => [ PRI_NORMAL, 'privandnotice', ],
-    'noticelo'  => [ PRI_NORMAL+1, 'privandnotice', ],   
-    'noticehi'  => [ PRI_NORMAL-1, 'privandnotice', ],   
-    'join'      => [ PRI_HIGH,   'oneortwo',      ],
-    'summon'    => [ PRI_HIGH,   'oneortwo',      ],
-    'sconnect'  => [ PRI_HIGH,   'oneandtwoopt',  ],
-    'whowas'    => [ PRI_HIGH,   'oneandtwoopt',  ],
-    'stats'     => [ PRI_HIGH,   'spacesep',      ],
-    'links'     => [ PRI_HIGH,   'spacesep',      ],
-    'mode'      => [ PRI_HIGH,   'spacesep',      ],
-    'part'      => [ PRI_HIGH,   'commasep',      ],
-    'names'     => [ PRI_HIGH,   'commasep',      ],
-    'list'      => [ PRI_HIGH,   'commasep',      ],
-    'whois'     => [ PRI_HIGH,   'commasep',      ],
-    'ctcp'      => [ PRI_HIGH,   'ctcp',          ],
-    'ctcpreply' => [ PRI_HIGH,   'ctcp',          ],
-    'ping'      => [ PRI_HIGH,   'oneortwo',      ],
-    'pong'      => [ PRI_HIGH,   'oneortwo',      ],
-  };
-
-  # We need to register additional events with ourselves.
-
-  $self->{IRC_EVTS} = [ qw(001 ping join part kick nick mode quit 352 324 315 disconnected socketerr error) ];
-
-  my (@event_map) = map {($_, $self->{IRC_CMDS}->{$_}->[CMD_SUB])} keys %{ $self->{IRC_CMDS} };
-
-  $self->{OBJECT_STATES_ARRAYREF} = [qw( _dcc_failed
-				      _dcc_read
-				      _dcc_timeout
-				      _dcc_up
-				      _delayed_cmd
-				      __send_event
-				      _parseline
-				      _sock_down
-				      _sock_failed
-				      _sock_up
-				      _start
-				      _stop
-				      debug
-				      connect
-				      dcc
-				      dcc_accept
-				      dcc_resume
-				      dcc_chat
-				      dcc_close
-				      do_connect
-				      got_dns_response
-				      ison
-				      kick
-				      register
-				      register_session
-				      shutdown
-				      sl
-				      sl_login
-				      sl_high
-                                      sl_delayed
-				      sl_prioritized
-				      topic
-				      unregister
-				      userhost ), ( map {( 'irc_' . $_ )} @{ $self->{IRC_EVTS} } ) ];
-
-  $self->{OBJECT_STATES_HASHREF} = { @event_map, '_tryclose' => 'dcc_close' };
-
-  return $self;
-}
-
-# Parse a message from the IRC server and generate the appropriate
-# event(s) for listening sessions.
-sub _parseline {
-  my ($session, $self, $ev) = @_[SESSION, OBJECT, ARG0];
-  my (@events, @cooked);
-
-  $self->_send_event( 'irc_raw' => $ev->{raw_line} ) if ( $self->{raw_events} );
-
-  # If its 001 event grab the server name and stuff it into {INFO}
-  if ( $ev->{name} eq '001' ) {
-        $self->{INFO}->{ServerName} = $ev->{args}->[0];
-        $self->{RealNick} = ( split / /, $ev->{raw_line} )[2];
-  }
-  if ( $ev->{name} eq 'nick' or $ev->{name} eq 'quit' ) {
-	push ( @{$ev->{args}}, [ $self->nick_channels( ( split( /!/, $ev->{args}->[0] ) )[0] ) ] );
-  }
-  $ev->{name} = 'irc_' . $ev->{name};
-  $self->_send_event( $ev->{name}, @{$ev->{args}} );
-  undef;
-}
-
 # Event handlers for tracking the STATE. $self->{STATE} is used as our namespace.
 # u_irc() is used to create unique keys.
 
 # Make sure we have a clean STATE when we first join the network and if we inadvertently get disconnected
-sub irc_001 {
-  delete $_[OBJECT]->{STATE};
-  undef;
+sub S_001 {
+  delete $_[0]->{STATE};
+  return PCI_EAT_NONE;
 }
 
-sub irc_disconnected {
-  delete $_[OBJECT]->{STATE};
-  undef;
+sub S_disconnected {
+  my $self = shift;
+  my $nickinfo = $self->nick_info( $self->{RealNick} );
+  my $channels = $self->channels();
+  push @{ $_[$#_] }, $nickinfo, $channels;
+  delete $self->{STATE};
+  return PCI_EAT_NONE;
 }
 
-sub irc_error {
-  delete $_[OBJECT]->{STATE};
-  undef;
+sub S_error {
+  my $self = shift;
+  my $nickinfo = $self->nick_info( $self->{RealNick} );
+  my $channels = $self->channels();
+  push @{ $_[$#_] }, $nickinfo, $channels;
+  delete $self->{STATE};
+  return PCI_EAT_NONE;
 }
 
-sub irc_socketerr {
-  delete $_[OBJECT]->{STATE};
-  undef;
+sub S_socketerr {
+  my $self = shift;
+  my $nickinfo = $self->nick_info( $self->{RealNick} );
+  my $channels = $self->channels();
+  push @{ $_[$#_] }, $nickinfo, $channels;
+  delete $self->{STATE};
+  return PCI_EAT_NONE;
 }
 
 # Channel JOIN messages
-sub irc_join {
-  my ($kernel,$self,$who,$channel) = @_[KERNEL,OBJECT,ARG0,ARG1];
-  my $nick = ( split /!/, $who )[0];
-  my $userhost = ( split /!/, $who )[1];
+sub S_join {
+  my ($self,$irc) = splice @_, 0, 2;
+  my $nick = ( split /!/, ${ $_[0] } )[0];
+  my $userhost = ( split /!/, ${ $_[0] } )[1];
   my ($user,$host) = split(/\@/,$userhost);
+  my $channel = ${ $_[1] };
 
   if ( u_irc ( $nick ) eq u_irc ( $self->{RealNick} ) ) {
 	delete $self->{STATE}->{Chans}->{ u_irc ( $channel ) };
 	$self->{CHANNEL_SYNCH}->{ u_irc ( $channel ) } = { MODE => 0, WHO => 0 };
-        $kernel->yield ( 'who' => $channel );
-        $kernel->yield ( 'mode' => $channel );
+        $self->{STATE}->{Chans}->{ u_irc $channel } = { };
+        $self->yield ( 'who' => $channel );
+        $self->yield ( 'mode' => $channel );
   } else {
-        $kernel->yield ( 'who' => $nick );
+        $self->yield ( 'who' => $nick );
         $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{Nick} = $nick;
         $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{User} = $user;
         $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{Host} = $host;
         $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{CHANS}->{ u_irc ( $channel ) } = '';
         $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Nicks}->{ u_irc ( $nick ) } = '';
   }
-  undef;
+  return PCI_EAT_NONE;
 }
 
 # Channel PART messages
-sub irc_part {
-  my ($kernel,$self,$who) = @_[KERNEL,OBJECT,ARG0];
-  my $channel = u_irc $_[ARG1];
-  my $nick = u_irc ( ( split /!/, $who )[0] );
+sub S_part {
+  my ($self,$irc) = splice @_, 0, 2;
+  my $nick = u_irc ( ( split /!/, ${ $_[0] } )[0] );
+  my $channel = u_irc ${ $_[1] };
 
   if ( $nick eq u_irc ( $self->nick_name() ) ) {
         delete $self->{STATE}->{Nicks}->{ $nick }->{CHANS}->{ $channel };
@@ -228,13 +123,14 @@ sub irc_part {
                 delete $self->{STATE}->{Nicks}->{ $nick };
         }
   }
-  undef;
+  return PCI_EAT_NONE;
 }
 
 # QUIT messages
-sub irc_quit {
-  my ($kernel,$self,$who) = @_[KERNEL,OBJECT,ARG0];
-  my $nick = ( split /!/, $who )[0];
+sub S_quit {
+  my ($self,$irc) = splice @_, 0, 2;
+  my $nick = ( split /!/, ${ $_[0] } )[0];
+  push @{ $_[1] }, [ $self->nick_channels( $nick ) ];
 
   if ( u_irc ( $nick ) eq u_irc ( $self->{RealNick} ) ) {
         delete $self->{STATE};
@@ -244,12 +140,14 @@ sub irc_quit {
         }
         delete $self->{STATE}->{Nicks}->{ u_irc ( $nick ) };
   }
-  undef;
+  return PCI_EAT_NONE;
 }
 
 # Channel KICK messages
-sub irc_kick {
-  my ($kernel,$self,$channel,$nick) = @_[KERNEL,OBJECT,ARG1,ARG2];
+sub S_kick {
+  my ($self,$irc) = splice @_, 0, 2;
+  my $channel = ${ $_[1] };
+  my $nick = ${ $_[2] };
 
   if ( u_irc ( $nick ) eq u_irc ( $self->{RealNick} ) ) {
         delete $self->{STATE}->{Nicks}->{ u_irc $nick }->{CHANS}->{ u_irc $channel };
@@ -268,13 +166,15 @@ sub irc_kick {
                 delete $self->{STATE}->{Nicks}->{ u_irc $nick };
         }
   }
-  undef;
+  return PCI_EAT_NONE;
 }
 
 # NICK changes
-sub irc_nick {
-  my ($kernel,$self,$who,$new) = @_[KERNEL,OBJECT,ARG0,ARG1];
-  my $nick = ( split /!/, $who )[0];
+sub S_nick {
+  my ($self,$irc) = splice @_, 0, 2;
+  my $nick = ( split /!/, ${ $_[0] } )[0];
+  my $new = ${ $_[1] };
+  push @{ $_[2] }, [ $self->nick_channels( $nick ) ];
 
   if ( $nick eq $self->{RealNick} ) {
 	$self->{RealNick} = $new;
@@ -292,16 +192,19 @@ sub irc_nick {
         }
         $self->{STATE}->{Nicks}->{ u_irc $new } = $record;
   }
-  undef;
+  return PCI_EAT_NONE;
 }
 
 # Channel MODE
-sub irc_mode {
-  my ($kernel,$self,$who,$channel) = @_[KERNEL,OBJECT,ARG0,ARG1];
+sub S_mode {
+  my ($self,$irc) = splice @_, 0, 2;
+  my $who = ${ $_[0] };
+  my $channel = ${ $_[1] };
+  pop @_;
 
   # Do nothing if it is UMODE
   if ( u_irc ( $channel ) ne u_irc ( $self->{RealNick} ) ) {
-     my $parsed_mode = parse_mode_line( @_[ARG2 .. $#_] );
+     my $parsed_mode = parse_mode_line( @_[2 .. $#_] );
      while ( my $mode = shift ( @{ $parsed_mode->{modes} } ) ) {
         my ($arg);
         $arg = shift ( @{ $parsed_mode->{args} } ) if ( $mode =~ /^(\+[hovklbIeaqfL]|-[hovbIeaq])/ );
@@ -367,15 +270,15 @@ sub irc_mode {
         delete ( $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Mode} );
      }
   }
-  undef;
+  return PCI_EAT_NONE;
 }
 
 # RPL_WHOREPLY
-sub irc_352 {
-  my ($kernel,$self) = @_[KERNEL,OBJECT];
-  my ($first,$second) = split(/ :/,$_[ARG1]);
+sub S_352 {
+  my ($self,$irc) = splice @_, 0, 2;
+  my ($first,$second) = split(/ :/,${ $_[1] } );
   my ($channel,$user,$host,$server,$nick,$status) = split(/ /,$first);
-  my ($real) = substr($second,index($second," ")+1);
+  my $real = substr($second,index($second," ")+1);
 
   $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{Nick} = $nick;
   $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{User} = $user;
@@ -396,13 +299,13 @@ sub irc_352 {
   if ( $status =~ /\*/ ) {
     $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{IRCop} = 1;
   }
-  undef;
+  return PCI_EAT_NONE;
 }
 
 #RPL_ENDOFWHO
-sub irc_315 {
-  my ($kernel,$self) = @_[KERNEL,OBJECT];
-  my ($channel) = ( split / :/, $_[ARG1] )[0];
+sub S_315 {
+  my ($self,$irc) = splice @_, 0, 2;
+  my ($channel) = ( split / :/, ${ $_[1] } )[0];
 
   # If it begins with #, &, + or ! its a channel apparently. RFC2812.
   if ( $channel =~ /^[\x23\x2B\x21\x26]/ ) {
@@ -415,13 +318,13 @@ sub irc_315 {
   } else {
 	$self->_send_event( 'irc_nick_sync', $channel );
   }
-  undef;
+  return PCI_EAT_NONE;
 }
 
 # RPL_CHANNELMODEIS
-sub irc_324 {
-  my ($kernel,$self) = @_[KERNEL,OBJECT];
-  my (@args) = split( / /, $_[ARG1] );
+sub S_324 {
+  my ($self,$irc) = splice @_, 0, 2;
+  my (@args) = split( / /, ${ $_[1] } );
   my ($channel) = shift @args;
 
   my ($parsed_mode) = parse_mode_line( @args );
@@ -445,7 +348,7 @@ sub irc_324 {
 	delete ( $self->{CHANNEL_SYNCH}->{ u_irc ( $channel ) } );
 	$self->_send_event( 'irc_chan_sync', $channel );
   }
-  undef;
+  return PCI_EAT_NONE;
 }
 
 # Methods for STATE query

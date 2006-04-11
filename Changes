@@ -14,6 +14,11 @@ Revision history for Perl extension POE::Component::IRC.
     - Plugin system will automagically check whether the poco
       object has any plugin handlers. These get processed first.
     - Removed the dependency on Date::Format, switched to POSIX::strftime.
+    - Applied a patch from ketas for State.pm.
+    - Fixes to Pipeline, spotted by dec @ MAGnet.
+    - Added resolver() method for accessing the PoCo-Client-DNS object.
+    - Refactored State.pm, Qnet.pm and Qnet/State.pm, handlers are all 
+      processed by plugin system now. Implemented better inheritance.
 
 4.81  Fri Mar 31 17:00:38 BST 2006
     - Added PlugMan plugin manager and associated test.

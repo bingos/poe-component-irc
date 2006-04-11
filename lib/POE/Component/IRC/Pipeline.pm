@@ -100,7 +100,7 @@ sub replace {
     ($self->{PLUGS}{$old}, $old) :
     ($old, $self->{PLUGS}{$old});
 
-  $@ = "Plugin '$old_a' ($old_p) does not exist", return
+  $@ = "Plugin '$old_a' does not exist", return
     unless $old_p;
 
   delete $self->{PLUGS}{$old_p};
@@ -137,7 +137,7 @@ sub remove {
     ($self->{PLUGS}{$old}, $old) :
     ($old, $self->{PLUGS}{$old});
 
-  $@ = "Plugin '$old_a' () does not exist", return
+  $@ = "Plugin '$old_a' does not exist", return
     unless $old_p;
 
   delete $self->{PLUGS}{$old_p};
@@ -164,7 +164,7 @@ sub get {
     ($self->{PLUGS}{$old}, $old) :
     ($old, $self->{PLUGS}{$old});
 
-  $@ = "Plugin '$old_a' ($old_p) does not exist", return
+  $@ = "Plugin '$old_a' does not exist", return
     unless $old_p;
 
   return wantarray ? ($old_p, $old_a) : $old_p;
@@ -177,7 +177,7 @@ sub get_index {
     ($self->{PLUGS}{$old}, $old) :
     ($old, $self->{PLUGS}{$old});
 
-  $@ = "Plugin '$old_a' ($old_p) does not exist", return -1
+  $@ = "Plugin '$old_a' does not exist", return -1
     unless $old_p;
 
   my $i = 0;
@@ -194,7 +194,7 @@ sub insert_before {
     ($self->{PLUGS}{$old}, $old) :
     ($old, $self->{PLUGS}{$old});
 
-  $@ = "Plugin '$old_a' ($old_p) does not exist", return
+  $@ = "Plugin '$old_a' does not exist", return
     unless $old_p;
 
   $@ = "Plugin named '$new_a' already exists ($self->{PLUGS}{$new_a}", return
@@ -228,7 +228,7 @@ sub insert_after {
     ($self->{PLUGS}{$old}, $old) :
     ($old, $self->{PLUGS}{$old});
 
-  $@ = "Plugin '$old_a' ($old_p) does not exist", return
+  $@ = "Plugin '$old_a' does not exist", return
     unless $old_p;
 
   $@ = "Plugin named '$new_a' already exists ($self->{PLUGS}{$new_a}", return

@@ -14,6 +14,7 @@ use Carp;
 use POE qw(Component::IRC::Plugin::Whois);
 use POE::Component::IRC::Constants;
 use POE::Component::IRC::Common qw(:ALL);
+use POE::Component::IRC::Plugin qw(:ALL);
 use vars qw($VERSION);
 use base qw(POE::Component::IRC::Qnet POE::Component::IRC::State);
 
@@ -39,204 +40,19 @@ BEGIN {
     };
 }
 
-sub _create {
-  my ($package) = shift;
-
-  my $self = bless ( { }, $package );
-
-  if ( $GOT_CLIENT_DNS ) {
-    POE::Component::Client::DNS->spawn( Alias => "irc_resolver" );
-  }
-
-  $self->{IRC_CMDS} =
-  { 'rehash'    => [ PRI_HIGH,   'noargs',        ],
-    'restart'   => [ PRI_HIGH,   'noargs',        ],
-    'quit'      => [ PRI_NORMAL, 'oneoptarg',     ],
-    'version'   => [ PRI_HIGH,   'oneoptarg',     ],
-    'time'      => [ PRI_HIGH,   'oneoptarg',     ],
-    'trace'     => [ PRI_HIGH,   'oneoptarg',     ],
-    'admin'     => [ PRI_HIGH,   'oneoptarg',     ],
-    'info'      => [ PRI_HIGH,   'oneoptarg',     ],
-    'away'      => [ PRI_HIGH,   'oneoptarg',     ],
-    'users'     => [ PRI_HIGH,   'oneoptarg',     ],
-    'locops'    => [ PRI_HIGH,   'oneoptarg',     ],
-    'operwall'  => [ PRI_HIGH,   'oneoptarg',     ],
-    'wallops'   => [ PRI_HIGH,   'oneoptarg',     ],
-    'motd'      => [ PRI_HIGH,   'oneoptarg',     ],
-    'who'       => [ PRI_HIGH,   'oneoptarg',     ],
-    'nick'      => [ PRI_HIGH,   'onlyonearg',    ],
-    'oper'      => [ PRI_HIGH,   'onlytwoargs',   ],
-    'invite'    => [ PRI_HIGH,   'onlytwoargs',   ],
-    'squit'     => [ PRI_HIGH,   'onlytwoargs',   ],
-    'kill'      => [ PRI_HIGH,   'onlytwoargs',   ],
-    'privmsg'   => [ PRI_NORMAL, 'privandnotice', ],
-    'privmsglo' => [ PRI_NORMAL+1, 'privandnotice', ],
-    'privmsghi' => [ PRI_NORMAL-1, 'privandnotice', ],
-    'notice'    => [ PRI_NORMAL, 'privandnotice', ],
-    'noticelo'  => [ PRI_NORMAL+1, 'privandnotice', ],   
-    'noticehi'  => [ PRI_NORMAL-1, 'privandnotice', ],   
-    'join'      => [ PRI_HIGH,   'oneortwo',      ],
-    'summon'    => [ PRI_HIGH,   'oneortwo',      ],
-    'sconnect'  => [ PRI_HIGH,   'oneandtwoopt',  ],
-    'whowas'    => [ PRI_HIGH,   'oneandtwoopt',  ],
-    'stats'     => [ PRI_HIGH,   'spacesep',      ],
-    'links'     => [ PRI_HIGH,   'spacesep',      ],
-    'mode'      => [ PRI_HIGH,   'spacesep',      ],
-    'part'      => [ PRI_HIGH,   'commasep',      ],
-    'names'     => [ PRI_HIGH,   'commasep',      ],
-    'list'      => [ PRI_HIGH,   'commasep',      ],
-    'whois'     => [ PRI_HIGH,   'commasep',      ],
-    'ctcp'      => [ PRI_HIGH,   'ctcp',          ],
-    'ctcpreply' => [ PRI_HIGH,   'ctcp',          ],
-    'ping'      => [ PRI_HIGH,   'oneortwo',      ],
-    'pong'      => [ PRI_HIGH,   'oneortwo',      ],
-  };
-
-  $self->{IRC_EVTS} = [ qw(001 ping join part kick nick mode quit 354 324 315 disconnected socketerr error) ];
-
-  my (@event_map) = map {($_, $self->{IRC_CMDS}->{$_}->[CMD_SUB])} keys %{ $self->{IRC_CMDS} };
-
-  $self->{OBJECT_STATES_ARRAYREF} = [qw( _dcc_failed
-				      _dcc_read
-				      _dcc_timeout
-				      _dcc_up
-				      _delayed_cmd
-				      _parseline
-				      __send_event
-				      _sock_down
-				      _sock_failed
-				      _sock_up
-				      _start
-				      _stop
-				      debug
-				      connect
-				      dcc
-				      dcc_accept
-				      dcc_resume
-				      dcc_chat
-				      dcc_close
-				      do_connect
-				      got_dns_response
-				      ison
-				      kick
-				      register
-				      shutdown
-				      sl
-				      sl_login
-				      sl_high
-                                      sl_delayed
-				      sl_prioritized
-				      topic
-				      unregister
-				      userhost ), ( map {( 'irc_' . $_ )} @{ $self->{IRC_EVTS} } ) ];
-
-
-  # Stuff specific to IRC-Qnet
-
-  my @qbot_commands = qw(
-        hello
-        whoami
-        challengeauth
-        showcommands
-        auth
-        challenge
-        help
-        unlock
-        requestpassword
-        reset
-        newpass
-        email
-        authhistory
-        banclear
-        op
-        invite
-        removeuser
-        banlist
-        recover
-        limit
-        unbanall
-        whois
-        version
-        autolimit
-        ban
-        clearchan
-        adduser
-        settopic
-        chanflags
-        deopall
-        requestowner
-        bandel
-        chanlev
-        key
-        welcome
-        voice
-        );
-
-  my @lbot_commands = qw(
-        whoami
-        whois
-        chanlev
-        adduser
-        removeuser
-        showcommands
-        op
-        voice
-        invite
-        setinvite
-        clearinvite
-        recover
-        deopall
-        unbanall
-        clearchan
-        version
-        welcome
-        requestowner
-        );
-
-  my @qbot_map = map {('qbot_' . $_, 'qnet_bot_commands')} @qbot_commands;
-  my @lbot_map = map {('lbot_' . $_, 'qnet_bot_commands')} @lbot_commands;
-
-  $self->{OBJECT_STATES_HASHREF} = { @event_map, @qbot_map, @lbot_map, '_tryclose' => 'dcc_close' };
-
-  $self->{server} = 'irc.quakenet.org';
-  $self->{QBOT} = 'Q@Cserve.quakenet.org';
-  $self->{LBOT} = 'L@lightweight.quakenet.org';
-
-  return $self;
-}
-
-sub _parseline {
-  my ($session, $self, $ev) = @_[SESSION, OBJECT, ARG0];
-  my (@events, @cooked);
-
-  $self->_send_event( 'irc_raw' => $ev->{raw_line} ) if ( $self->{raw_events} );
-
-  # If its 001 event grab the server name and stuff it into {INFO}
-  if ( $ev->{name} eq '001' ) {
-        $self->{INFO}->{ServerName} = $ev->{args}->[0];
-        $self->{RealNick} = ( split / /, $ev->{raw_line} )[2];
-  }
-  if ( $ev->{name} eq 'nick' or $ev->{name} eq 'quit' ) {
-        push ( @{$ev->{args}}, [ $self->nick_channels( ( split( /!/, $ev->{args}->[0] ) )[0] ) ] );
-  }
-  $ev->{name} = 'irc_' . $ev->{name};
-  $self->_send_event( $ev->{name}, @{$ev->{args}} );
-  undef;
-}
-
 # Qnet extension to RPL_WHOIS
-sub irc_330 {
-  my ($kernel,$self) = @_[KERNEL,OBJECT];
-  my ($nick,$account) = ( split / /, $_[ARG1] )[0..1];
+sub S_330 {
+  my ($self,$irc) = splice @_, 0, 2;
+  my ($nick,$account) = ( split / /, ${ $_[1] } )[0..1];
 
   $self->{WHOIS}->{ $nick }->{account} = $account;
-  undef;
+  return PCI_EAT_NONE;
 }
 
 # Qnet extension RPL_WHOEXT
-sub irc_354 {
-  my ($kernel,$self) = @_[KERNEL,OBJECT];
-  my ($first,$real) = split(/ :/,$_[ARG1]);
+sub S_354 {
+  my ($self,$irc) = splice @_, 0, 2;
+  my ($first,$real) = split(/ :/,${ $_[1] });
   my ($query,$channel,$user,$host,$server,$nick,$status,$auth) = split(/ /,$first);
   
   $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{Nick} = $nick;
@@ -260,13 +76,13 @@ sub irc_354 {
   if ( $status =~ /\*/ ) {
     $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{IRCop} = 1;
   }
-  undef;
+  return PCI_EAT_NONE;
 }
 
 #RPL_ENDOFWHO
-sub irc_315 {
-  my ($kernel,$self) = @_[KERNEL,OBJECT];
-  my ($channel) = ( split / :/, $_[ARG1] )[0];
+sub S_315 {
+  my ($self,$irc) = splice @_, 0, 2;
+  my ($channel) = ( split / :/, ${ $_[1] } )[0];
 
   # If it begins with #, &, + or ! its a channel apparently. RFC2812.
   if ( $channel =~ /^[\x23\x2B\x21\x26]/ ) {
@@ -283,41 +99,44 @@ sub irc_315 {
            $self->_send_event( 'irc_nick_sync', $channel );
 	}
   }
-  undef;
+  return PCI_EAT_NONE;
 }
 
 # Channel JOIN messages
-sub irc_join {
-  my ($kernel,$self,$who,$channel) = @_[KERNEL,OBJECT,ARG0,ARG1];
-  my ($nick) = ( split /!/, $who )[0];
-  my ($userhost) = ( split /!/, $who )[1];
+sub S_join {
+  my ($self,$irc) = splice @_, 0, 2;
+  my ($nick) = ( split /!/, ${ $_[0] } )[0];
+  my ($userhost) = ( split /!/, ${ $_[0] } )[1];
   my ($user,$host) = split(/\@/,$userhost);
+  my $channel = ${ $_[1] };
   my ($flags) = '%cunharsft';
 
   if ( u_irc ( $nick ) eq u_irc ( $self->{RealNick} ) ) {
         delete ( $self->{STATE}->{Chans}->{ u_irc ( $channel ) } );
         $self->{CHANNEL_SYNCH}->{ u_irc ( $channel ) } = { MODE => 0, WHO => 0 };
-        $kernel->yield ( 'sl' => "WHO $channel $flags,101" );
-        $kernel->yield ( 'mode' => $channel );
+        $self->yield ( 'sl' => "WHO $channel $flags,101" );
+        $self->yield ( 'mode' => $channel );
   } else {
-        $kernel->yield ( 'sl' => "WHO $nick $flags,102" );
+        $self->yield ( 'sl' => "WHO $nick $flags,102" );
         $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{Nick} = $nick;
         $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{User} = $user;
         $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{Host} = $host;
         $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{CHANS}->{ u_irc ( $channel ) } = '';
         $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Nicks}->{ u_irc ( $nick ) } = '';
   }
-  undef;
+  return PCI_EAT_NONE;
 }
 
 # Channel MODE
-sub irc_mode {
-  my ($kernel,$self,$who,$channel) = @_[KERNEL,OBJECT,ARG0,ARG1];
-  my ($source) = u_irc ( ( split /!/, $who )[0] );
+sub S_mode {
+  my ($self,$irc) = splice @_, 0, 2;
+  my ($source) = u_irc ( ( split /!/, ${ $_[0] } )[0] );
+  my $channel = ${ $_[1] };
+  pop @_;
 
   # Do nothing if it is UMODE
   if ( u_irc ( $channel ) ne u_irc ( $self->{RealNick} ) ) {
-     my ($parsed_mode) = parse_mode_line( @_[ARG2 .. $#_] );
+     my ($parsed_mode) = parse_mode_line( @_[2 .. $#_] );
      while ( my $mode = shift ( @{ $parsed_mode->{modes} } ) ) {
         my ($arg);
         $arg = shift ( @{ $parsed_mode->{args} } ) if ( $mode =~ /^(\+[hovklbIe]|-[hovbIe])/ );
@@ -330,7 +149,7 @@ sub irc_mode {
 		}
 		if ( $source =~ /^[QL]$/ and ( not $self->is_nick_authed($arg) ) and ( not $self->{USER_AUTHED}->{ u_irc ( $arg ) } ) ) {
 		   $self->{USER_AUTHED}->{ u_irc ( $arg ) } = 0;
-		   $kernel->yield ( 'sl' => "WHO $arg " . '%cunharsft,102' );
+		   $self->yield ( 'sl' => "WHO $arg " . '%cunharsft,102' );
 		}
                 last SWITCH;
           }
@@ -383,7 +202,7 @@ sub irc_mode {
         delete ( $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Mode} );
      }
   }
-  undef;
+  return PCI_EAT_NONE;
 }
 
 sub is_nick_authed {

@@ -69,9 +69,7 @@ BEGIN {
 }
 
 sub _create {
-  my $package = shift;
-
-  my $self = bless { }, $package;
+  my $self = shift;
 
   $self->{IRC_CMDS} =
   { 'rehash'    => [ PRI_HIGH,   'noargs',        ],
@@ -117,8 +115,6 @@ sub _create {
     'pong'      => [ PRI_HIGH,   'oneortwo',      ],
   };
 
-  $self->{IRC_EVTS} = [ qw(nick ping) ];
-
   my @event_map = map {($_, $self->{IRC_CMDS}->{$_}->[CMD_SUB])} keys %{ $self->{IRC_CMDS} };
 
   $self->{OBJECT_STATES_ARRAYREF} = [qw( _dcc_failed
@@ -154,11 +150,11 @@ sub _create {
 				      sl_prioritized
 				      topic
 				      unregister
-				      userhost ), ( map {( 'irc_' . $_ )} @{ $self->{IRC_EVTS} } ) ];
+				      userhost )];
 
   $self->{OBJECT_STATES_HASHREF} = { @event_map, '_tryclose' => 'dcc_close' };
 
-  return $self;
+  return 1;
 }
 
 # BINGOS: the component can now get its configuration from either spawn() or connect()
@@ -532,8 +528,11 @@ sub _send_event  {
   # Make sure our session gets notified of any requested events before any other bugger
   $kernel->call( $session => $event => @args ) if delete $sessions{$session};
 
+  my @extra_args;
   # Let the plugin system process this
-  return 1 if $self->_plugin_process( 'SERVER', $event, \( @args ) ) == PCI_EAT_ALL;
+  return 1 if $self->_plugin_process( 'SERVER', $event, \( @args ), \@extra_args ) == PCI_EAT_ALL;
+
+  push @args, @extra_args if scalar @extra_args;
 
   # BINGOS:
   # We have a hack here, because the component used to send 'irc_connected' and
@@ -672,7 +671,7 @@ sub _start {
      $kernel->alias_set("$self");
   }
 
-  $kernel->yield( 'register', @{ $self->{IRC_EVTS} } );
+  $kernel->yield( 'register', @{ $self->{IRC_EVTS} } ) if $self->{IRC_EVTS} and scalar @{ $self->{IRC_EVTS} };
   $self->{ircd_filter} = POE::Filter::IRCD->new( DEBUG => $self->{debug} );
   $self->{ircd_compat} = POE::Filter::IRC::Compat->new( DEBUG => $self->{debug} );
   $self->{ctcp_filter} = POE::Filter::CTCP->new();
@@ -1125,7 +1124,8 @@ sub spawn {
 
   delete $parms{'options'} unless ref ( $parms{'options'} ) eq 'HASH';
 
-  my $self = $package->_create();
+  my $self = bless { }, $package;
+  $self->_create();
 
   my $alias = delete $parms{'alias'};
 
@@ -1636,16 +1636,18 @@ sub compress_downlink {
 # Automatically replies to a PING from the server. Do not confuse this
 # with CTCP PINGs, which are a wholly different animal that evolved
 # much later on the technological timeline.
-sub irc_ping {
-  my ($kernel, $arg) = @_[KERNEL, ARG0];
-  $kernel->yield( 'sl_login', "PONG :$arg" );
+sub S_ping {
+  my ($self, $irc) = splice @_, 0, 2;
+  my $arg = ${ $_[0] };
+  $irc->yield( 'sl_login', "PONG :$arg" );
   undef;
 }
 
 # NICK messages for the purposes of determining our current nickname
-sub irc_nick {
-  my ($kernel,$self,$who,$new) = @_[KERNEL,OBJECT,ARG0,ARG1];
-  my $nick = ( split /!/, $who )[0];
+sub S_nick {
+  my ($self, $irc) = splice @_, 0, 2;
+  my $nick = ( split /!/, ${ $_[0] } )[0];
+  my $new = ${ $_[1] };
   $self->{RealNick} = $new if ( $nick eq $self->{RealNick} );
   undef;
 }
@@ -1660,6 +1662,9 @@ sub isupport_dump_keys {
   return $_[0]->{isupport}->isupport_dump_keys();
 }
 
+sub resolver {
+  return $_[0]->{resolver};
+}
 
 # accesses the plugin pipeline
 sub pipeline {
@@ -2121,6 +2126,11 @@ second argument is the time in seconds that one wishes to delay the command bein
 
   $irc->delay( [ 'mode' => $channel => '+o' => $dude ], 60 );
 
+=item resolver
+
+Returns a reference to the L<POE::Component::Client::DNS> object that is internally 
+created by the component.
+
 =back
 
 =head1 INPUT
@@ -2196,7 +2206,7 @@ Setting 'Raw' to true, will enable the component to send 'irc_raw' events to int
 and sessions. See below for more details on what a 'irc_raw' events is :)
 
 'NoDNS' has different results depending on whether it is set with spawn() or connect(). Setting it
-with spawn(), disables the creation of the POE::Component::Client::DNS completed. Setting it with
+with spawn(), disables the creation of the POE::Component::Client::DNS completely. Setting it with
 connect() on the other hand allows the PoCo-Client-DNS session to be spawned, but will disable any 
 dns lookups using it.
 

@@ -1,4 +1,4 @@
-use Test::More tests => 18;
+use Test::More tests => 19;
 
 {
   package SubclassIRC;
@@ -82,6 +82,7 @@ sub _config_ircd {
   my ($kernel,$heap,$port) = @_[KERNEL,HEAP,ARG0];
   $kernel->post ( 'ircd' => 'add_i_line' );
   $kernel->post ( 'ircd' => 'add_listener' => { Port => $port } );
+  isa_ok( $irc->resolver(), 'POE::Component::Client::DNS' );
   $irc->yield( 'register' => 'all' );
   $irc->yield( connect => { nick => 'TestBot',
         server => '127.0.0.1',
