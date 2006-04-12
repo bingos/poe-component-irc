@@ -77,12 +77,14 @@ sub _config_ircd {
         server => '127.0.0.1',
         port => $port,
         ircname => 'Test test bot',
+	nataddr => '127.0.0.100',
   } );
   $irc2->yield( 'register' => 'all' );
   $irc2->yield( connect => { nick => 'TestBot2',
         server => '127.0.0.1',
         port => $port,
         ircname => 'Test test bot',
+	nataddr => '127.0.0.100',
   } );
   undef;
 }
@@ -122,7 +124,7 @@ sub irc_join {
 sub irc_dcc_request {
   my ($kernel,$sender,$who,$type,$port,$cookie) = @_[KERNEL,SENDER,ARG0,ARG1,ARG2,ARG3];
   pass("Got dcc request");
-  ok( $cookie->{addr} eq '2130706433', "Correct Address Test" );
+  ok( $cookie->{addr} eq '2130706532', "NAT Address" );
   $sender->get_heap()->yield('quit');
   warn "# Waiting 15 seconds for DCC timeout\n";
   undef;

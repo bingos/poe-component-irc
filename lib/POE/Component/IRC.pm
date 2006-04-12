@@ -32,7 +32,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '4.83';
+$VERSION = '4.84';
 $REVISION = do {my@r=(q$Revision: 1.4 $=~/\d+/g);sprintf"%d."."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -901,7 +901,7 @@ sub dcc {
       Reuse        => 'yes',
   );
   ($port, $myaddr) = unpack_sockaddr_in( $factory->getsockname() );
-  $myaddr = inet_aton( $self->{nat_addr} || '' ) || $self->{localaddr} || inet_aton(hostname() || 'localhost');
+  $myaddr = inet_aton( $self->{nat_addr} ) if $self->{nat_addr};
   unless ($myaddr) {
     warn "dcc: Can't determine our IP address! ($!)";
     return;
