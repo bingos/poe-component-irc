@@ -1,6 +1,5 @@
 # $Id: Makefile.PL,v 3.9 2005/04/14 19:23:16 chris Exp $
 
-use 5.006;
 use ExtUtils::MakeMaker;
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
@@ -24,13 +23,14 @@ NOTICE
 WriteMakefile(
 			  'NAME'	=> 'POE::Component::IRC',
 			  'PREREQ_PM' => {
-							  'POE'    => 0.3202,
-							  'POE::Filter::IRCD' => 1.4,
-							  'POE::Component::Client::DNS' => 0.9803,
-							  'POE::Component::Client::Ident' => 0.7,
-							  'Carp'   => 0,
-							  'Socket' => 0,
-							  'POSIX' => 0,
+					  'warnings' => 0,
+					  'POE'    => 0.3202,
+					  'POE::Filter::IRCD' => 1.4,
+					  'POE::Component::Client::DNS' => 0.9803,
+					  'POE::Component::Client::Ident' => 0.7,
+					  'Carp'   => 0,
+					  'Socket' => 0,
+					  'POSIX' => 0,
 							 },
 			  'VERSION_FROM' => 'lib/POE/Component/IRC.pm', # finds $VERSION
 			  'dist' => { 'COMPRESS' => 'gzip --best' },
