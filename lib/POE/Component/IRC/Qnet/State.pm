@@ -118,17 +118,17 @@ sub S_mode {
   if ( u_irc ( $channel ) ne u_irc ( $self->{RealNick} ) ) {
      my ($parsed_mode) = parse_mode_line( @modes );
      while ( my $mode = shift ( @{ $parsed_mode->{modes} } ) ) {
-        my ($arg);
+        my $arg;
         $arg = shift ( @{ $parsed_mode->{args} } ) if ( $mode =~ /^(\+[hovklbIe]|-[hovbIe])/ );
         SWITCH: {
           if ( $mode =~ /\+([ohv])/ ) {
-                my ($flag) = $1;
-                unless ( $self->{STATE}->{Nicks}->{ u_irc ( $arg ) }->{CHANS}->{ u_irc ( $channel ) } =~ $flag ) {
+                my $flag = $1;
+                unless ( $self->{STATE}->{Nicks}->{ u_irc $arg }->{CHANS}->{ u_irc $channel } and $self->{STATE}->{Nicks}->{ u_irc $arg }->{CHANS}->{ u_irc $channel } =~ $flag ) {
                 	$self->{STATE}->{Nicks}->{ u_irc ( $arg ) }->{CHANS}->{ u_irc ( $channel ) } .= $flag;
                 	$self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Nicks}->{ u_irc ( $arg ) } = $self->{STATE}->{Nicks}->{ u_irc ( $arg ) }->{CHANS}->{ u_irc ( $channel ) };
 		}
-		if ( $source =~ /^[QL]$/ and ( not $self->is_nick_authed($arg) ) and ( not $self->{USER_AUTHED}->{ u_irc ( $arg ) } ) ) {
-		   $self->{USER_AUTHED}->{ u_irc ( $arg ) } = 0;
+		if ( $source =~ /^[QL]$/ and !$self->is_nick_authed($arg) and !$self->{USER_AUTHED}->{ u_irc $arg } ) {
+		   $self->{USER_AUTHED}->{ u_irc $arg } = 0;
 		   $self->yield ( 'sl' => "WHO $arg " . '%cunharsft,102' );
 		}
                 last SWITCH;
