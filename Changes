@@ -1,5 +1,12 @@
 Revision history for Perl extension POE::Component::IRC.
 
+4.85  Thu Apr 13 12:37:49 BST 2006
+    - Numerous bug fixes to State and Qnet/State which were 
+      causing terminations. Reported by dec.
+    - Tweaks to a number of tests.
+    - Various plugins have been debugged.
+    - Added '/dump_state' command to simpleclient.pl.
+
 4.84  Wed Apr 12 14:24:34 BST 2006
     - Spotted a bug in Filter::CTCP, it wasn't setting raw_line.
     - Bug in dcc code meant DCC tests were failing on certain

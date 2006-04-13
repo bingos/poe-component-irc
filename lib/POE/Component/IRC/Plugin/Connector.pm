@@ -1,20 +1,16 @@
 package POE::Component::IRC::Plugin::Connector;
 
+use strict;
+use warnings;
 use POE;
 use POE::Component::IRC 4.5;
 use POE::Component::IRC::Plugin qw( :ALL );
 
 sub new {
-  my ($package) = shift;
-
-  my $self = bless { @_ }, $package;
-
-  $self->{SESSION_ID} = POE::Session->create(
-	object_states => [
-	  $self => [ qw(_start _auto_ping _reconnect _shutdown _start_ping _start_time_out _stop_ping _time_out) ],
-	],
-	options => { trace => 0 },
-  )->ID();
+  my $package = shift;
+  my %parms = @_;
+  $parms{ lc $_ } = delete $parms{$_} for keys %parms;
+  my $self = bless \%parms, $package;
   return $self;
 }
 
@@ -22,10 +18,12 @@ sub PCI_register {
   my ($self,$irc) = splice @_, 0, 2;
 
   $self->{irc} = $irc;
-
-  if ( $irc->connected() ) {
-    $poe_kernel->post( $self->{SESSION_ID}, '_start_ping' );
-  }
+  $self->{SESSION_ID} = POE::Session->create(
+	object_states => [
+	  $self => [ qw(_start _auto_ping _reconnect _shutdown _start_ping _start_time_out _stop_ping _time_out) ],
+	],
+	options => { trace => 0 },
+  )->ID();
 
   $irc->plugin_register( $self, 'SERVER', qw(all) );
 
@@ -34,32 +32,26 @@ sub PCI_register {
 
 sub PCI_unregister {
   my ($self,$irc) = splice @_, 0, 2;
-
-  delete ( $self->{irc} );
-
+  delete $self->{irc};
   $poe_kernel->post( $self->{SESSION_ID} => '_shutdown' );
   $poe_kernel->refcount_decrement( $self->{SESSION_ID}, __PACKAGE__ );
-
   return 1;
 }
 
 sub S_connected {
   my ($self,$irc) = splice @_, 0, 2;
-
   $poe_kernel->post( $self->{SESSION_ID}, '_start_time_out' );
   return PCI_EAT_NONE;
 }
 
 sub S_001 {
   my ($self,$irc) = splice @_, 0, 2;
-
   $poe_kernel->post( $self->{SESSION_ID}, '_start_ping' );
   return PCI_EAT_NONE;
 }
 
 sub S_disconnected {
   my ($self,$irc) = splice @_, 0, 2;
-
   $poe_kernel->post( $self->{SESSION_ID}, '_stop_ping' );
   $poe_kernel->post( $self->{SESSION_ID}, '_reconnect' );
   return PCI_EAT_NONE;
@@ -67,7 +59,6 @@ sub S_disconnected {
 
 sub S_error {
   my ($self,$irc) = splice @_, 0, 2;
-
   $poe_kernel->post( $self->{SESSION_ID}, '_stop_ping' );
   $poe_kernel->post( $self->{SESSION_ID}, '_reconnect' );
   return PCI_EAT_NONE;
@@ -75,7 +66,6 @@ sub S_error {
 
 sub S_socketerr {
   my ($self,$irc) = splice @_, 0, 2;
-
   $poe_kernel->post( $self->{SESSION_ID}, '_stop_ping' );
   $poe_kernel->post( $self->{SESSION_ID}, '_reconnect' );
   return PCI_EAT_NONE;
@@ -83,7 +73,7 @@ sub S_socketerr {
 
 sub S_pong {
   my ($self,$irc) = splice @_, 0, 2;
-  my ($reply) = ${ $_[0] };
+  my $reply = ${ $_[0] };
 
   if ( $reply and $reply =~ /^[0-9]+$/ ) {
 	$self->{lag} = time() - $reply;
@@ -106,14 +96,13 @@ sub _start {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
 
   $self->{SESSION_ID} = $_[SESSION]->ID();
-
   $kernel->refcount_increment( $self->{SESSION_ID}, __PACKAGE__ );
+  $kernel->yield( '_start_ping' ) if $self->{irc}->connected();
   undef;
 }
 
 sub _start_ping {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
-
   $kernel->delay( '_time_out' => undef );
   $kernel->delay( '_auto_ping' => $self->{delay} || 300 );
   undef;
@@ -122,7 +111,7 @@ sub _start_ping {
 sub _auto_ping {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
 
-  if ( not $self->{seen_traffic} ) {
+  if ( !$self->{seen_traffic} ) {
      $self->{irc}->yield( 'ping' => time() );
   }
   $self->{seen_traffic} = 0;
@@ -132,7 +121,6 @@ sub _auto_ping {
 
 sub _stop_ping {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
-
   $kernel->delay( '_auto_ping' => undef );
   $kernel->delay( '_time_out' => undef );
   undef;

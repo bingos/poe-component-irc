@@ -2,13 +2,16 @@
 
 use Getopt::Long;
 use POE qw(Component::IRC::State Wheel::ReadLine);
+use Data::Dumper;
 
-my ($nick);
-my ($user);
-my ($server);
-my ($port);
-my ($ircname);
-my ($current_channel);
+$Data::Dumper::Indent = 1;
+
+my $nick;
+my $user;
+my $server;
+my $port;
+my $ircname;
+my $current_channel;
 
 GetOptions(
 "nick=s" => \$nick,
@@ -18,10 +21,10 @@ GetOptions(
 "ircname=s" => \$ircname,
 );
 
-die unless ( $nick and $server );
+die unless $nick and $server;
 print "$nick $server\n";
 
-my ($irc) = POE::Component::IRC::State->spawn( Nick => $nick, Server => $server, Port => $port, Ircname => $ircname, Username => $user );
+my $irc = POE::Component::IRC::State->spawn( Nick => $nick, Server => $server, Port => $port, Ircname => $ircname, Username => $user );
 
 POE::Session->create(
 	package_states => [
@@ -33,7 +36,7 @@ $poe_kernel->run();
 exit 0;
 
 sub _start {
-    my ($heap) = $_[HEAP];
+    my $heap = $_[HEAP];
     $heap->{readline_wheel} =
       POE::Wheel::ReadLine->new( InputEvent => 'got_input' );
     $heap->{readline_wheel}->get("> ");
@@ -92,6 +95,10 @@ sub parse_input {
 	  }
     	  $heap->{readline_wheel}->put("Connecting");
 	  $irc->yield( 'connect' );
+	  last SWITCH;
+	}
+	if ( $cmd eq 'dump_state' ) {
+    	  $heap->{readline_wheel}->put($_) for split /\n/, Dumper($irc->{STATE});
 	  last SWITCH;
 	}
 	$irc->yield( $cmd => @args );

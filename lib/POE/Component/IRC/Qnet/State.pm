@@ -112,10 +112,11 @@ sub S_mode {
   my ($source) = u_irc ( ( split /!/, ${ $_[0] } )[0] );
   my $channel = ${ $_[1] };
   pop @_;
+  my @modes = map { ${ $_ } } @_[2 .. $#_];
 
   # Do nothing if it is UMODE
   if ( u_irc ( $channel ) ne u_irc ( $self->{RealNick} ) ) {
-     my ($parsed_mode) = parse_mode_line( @_[2 .. $#_] );
+     my ($parsed_mode) = parse_mode_line( @modes );
      while ( my $mode = shift ( @{ $parsed_mode->{modes} } ) ) {
         my ($arg);
         $arg = shift ( @{ $parsed_mode->{args} } ) if ( $mode =~ /^(\+[hovklbIe]|-[hovbIe])/ );

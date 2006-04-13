@@ -12,7 +12,7 @@ sub new {
   my $package = shift;
   my %args = @_;
   $args{ lc $_ } = delete $args{ $_ } for keys %args;
-  $args{eat} = 1 unless ( defined ( $args{eat} ) and $args{eat} eq '0' );
+  $args{eat} = 1 unless defined ( $args{eat} ) and $args{eat} eq '0';
   return bless \%args, $package;
 }
 
@@ -26,13 +26,13 @@ sub PCI_register {
 }
 
 sub PCI_unregister {
-  delete ( $_[0]->{irc} );
+  delete $_[0]->{irc};
   return 1;
 }
 
 sub S_ctcp_version {
   my ($self,$irc) = splice @_, 0, 2;
-  my ($nick) = ( split /!/, ${ $_[0] } )[0];
+  my $nick = ( split /!/, ${ $_[0] } )[0];
   
   $irc->yield( ctcpreply => $nick => 'VERSION ' . ( $self->{version} ? $self->{version} : "POE::Component::IRC-" . $POE::Component::IRC::VERSION ) );
   return PCI_EAT_CLIENT if $self->eat();
@@ -41,7 +41,7 @@ sub S_ctcp_version {
 
 sub S_ctcp_time {
   my ($self,$irc) = splice @_, 0, 2;
-  my ($nick) = ( split /!/, ${ $_[0] } )[0];
+  my $nick = ( split /!/, ${ $_[0] } )[0];
   
   $irc->yield( ctcpreply => $nick => strftime( "TIME %a %h %e %T %Y %Z", localtime ) );
   return PCI_EAT_CLIENT if $self->eat();
@@ -50,7 +50,7 @@ sub S_ctcp_time {
 
 sub S_ctcp_userinfo {
   my ($self,$irc) = splice @_, 0, 2;
-  my ($nick) = ( split /!/, ${ $_[0] } )[0];
+  my $nick = ( split /!/, ${ $_[0] } )[0];
 
   $irc->yield( ctcpreply => $nick => 'USERINFO ' . ( $self->{userinfo} ? $self->{userinfo} : 'm33p' ) );
   return PCI_EAT_CLIENT if $self->eat();

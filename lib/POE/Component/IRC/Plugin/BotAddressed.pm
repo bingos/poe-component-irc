@@ -1,5 +1,7 @@
 package POE::Component::IRC::Plugin::BotAddressed;
 
+use strict;
+use warnings;
 use POE::Component::IRC::Plugin qw( :ALL );
 
 sub new {
@@ -19,12 +21,12 @@ sub PCI_unregister {
 
 sub S_public {
   my ($self,$irc) = splice @_, 0, 2;
-  my ($who) = ${ $_[0] };
-  my ($channel) = ${ $_[1] }->[0];
-  my ($what) = ${ $_[2] };
-  my ($mynick) = $irc->nick_name();
+  my $who = ${ $_[0] };
+  my $channel = ${ $_[1] }->[0];
+  my $what = ${ $_[2] };
+  my $mynick = $irc->nick_name();
   my ($cmd) = $what =~ m/^\s*\Q$mynick\E[\:\,\;\.]?\s*(.*)$/i;
-  return PCI_EAT_NONE unless ( $cmd );
+  return PCI_EAT_NONE unless $cmd;
 
   $irc->_send_event( ( $self->{Event} || 'irc_bot_addressed' ) => $who => [ $channel ] => $cmd );
   return PCI_EAT_NONE;

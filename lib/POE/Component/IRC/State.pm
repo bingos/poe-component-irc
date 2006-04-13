@@ -16,7 +16,7 @@ use POE::Component::IRC::Plugin qw(:ALL);
 use base qw(POE::Component::IRC);
 use vars qw($VERSION);
 
-$VERSION = '1.4';
+$VERSION = '1.5';
 
 # Event handlers for tracking the STATE. $self->{STATE} is used as our namespace.
 # u_irc() is used to create unique keys.
@@ -109,7 +109,7 @@ sub S_part {
 sub S_quit {
   my ($self,$irc) = splice @_, 0, 2;
   my $nick = ( split /!/, ${ $_[0] } )[0];
-  push @{ $_[1] }, [ $self->nick_channels( $nick ) ];
+  push @{ $_[2] }, [ $self->nick_channels( $nick ) ];
 
   if ( u_irc ( $nick ) eq u_irc ( $self->{RealNick} ) ) {
         delete $self->{STATE};
@@ -180,19 +180,20 @@ sub S_mode {
   my $who = ${ $_[0] };
   my $channel = ${ $_[1] };
   pop @_;
+  my @modes = map { ${ $_ } } @_[2 .. $#_];
 
   # Do nothing if it is UMODE
   if ( u_irc ( $channel ) ne u_irc ( $self->{RealNick} ) ) {
-     my $parsed_mode = parse_mode_line( @_[2 .. $#_] );
+     my $parsed_mode = parse_mode_line( @modes );
      while ( my $mode = shift ( @{ $parsed_mode->{modes} } ) ) {
-        my ($arg);
+        my $arg;
         $arg = shift ( @{ $parsed_mode->{args} } ) if ( $mode =~ /^(\+[hovklbIeaqfL]|-[hovbIeaq])/ );
         SWITCH: {
           if ( $mode =~ /\+([ohvaq])/ ) {
-                my ($flag) = $1;
-                unless ($self->{STATE}->{Nicks}->{ u_irc ( $arg ) }->{CHANS}->{ u_irc ( $channel ) } =~ /$flag/) {
-                      $self->{STATE}->{Nicks}->{ u_irc ( $arg ) }->{CHANS}->{ u_irc ( $channel ) } .= $flag;
-                      $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Nicks}->{ u_irc ( $arg ) } = $self->{STATE}->{Nicks}->{ u_irc ( $arg ) }->{CHANS}->{ u_irc ( $channel ) };
+                my $flag = $1;
+                unless ($self->{STATE}->{Nicks}->{ u_irc $arg }->{CHANS}->{ u_irc $channel }and $self->{STATE}->{Nicks}->{ u_irc $arg }->{CHANS}->{ u_irc $channel } =~ /$flag/) {
+                      $self->{STATE}->{Nicks}->{ u_irc $arg }->{CHANS}->{ u_irc $channel } .= $flag;
+                      $self->{STATE}->{Chans}->{ u_irc $channel }->{Nicks}->{ u_irc $arg } = $self->{STATE}->{Nicks}->{ u_irc $arg }->{CHANS}->{ u_irc $channel };
                 }
                 last SWITCH;
           }
@@ -230,7 +231,7 @@ sub S_mode {
           # Anything else doesn't have arguments so just adjust {Mode} as necessary.
           if ( $mode =~ /^\+(.)/ ) {
                 my ($flag) = $1;
-                $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Mode} .= $flag unless ( $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Mode} =~ /$flag/ );
+                $self->{STATE}->{Chans}->{ u_irc $channel }->{Mode} .= $flag unless $self->{STATE}->{Chans}->{ u_irc $channel }->{Mode} =~ /$flag/;
                 last SWITCH;
           }
           if ( $mode =~ /^-(.)/ ) {
@@ -303,28 +304,32 @@ sub S_315 {
 # RPL_CHANNELMODEIS
 sub S_324 {
   my ($self,$irc) = splice @_, 0, 2;
-  my (@args) = split( / /, ${ $_[1] } );
-  my ($channel) = shift @args;
+  my @args = split / /, ${ $_[1] };
+  my $channel = shift @args;
 
-  my ($parsed_mode) = parse_mode_line( @args );
+  my $parsed_mode = parse_mode_line( @args );
   while ( my $mode = shift ( @{ $parsed_mode->{modes} } ) ) {
         $mode =~ s/\+//;
-        my ($arg);
-        $arg = shift ( @{ $parsed_mode->{args} } ) if ( $mode =~ /[kl]/ );
-        $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Mode} .= $mode unless ( $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Mode} =~ /$mode/ );
+        my $arg;
+        $arg = shift @{ $parsed_mode->{args} } if $mode =~ /[kl]/;
+	if ( $self->{STATE}->{Chans}->{ u_irc $channel }->{Mode} ) {
+          $self->{STATE}->{Chans}->{ u_irc $channel }->{Mode} .= $mode unless $self->{STATE}->{Chans}->{ u_irc $channel }->{Mode} =~ /$mode/;
+	} else {
+	  $self->{STATE}->{Chans}->{ u_irc $channel }->{Mode} = $mode;
+	}
         if ( $mode eq 'l' and defined ( $arg ) ) {
-           $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{ChanLimit} = $arg;
+           $self->{STATE}->{Chans}->{ u_irc $channel }->{ChanLimit} = $arg;
         }
         if ( $mode eq 'k' and defined ( $arg ) ) {
-           $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{ChanKey} = $arg;
+           $self->{STATE}->{Chans}->{ u_irc $channel }->{ChanKey} = $arg;
         }
   }
-  if ( $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Mode} ) {
-        $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Mode} = join('', sort {uc $a cmp uc $b} ( split( //, $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Mode} ) ) );
+  if ( $self->{STATE}->{Chans}->{ u_irc $channel }->{Mode} ) {
+        $self->{STATE}->{Chans}->{ u_irc $channel }->{Mode} = join('', sort {uc $a cmp uc $b} split //, $self->{STATE}->{Chans}->{ u_irc $channel }->{Mode} );
   }
   $self->_channel_sync_mode($channel);
   if ( $self->_channel_sync($channel) ) {
-	delete ( $self->{CHANNEL_SYNCH}->{ u_irc ( $channel ) } );
+	delete $self->{CHANNEL_SYNCH}->{ u_irc $channel };
 	$self->_send_event( 'irc_chan_sync', $channel );
   }
   return PCI_EAT_NONE;

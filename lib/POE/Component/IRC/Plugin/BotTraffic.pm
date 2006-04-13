@@ -1,5 +1,7 @@
 package POE::Component::IRC::Plugin::BotTraffic;
 
+use strict;
+use warnings;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Filter::IRCD;
 
@@ -21,13 +23,13 @@ sub PCI_unregister {
 
 sub U_privmsg {
   my ($self,$irc) = splice @_, 0, 2;
-  my ($output) = ${ $_[0] };
+  my $output = ${ $_[0] };
 
   my ($lines) = $self->{filter}->get([ $output ]);
 
   foreach my $line ( @{ $lines } ) {
-	my ($text) = $line->{params}->[1];
-	next if ( $text =~ /^\001/ ); # Skip over CTCPs
+	my $text = $line->{params}->[1];
+	next if $text =~ /^\001/; # Skip over CTCPs
 	foreach my $recipient ( split(/,/,$line->{params}->[0]) ) {
 		my $event = $self->{PrivEvent};
 		$event = $self->{PubEvent} if ( $recipient =~ /^(\x23|\x26|\x2B)/ );
