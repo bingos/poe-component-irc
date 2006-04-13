@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+4.86  <Date>
+    - POD fixes and perl dependency as pointed out by Alias.
+
 4.85  Thu Apr 13 12:37:49 BST 2006
     - Numerous bug fixes to State and Qnet/State which were 
       causing terminations. Reported by dec.

@@ -73,7 +73,7 @@ __END__
 
 =head1 NAME
 
-POE::Component:IRC::Common - provides a set of common functions for the L<POE::Component::IRC> suite.
+POE::Component::IRC::Common - provides a set of common functions for the L<POE::Component::IRC> suite.
 
 =head1 SYNOPSIS
 
@@ -95,7 +95,7 @@ POE::Component:IRC::Common - provides a set of common functions for the L<POE::C
 
 =head1 DESCRIPTION
 
-POE::Component:IRC::Common provides a set of common functions for the L<POE::Component::IRC> suite. There are included functions for uppercase and lowercase nicknames/channelnames and for parsing mode lines and ban masks.
+POE::Component::IRC::Common provides a set of common functions for the L<POE::Component::IRC> suite. There are included functions for uppercase and lowercase nicknames/channelnames and for parsing mode lines and ban masks.
 
 =head1 FUNCTIONS
 
