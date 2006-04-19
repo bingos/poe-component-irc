@@ -23,4 +23,6 @@ sub test_start {
   isa_ok( $self->resolver(), 'POE::Component::Client::DNS' );
   ok( $self->resolver() eq $dns, "DNS objects match" );
   $self->yield( 'shutdown' );
+  $dns->shutdown();
+  undef;
 }

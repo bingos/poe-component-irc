@@ -126,7 +126,7 @@ sub irc_chan_sync {
   ok( $object->is_channel_member($channel, $mynick ), "Is Channel Member" );
   ok( $object->is_channel_operator($channel, $mynick ), "Is Channel Operator" );
   ok( $object->ban_mask( $channel, $mynick ), "Ban Mask Test" );
-  warn "#Waiting 4 seconds for the dust to settle\n";
+  warn "# Waiting 4 seconds for the dust to settle\n";
   $object->delay( [ 'nick', 'TestBot2' ], 4 );
   undef;
 }

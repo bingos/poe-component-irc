@@ -218,6 +218,7 @@ sub _configure {
 
   if ( $spawned and !$self->{NoDNS} and $GOT_CLIENT_DNS and !$self->{resolver} ) {
 	$self->{resolver} = POE::Component::Client::DNS->spawn( Alias => "resolver" . $self->session_id() );
+	$self->{mydns} = 1;
   }
 
   # Make sure that we have reasonable defaults for all the attributes.
@@ -1344,7 +1345,7 @@ sub shutdown {
   delete $self->{$_} for qw(socket sock socketfactory dcc wheelmap);
   # Delete all plugins that are loaded.
   $self->plugin_del( $_ ) for keys %{ $self->plugin_list() };
-  $self->{resolver}->shutdown() if $self->{resolver};
+  $self->{resolver}->shutdown() if $self->{mydns} and $self->{resolver};
   undef;
 }
 
@@ -2144,6 +2145,20 @@ created by the component.
 How to talk to your new IRC component... here's the events we'll accept.
 These are events that are posted to the component, either via $poe_kernel->post() or via 
 the object method yield().
+
+So the following would be functionally equivalent:
+
+  sub irc_001 {
+    my ($kernel,$sender) = @_[KERNEL,SENDER];
+    my $irc = $sender->get_heap(); # obtain the poco's object
+
+    $irc->yield( privmsg => 'foo' => 'Howdy!' );
+    $kernel->post( $sender => privmsg => 'foo' => 'Howdy!' );
+    $kernel->post( $irc->session_id() => privmsg => 'foo' => 'Howdy!' );
+    $kernel->post( $irc->session_alias() => privmsg => 'foo' => 'Howdy!' );
+
+    undef;
+  }
 
 =head2 Important Commands
 
