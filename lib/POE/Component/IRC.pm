@@ -2023,6 +2023,10 @@ Automagically generates replies to ctcp version, time and userinfo queries.
 
 An experimental Plugin Manager plugin.
 
+=item L<POE::Component::IRC::Plugin::NickReclaim>
+
+Automagically deals with your nickname being in use and reclaiming it.
+
 =back
 
 =head1 CONSTRUCTORS
