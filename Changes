@@ -4,6 +4,10 @@ Revision history for Perl extension POE::Component::IRC.
     - POD fixes and perl dependency as pointed out by Alias.
     - Tweak so that the poco only shuts down PoCo-Client-DNS
       if we spawned it.
+    - Spotted a problem with register() it was still stashing
+      POE::Session refs. Bad BinGOs.
+    - shutdown() will issue a warning if any sessions are still
+      registered with the component.
 
 4.85  Thu Apr 13 12:37:49 BST 2006
     - Numerous bug fixes to State and Qnet/State which were 

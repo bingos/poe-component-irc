@@ -1296,7 +1296,7 @@ sub register {
   foreach (@events) {
     $_ = "irc_" . $_ unless /^_/;
     $self->{events}->{$_}->{$sender_id} = $sender_id;
-    $self->{sessions}->{$sender}->{'ref'} = $sender_id;
+    $self->{sessions}->{$sender_id}->{'ref'} = $sender_id;
     unless ($self->{sessions}->{$sender_id}->{refcnt}++ or $session == $sender) {
       $kernel->refcount_increment($sender_id, PCI_REFCOUNT_TAG);
     }
@@ -1346,6 +1346,7 @@ sub shutdown {
   # Delete all plugins that are loaded.
   $self->plugin_del( $_ ) for keys %{ $self->plugin_list() };
   $self->{resolver}->shutdown() if $self->{mydns} and $self->{resolver};
+  warn "Shutdown called while sessions still registered\n" if scalar keys %{ $self->{sessions} };
   undef;
 }
 
