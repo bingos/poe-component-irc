@@ -16,6 +16,9 @@ BEGIN { use_ok('POE::Component::IRC') };
 #warn "\nThese next tests will hang if you are firewalling localhost interfaces";
 
 #use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Line);
+
+diag( "Testing POE::Component::IRC $POE::Component::IRC::VERSION, Perl $], $^X" );
+
 use POE;
 
 my ($self) = POE::Component::IRC->new('irc-client');

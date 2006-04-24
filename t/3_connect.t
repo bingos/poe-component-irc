@@ -146,7 +146,7 @@ sub irc_001 {
   ok( $poco_object->server_name() eq 'test.script', "Server Name" );
   ok( $poco_object->nick_name() eq 'testbot', "Nick Name" );
 
-  $self->yield( 'unregister' => 'all' );
+  #$self->yield( 'unregister' => 'all' );
   $self->yield( 'shutdown');
   undef;
 }

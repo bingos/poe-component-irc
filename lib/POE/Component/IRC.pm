@@ -1340,13 +1340,13 @@ sub register_session {
 # Tell the IRC session to go away.
 sub shutdown {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
+  $self->_unregister_sessions();
   $kernel->alarm_remove_all();
   $kernel->alias_remove( $_ ) for $kernel->alias_list( $_[SESSION] );
   delete $self->{$_} for qw(socket sock socketfactory dcc wheelmap);
   # Delete all plugins that are loaded.
   $self->plugin_del( $_ ) for keys %{ $self->plugin_list() };
   $self->{resolver}->shutdown() if $self->{mydns} and $self->{resolver};
-  warn "Shutdown called while sessions still registered\n" if scalar keys %{ $self->{sessions} };
   undef;
 }
 
@@ -1506,6 +1506,18 @@ sub _unregister {
     }
   }
   undef;
+}
+
+sub _unregister_sessions {
+  my $self = shift;
+  my $poco_id = $self->session_id();
+  foreach my $session_id ( keys %{ $self->{sessions} } ) {
+     if (--$self->{sessions}->{$session_id}->{refcnt} <= 0) {
+        delete $self->{sessions}->{$session_id};
+	$poe_kernel->refcount_decrement($session_id, PCI_REFCOUNT_TAG) 
+		unless ( $session_id eq $poco_id );
+     }
+  }
 }
 
 # Asks the IRC server for some random information about particular nicks.
