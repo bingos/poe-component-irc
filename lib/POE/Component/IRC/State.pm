@@ -61,20 +61,22 @@ sub S_join {
   my $userhost = ( split /!/, ${ $_[0] } )[1];
   my ($user,$host) = split(/\@/,$userhost);
   my $channel = ${ $_[1] };
+  my $uchan = u_irc $channel;
+  my $unick = u_irc $nick;
 
-  if ( u_irc ( $nick ) eq u_irc ( $self->{RealNick} ) ) {
-	delete $self->{STATE}->{Chans}->{ u_irc ( $channel ) };
-	$self->{CHANNEL_SYNCH}->{ u_irc ( $channel ) } = { MODE => 0, WHO => 0 };
-        $self->{STATE}->{Chans}->{ u_irc $channel } = { };
+  if ( $unick eq u_irc ( $self->nick_name() ) ) {
+	delete $self->{STATE}->{Chans}->{ $uchan };
+	$self->{CHANNEL_SYNCH}->{ $uchan } = { MODE => 0, WHO => 0 };
+        $self->{STATE}->{Chans}->{ $uchan } = { };
         $self->yield ( 'who' => $channel );
         $self->yield ( 'mode' => $channel );
   } else {
         $self->yield ( 'who' => $nick );
-        $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{Nick} = $nick;
-        $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{User} = $user;
-        $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{Host} = $host;
-        $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{CHANS}->{ u_irc ( $channel ) } = '';
-        $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Nicks}->{ u_irc ( $nick ) } = '';
+        $self->{STATE}->{Nicks}->{ $unick }->{Nick} = $nick;
+        $self->{STATE}->{Nicks}->{ $unick }->{User} = $user;
+        $self->{STATE}->{Nicks}->{ $unick }->{Host} = $host;
+        $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan } = '';
+        $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick } = '';
   }
   return PCI_EAT_NONE;
 }
@@ -110,14 +112,15 @@ sub S_quit {
   my ($self,$irc) = splice @_, 0, 2;
   my $nick = ( split /!/, ${ $_[0] } )[0];
   push @{ $_[2] }, [ $self->nick_channels( $nick ) ];
+  my $unick = u_irc $nick;
 
-  if ( u_irc ( $nick ) eq u_irc ( $self->{RealNick} ) ) {
+  if ( $unick eq u_irc ( $self->nick_name() ) ) {
         delete $self->{STATE};
   } else {
-        foreach my $channel ( keys %{ $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{CHANS} } ) {
-                delete $self->{STATE}->{Chans}->{ $channel }->{Nicks}->{ u_irc ( $nick ) };
+        foreach my $channel ( keys %{ $self->{STATE}->{Nicks}->{ $unick }->{CHANS} } ) {
+                delete $self->{STATE}->{Chans}->{ $channel }->{Nicks}->{ $unick };
         }
-        delete $self->{STATE}->{Nicks}->{ u_irc ( $nick ) };
+        delete $self->{STATE}->{Nicks}->{ $unick };
   }
   return PCI_EAT_NONE;
 }
@@ -127,22 +130,24 @@ sub S_kick {
   my ($self,$irc) = splice @_, 0, 2;
   my $channel = ${ $_[1] };
   my $nick = ${ $_[2] };
+  my $unick = u_irc $nick;
+  my $uchan = u_irc $channel;
 
-  if ( u_irc ( $nick ) eq u_irc ( $self->{RealNick} ) ) {
-        delete $self->{STATE}->{Nicks}->{ u_irc $nick }->{CHANS}->{ u_irc $channel };
-        delete $self->{STATE}->{Chans}->{ u_irc $channel }->{Nicks}->{ u_irc $nick };
-        foreach my $member ( keys %{ $self->{STATE}->{Chans}->{ u_irc $channel }->{Nicks} } ) {
-           delete $self->{STATE}->{Nicks}->{ u_irc $member }->{CHANS}->{ u_irc $channel };
-           if ( scalar keys %{ $self->{STATE}->{Nicks}->{ u_irc $member }->{CHANS} } <= 0 ) {
-                delete $self->{STATE}->{Nicks}->{ u_irc $member };
+  if ( $unick eq u_irc ( $self->nick_name() ) ) {
+        delete $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan };
+        delete $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick };
+        foreach my $member ( keys %{ $self->{STATE}->{Chans}->{ $uchan }->{Nicks} } ) {
+           delete $self->{STATE}->{Nicks}->{ $member }->{CHANS}->{ $uchan };
+           if ( scalar keys %{ $self->{STATE}->{Nicks}->{ $member }->{CHANS} } <= 0 ) {
+                delete $self->{STATE}->{Nicks}->{ $member };
            }
         }
-	delete $self->{STATE}->{Chans}->{ u_irc $channel };
+	delete $self->{STATE}->{Chans}->{ $uchan };
   } else {
-        delete $self->{STATE}->{Nicks}->{ u_irc $nick }->{CHANS}->{ u_irc $channel };
-        delete $self->{STATE}->{Chans}->{ u_irc $channel }->{Nicks}->{ u_irc $nick };
-        if ( scalar keys %{ $self->{STATE}->{Nicks}->{ u_irc $nick }->{CHANS} } <= 0 ) {
-                delete $self->{STATE}->{Nicks}->{ u_irc $nick };
+        delete $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan };
+        delete $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick };
+        if ( scalar keys %{ $self->{STATE}->{Nicks}->{ $unick }->{CHANS} } <= 0 ) {
+                delete $self->{STATE}->{Nicks}->{ $unick };
         }
   }
   return PCI_EAT_NONE;
@@ -154,22 +159,24 @@ sub S_nick {
   my $nick = ( split /!/, ${ $_[0] } )[0];
   my $new = ${ $_[1] };
   push @{ $_[2] }, [ $self->nick_channels( $nick ) ];
+  my $unick = u_irc $nick;
+  my $unew = u_irc $new;
 
   if ( $nick eq $self->{RealNick} ) {
 	$self->{RealNick} = $new;
   }
 
-  if ( u_irc ( $nick ) eq u_irc ( $new ) ) {
+  if ( $unick eq $unew ) {
         # Case Change
-        $self->{STATE}->{Nicks}->{ u_irc $nick }->{Nick} = $new;
+        $self->{STATE}->{Nicks}->{ $unick }->{Nick} = $new;
   } else {
-        my $record = delete $self->{STATE}->{Nicks}->{ u_irc $nick };
+        my $record = delete $self->{STATE}->{Nicks}->{ $unick };
         $record->{Nick} = $new;
         foreach my $channel ( keys %{ $record->{CHANS} } ) {
-           $self->{STATE}->{Chans}->{ $channel }->{Nicks}->{ u_irc $new } = $record->{CHANS}->{ $channel };
-           delete $self->{STATE}->{Chans}->{ $channel }->{Nicks}->{ u_irc $nick };
+           $self->{STATE}->{Chans}->{ $channel }->{Nicks}->{ $unew } = $record->{CHANS}->{ $channel };
+           delete $self->{STATE}->{Chans}->{ $channel }->{Nicks}->{ $unick };
         }
-        $self->{STATE}->{Nicks}->{ u_irc $new } = $record;
+        $self->{STATE}->{Nicks}->{ $unew } = $record;
   }
   return PCI_EAT_NONE;
 }
@@ -179,11 +186,12 @@ sub S_mode {
   my ($self,$irc) = splice @_, 0, 2;
   my $who = ${ $_[0] };
   my $channel = ${ $_[1] };
+  my $uchan = u_irc $channel;
   pop @_;
   my @modes = map { ${ $_ } } @_[2 .. $#_];
 
   # Do nothing if it is UMODE
-  if ( u_irc ( $channel ) ne u_irc ( $self->{RealNick} ) ) {
+  if ( $uchan ne u_irc ( $self->{RealNick} ) ) {
      my $parsed_mode = parse_mode_line( @modes );
      while ( my $mode = shift ( @{ $parsed_mode->{modes} } ) ) {
         my $arg;
@@ -191,17 +199,19 @@ sub S_mode {
         SWITCH: {
           if ( $mode =~ /\+([ohvaq])/ ) {
                 my $flag = $1;
-                unless ($self->{STATE}->{Nicks}->{ u_irc $arg }->{CHANS}->{ u_irc $channel }and $self->{STATE}->{Nicks}->{ u_irc $arg }->{CHANS}->{ u_irc $channel } =~ /$flag/) {
-                      $self->{STATE}->{Nicks}->{ u_irc $arg }->{CHANS}->{ u_irc $channel } .= $flag;
-                      $self->{STATE}->{Chans}->{ u_irc $channel }->{Nicks}->{ u_irc $arg } = $self->{STATE}->{Nicks}->{ u_irc $arg }->{CHANS}->{ u_irc $channel };
+		$arg = u_irc $arg;
+                unless ($self->{STATE}->{Nicks}->{ $arg }->{CHANS}->{ $uchan }and $self->{STATE}->{Nicks}->{ $arg }->{CHANS}->{ $uchan } =~ /$flag/) {
+                      $self->{STATE}->{Nicks}->{ $arg }->{CHANS}->{ $uchan } .= $flag;
+                      $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $arg } = $self->{STATE}->{Nicks}->{ $arg }->{CHANS}->{ $uchan };
                 }
                 last SWITCH;
           }
           if ( $mode =~ /-([ohvaq])/ ) {
-                my ($flag) = $1;
-                if ($self->{STATE}->{Nicks}->{ u_irc ( $arg ) }->{CHANS}->{ u_irc ( $channel ) } =~ /$flag/) {
-                      $self->{STATE}->{Nicks}->{ u_irc ( $arg ) }->{CHANS}->{ u_irc ( $channel ) } =~ s/$flag//;
-                      $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Nicks}->{ u_irc ( $arg ) } = $self->{STATE}->{Nicks}->{ u_irc ( $arg ) }->{CHANS}->{ u_irc ( $channel ) };
+                my $flag = $1;
+		$arg = u_irc $arg;
+                if ($self->{STATE}->{Nicks}->{ $arg }->{CHANS}->{ $uchan } =~ /$flag/) {
+                      $self->{STATE}->{Nicks}->{ $arg }->{CHANS}->{ $uchan } =~ s/$flag//;
+                      $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $arg } = $self->{STATE}->{Nicks}->{ $arg }->{CHANS}->{ $uchan };
                 }
                 last SWITCH;
           }
@@ -209,45 +219,45 @@ sub S_mode {
                 last SWITCH;
           }
           if ( $mode eq '+l' and defined ( $arg ) ) {
-                $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Mode} .= 'l' unless ( $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Mode} =~ /l/ );
-                $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{ChanLimit} = $arg;
+                $self->{STATE}->{Chans}->{ $uchan }->{Mode} .= 'l' unless ( $self->{STATE}->{Chans}->{ $uchan }->{Mode} =~ /l/ );
+                $self->{STATE}->{Chans}->{ $uchan }->{ChanLimit} = $arg;
                 last SWITCH;
           }
           if ( $mode eq '+k' and defined ( $arg ) ) {
-                $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Mode} .= 'k' unless ( $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Mode} =~ /k/ );
-                $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{ChanKey} = $arg;
+                $self->{STATE}->{Chans}->{ $uchan }->{Mode} .= 'k' unless ( $self->{STATE}->{Chans}->{ $uchan }->{Mode} =~ /k/ );
+                $self->{STATE}->{Chans}->{ $uchan }->{ChanKey} = $arg;
                 last SWITCH;
           }
           if ( $mode eq '-l' ) {
-                $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Mode} =~ s/l//;
-                delete ( $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{ChanLimit} );
+                $self->{STATE}->{Chans}->{ $uchan }->{Mode} =~ s/l//;
+                delete $self->{STATE}->{Chans}->{ $uchan }->{ChanLimit};
                 last SWITCH;
           }
           if ( $mode eq '-k' ) {
-                $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Mode} =~ s/k//;
-                delete ( $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{ChanKey} );
+                $self->{STATE}->{Chans}->{ $uchan }->{Mode} =~ s/k//;
+                delete $self->{STATE}->{Chans}->{ $uchan }->{ChanKey};
                 last SWITCH;
           }
           # Anything else doesn't have arguments so just adjust {Mode} as necessary.
           if ( $mode =~ /^\+(.)/ ) {
-                my ($flag) = $1;
-                $self->{STATE}->{Chans}->{ u_irc $channel }->{Mode} .= $flag unless $self->{STATE}->{Chans}->{ u_irc $channel }->{Mode} =~ /$flag/;
+                my $flag = $1;
+                $self->{STATE}->{Chans}->{ $uchan }->{Mode} .= $flag unless $self->{STATE}->{Chans}->{ $uchan }->{Mode} =~ /$flag/;
                 last SWITCH;
           }
           if ( $mode =~ /^-(.)/ ) {
-                my ($flag) = $1;
-                if ($self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Mode} =~ /$flag/) {
-                      $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Mode} =~ s/$flag//;
+                my $flag = $1;
+                if ($self->{STATE}->{Chans}->{ $uchan }->{Mode} =~ /$flag/) {
+                      $self->{STATE}->{Chans}->{ $uchan }->{Mode} =~ s/$flag//;
                 }
                 last SWITCH;
           }
         }
      }
      # Lets make the channel mode nice
-     if ( $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Mode} ) {
-        $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Mode} = join('', sort {uc $a cmp uc $b} ( split( //, $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Mode} ) ) );
+     if ( $self->{STATE}->{Chans}->{ $uchan }->{Mode} ) {
+        $self->{STATE}->{Chans}->{ $uchan }->{Mode} = join('', sort {uc $a cmp uc $b} ( split( //, $self->{STATE}->{Chans}->{ $uchan }->{Mode} ) ) );
      } else {
-        delete ( $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Mode} );
+        delete $self->{STATE}->{Chans}->{ $uchan }->{Mode};
      }
   }
   return PCI_EAT_NONE;
@@ -259,25 +269,27 @@ sub S_352 {
   my ($first,$second) = split(/ :/,${ $_[1] } );
   my ($channel,$user,$host,$server,$nick,$status) = split(/ /,$first);
   my $real = substr($second,index($second," ")+1);
+  my $unick = u_irc $nick;
+  my $uchan = u_irc $channel;
 
-  $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{Nick} = $nick;
-  $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{User} = $user;
-  $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{Host} = $host;
-  $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{Real} = $real;
-  $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{Server} = $server;
+  $self->{STATE}->{Nicks}->{ $unick }->{Nick} = $nick;
+  $self->{STATE}->{Nicks}->{ $unick }->{User} = $user;
+  $self->{STATE}->{Nicks}->{ $unick }->{Host} = $host;
+  $self->{STATE}->{Nicks}->{ $unick }->{Real} = $real;
+  $self->{STATE}->{Nicks}->{ $unick }->{Server} = $server;
   if ( $channel ne '*' ) {
-    my ($whatever) = '';
+    my $whatever = '';
     if ( $status =~ /\@/ ) { $whatever = 'o'; }
     if ( $status =~ /\+/ ) { $whatever = 'v'; }
     if ( $status =~ /\%/ ) { $whatever = 'h'; }
     if ( $status =~ /\&/ ) { $whatever = 'a'; }
     if ( $status =~ /\~/ ) { $whatever = 'q'; }
-    $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{CHANS}->{ u_irc ( $channel ) } = $whatever;
-    $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Name} = $channel;
-    $self->{STATE}->{Chans}->{ u_irc ( $channel ) }->{Nicks}->{ u_irc ( $nick ) } = $whatever;
+    $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan } = $whatever;
+    $self->{STATE}->{Chans}->{ $uchan }->{Name} = $channel;
+    $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick } = $whatever;
   }
   if ( $status =~ /\*/ ) {
-    $self->{STATE}->{Nicks}->{ u_irc ( $nick ) }->{IRCop} = 1;
+    $self->{STATE}->{Nicks}->{ $unick }->{IRCop} = 1;
   }
   return PCI_EAT_NONE;
 }
@@ -285,13 +297,14 @@ sub S_352 {
 #RPL_ENDOFWHO
 sub S_315 {
   my ($self,$irc) = splice @_, 0, 2;
-  my ($channel) = ( split / :/, ${ $_[1] } )[0];
+  my $channel = ( split / :/, ${ $_[1] } )[0];
+  my $uchan = u_irc $channel;
 
   # If it begins with #, &, + or ! its a channel apparently. RFC2812.
   if ( $channel =~ /^[\x23\x2B\x21\x26]/ ) {
     $self->_channel_sync_who($channel);
     if ( $self->_channel_sync($channel) ) {
-	delete ( $self->{CHANNEL_SYNCH}->{ u_irc ( $channel ) } );
+	delete $self->{CHANNEL_SYNCH}->{ $uchan };
 	$self->_send_event( 'irc_chan_sync', $channel );
     }
   # Otherwise we assume its a nickname
@@ -306,30 +319,31 @@ sub S_324 {
   my ($self,$irc) = splice @_, 0, 2;
   my @args = split / /, ${ $_[1] };
   my $channel = shift @args;
+  my $uchan = u_irc $channel;
 
   my $parsed_mode = parse_mode_line( @args );
   while ( my $mode = shift ( @{ $parsed_mode->{modes} } ) ) {
         $mode =~ s/\+//;
         my $arg;
         $arg = shift @{ $parsed_mode->{args} } if $mode =~ /[kl]/;
-	if ( $self->{STATE}->{Chans}->{ u_irc $channel }->{Mode} ) {
-          $self->{STATE}->{Chans}->{ u_irc $channel }->{Mode} .= $mode unless $self->{STATE}->{Chans}->{ u_irc $channel }->{Mode} =~ /$mode/;
+	if ( $self->{STATE}->{Chans}->{ $uchan }->{Mode} ) {
+          $self->{STATE}->{Chans}->{ $uchan }->{Mode} .= $mode unless $self->{STATE}->{Chans}->{ $uchan }->{Mode} =~ /$mode/;
 	} else {
-	  $self->{STATE}->{Chans}->{ u_irc $channel }->{Mode} = $mode;
+	  $self->{STATE}->{Chans}->{ $uchan }->{Mode} = $mode;
 	}
         if ( $mode eq 'l' and defined ( $arg ) ) {
-           $self->{STATE}->{Chans}->{ u_irc $channel }->{ChanLimit} = $arg;
+           $self->{STATE}->{Chans}->{ $uchan }->{ChanLimit} = $arg;
         }
         if ( $mode eq 'k' and defined ( $arg ) ) {
-           $self->{STATE}->{Chans}->{ u_irc $channel }->{ChanKey} = $arg;
+           $self->{STATE}->{Chans}->{ $uchan }->{ChanKey} = $arg;
         }
   }
-  if ( $self->{STATE}->{Chans}->{ u_irc $channel }->{Mode} ) {
-        $self->{STATE}->{Chans}->{ u_irc $channel }->{Mode} = join('', sort {uc $a cmp uc $b} split //, $self->{STATE}->{Chans}->{ u_irc $channel }->{Mode} );
+  if ( $self->{STATE}->{Chans}->{ $uchan }->{Mode} ) {
+        $self->{STATE}->{Chans}->{ $uchan }->{Mode} = join('', sort {uc $a cmp uc $b} split //, $self->{STATE}->{Chans}->{ $uchan }->{Mode} );
   }
   $self->_channel_sync_mode($channel);
   if ( $self->_channel_sync($channel) ) {
-	delete $self->{CHANNEL_SYNCH}->{ u_irc $channel };
+	delete $self->{CHANNEL_SYNCH}->{ $uchan };
 	$self->_send_event( 'irc_chan_sync', $channel );
   }
   return PCI_EAT_NONE;
@@ -449,17 +463,15 @@ sub nick_info {
   my $self = shift;
   my $nick = u_irc ( $_[0] ) || return undef;
 
-  unless ( $self->_nick_exists($nick) ) {
-	return undef;
-  }
+  return unless $self->_nick_exists($nick);
 
-  my ($record) = $self->{STATE}->{Nicks}->{ $nick };
+  my $record = $self->{STATE}->{Nicks}->{ $nick };
 
-  my (%result) = %{ $record };
+  my %result = %{ $record };
 
   $result{Userhost} = $result{User} . '@' . $result{Host};
 
-  delete ( $result{'CHANS'} );
+  delete $result{'CHANS'};
 
   return \%result;
 }
@@ -468,9 +480,7 @@ sub nick_long_form {
   my $self = shift;
   my $nick = u_irc ( $_[0] ) || return undef;
 
-  unless ( $self->_nick_exists($nick) ) {
-	return undef;
-  }
+  return unless $self->_nick_exists($nick);
 
   my ($record) = $self->{STATE}->{Nicks}->{ $nick };
 
@@ -482,9 +492,7 @@ sub nick_channels {
   my $nick = u_irc ( $_[0] ) || return ();
   my @result;
 
-  unless ( $self->_nick_exists($nick) ) {
-	return @result;
-  }
+  return unless $self->_nick_exists($nick);
 
   foreach my $channel ( keys %{ $self->{STATE}->{Nicks}->{ $nick }->{CHANS} } ) {
 	push ( @result, $self->{STATE}->{Chans}->{ $channel }->{Name} );
@@ -497,9 +505,7 @@ sub channel_list {
   my $channel = u_irc ( $_[0] ) || return undef;
   my @result;
 
-  unless ( $self->_channel_exists($channel) ) {
-	return undef;
-  }
+  return unless $self->_channel_exists($channel);
 
   foreach my $nick ( keys %{ $self->{STATE}->{Chans}->{ $channel }->{Nicks} } ) {
 	push( @result, $self->{STATE}->{Nicks}->{ $nick }->{Nick} );
@@ -512,9 +518,7 @@ sub is_operator {
   my $self = shift;
   my $nick = u_irc ( $_[0] ) || return 0;
 
-  unless ( $self->_nick_exists($nick) ) {
-	return 0;
-  }
+  return unless $self->_nick_exists($nick);
 
   if ( $self->{STATE}->{Nicks}->{ $nick }->{IRCop} ) {
 	return 1;
@@ -529,9 +533,7 @@ sub is_channel_mode_set {
 
   $mode =~ s/[^A-Za-z]//g;
 
-  unless ( $self->_channel_exists($channel) or $mode ) {
-	return 0;
-  }
+  return unless $self->_channel_exists($channel) or $mode;
 
   if ( defined ( $self->{STATE}->{Chans}->{ $channel }->{Mode} ) and $self->{STATE}->{Chans}->{ $channel }->{Mode} =~ /$mode/ ) {
 	return 1;
@@ -543,9 +545,7 @@ sub channel_limit {
   my $self = shift;
   my $channel = u_irc ( $_[0] ) || return undef;
 
-  unless ( $self->_channel_exists($channel) ) {
-	return undef;
-  }
+  return unless $self->_channel_exists($channel);
 
   if ( $self->is_channel_mode_set($channel,'l') and defined ( $self->{STATE}->{Chans}->{ $channel }->{ChanLimit} ) ) {
 	return $self->{STATE}->{Chans}->{ $channel }->{ChanLimit};
@@ -557,9 +557,7 @@ sub channel_key {
   my $self = shift;
   my $channel = u_irc ( $_[0] ) || return undef;
 
-  unless ( $self->_channel_exists($channel) ) {
-	return undef;
-  }
+  return unless $self->_channel_exists($channel);
 
   if ( $self->is_channel_mode_set($channel,'k') and defined ( $self->{STATE}->{Chans}->{ $channel }->{ChanKey} ) ) {
 	return $self->{STATE}->{Chans}->{ $channel }->{ChanKey};
@@ -571,9 +569,7 @@ sub channel_modes {
   my $self = shift;
   my $channel = u_irc ( $_[0] ) || return undef;
 
-  unless ( $self->_channel_exists($channel) ) {
-	return undef;
-  }
+  return unless $self->_channel_exists($channel);
 
   if ( defined ( $self->{STATE}->{Chans}->{ $channel }->{Mode} ) ) {
 	return $self->{STATE}->{Chans}->{ $channel }->{Mode};
@@ -585,14 +581,8 @@ sub is_channel_member {
   my $self = shift;
   my $channel = u_irc ( $_[0] ) || return 0;
   my $nick = u_irc ( $_[1] ) || return 0;
-
-  unless ( $self->_channel_exists($channel) and $self->_nick_exists($nick) ) {
-	return 0;
-  }
-
-  if ( defined ( $self->{STATE}->{Chans}->{ $channel }->{Nicks}->{ $nick } ) ) {
-	return 1;
-  }
+  return unless $self->_channel_exists($channel) and $self->_nick_exists($nick);
+  return 1 if defined $self->{STATE}->{Chans}->{ $channel }->{Nicks}->{ $nick };
   return 0;
 }
 
@@ -600,10 +590,7 @@ sub is_channel_operator {
   my $self = shift;
   my $channel = u_irc ( $_[0] ) || return 0;
   my $nick = u_irc ( $_[1] ) || return 0;
-
-  unless ( $self->_nick_has_channel_mode($channel,$nick,'o') ) {
-	return 0;
-  }
+  return 0 unless $self->_nick_has_channel_mode($channel,$nick,'o');
   return 1;
 }
 
@@ -611,10 +598,7 @@ sub has_channel_voice {
   my $self = shift;
   my $channel = u_irc ( $_[0] ) || return 0;
   my $nick = u_irc ( $_[1] ) || return 0;
-
-  unless ( $self->_nick_has_channel_mode($channel,$nick,'v') ) {
-	return 0;
-  }
+  return 0 unless $self->_nick_has_channel_mode($channel,$nick,'v');
   return 1;
 }
 
@@ -623,9 +607,7 @@ sub is_channel_halfop {
   my $channel = u_irc ( $_[0] ) || return 0;
   my $nick = u_irc ( $_[1] ) || return 0;
 
-  unless ( $self->_nick_has_channel_mode($channel,$nick,'h') ) {
-	return 0;
-  }
+  return 0 unless $self->_nick_has_channel_mode($channel,$nick,'h');
   return 1;
 }
 
@@ -633,10 +615,7 @@ sub is_channel_owner {
   my $self = shift;
   my $channel = u_irc ( $_[0] ) || return 0;
   my $nick = u_irc ( $_[1] ) || return 0;
-
-  unless ( $self->_nick_has_channel_mode($channel,$nick,'q') ) {
-        return 0;
-  }
+  return 0 unless $self->_nick_has_channel_mode($channel,$nick,'q');
   return 1;
 }
 
@@ -644,10 +623,7 @@ sub is_channel_admin {
   my $self = shift;
   my $channel = u_irc ( $_[0] ) || return 0;
   my $nick = u_irc ( $_[1] ) || return 0;
-
-  unless ( $self->_nick_has_channel_mode($channel,$nick,'a') ) {
-        return 0;
-  }
+  return 0 unless $self->_nick_has_channel_mode($channel,$nick,'a');
   return 1;
 }
 
@@ -657,9 +633,7 @@ sub ban_mask {
   my $mask = parse_ban_mask ( $_[1] ) || return undef;
   my @result;
 
-  unless ( $self->_channel_exists($channel) ) {
-	return @result;
-  }
+  return unless $self->_channel_exists($channel);
 
   # Convert the mask from IRC to regex.
   $mask = u_irc ( $mask );
