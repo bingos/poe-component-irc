@@ -31,10 +31,11 @@ sub S_330 {
 # Qnet extension RPL_WHOEXT
 sub S_354 {
   my ($self,$irc) = splice @_, 0, 2;
+  my $mapping = $irc->isupport('CASEMAPPING');
   my ($first,$real) = split(/ :/,${ $_[1] });
   my ($query,$channel,$user,$host,$server,$nick,$status,$auth) = split(/ /,$first);
-  my $unick = u_irc $nick;
-  my $uchan = u_irc $channel;
+  my $unick = u_irc $nick, $mapping;
+  my $uchan = u_irc $channel, $mapping;
   
   $self->{STATE}->{Nicks}->{ $unick }->{Nick} = $nick;
   $self->{STATE}->{Nicks}->{ $unick }->{User} = $user;
@@ -63,8 +64,9 @@ sub S_354 {
 #RPL_ENDOFWHO
 sub S_315 {
   my ($self,$irc) = splice @_, 0, 2;
+  my $mapping = $irc->isupport('CASEMAPPING');
   my $channel = ( split / :/, ${ $_[1] } )[0];
-  my $uchan = u_irc $channel;
+  my $uchan = u_irc $channel, $mapping;
 
   # If it begins with #, &, + or ! its a channel apparently. RFC2812.
   if ( $channel =~ /^[\x23\x2B\x21\x26]/ ) {
@@ -75,7 +77,7 @@ sub S_315 {
     }
   # Otherwise we assume its a nickname
   } else {
-	if ( defined ( $self->{USER_AUTHED}->{ u_irc ( $channel ) } ) ) {
+	if ( defined ( $self->{USER_AUTHED}->{ $uchan } ) ) {
 	   $self->_send_event( 'irc_nick_authed', $channel, delete $self->{USER_AUTHED}->{ $uchan } );
 	} else {
            $self->_send_event( 'irc_nick_sync', $channel );
@@ -87,15 +89,16 @@ sub S_315 {
 # Channel JOIN messages
 sub S_join {
   my ($self,$irc) = splice @_, 0, 2;
+  my $mapping = $irc->isupport('CASEMAPPING');
   my $nick = ( split /!/, ${ $_[0] } )[0];
   my $userhost = ( split /!/, ${ $_[0] } )[1];
   my ($user,$host) = split(/\@/,$userhost);
   my $channel = ${ $_[1] };
   my $flags = '%cunharsft';
-  my $unick = u_irc $nick;
-  my $uchan = u_irc $channel;
+  my $unick = u_irc $nick, $mapping;
+  my $uchan = u_irc $channel, $mapping;
 
-  if ( $unick eq u_irc ( $self->{RealNick} ) ) {
+  if ( $unick eq u_irc ( $self->{RealNick}, $mapping ) ) {
         delete $self->{STATE}->{Chans}->{ $uchan };
         $self->{CHANNEL_SYNCH}->{ $uchan } = { MODE => 0, WHO => 0 };
         $self->yield ( 'sl' => "WHO $channel $flags,101" );
@@ -114,22 +117,23 @@ sub S_join {
 # Channel MODE
 sub S_mode {
   my ($self,$irc) = splice @_, 0, 2;
-  my ($source) = u_irc ( ( split /!/, ${ $_[0] } )[0] );
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my $source = u_irc ( ( split /!/, ${ $_[0] } )[0], $mapping );
   my $channel = ${ $_[1] };
-  my $uchan = u_irc $channel;
+  my $uchan = u_irc $channel, $mapping;
   pop @_;
   my @modes = map { ${ $_ } } @_[2 .. $#_];
 
   # Do nothing if it is UMODE
-  if ( $uchan ne u_irc ( $self->{RealNick} ) ) {
-     my ($parsed_mode) = parse_mode_line( @modes );
-     while ( my $mode = shift ( @{ $parsed_mode->{modes} } ) ) {
+  if ( $uchan ne u_irc ( $self->{RealNick}, $mapping ) ) {
+     my $parsed_mode = parse_mode_line( @modes );
+     while ( my $mode = shift @{ $parsed_mode->{modes} } ) {
         my $arg;
         $arg = shift ( @{ $parsed_mode->{args} } ) if ( $mode =~ /^(\+[hovklbIe]|-[hovbIe])/ );
         SWITCH: {
           if ( $mode =~ /\+([ohv])/ ) {
                 my $flag = $1;
-		my $uarg = u_irc $arg;
+		my $uarg = u_irc $arg, $mapping;
                 unless ( $self->{STATE}->{Nicks}->{ $uarg }->{CHANS}->{ $uchan } and $self->{STATE}->{Nicks}->{ $uarg }->{CHANS}->{ $uchan } =~ $flag ) {
                 	$self->{STATE}->{Nicks}->{ $uarg }->{CHANS}->{ $uchan } .= $flag;
                 	$self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $uarg } = $self->{STATE}->{Nicks}->{ $uarg }->{CHANS}->{ $uchan };
@@ -142,7 +146,7 @@ sub S_mode {
           }
           if ( $mode =~ /-([ohv])/ ) {
                 my $flag = $1;
-		my $uarg = u_irc $arg;
+		my $uarg = u_irc $arg, $mapping;
                 $self->{STATE}->{Nicks}->{ $uarg }->{CHANS}->{ $uchan } =~ s/$flag//;
                 $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $uarg } = $self->{STATE}->{Nicks}->{ $uarg }->{CHANS}->{ $uchan };
                 last SWITCH;
@@ -150,12 +154,12 @@ sub S_mode {
           if ( $mode =~ /[bIe]/ ) {
                 last SWITCH;
           }
-          if ( $mode eq '+l' and defined ( $arg ) ) {
+          if ( $mode eq '+l' and defined $arg ) {
                 $self->{STATE}->{Chans}->{ $uchan }->{Mode} .= 'l' unless $self->{STATE}->{Chans}->{ $uchan }->{Mode} =~ /l/;
                 $self->{STATE}->{Chans}->{ $uchan }->{ChanLimit} = $arg;
                 last SWITCH;
           }
-          if ( $mode eq '+k' and defined ( $arg ) ) {
+          if ( $mode eq '+k' and defined $arg ) {
                 $self->{STATE}->{Chans}->{ $uchan }->{Mode} .= 'k' unless $self->{STATE}->{Chans}->{ $uchan }->{Mode} =~ /k/;
                 $self->{STATE}->{Chans}->{ $uchan }->{ChanKey} = $arg;
                 last SWITCH;
@@ -195,7 +199,8 @@ sub S_mode {
 
 sub is_nick_authed {
   my $self = shift;
-  my $nick = u_irc ( $_[0] ) || return undef;
+  my $mapping = $self->isupport('CASEMAPPING');
+  my $nick = u_irc ( $_[0], $mapping ) || return undef;
 
   return undef unless $self->_nick_exists($nick);
 
