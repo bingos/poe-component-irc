@@ -1,4 +1,4 @@
-use Test::More tests => 30;
+use Test::More tests => 32;
 
 BEGIN { use_ok('POE::Component::IRC::Test::Harness') };
 BEGIN { use_ok('POE::Component::IRC') };
@@ -113,6 +113,8 @@ sub irc_391 {
 sub irc_isupport {
   my $isupport = $_[ARG0];
   isa_ok( $isupport, 'POE::Component::IRC::Plugin::ISupport' );
+  ok( $isupport->isupport('NETWORK') eq 'poconet', "ISupport Network" );
+  ok( $isupport->isupport('CASEMAPPING') eq 'rfc1459', "ISupport Casemapping" );
   undef;
 }
 

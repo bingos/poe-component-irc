@@ -252,6 +252,7 @@ sub configure {
      $self->{Config}->{ $option }  = $options->{ $option };
   }
 
+  $self->{Config}->{CASEMAPPING} = 'rfc1459';
   $self->{Config}->{ServerName} = 'poco.server.irc' unless ( defined ( $self->{Config}->{ServerName} ) and $self->{Config}->{ServerName} );
   $self->{Config}->{ServerDesc} = 'Poco? POCO? POCO!' unless ( defined ( $self->{Config}->{ServerDesc} ) and $self->{Config}->{ServerDesc} );
   $self->{Config}->{Version} = ref ( $self ) . '-' . $VERSION unless ( defined ( $self->{Config}->{Version} ) and $self->{Config}->{Version} );
@@ -264,6 +265,8 @@ sub configure {
   $self->{Config}->{CHANNELLEN} = 50 unless ( defined ( $self->{Config}->{CHANNELLEN} ) and $self->{Config}->{CHANNELLEN} > 50 );
   $self->{Config}->{PASSWDLEN} = 20 unless ( defined ( $self->{Config}->{PASSWDLEN} ) and $self->{Config}->{PASSWDLEN} > 20 );
   $self->{Config}->{KEYLEN} = 23 unless ( defined ( $self->{Config}->{KEYLEN} ) and $self->{Config}->{KEYLEN} > 23 );
+  $self->{Config}->{MAXTARGETS} = 4 unless ( defined ( $self->{Config}->{MAXTARGETS} ) and $self->{Config}->{MAXTARGETS} > 4 );
+  $self->{Config}->{MAXCHANNELS} = 15 unless ( defined ( $self->{Config}->{MAXCHANNELS} ) and $self->{Config}->{MAXCHANNELS} > 15 );
   $self->{Config}->{MAXRECIPIENTS} = 20 unless ( defined ( $self->{Config}->{MAXRECIPIENTS} ) and $self->{Config}->{MAXRECIPIENTS} > 20 );
   $self->{Config}->{MAXBANS} = 30 unless ( defined ( $self->{Config}->{MAXBANS} ) and $self->{Config}->{MAXBANS} > 30 );
   $self->{Config}->{MAXBANLENGTH} = 1024 unless ( defined ( $self->{Config}->{MAXBANLENGTH} ) and $self->{Config}->{MAXBANLENGTH} < 1024 );
@@ -289,6 +292,14 @@ sub configure {
     $self->{Config}->{Info}->[8] = '# distribution for details.';
     $self->{Config}->{Info}->[9] = '#';
   }
+
+  $self->{Config}->{isupport} = {
+    CHANTYPES => '#&',
+    PREFIX => '(ov)@+',
+    CHANMODES => 'b,k,l,imnpst',
+    map { ( uc $_, $self->{Config}->{$_} ) } qw(MAXCHANNELS MAXTARGETS MAXBANS NICKLEN TOPICLEN KICKLEN CASEMAPPING Network),
+  };
+  return 1;
 }
 
 sub set_motd {
@@ -2009,6 +2020,8 @@ sub client_registered {
       $self->send_output_to_client( $wheel_id, { command => '002', prefix => $self->server_name(), params => [ $nickname, 'Your host is ' . $self->server_name() . ' running ' . $self->server_version() ] } );
       $self->send_output_to_client( $wheel_id, { command => '003', prefix => $self->server_name(), params => [ $nickname, 'This server was created ' . $self->server_created() ] } );
       $self->send_output_to_client( $wheel_id, { command => '004', prefix => $self->server_name, params => [ $nickname, $self->server_name(), $self->server_version(), 'aiow', 'ablkmnopstv' ] } );
+      $self->send_output_to_client( $wheel_id, { command => '005', prefix => $self->server_name, params => [ $nickname, join(' ', map { ( defined ( $self->{Config}->{isupport}->{$_} ) ? join('=', $_, $self->{Config}->{isupport}->{$_} ) : $_ ) } qw(MAXCHANNELS MAXBANS MAXTARGETS NICKLEN TOPICLEN KICKLEN) ), 'are supported by this server' ] } );
+      $self->send_output_to_client( $wheel_id, { command => '005', prefix => $self->server_name, params => [ $nickname, join(' ', map { ( defined ( $self->{Config}->{isupport}->{$_} ) ? join('=', $_, $self->{Config}->{isupport}->{$_} ) : $_ ) } qw(CHANTYPES PREFIX CHANMODES NETWORK CASEMAPPING) ), 'are supported by this server' ] } );
       $kernel->post ( $self->{Alias} => 'ircd_client_motd' => { command => 'MOTD' } => $wheel_id );
       $kernel->post ( $self->{Alias} => 'ircd_client_lusers' => { command => 'LUSERS' } => $wheel_id );
       if ( not defined ( $self->{Clients}->{ $wheel_id }->{PING} ) ) {
