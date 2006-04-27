@@ -13,6 +13,7 @@ Revision history for Perl extension POE::Component::IRC.
       'ascii'. Default is 'rfc1459'.
     - Changed State and Qnet::State to use casemapping for 
       generating unique state keys.
+    - Removed State::Lite. Deprecated.
 
 4.85  Thu Apr 13 12:37:49 BST 2006
     - Numerous bug fixes to State and Qnet/State which were 

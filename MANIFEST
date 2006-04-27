@@ -19,7 +19,6 @@ lib/POE/Component/IRC/Plugin.pm
 lib/POE/Component/IRC/Projects.pm
 lib/POE/Component/IRC/Qnet.pm
 lib/POE/Component/IRC/State.pm
-lib/POE/Component/IRC/State/Lite.pm
 lib/POE/Component/IRC.pm
 lib/POE/Filter/CTCP.pm
 lib/POE/Filter/IRC.pm
