@@ -146,6 +146,7 @@ sub irc_001 {
   my ($kernel,$sender,$text) = @_[KERNEL,SENDER,ARG1];
   my $ircobj = $sender->get_heap();
   pass( 'connect' );
+  warn "# Connected to ", $ircobj->server_name(), "\n";
   $ircobj->yield( 'quit' );
   undef;
 }
