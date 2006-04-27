@@ -3,7 +3,7 @@ package POE::Component::IRC::Common;
 use strict;
 use warnings;
 
-our $VERSION = '4.75';
+our $VERSION = '4.86';
 
 # We export some stuff
 require Exporter;
@@ -12,35 +12,59 @@ our %EXPORT_TAGS = ( 'ALL' => [ qw(u_irc l_irc parse_mode_line parse_ban_mask) ]
 Exporter::export_ok_tags( 'ALL' );
 
 sub u_irc {
-  my ($value) = shift || return undef;
+  my $value = shift || return;
+  my $type = shift || 'rfc1459';
+  $type = lc $type;
 
-  $value =~ tr/a-z{}|^/A-Z[]\\~/;
+  SWITCH: {
+    if ( $type eq 'ascii' ) {
+	$value =~ tr/a-z/A-Z/;
+	last SWITCH;
+    }
+    if ( $type eq 'strict-rfc1459' ) {
+    	$value =~ tr/a-z{}|/A-Z[]\\/;
+	last SWITCH;
+    }
+    $value =~ tr/a-z{}|^/A-Z[]\\~/;
+  }
   return $value;
 }
 
 sub l_irc {
-  my ($value) = shift || return undef;
+  my $value = shift || return;
+  my $type = shift || 'rfc1459';
+  $type = lc $type;
 
-  $value =~ tr/A-Z[]\\~/a-z{}|^/;
+  SWITCH: {
+    if ( $type eq 'ascii' ) {
+    	$value =~ tr/A-Z/a-z/;
+	last SWITCH;
+    }
+    if ( $type eq 'strict-rfc1459' ) {
+    	$value =~ tr/A-Z[]\\/a-z{}|/;
+	last SWITCH;
+    }
+    $value =~ tr/A-Z[]\\~/a-z{}|^/;
+  }
   return $value;
 }
 
 sub parse_mode_line {
-  my ($hashref) = { };
+  my $hashref = { };
 
-  my ($count) = 0;
+  my $count = 0;
   foreach my $arg ( @_ ) {
         if ( $arg =~ /^(\+|-)/ or $count == 0 ) {
-           my ($action) = '+';
+           my $action = '+';
            foreach my $char ( split (//,$arg) ) {
                 if ( $char eq '+' or $char eq '-' ) {
                    $action = $char;
                 } else {
-                   push ( @{ $hashref->{modes} }, $action . $char );
+                   push @{ $hashref->{modes} }, $action . $char;
                 }
            }
          } else {
-                push ( @{ $hashref->{args} }, $arg );
+                push @{ $hashref->{args} }, $arg;
          }
          $count++;
   }
@@ -48,22 +72,20 @@ sub parse_mode_line {
 }
 
 sub parse_ban_mask {
-  my ($arg) = shift || return undef;
+  my $arg = shift || return;
 
   $arg =~ s/\x2a{2,}/\x2a/g;
-  my (@ban); my ($remainder);
+  my @ban; my $remainder;
   if ( $arg !~ /\x21/ and $arg =~ /\x40/ ) {
      $remainder = $arg;
   } else {
      ($ban[0],$remainder) = split (/\x21/,$arg,2);
   }
-  $remainder =~ s/\x21//g if ( defined ( $remainder ) );
-  @ban[1..2] = split (/\x40/,$remainder,2) if ( defined ( $remainder ) );
-  $ban[2] =~ s/\x40//g if ( defined ( $ban[2] ) );
+  $remainder =~ s/\x21//g if defined $remainder;
+  @ban[1..2] = split (/\x40/,$remainder,2) if defined $remainder;
+  $ban[2] =~ s/\x40//g if defined $ban[2];
   for ( my $i = 0; $i <= 2; $i++ ) {
-    if ( ( not defined ( $ban[$i] ) ) or $ban[$i] eq '' ) {
-       $ban[$i] = '*';
-    }
+     $ban[$i] = '*' unless $ban[$i];
   }
   return $ban[0] . '!' . $ban[1] . '@' . $ban[2];
 }
@@ -103,11 +125,11 @@ POE::Component::IRC::Common provides a set of common functions for the L<POE::Co
 
 =item u_irc
 
-Takes one parameter, a string to convert to IRC uppercase. Returns the IRC uppercase equivalent of the passed string.
+Takes one mandatory parameter, a string to convert to IRC uppercase, and one optional parameter, the casemapping of the ircd ( which can be 'rfc1459', 'strict-rfc1459' or 'ascii'. Default is 'rfc1459' ). Returns the IRC uppercase equivalent of the passed string.
 
 =item l_irc
 
-Takes one parameter, a string to convert to IRC lowercase. Returns the IRC lowercase equivalent of the passed string.
+Takes one mandatory parameter, a string to convert to IRC lowercase, and one optional parameter, the casemapping of the ircd ( which can be 'rfc1459', 'strict-rfc1459' or 'ascii'. Default is 'rfc1459' ). Returns the IRC lowercase equivalent of the passed string.
 
 =item parse_mode_line
 

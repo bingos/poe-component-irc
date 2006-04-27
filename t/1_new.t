@@ -17,7 +17,7 @@ BEGIN { use_ok('POE::Component::IRC') };
 
 #use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Line);
 
-diag( "Testing POE::Component::IRC $POE::Component::IRC::VERSION, Perl $], $^X" );
+diag( "Testing POE::Component::IRC $POE::Component::IRC::VERSION $POE::Component::IRC::REVISION, Perl $], $^X" );
 
 use POE;
 
