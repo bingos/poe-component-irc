@@ -1,9 +1,5 @@
 use Test::More;
 
-if ( $^O eq 'MSWin32' ) {
-  plan skip_all => 'MSWin32 thwarts these tests';
-}
-
 plan tests => 26;
 
 use_ok('POE::Component::IRC::Test::Harness');
