@@ -5,7 +5,10 @@ use warnings;
 use POE::Component::IRC::Plugin qw( :ALL );
 
 sub new {
-  return bless { @_[1..$#_] }, $_[0];
+  my $package = shift;
+  my %args = @_;
+  $args{lc $_} = delete $args{$_} for keys %args;
+  return bless \%args, $package;
 }
 
 sub PCI_register {
@@ -28,8 +31,8 @@ sub S_public {
   my ($cmd) = $what =~ m/^\s*\Q$mynick\E[\:\,\;\.]?\s*(.*)$/i;
   return PCI_EAT_NONE unless $cmd;
 
-  $irc->_send_event( ( $self->{Event} || 'irc_bot_addressed' ) => $who => [ $channel ] => $cmd );
-  return PCI_EAT_NONE;
+  $irc->_send_event( ( $self->{event} || 'irc_bot_addressed' ) => $who => [ $channel ] => $cmd );
+  return $self->{eat} ? PCI_EAT_ALL : PCI_EAT_NONE;
 }
 
 1;
@@ -69,7 +72,13 @@ It uses L<POE::Component::IRC|POE::Component::IRC>'s nick_name() method to work 
 
 =item new
 
-No arguments required. Returns a plugin object suitable for feeding to L<POE::Component::IRC|POE::Component::IRC>'s plugin_add() method.
+Two optional arguments:
+
+  'eat', set to true to make the plugin eat the 'irc_public' event and only generate 
+         the 'irc_bot_addressed' event, default is 0;
+  'event', change the default event name from 'irc_bot_addressed';
+
+Returns a plugin object suitable for feeding to L<POE::Component::IRC|POE::Component::IRC>'s plugin_add() method.
 
 =back
 
