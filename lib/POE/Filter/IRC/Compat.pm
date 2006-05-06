@@ -5,6 +5,7 @@ use warnings;
 use Carp;
 use POE::Filter::CTCP;
 use Data::Dumper;
+use base qw(POE::Filter);
 
 our $VERSION = '1.0';
 
