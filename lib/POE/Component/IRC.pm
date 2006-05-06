@@ -143,6 +143,7 @@ sub _create {
 				      kick
 				      register
 				      register_session
+				      remove
 				      shutdown
 				      sl
 				      sl_login
@@ -1107,6 +1108,21 @@ sub kick {
 
   $nick .= " :$message" if defined $message;
   $kernel->yield( 'sl_high', "KICK $chan $nick" );
+  undef;
+}
+
+# Tell the IRC server to forcibly remove a user from a channel. Freenode extension
+sub remove {
+  my ($kernel, $chan, $nick) = @_[KERNEL, ARG0, ARG1];
+  my $message = join '', @_[ARG2 .. $#_];
+
+  unless (defined $chan and defined $nick) {
+    warn "The POE::Component::IRC event \"remove\" requires at least two arguments";
+    return;
+  }
+
+  $nick .= " :$message" if defined $message;
+  $kernel->yield( 'sl_high', "REMOVE $chan $nick" );
   undef;
 }
 
@@ -2314,6 +2330,13 @@ Tell the IRC server to forcibly evict a user from a particular
 channel. Takes at least 2 arguments: a channel name, the nick of the
 user to boot, and an optional witty message to show them as they sail
 out the door.
+
+=item remove ( Freenode only )
+
+Tell the IRC server to forcibly evict a user from a particular
+channel. Takes at least 2 arguments: a channel name, the nick of the
+user to boot, and an optional witty message to show them as they sail
+out the door. Similar to KICK but does an enforced PART instead.
 
 =item mode
 

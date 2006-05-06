@@ -1,10 +1,11 @@
 Revision history for Perl extension POE::Component::IRC.
 
-4.87  <Date>
+4.87  Sat May 06 17:03:34 BST 2006
     - Testsuite 07 and 09 were still skipped on MSWin32. Fixed.
     - Altered BotAddressed at immute's suggestion. Check docs
       for details.
     - Altered Filter::Compat so it won't break with Stackable.
+    - Added 'remove' command a Freenode extension.
 
 4.86  Thu Apr 27 21:18:41 BST 2006
     - POD fixes and perl dependency as pointed out by Alias.
