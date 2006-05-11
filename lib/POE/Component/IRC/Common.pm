@@ -8,7 +8,7 @@ our $VERSION = '4.86';
 # We export some stuff
 require Exporter;
 our @ISA = qw( Exporter );
-our %EXPORT_TAGS = ( 'ALL' => [ qw(u_irc l_irc parse_mode_line parse_ban_mask) ] );
+our %EXPORT_TAGS = ( 'ALL' => [ qw(u_irc l_irc parse_mode_line parse_ban_mask matches_mask) ] );
 Exporter::export_ok_tags( 'ALL' );
 
 sub u_irc {
@@ -90,6 +90,33 @@ sub parse_ban_mask {
   return $ban[0] . '!' . $ban[1] . '@' . $ban[2];
 }
 
+sub matches_mask_array {
+  my ($masks,$matches,$mapping) = @_;
+  return unless $masks and $matches;
+  return unless ref $masks eq 'ARRAY';
+  return unless ref $matches eq 'ARRAY';
+  my $ref = { };
+  foreach my $mask ( @{ $masks } ) {
+        foreach my $match ( @{ $matches } ) {
+           push @{ $ref->{ $mask } }, $match if matches_mask( $mask, $match, $mapping );
+        }
+  }
+  return $ref;
+}
+
+sub matches_mask {
+  my ($mask,$match,$mapping) = @_;
+  return unless $mask and $match;
+  $mask = parse_ban_mask( $mask );
+  $mask =~ s/\x2A+/\x2A/g;
+  my $umask = quotemeta u_irc( $mask, $mapping );
+  $umask =~ s/\\\*/[\x01-\xFF]{0,}/g;
+  $umask =~ s/\\\?/[\x01-\xFF]{1,1}/g;
+  $match = u_irc $match, $mapping;
+  return 1 if $match =~ /^$umask$/;
+  return 0;
+}
+
 1;
 __END__
 
@@ -114,6 +141,10 @@ POE::Component::IRC::Common - provides a set of common functions for the L<POE::
 
   my $banmask = 'stalin*';
   $full_banmask = parse_ban_mask( $banmask );
+
+  if ( matches_mask( $full_banmask, 'stalin!joe@kremlin.ru' ) ) {
+	print "EEK!";
+  }
 
 =head1 DESCRIPTION
 
@@ -157,6 +188,10 @@ Example:
    $fullbanmask = parse_ban_mask( 'stalin*' );
 
    $fullbanmask will be 'stalin*!*@*';
+
+=item matches_mask
+
+Takes two parameters, a string representing an IRC mask ( it'll be processed with parse_ban_mask() to ensure that it is normalised ) and something to match against the IRC mask, such as a nick!user@hostname string. Returns 1 if they match, 0 otherwise. Returns undef if parameters are missing. Optionally, one may pass the casemapping ( see u_irc() ), as this function ises u_irc() internally.
 
 =back
 
