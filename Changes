@@ -3,6 +3,10 @@ Revision history for Perl extension POE::Component::IRC.
 4.88  <Date>
     - Code cleanup in ::Test::Harness. Workaround for systems 
       without %z in strftime, like Solaris.
+    - Added matches_mask() function to ::Common. Updated 6_common.t 
+      to add applicable tests.
+    - Added parse_user() function to ::Common. Updated 6_common.t
+      to add applicable tests.
 
 4.87  Sat May 06 17:03:34 BST 2006
     - Testsuite 07 and 09 were still skipped on MSWin32. Fixed.

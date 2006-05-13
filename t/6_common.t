@@ -1,4 +1,4 @@
-use Test::More tests => 14;
+use Test::More tests => 18;
 BEGIN { use_ok('POE::Component::IRC::Common', qw(:ALL)) }
 ok( 'SIMPLE' eq u_irc( 'simple' ), "Upper simple test" );
 ok( 'simple' eq l_irc( 'SIMPLE' ), "Lower simple test" );
@@ -15,3 +15,9 @@ my $banmask = parse_ban_mask( 'stalin*' );
 ok( $banmask eq 'stalin*!*@*', "Parse ban mask test 1" );
 ok( matches_mask( $banmask, 'stalin!joe@kremlin.ru' ), "Matches Mask test 1" );
 ok( !matches_mask( $banmask, 'BinGOs!foo@blah.com' ), "Matches Mask test 2" );
+my $nick = parse_user('BinGOs!null@fubar.com');
+my @args = parse_user('BinGOs!null@fubar.com');
+ok( $nick eq 'BinGOs', "Parse User Test 1" );
+ok( $nick eq $args[0], "Parse User Test 2" );
+ok( $args[1] eq 'null', "Parse User Test 3" );
+ok( $args[2] eq 'fubar.com', "Parse User Test 4" );

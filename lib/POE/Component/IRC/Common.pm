@@ -8,7 +8,7 @@ our $VERSION = '4.86';
 # We export some stuff
 require Exporter;
 our @ISA = qw( Exporter );
-our %EXPORT_TAGS = ( 'ALL' => [ qw(u_irc l_irc parse_mode_line parse_ban_mask matches_mask) ] );
+our %EXPORT_TAGS = ( 'ALL' => [ qw(u_irc l_irc parse_mode_line parse_ban_mask matches_mask parse_user) ] );
 Exporter::export_ok_tags( 'ALL' );
 
 sub u_irc {
@@ -117,6 +117,13 @@ sub matches_mask {
   return 0;
 }
 
+sub parse_user {
+  my $user = shift || return;
+  my ($n,$u,$h) = split /[!@]/, $user;
+  return ($n,$u,$h) if wantarray();
+  return $n;
+}
+
 1;
 __END__
 
@@ -145,6 +152,9 @@ POE::Component::IRC::Common - provides a set of common functions for the L<POE::
   if ( matches_mask( $full_banmask, 'stalin!joe@kremlin.ru' ) ) {
 	print "EEK!";
   }
+
+  my $nick = parse_user( 'stalin!joe@kremlin.ru' );
+  my ($nick,$user,$host) = parse_user( 'stalin!joe@kremlin.ru' );
 
 =head1 DESCRIPTION
 
@@ -192,6 +202,10 @@ Example:
 =item matches_mask
 
 Takes two parameters, a string representing an IRC mask ( it'll be processed with parse_ban_mask() to ensure that it is normalised ) and something to match against the IRC mask, such as a nick!user@hostname string. Returns 1 if they match, 0 otherwise. Returns undef if parameters are missing. Optionally, one may pass the casemapping ( see u_irc() ), as this function ises u_irc() internally.
+
+=item parse_user
+
+Takes one parameter, a string representing a user in the form nick!user@hostname. In a scalar context it returns just the nickname. In a list context it returns a list consisting of the nick, user and hostname, respectively.
 
 =back
 
