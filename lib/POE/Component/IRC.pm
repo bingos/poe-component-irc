@@ -1131,7 +1131,7 @@ sub new {
   my ($package, $alias) = splice @_, 0, 2;
 
   croak "Not enough arguments to POE::Component::IRC::new()" unless $alias;
-  warn "Use of ->new() is deprecated, please use spawn()\n";
+  warn "Use of $package->new() is deprecated, please use spawn()\n";
   my $self = $package->spawn ( alias => $alias, options => { @_ } );
 
   return $self;
