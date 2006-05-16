@@ -83,6 +83,7 @@ sub _create {
     'info'      => [ PRI_HIGH,   'oneoptarg',     ],
     'away'      => [ PRI_HIGH,   'oneoptarg',     ],
     'users'     => [ PRI_HIGH,   'oneoptarg',     ],
+    'lusers'    => [ PRI_HIGH,   'oneoptarg',     ],
     'locops'    => [ PRI_HIGH,   'oneoptarg',     ],
     'operwall'  => [ PRI_HIGH,   'oneoptarg',     ],
     'wallops'   => [ PRI_HIGH,   'oneoptarg',     ],
