@@ -4,6 +4,16 @@ use ExtUtils::MakeMaker;
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
 
+my $GOT_DNS;
+
+BEGIN {
+   $GOT_DNS = 0;
+   eval {
+	require POE::Component::Client::DNS;
+	$GOT_DNS = 1;
+   };
+}
+
 print <<NOTICE;
 
 ---------------------------------------------------------------
@@ -20,14 +30,14 @@ is firewalled then these tests will fail.
 
 NOTICE
 
+_no_dns() unless $GOT_DNS;
+
 WriteMakefile(
 			  'NAME'	=> 'POE::Component::IRC',
 			  'PREREQ_PM' => {
 					  'warnings' => 0,
 					  'POE'    => 0.3202,
 					  'POE::Filter::IRCD' => 1.4,
-					  'POE::Component::Client::DNS' => 0.9803,
-					  'POE::Component::Client::Ident' => 0.7,
 					  'Carp'   => 0,
 					  'Socket' => 0,
 					  'POSIX' => 0,
@@ -38,3 +48,16 @@ WriteMakefile(
 			  'clean' => { FILES => "README.send" },
 			 );
 
+exit 0;
+
+sub _no_dns {
+  print <<NO_DNS;
+
+---------------------------------------------------------------
+Hmmm. POE::Component::Client::DNS isn't installed. It's use is
+recommended but not necessary. Consider installing it. Thanks.
+---------------------------------------------------------------
+
+NO_DNS
+  return;
+}

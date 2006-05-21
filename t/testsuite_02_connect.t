@@ -1,4 +1,4 @@
-use Test::More tests => 32;
+use Test::More tests => 31;
 
 BEGIN { use_ok('POE::Component::IRC::Test::Harness') };
 BEGIN { use_ok('POE::Component::IRC') };
@@ -70,7 +70,6 @@ sub _config_ircd {
   my ($kernel,$heap,$port) = @_[KERNEL,HEAP,ARG0];
   $kernel->post ( 'ircd' => 'add_i_line' );
   $kernel->post ( 'ircd' => 'add_listener' => { Port => $port } );
-  isa_ok( $irc->resolver(), 'POE::Component::Client::DNS' );
   $irc->yield( 'register' => 'all' );
   $irc->yield( connect => { nick => 'TestBot',
         server => '127.0.0.1',

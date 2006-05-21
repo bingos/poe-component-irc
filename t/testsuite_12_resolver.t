@@ -1,8 +1,23 @@
-use Test::More tests => 7;
-BEGIN { use_ok('POE::Component::IRC') };
-BEGIN { use_ok('POE::Component::Client::DNS') };
-
 use POE;
+use Test::More;
+
+my $GOT_DNS;
+
+BEGIN: {
+  $GOT_DNS = 0;
+  eval { 
+	require POE::Component::Client::DNS;
+	$GOT_DNS = 1;
+  };
+}
+
+unless ( $GOT_DNS ) {
+  plan skip_all => "POE::Component::Client::DNS not installed";
+}
+
+plan tests => 6;
+
+require_ok('POE::Component::IRC');
 
 my $dns = POE::Component::Client::DNS->spawn();
 my $self = POE::Component::IRC->spawn( Resolver => $dns );

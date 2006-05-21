@@ -13,12 +13,10 @@ use Socket;
 use Carp;
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Line Filter::IRCD Filter::Stackable);
 use POE::Component::IRC::Common qw(:ALL);
-use POE::Component::Client::DNS;
-use POE::Component::Client::Ident;
 
 use vars qw($VERSION);
 
-$VERSION = '0.3';
+$VERSION = '0.4';
 
 use constant PCSI_REFCOUNT_TAG => "P::C::S::I registered";
 
@@ -34,6 +32,25 @@ our @reserved_channels = qw(&CONNECTIONS &STATE);
 
 our @cmd_server = map { 'cmd_server_' . $_ } qw (kick kill mode);
 our %cmd_server = map { ( 'server_' . $_ => 'cmd_input' ) } qw (kick kill mode);
+
+our $GOT_IDENT;
+our $GOT_DNS;
+
+BEGIN: {
+	$GOT_IDENT = 0;
+	eval {
+	   require POE::Component::Client::Ident;
+	   $GOT_IDENT = 1;
+	};
+}
+
+BEGIN: {
+	$GOT_DNS = 0;
+	eval {
+	   require POE::Component::Client::DNS;
+	   $GOT_DNS = 1;
+	};
+}
 
 sub spawn {
   my $package = shift;
@@ -159,8 +176,12 @@ sub ircd_start {
   $self->{Ident_Client} = 'poco_' . $self->{Alias} . '_ident';
   $self->{Resolver} = 'poco_' . $self->{Alias} . '_resolver';
 
-  POE::Component::Client::Ident->spawn ( $self->{Ident_Client} );
-  $self->{ $self->{Resolver} } = POE::Component::Client::DNS->spawn( Alias => $self->{Resolver}, Timeout => 10 );
+  if ( $GOT_DNS and $GOT_IDENT ) {
+    POE::Component::Client::Ident->spawn ( $self->{Ident_Client} );
+    $self->{ $self->{Resolver} } = POE::Component::Client::DNS->spawn( Alias => $self->{Resolver}, Timeout => 10 );
+  } else {
+    $self->{CANT_AUTH} = 1;
+  }
 
   $kernel->call ( $self->{Alias} => 'configure' );
   $kernel->delay ( 'poll_connections' => $self->lowest_ping_frequency() );
@@ -173,8 +194,10 @@ sub ircd_stop {
 sub ircd_shutdown {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
 
-  $kernel->call ( 'Ident-Client' => 'shutdown' ); 
-  $self->{ $self->{Resolver} }->shutdown();
+  unless ( $self->{CANT_AUTH} ) {
+    $kernel->call ( 'Ident-Client' => 'shutdown' ); 
+    $self->{ $self->{Resolver} }->shutdown();
+  }
 
   delete $self->{Clients};
   delete $self->{Listeners};
@@ -432,7 +455,7 @@ sub accept_new_connection {
   if ( defined ( $self->{Listeners}->{ $self->{Listener_Wheels}->{ $wheel_id } }->{PingFreq} ) ) {
 	$self->{Connections}->{ $wheel->ID() }->{PingFreq} = $self->{Listeners}->{ $self->{Listener_Wheels}->{ $wheel_id} }->{PingFreq};
   }
-  if ( $self->{Config}->{Auth} ) {
+  if ( !$self->{CANT_AUTH} and $self->{Config}->{Auth} ) {
 	$kernel->post ( $self->{Alias} => 'auth_client' => $wheel->ID() );
   }
   $self->send_output_to_channel( '&CONNECTIONS', { command => 'NOTICE', prefix => $self->server_name(), params => [ '&CONNECTIONS', "Connection from $peeraddr to " . $self->{Listener_Wheels}->{ $wheel_id } ] } );

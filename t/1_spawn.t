@@ -1,21 +1,16 @@
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl 1.t'
-
-#########################
-
-# change 'tests => 1' to 'tests => last_test_to_print';
-
 use Test::More tests => 4;
 BEGIN { use_ok('POE::Component::IRC') };
 
-#########################
+my $GOT_DNS;
 
-# Insert your test code below, the Test::More module is use()ed here so read
-# its man page ( perldoc Test::More ) for help writing this test script.
+BEGIN: {
+  $GOT_DNS = 0;
+  eval {
+	require POE::Component::Client::DNS;
+	$GOT_DNS = 1;
+  };
+}
 
-#warn "\nThese next tests will hang if you are firewalling localhost interfaces";
-
-#use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Line);
 use POE;
 
 my $self = POE::Component::IRC->spawn();
@@ -32,6 +27,10 @@ exit 0;
 sub test_start {
   my ($kernel,$heap) = @_[KERNEL,HEAP];
   pass('blah');
-  isa_ok( $self->resolver(), 'POE::Component::Client::DNS' );
+  SKIP: {
+    skip "POE::Component::Client::DNS not installed", 1 unless $GOT_DNS;
+    isa_ok( $self->resolver(), 'POE::Component::Client::DNS' );
+  }
   $self->yield( 'shutdown' );
+  undef;
 }

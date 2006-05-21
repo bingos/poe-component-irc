@@ -1,12 +1,19 @@
 use Test::More tests => 7;
 
+my $dns;
+
+BEGIN: {
+   eval {
+	require POE::Component::Client::DNS;
+	$dns = POE::Component::Client::DNS->spawn( Alias => 'foo' );
+   };
+}
+
 BEGIN { use_ok('POE::Component::IRC') };
 
 use POE qw(Wheel::SocketFactory);
 use Socket;
-use Data::Dumper;
 
-my $dns = POE::Component::Client::DNS->spawn( Alias => 'foo' );
 my $irc = POE::Component::IRC->spawn( options => { trace => 0 }, NoDNS => 1 );
 
 my $server = 'irc.freenode.net';
@@ -39,8 +46,12 @@ $poe_kernel->run();
 exit 0;
 
 sub _start {
-  my $response = $dns->resolve( event => "_got_dns_response", host =>  $server, context => { } );
-  $poe_kernel->yield( '_got_dns_response' => $response ) if $response;
+  if ( $dns ) {
+    my $response = $dns->resolve( event => "_got_dns_response", host =>  $server, context => { } );
+    $poe_kernel->yield( '_got_dns_response' => $response ) if $response;
+    return;
+  }
+  $poe_kernel->yield( '_do_connect' => $server );
   undef;
 }
 
@@ -88,6 +99,7 @@ sub _do_connect {
 
 sub _success {
   my ($kernel,$heap) = @_[KERNEL,HEAP];
+  $heap->{address} = inet_ntoa( $_[ARG1] ); 
   $kernel->delay( '_time_out' );
   delete $heap->{sockfactory};
   $kernel->delay( '_irc_connect' => 5 );
@@ -122,7 +134,7 @@ sub _shutdown {
   $poe_kernel->alarm_remove_all();
   $irc->yield( 'unregister' => 'all' );
   $irc->yield( 'shutdown' );
-  $dns->shutdown();
+  $dns->shutdown() if $dns;
   undef;
 }
 

@@ -1,6 +1,15 @@
 use Test::More tests => 4;
-
 BEGIN { use_ok('POE::Component::IRC::State') };
+
+my $GOT_DNS;
+
+BEGIN: {
+  $GOT_DNS = 0;
+  eval {
+	require POE::Component::Client::DNS;
+	$GOT_DNS = 1;
+  };
+}
 
 use POE;
 
@@ -17,9 +26,11 @@ exit 0;
 
 sub test_start {
   my ($kernel,$heap) = @_[KERNEL,HEAP];
-
   pass('blah');
-  isa_ok( $self->resolver(), 'POE::Component::Client::DNS' );
-  $kernel->post( $self->session_id() => 'shutdown' );
+  SKIP: {
+    skip "POE::Component::Client::DNS not installed", 1 unless $GOT_DNS;
+    isa_ok( $self->resolver(), 'POE::Component::Client::DNS' );
+  }
+  $self->yield( 'shutdown' );
   undef;
 }

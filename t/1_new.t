@@ -37,4 +37,5 @@ sub test_start {
 
   pass('blah');
   $kernel->post( 'irc-client'  => 'shutdown' );
+  undef;
 }

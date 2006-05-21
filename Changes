@@ -10,6 +10,7 @@ Revision history for Perl extension POE::Component::IRC.
     - new() deprecation warning specifies the module name. Saves
       confusion for people who are using Bot::* modules.
     - Added LUSERS command.
+    - Major hackery to remove dependency on PoCo-Client-(DNS|Ident).
 
 4.87  Sat May 06 17:03:34 BST 2006
     - Testsuite 07 and 09 were still skipped on MSWin32. Fixed.
