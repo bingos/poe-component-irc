@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-4.88  <Date>
+4.88  Sun May 21 17:57:38 BST 2006
     - Code cleanup in ::Test::Harness. Workaround for systems 
       without %z in strftime, like Solaris.
     - Added matches_mask() function to ::Common. Updated 6_common.t 
