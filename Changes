@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+4.90  Mon May 22 13:23:09 BST 2006
+    - Missed the Filter::Stackable in plugins Console and Proxy.
+
 4.89  Mon May 22 09:14:57 BST 2006
     - A bug in POE-0.35's Filter::Stackable causing problems with
       ::Test::Harness. Enabled a runaround *sigh*

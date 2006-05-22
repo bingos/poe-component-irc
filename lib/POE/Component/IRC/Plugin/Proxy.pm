@@ -172,9 +172,8 @@ sub _start {
 
   $self->{SESSION_ID} = $_[SESSION]->ID();
   $kernel->refcount_increment( $self->{SESSION_ID}, __PACKAGE__ );
-  $self->{ircd_filter} = POE::Filter::Stackable->new();
   $self->{irc_filter} = POE::Filter::IRCD->new();
-  $self->{ircd_filter}->push( POE::Filter::Line->new(), $self->{irc_filter} );
+  $self->{ircd_filter} = POE::Filter::Stackable->new( Filters => [ POE::Filter::Line->new(), $self->{irc_filter} ] );
   if ( $self->{irc}->connected() ) {
 	$kernel->yield( '_spawn_listener' );
   }
