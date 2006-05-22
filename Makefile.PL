@@ -37,7 +37,7 @@ WriteMakefile(
 			  'PREREQ_PM' => {
 					  'warnings' => 0,
 					  'POE'    => 0.3202,
-					  'POE::Filter::IRCD' => 1.4,
+					  'POE::Filter::IRCD' => 1.7,
 					  'Carp'   => 0,
 					  'Socket' => 0,
 					  'POSIX' => 0,

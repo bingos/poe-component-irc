@@ -1,5 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
+4.89  <Date>
+    - A bug in POE-0.35's Filter::Stackable causing problems with
+      ::Test::Harness. Enabled a runaround *sigh*
+
 4.88  Sun May 21 17:57:38 BST 2006
     - Code cleanup in ::Test::Harness. Workaround for systems 
       without %z in strftime, like Solaris.

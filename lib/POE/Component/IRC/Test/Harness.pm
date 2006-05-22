@@ -164,14 +164,10 @@ sub ircd_start {
 
   $self->{StartTime} = time();
 
-  $self->{filter} = POE::Filter::Stackable->new();
-
   $self->{ircd_filter} = POE::Filter::IRCD->new( DEBUG => $self->{Debug} );
 
-  $self->{filter}->push(
-    POE::Filter::Line->new( InputRegexp => '\015?\012', OutputLiteral => "\015\012" ),
-    $self->{ircd_filter},
-  );
+  $self->{filter} = POE::Filter::Stackable->new( Filters => 
+	[ POE::Filter::Line->new( InputRegexp => '\015?\012', OutputLiteral => "\015\012" ),	      $self->{ircd_filter} ]	);
 
   $self->{Ident_Client} = 'poco_' . $self->{Alias} . '_ident';
   $self->{Resolver} = 'poco_' . $self->{Alias} . '_resolver';
