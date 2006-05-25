@@ -2858,6 +2858,12 @@ port number. For DCC SEND and GET connections, ARG4 will be the
 filename, ARG5 will be the file size, and ARG6 will be the number of
 bytes transferred. (ARG5 and ARG6 should always be the same.)
 
+=item irc_dcc_failed
+
+You get this event when a DCC connection fails for some reason. ARG0 
+will be the operation that failed, ARG1 is the error number, ARG2 is
+the description of the error and ARG3 the connection's magic cookie.
+
 =item irc_dcc_error
 
 You get this event whenever a DCC connection or connection attempt

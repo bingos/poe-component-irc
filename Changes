@@ -4,6 +4,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Tweak to ::State to deal with ircds that don't report @+ 
       status in WHO replies ( like unreal ). Thanks to Kinks
       for reporting that.
+    - 'irc_dcc_failed' event was undocumented. Fixed.
 
 4.90  Mon May 22 13:23:09 BST 2006
     - Missed the Filter::Stackable in plugins Console and Proxy.
