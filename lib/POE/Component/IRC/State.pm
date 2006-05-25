@@ -16,7 +16,7 @@ use POE::Component::IRC::Plugin qw(:ALL);
 use base qw(POE::Component::IRC);
 use vars qw($VERSION);
 
-$VERSION = '1.5';
+$VERSION = '1.6';
 
 # Event handlers for tracking the STATE. $self->{STATE} is used as our namespace.
 # u_irc() is used to create unique keys.
@@ -291,9 +291,11 @@ sub S_352 {
     if ( $status =~ /\%/ ) { $whatever = 'h'; }
     if ( $status =~ /\&/ ) { $whatever = 'a'; }
     if ( $status =~ /\~/ ) { $whatever = 'q'; }
-    $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan } = $whatever;
+    my $existing = $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan } || '';
+    $existing .= $whatever unless $existing and $existing =~ /$whatever/;
+    $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan } = $existing;
+    $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick } = $existing;
     $self->{STATE}->{Chans}->{ $uchan }->{Name} = $channel;
-    $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick } = $whatever;
   }
   if ( $status =~ /\*/ ) {
     $self->{STATE}->{Nicks}->{ $unick }->{IRCop} = 1;
