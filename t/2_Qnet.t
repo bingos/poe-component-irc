@@ -6,7 +6,7 @@ my $GOT_DNS;
 BEGIN: {
   $GOT_DNS = 0;
   eval {
-	require POE::Component::Client::DNS;
+	use POE::Component::Client::DNS 0.98;
 	$GOT_DNS = 1;
   };
 }

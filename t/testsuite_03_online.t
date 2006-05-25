@@ -4,7 +4,7 @@ my $dns;
 
 BEGIN: {
    eval {
-	require POE::Component::Client::DNS;
+	use POE::Component::Client::DNS 0.98;
 	$dns = POE::Component::Client::DNS->spawn( Alias => 'foo' );
    };
 }
