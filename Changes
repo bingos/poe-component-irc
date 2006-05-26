@@ -9,6 +9,8 @@ Revision history for Perl extension POE::Component::IRC.
       ensure that we only load >= 0.98.
     - Amendments to shutdown so that it sends a quit message
       to the ircd if we are connected.
+    - Amended Connector plugin so the lag is collected 
+      independent of what the ircd sends us back.
 
 4.90  Mon May 22 13:23:09 BST 2006
     - Missed the Filter::Stackable in plugins Console and Proxy.
