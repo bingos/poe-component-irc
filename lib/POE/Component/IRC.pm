@@ -127,7 +127,6 @@ sub _create {
 				      _parseline
 				      __send_event
 				      _sock_down
-				      _sock_flush
 				      _sock_failed
 				      _sock_up
 				      _start

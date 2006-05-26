@@ -39,6 +39,7 @@ POE::Session->create(
 			   irc_registered => \&irc_registered,
 			   irc_001 => \&irc_001,
 			 },
+	options => { trace => 0 },
 );
 
 $poe_kernel->run();
@@ -99,6 +100,11 @@ sub client_input {
 	pass('user');
 	$heap->{got_user} = 1;
 	last SWITCH;
+    }
+    if ( $input =~ /^QUIT/ ) {
+	delete $heap->{client}->{ $wheel_id };
+    	delete $heap->{sockfactory};
+	return;
     }
   }
   if ( $heap->{got_nick} and $heap->{got_user} ) {
