@@ -10,6 +10,7 @@ sub new {
   my $package = shift;
   my %parms = @_;
   $parms{ lc $_ } = delete $parms{$_} for keys %parms;
+  $parms{lag} = 0;
   my $self = bless \%parms, $package;
   return $self;
 }
@@ -181,19 +182,24 @@ POE::Component::IRC::Plugin::Connector - A PoCo-IRC plugin that deals with the m
   exit 0;
 
   sub _start {
-
+    my ($kernel,$heap) = @_[KERNEL,HEAP];
     $irc->yield( register => 'all' );
 
-    $irc->plugin_add( 'Connector' => POE::Component::IRC::Plugin::Connector->new() );
+    $heap->{connector} = POE::Component::IRC::Plugin::Connector->new();
+
+    $irc->plugin_add( 'Connector' => $heap->{connector} );
 
     $irc->yield ( connect => { Nick => 'testbot', Server => 'someserver.com' } );
 
-    $_[KERNEL]->delay( 'lag_o_meter' => 60 );
+    $kernel->delay( 'lag_o_meter' => 60 );
+    undef;
   }
 
   sub lag_o_meter {
-    print STDERR "Time: " . time() . " Lag: " . $irc->lag() . "\n";
-    $_[KERNEL]->delay( 'lag_o_meter' => 60 );
+    my ($kernel,$heap) = @_[KERNEL,HEAP];
+    print STDOUT "Time: " . time() . " Lag: " . $heap->{connector}->lag() . "\n";
+    $kernel->delay( 'lag_o_meter' => 60 );
+    undef;
   }
 
 =head1 DESCRIPTION
