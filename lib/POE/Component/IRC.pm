@@ -127,6 +127,7 @@ sub _create {
 				      _parseline
 				      __send_event
 				      _sock_down
+				      _sock_flush
 				      _sock_failed
 				      _sock_up
 				      _start
@@ -552,6 +553,12 @@ sub _send_event  {
   undef;
 }
 
+sub _sock_flush {
+  my ($kernel, $self) = @_[KERNEL, OBJECT];
+  return unless $self->{_shutdown};
+  delete $self->{'socket'};
+  undef;
+}
 
 # Internal function called when a socket is closed.
 sub _sock_down {
@@ -621,6 +628,7 @@ sub _sock_up {
       OutputFilter => $self->{out_filter},
       InputEvent   => '_parseline',
       ErrorEvent   => '_sock_down',
+      FlushedEvent => '_sock_flush',
     );
 
   if ($self->{'socket'}) {
@@ -1356,14 +1364,20 @@ sub register_session {
 
 # Tell the IRC session to go away.
 sub shutdown {
-  my ($kernel, $self) = @_[KERNEL, OBJECT];
+  my ($kernel, $self, $session) = @_[KERNEL, OBJECT, SESSION];
+  my $args;
+  $args = join '', @_[ARG0..$#_] if scalar @_[ARG0..$#_];
+  $args = ':' . $args if $args and $args =~ /\s/;
+  my $cmd = join ' ', 'QUIT', $args || '';
+  $self->{_shutdown} = 1;
   $self->_unregister_sessions();
   $kernel->alarm_remove_all();
   $kernel->alias_remove( $_ ) for $kernel->alias_list( $_[SESSION] );
-  delete $self->{$_} for qw(socket sock socketfactory dcc wheelmap);
+  delete $self->{$_} for qw(sock socketfactory dcc wheelmap);
   # Delete all plugins that are loaded.
   $self->plugin_del( $_ ) for keys %{ $self->plugin_list() };
   $self->{resolver}->shutdown() if $self->{mydns} and $self->{resolver};
+  $kernel->call( $session, 'sl_high', $cmd ) if $self->{socket};
   undef;
 }
 
@@ -2413,6 +2427,10 @@ waiting for you to call C<connect()> on them again to reconnect.
 (Whether this behavior is the Right Thing is doubtful, but I don't want
 to break backwards compatibility at this point.) You can send the IRC
 session a C<shutdown> event manually to make it delete itself.
+
+If you are connected, 'shutdown' will send a quit message to ircd and
+disconnect. If you provide an argument that will be used as the QUIT
+message.
 
 =item unregister
 

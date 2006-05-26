@@ -61,7 +61,6 @@ sub _shutdown {
   my ($kernel,$heap) = @_[KERNEL,HEAP];
   $kernel->alarm_remove_all();
   $kernel->post( 'ircd' => 'shutdown' );
-  $irc->yield( 'unregister' => 'all' );
   $irc->yield( 'shutdown' );
   undef;
 }

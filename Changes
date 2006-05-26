@@ -5,6 +5,8 @@ Revision history for Perl extension POE::Component::IRC.
       status in WHO replies ( like unreal ). Thanks to Kinks
       for reporting that.
     - 'irc_dcc_failed' event was undocumented. Fixed.
+    - Switched the poco-client-dns checks to 'use', so as to
+      ensure that we only load >= 0.98.
 
 4.90  Mon May 22 13:23:09 BST 2006
     - Missed the Filter::Stackable in plugins Console and Proxy.
