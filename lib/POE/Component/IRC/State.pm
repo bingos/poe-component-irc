@@ -743,6 +743,8 @@ sub channel_ban_list {
   my $channel = u_irc ( $_[0], $mapping ) || return undef;
   my %result;
 
+  return undef unless $self->_channel_exists($channel);
+
   if ( $self->_channel_exists($channel) and defined ( $self->{STATE}->{Chans}->{ $channel }->{Lists}->{b} ) ) {
     %result = %{ $self->{STATE}->{Chans}->{ $channel }->{Lists}->{b} };
   }
@@ -757,6 +759,8 @@ sub channel_except_list {
   my $excepts = $self->isupport('EXCEPTS');
   my %result;
 
+  return undef unless $self->_channel_exists($channel);
+
   if ( $self->_channel_exists($channel) and defined ( $self->{STATE}->{Chans}->{ $channel }->{Lists}->{ $excepts } ) ) {
     %result = %{ $self->{STATE}->{Chans}->{ $channel }->{Lists}->{ $excepts } };
   }
@@ -770,6 +774,8 @@ sub channel_invex_list {
   my $channel = u_irc ( $_[0], $mapping ) || return undef;
   my $invex = $self->isupport('INVEX');
   my %result;
+
+  return undef unless $self->_channel_exists($channel);
 
   if ( $self->_channel_exists($channel) and defined ( $self->{STATE}->{Chans}->{ $channel }->{Lists}->{ $invex } ) ) {
     %result = %{ $self->{STATE}->{Chans}->{ $channel }->{Lists}->{ $invex } };
