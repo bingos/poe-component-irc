@@ -64,7 +64,7 @@ BEGIN {
 BEGIN {
 	$GOT_CLIENT_DNS = 0;
 	eval {
-		use POE::Component::Client::DNS 0.98;
+		use POE::Component::Client::DNS 0.99;
 		$GOT_CLIENT_DNS = 1;
 	};
 }

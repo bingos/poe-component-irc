@@ -6,7 +6,7 @@ Revision history for Perl extension POE::Component::IRC.
       for reporting that.
     - 'irc_dcc_failed' event was undocumented. Fixed.
     - Switched the poco-client-dns checks to 'use', so as to
-      ensure that we only load >= 0.98.
+      ensure that we only load >= 0.99.
     - Amendments to shutdown so that it sends a quit message
       to the ircd if we are connected.
     - Amended Connector plugin so the lag is collected 
