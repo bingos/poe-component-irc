@@ -1,5 +1,12 @@
 Revision history for Perl extension POE::Component::IRC.
 
+4.92  Fri May 27 05:36:47 BST 2006
+    - Various changes to ::State in order to ensure full RFC
+      compliant channel mode support, including support
+      for channel access lists - Kinks
+    - Added ::State methods to return channel access lists:
+      channel_ban_list, channel_invex_list, channel_except_list - Kinks
+
 4.91  <Date>
     - Tweak to ::State to deal with ircds that don't report @+ 
       status in WHO replies ( like unreal ). Thanks to Kinks

@@ -64,13 +64,25 @@ sub S_join {
   my $channel = ${ $_[1] };
   my $uchan = u_irc $channel, $mapping;
   my $unick = u_irc $nick, $mapping;
+  my $excepts = $irc->isupport('EXCEPTS');
+  my $invex = $irc->isupport('INVEX');
 
   if ( $unick eq u_irc ( $self->nick_name(), $mapping ) ) {
 	delete $self->{STATE}->{Chans}->{ $uchan };
-	$self->{CHANNEL_SYNCH}->{ $uchan } = { MODE => 0, WHO => 0 };
+	$self->{CHANNEL_SYNCH}->{ $uchan } = { MODE => 0, WHO => 0, BAN => 0 };
         $self->{STATE}->{Chans}->{ $uchan } = { };
+        if ($excepts) {
+          $self->{CHANNEL_SYNCH}->{ $uchan }->{EXCEPTS} = 0;
+          $irc->yield ( 'mode' => $channel => $excepts );
+        }
+        if ($invex) {
+          $self->{CHANNEL_SYNCH}->{ $uchan }->{INVEX} = 0;
+          $irc->yield ( 'mode' => $channel => $invex );
+        }
         $self->yield ( 'who' => $channel );
         $self->yield ( 'mode' => $channel );
+        $self->yield ( 'mode' => $channel => 'b');
+
   } else {
         $self->yield ( 'who' => $nick );
         $self->{STATE}->{Nicks}->{ $unick }->{Nick} = $nick;
@@ -196,14 +208,20 @@ sub S_mode {
   pop @_;
   my @modes = map { ${ $_ } } @_[2 .. $#_];
 
+  # CHANMODES is [$list_mode, $always_arg, $arg_when_set, $no_arg]
+  # A $list_mode always has an argument
+  my $statmodes = join '', keys %{ $irc->isupport('PREFIX') };
+  my $chanmodes = $irc->isupport('CHANMODES');
+  my $alwaysarg = join '', $statmodes,  @{ $chanmodes }[0 .. 1];
+
   # Do nothing if it is UMODE
   if ( $uchan ne u_irc ( $self->{RealNick}, $mapping ) ) {
      my $parsed_mode = parse_mode_line( @modes );
      while ( my $mode = shift ( @{ $parsed_mode->{modes} } ) ) {
         my $arg;
-        $arg = shift ( @{ $parsed_mode->{args} } ) if ( $mode =~ /^(\+[hovklbIeaqfL]|-[hovbIeaq])/ );
+        $arg = shift ( @{ $parsed_mode->{args} } ) if ( $mode =~ /^(.[$alwaysarg]|\+[$chanmodes->[2]])/ );
         SWITCH: {
-          if ( $mode =~ /\+([ohvaq])/ ) {
+          if ( $mode =~ /\+([$statmodes])/ ) {
                 my $flag = $1;
 		$arg = u_irc $arg, $mapping;
                 unless ($self->{STATE}->{Nicks}->{ $arg }->{CHANS}->{ $uchan }and $self->{STATE}->{Nicks}->{ $arg }->{CHANS}->{ $uchan } =~ /$flag/) {
@@ -212,7 +230,7 @@ sub S_mode {
                 }
                 last SWITCH;
           }
-          if ( $mode =~ /-([ohvaq])/ ) {
+          if ( $mode =~ /-([$statmodes])/ ) {
                 my $flag = $1;
 		$arg = u_irc $arg, $mapping;
                 if ($self->{STATE}->{Nicks}->{ $arg }->{CHANS}->{ $uchan } =~ /$flag/) {
@@ -221,29 +239,31 @@ sub S_mode {
                 }
                 last SWITCH;
           }
-          if ( $mode =~ /[bIefL]/ ) {
+          if ( $mode =~ /\+([$chanmodes->[0]])/ ) {
+                my $flag = $1;
+                $self->{STATE}->{Chans}->{ $uchan }->{Lists}->{ $flag }->{ $arg } = { SetBy => $who, Time => time() };
                 last SWITCH;
           }
-          if ( $mode eq '+l' and defined ( $arg ) ) {
-                $self->{STATE}->{Chans}->{ $uchan }->{Mode} .= 'l' unless ( $self->{STATE}->{Chans}->{ $uchan }->{Mode} =~ /l/ );
-                $self->{STATE}->{Chans}->{ $uchan }->{ChanLimit} = $arg;
+          if ( $mode =~ /-([$chanmodes->[0]])/ ) {
+                my $flag = $1;
+                delete $self->{STATE}->{Chans}->{ $uchan }->{Lists}->{ $flag }->{ $arg };
                 last SWITCH;
           }
-          if ( $mode eq '+k' and defined ( $arg ) ) {
-                $self->{STATE}->{Chans}->{ $uchan }->{Mode} .= 'k' unless ( $self->{STATE}->{Chans}->{ $uchan }->{Mode} =~ /k/ );
-                $self->{STATE}->{Chans}->{ $uchan }->{ChanKey} = $arg;
+
+          # All unhandled modes with arguments
+          if ( $mode =~ /\+([^$chanmodes->[3]])/ ) {
+                my $flag = $1;
+                $self->{STATE}->{Chans}->{ $uchan }->{Mode} .= $flag unless $self->{STATE}->{Chans}->{ $uchan }->{Mode} =~ /$flag/;
+                $self->{STATE}->{Chans}->{ $uchan }->{ModeArgs}->{ $flag } = $arg;
                 last SWITCH;
           }
-          if ( $mode eq '-l' ) {
-                $self->{STATE}->{Chans}->{ $uchan }->{Mode} =~ s/l//;
-                delete $self->{STATE}->{Chans}->{ $uchan }->{ChanLimit};
+          if ( $mode =~ /-([^$chanmodes->[3]])/ ) {
+                my $flag = $1;
+                $self->{STATE}->{Chans}->{ $uchan }->{Mode} =~ s/$flag//;
+                delete $self->{STATE}->{Chans}->{ $uchan }->{ModeArgs}->{ $flag };
                 last SWITCH;
           }
-          if ( $mode eq '-k' ) {
-                $self->{STATE}->{Chans}->{ $uchan }->{Mode} =~ s/k//;
-                delete $self->{STATE}->{Chans}->{ $uchan }->{ChanKey};
-                last SWITCH;
-          }
+
           # Anything else doesn't have arguments so just adjust {Mode} as necessary.
           if ( $mode =~ /^\+(.)/ ) {
                 my $flag = $1;
@@ -286,12 +306,11 @@ sub S_352 {
   $self->{STATE}->{Nicks}->{ $unick }->{Server} = $server;
   if ( $channel ne '*' ) {
     my $whatever = '';
-    if ( $status =~ /\@/ ) { $whatever = 'o'; }
-    if ( $status =~ /\+/ ) { $whatever = 'v'; }
-    if ( $status =~ /\%/ ) { $whatever = 'h'; }
-    if ( $status =~ /\&/ ) { $whatever = 'a'; }
-    if ( $status =~ /\~/ ) { $whatever = 'q'; }
-    my $existing = $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan } || '';
+    my $existing = $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan } || '';    
+    my $prefix = $irc->isupport('PREFIX');
+    foreach my $mode ( keys %{ $prefix } ) {
+      $whatever .= $mode if ( $status =~ /\Q$prefix->{$mode}/ and $existing !~ /\Q$prefix->{$mode}/ );
+    }
     $existing .= $whatever unless $existing and $existing =~ /$whatever/;
     $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan } = $existing;
     $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick } = $existing;
@@ -312,14 +331,99 @@ sub S_315 {
 
   # If it begins with #, &, + or ! its a channel apparently. RFC2812.
   if ( $channel =~ /^[\x23\x2B\x21\x26]/ ) {
-    $self->_channel_sync_who($channel);
-    if ( $self->_channel_sync($channel) ) {
+    if ( $self->_channel_sync($channel, 'WHO') ) {
 	delete $self->{CHANNEL_SYNCH}->{ $uchan };
 	$self->_send_event( 'irc_chan_sync', $channel );
     }
   # Otherwise we assume its a nickname
   } else {
 	$self->_send_event( 'irc_nick_sync', $channel );
+  }
+  return PCI_EAT_NONE;
+}
+
+# RPL_BANLIST
+sub S_367 {
+  my ($self,$irc) = splice @_, 0, 2;
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my @args = split / /, ${ $_[1] };
+  my $channel = shift @args;
+  my $uchan = u_irc $channel, $mapping;
+  my ($mask, $who, $when) = @args;
+
+  $self->{STATE}->{Chans}->{ $uchan }->{Lists}->{b}->{ $mask } = { SetBy => $who, Time => $when };
+  return PCI_EAT_NONE;
+}
+
+# RPL_ENDOFBANLIST
+sub S_368 {
+  my ($self,$irc) = splice @_, 0, 2;
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my @args = split / /, ${ $_[1] };
+  my $channel = shift @args;
+  my $uchan = u_irc $channel, $mapping;
+
+  if ( $self->_channel_sync($channel, 'BAN') ) {
+        delete $self->{CHANNEL_SYNCH}->{ $uchan };
+        $self->_send_event( 'irc_chan_sync', $channel );
+  }
+  return PCI_EAT_NONE;
+}
+
+# RPL_INVITELIST
+sub S_346 {
+  my ($self,$irc) = splice @_, 0, 2;
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my @args = split / /, ${ $_[1] };
+  my $channel = shift @args;
+  my $uchan = u_irc $channel, $mapping;
+  my ($mask, $who, $when) = @args;
+  my $invex = $irc->isupport('INVEX');
+
+  $self->{STATE}->{Chans}->{ $uchan }->{Lists}->{ $invex }->{ $mask } = { SetBy => $who, Time => $when };
+  return PCI_EAT_NONE;
+}
+
+# RPL_ENDOFINVITELIST
+sub S_347 {
+  my ($self,$irc) = splice @_, 0, 2;
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my @args = split / /, ${ $_[1] };
+  my $channel = shift @args;
+  my $uchan = u_irc $channel, $mapping;
+
+  if ( $self->_channel_sync($channel, 'INVEX') ) {
+        delete $self->{CHANNEL_SYNCH}->{ $uchan };
+        $self->_send_event( 'irc_chan_sync', $channel );
+  }
+  return PCI_EAT_NONE;
+}
+
+# RPL_EXCEPTLIST
+sub S_348 {
+  my ($self,$irc) = splice @_, 0, 2;
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my @args = split / /, ${ $_[1] };
+  my $channel = shift @args;
+  my $uchan = u_irc $channel, $mapping;
+  my ($mask, $who, $when) = @args;
+  my $excepts = $irc->isupport('EXCEPTS');
+
+  $self->{STATE}->{Chans}->{ $uchan }->{Lists}->{ $excepts }->{ $mask } = { SetBy => $who, Time => $when };
+  return PCI_EAT_NONE;
+}
+
+# RPL_ENDOFEXCEPTLIST
+sub S_349 {
+  my ($self,$irc) = splice @_, 0, 2;
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my @args = split / /, ${ $_[1] };
+  my $channel = shift @args;
+  my $uchan = u_irc $channel, $mapping;
+
+  if ( $self->_channel_sync($channel, 'EXCEPTS') ) {
+        delete $self->{CHANNEL_SYNCH}->{ $uchan };
+        $self->_send_event( 'irc_chan_sync', $channel );
   }
   return PCI_EAT_NONE;
 }
@@ -331,29 +435,24 @@ sub S_324 {
   my @args = split / /, ${ $_[1] };
   my $channel = shift @args;
   my $uchan = u_irc $channel, $mapping;
+  my $chanmodes = $irc->isupport('CHANMODES');
 
   my $parsed_mode = parse_mode_line( @args );
   while ( my $mode = shift ( @{ $parsed_mode->{modes} } ) ) {
         $mode =~ s/\+//;
         my $arg;
-        $arg = shift @{ $parsed_mode->{args} } if $mode =~ /[kl]/;
+        $arg = shift @{ $parsed_mode->{args} } if $mode =~ /[^$chanmodes->[3]]/; # doesn't match a mode with no args
 	if ( $self->{STATE}->{Chans}->{ $uchan }->{Mode} ) {
           $self->{STATE}->{Chans}->{ $uchan }->{Mode} .= $mode unless $self->{STATE}->{Chans}->{ $uchan }->{Mode} =~ /$mode/;
 	} else {
 	  $self->{STATE}->{Chans}->{ $uchan }->{Mode} = $mode;
 	}
-        if ( $mode eq 'l' and defined ( $arg ) ) {
-           $self->{STATE}->{Chans}->{ $uchan }->{ChanLimit} = $arg;
-        }
-        if ( $mode eq 'k' and defined ( $arg ) ) {
-           $self->{STATE}->{Chans}->{ $uchan }->{ChanKey} = $arg;
-        }
+        $self->{STATE}->{Chans}->{ $uchan }->{ModeArgs}->{ $mode } = $arg if defined ( $arg );
   }
   if ( $self->{STATE}->{Chans}->{ $uchan }->{Mode} ) {
         $self->{STATE}->{Chans}->{ $uchan }->{Mode} = join('', sort {uc $a cmp uc $b} split //, $self->{STATE}->{Chans}->{ $uchan }->{Mode} );
   }
-  $self->_channel_sync_mode($channel);
-  if ( $self->_channel_sync($channel) ) {
+  if ( $self->_channel_sync($channel, 'MODE') ) {
 	delete $self->{CHANNEL_SYNCH}->{ $uchan };
 	$self->_send_event( 'irc_chan_sync', $channel );
   }
@@ -368,43 +467,16 @@ sub _channel_sync {
   my $self = shift;
   my $mapping = $self->isupport('CASEMAPPING');
   my $channel = u_irc ( $_[0], $mapping ) || return 0;
+  my $sync = $_[1];
 
-  return 0 unless $self->_channel_exists($channel);
+  return 0 unless ( $self->_channel_exists($channel) and defined ( $self->{CHANNEL_SYNCH}->{ $channel } ) );
 
-  if ( defined ( $self->{CHANNEL_SYNCH}->{ $channel } ) ) {
-	if ( $self->{CHANNEL_SYNCH}->{ $channel }->{MODE} and $self->{CHANNEL_SYNCH}->{ $channel }->{WHO} ) {
-		return 1;
-	}
+  if ($sync) { $self->{CHANNEL_SYNCH}->{ $channel }->{ $sync } = 1 }
+
+  for my $is_sync ( values %{ $self->{CHANNEL_SYNCH}->{ $channel } } ) {
+      return 0 unless $is_sync;
   }
-  return 0;
-}
-
-sub _channel_sync_mode {
-  my $self = shift;
-  my $mapping = $self->isupport('CASEMAPPING');
-  my $channel = u_irc ( $_[0], $mapping ) || return 0;
-
-  return 0 unless $self->_channel_exists($channel);
-
-  if ( defined ( $self->{CHANNEL_SYNCH}->{ $channel } ) ) {
-	$self->{CHANNEL_SYNCH}->{ $channel }->{MODE} = 1;
-	return 1;
-  }
-  return 0;
-}
-
-sub _channel_sync_who {
-  my $self = shift;
-  my $mapping = $self->isupport('CASEMAPPING');
-  my $channel = u_irc ( $_[0], $mapping ) || return 0;
-
-  return 0 unless $self->_channel_exists($channel);
-
-  if ( defined ( $self->{CHANNEL_SYNCH}->{ $channel } ) ) {
-	$self->{CHANNEL_SYNCH}->{ $channel }->{WHO} = 1;
-	return 1;
-  }
-  return 0;
+  return 1;
 }
 
 sub _nick_exists {
@@ -554,8 +626,8 @@ sub channel_limit {
 
   return unless $self->_channel_exists($channel);
 
-  if ( $self->is_channel_mode_set($channel,'l') and defined ( $self->{STATE}->{Chans}->{ $channel }->{ChanLimit} ) ) {
-	return $self->{STATE}->{Chans}->{ $channel }->{ChanLimit};
+  if ( $self->is_channel_mode_set($channel,'l') and defined ( $self->{STATE}->{Chans}->{ $channel }->{ModeArgs}->{l} ) ) {
+	return $self->{STATE}->{Chans}->{ $channel }->{ModeArgs}->{l};
   }
   return undef;
 }
@@ -567,8 +639,8 @@ sub channel_key {
 
   return unless $self->_channel_exists($channel);
 
-  if ( $self->is_channel_mode_set($channel,'k') and defined ( $self->{STATE}->{Chans}->{ $channel }->{ChanKey} ) ) {
-	return $self->{STATE}->{Chans}->{ $channel }->{ChanKey};
+  if ( $self->is_channel_mode_set($channel,'k') and defined ( $self->{STATE}->{Chans}->{ $channel }->{ModeArgs}->{k} ) ) {
+	return $self->{STATE}->{Chans}->{ $channel }->{ModeArgs}->{k};
   }
   return undef;
 }
@@ -663,6 +735,47 @@ sub ban_mask {
   }
 
   return @result;
+}
+
+sub channel_ban_list {
+  my $self = shift;
+  my $mapping = $self->isupport('CASEMAPPING');
+  my $channel = u_irc ( $_[0], $mapping ) || return undef;
+  my %result;
+
+  if ( $self->_channel_exists($channel) and defined ( $self->{STATE}->{Chans}->{ $channel }->{Lists}->{b} ) ) {
+    %result = %{ $self->{STATE}->{Chans}->{ $channel }->{Lists}->{b} };
+  }
+
+  return \%result;
+}
+
+sub channel_except_list {
+  my $self = shift;
+  my $mapping = $self->isupport('CASEMAPPING');
+  my $channel = u_irc ( $_[0], $mapping ) || return undef;
+  my $excepts = $self->isupport('EXCEPTS');
+  my %result;
+
+  if ( $self->_channel_exists($channel) and defined ( $self->{STATE}->{Chans}->{ $channel }->{Lists}->{ $excepts } ) ) {
+    %result = %{ $self->{STATE}->{Chans}->{ $channel }->{Lists}->{ $excepts } };
+  }
+
+  return \%result;
+}
+
+sub channel_invex_list {
+  my $self = shift;
+  my $mapping = $self->isupport('CASEMAPPING');
+  my $channel = u_irc ( $_[0], $mapping ) || return undef;
+  my $invex = $self->isupport('INVEX');
+  my %result;
+
+  if ( $self->_channel_exists($channel) and defined ( $self->{STATE}->{Chans}->{ $channel }->{Lists}->{ $invex } ) ) {
+    %result = %{ $self->{STATE}->{Chans}->{ $channel }->{Lists}->{ $invex } };
+  }
+
+  return \%result;
 }
 
 1;
@@ -858,6 +971,24 @@ if the nickname doesn't exist in the state. The hashref contains the following k
 
 Expects a channel and a ban mask, as passed to MODE +b-b. Returns a list of nicks on that channel that match the specified
 ban mask or an empty list if the channel doesn't exist in the state or there are no matches.
+
+=item channel_ban_list
+
+Each expects a channel as a parameter. Returns a hashref containing the banlist if the channel is in the state, undef if not.
+The hashref keys are the entries on the list, each with the keys 'SetBy' and 'Time'. These keys will hold the nick!hostmask of
+the user who set the entry (or just nick if it's all the ircd gives us), and the time at which it was set respectively.
+
+=item channel_invex_list
+
+Each expects a channel as a parameter. Returns a hashref containing the invite exception list if the channel is in the state, undef if not.
+The hashref keys are the entries on the list, each with the keys 'SetBy' and 'Time'. These keys will hold the nick!hostmask of
+the user who set the entry (or just nick if it's all the ircd gives us), and the time at which it was set respectively.
+
+=item channel_except_list                                             
+
+Each expects a channel as a parameter. Returns a hashref containing the except list if the channel is in the state, undef if not.
+The hashref keys are the entries on the list, each with the keys 'SetBy' and 'Time'. These keys will hold the nick!hostmask of
+the user who set the entry (or just nick if it's all the ircd gives us), and the time at which it was set respectively.
 
 =back
 
