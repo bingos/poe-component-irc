@@ -18,6 +18,8 @@ Revision history for Perl extension POE::Component::IRC.
       channel_ban_list, channel_invex_list, channel_except_list - Kinks
     - Using 'use' for the dns checks was fubar. Switched back 
       to 'require' and test the VERSION instead.
+    - Changed the simpleclient.pl script to accept a filename as
+      a second argument to /dump_state command.
 
 4.90  Mon May 22 13:23:09 BST 2006
     - Missed the Filter::Stackable in plugins Console and Proxy.

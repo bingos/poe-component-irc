@@ -100,7 +100,12 @@ sub parse_input {
 	  last SWITCH;
 	}
 	if ( $cmd eq 'dump_state' ) {
-    	  $heap->{readline_wheel}->put($_) for split /\n/, Dumper($irc->{STATE});
+	  unless (@args) {
+    	    $heap->{readline_wheel}->put($_) for split /\n/, Dumper($irc->{STATE});
+	  } else {
+	    open my $fh, ">", $args[0] or return;
+	    print $fh Dumper($irc->{STATE});
+	  }
 	  last SWITCH;
 	}
 	$irc->yield( $cmd => @args );
