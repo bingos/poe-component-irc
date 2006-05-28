@@ -10,7 +10,7 @@ BEGIN {
    $GOT_DNS = 0;
    eval {
 	require POE::Component::Client::DNS;
-	$GOT_DNS = 1;
+	$GOT_DNS = 1 if $POE::Component::Client::DNS::VERSION >= 0.99;
    };
 }
 
@@ -53,10 +53,10 @@ exit 0;
 sub _no_dns {
   print <<NO_DNS;
 
----------------------------------------------------------------
-Hmmm. POE::Component::Client::DNS isn't installed. It's use is
-recommended but not necessary. Consider installing it. Thanks.
----------------------------------------------------------------
+----------------------------------------------------------------
+Hmmm. POE::Component::Client::DNS 0.99 isn't installed. It's use
+is recommended but not necessary. Consider installing it. Thanks
+----------------------------------------------------------------
 
 NO_DNS
   return;

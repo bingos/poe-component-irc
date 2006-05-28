@@ -64,8 +64,10 @@ BEGIN {
 BEGIN {
 	$GOT_CLIENT_DNS = 0;
 	eval {
-		use POE::Component::Client::DNS 0.99;
-		$GOT_CLIENT_DNS = 1;
+		require POE::Component::Client::DNS;
+		if ( $POE::Component::Client::DNS::VERSION >= 0.99 ) {
+			$GOT_CLIENT_DNS = 1;
+		}
 	};
 }
 

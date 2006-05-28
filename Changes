@@ -1,12 +1,5 @@
 Revision history for Perl extension POE::Component::IRC.
 
-4.92  Fri May 27 05:36:47 BST 2006
-    - Various changes to ::State in order to ensure full RFC
-      compliant channel mode support, including support
-      for channel access lists - Kinks
-    - Added ::State methods to return channel access lists:
-      channel_ban_list, channel_invex_list, channel_except_list - Kinks
-
 4.91  <Date>
     - Tweak to ::State to deal with ircds that don't report @+ 
       status in WHO replies ( like unreal ). Thanks to Kinks
@@ -18,6 +11,13 @@ Revision history for Perl extension POE::Component::IRC.
       to the ircd if we are connected.
     - Amended Connector plugin so the lag is collected 
       independent of what the ircd sends us back.
+    - Various changes to ::State in order to ensure full RFC
+      compliant channel mode support, including support
+      for channel access lists - Kinks
+    - Added ::State methods to return channel access lists:
+      channel_ban_list, channel_invex_list, channel_except_list - Kinks
+    - Using 'use' for the dns checks was fubar. Switched back 
+      to 'require' and test the VERSION instead.
 
 4.90  Mon May 22 13:23:09 BST 2006
     - Missed the Filter::Stackable in plugins Console and Proxy.
