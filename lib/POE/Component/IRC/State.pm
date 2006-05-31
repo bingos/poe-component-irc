@@ -944,6 +944,16 @@ Expects a channel as parameter. Returns the channel key or undef.
 Expects a channel and a nickname as parameters. Returns 1 if the specified nick is on the specified channel or 0
 otherwise. If either channel or nick does not exist in the state then a 0 will be returned.
 
+=item is_channel_owner
+
+Expects a channel and a nickname as parameters. Returns 1 if the specified nick is an owner on the specified channel or 0
+otherwise. If either channel or nick does not exist in the state then a 0 will be returned.
+
+=item is_channel_admin
+
+Expects a channel and a nickname as parameters. Returns 1 if the specified nick is an admin on the specified channel or 0
+otherwise. If either channel or nick does not exist in the state then a 0 will be returned.
+
 =item is_channel_operator
 
 Expects a channel and a nickname as parameters. Returns 1 if the specified nick is an operator on the specified channel or 0
