@@ -241,7 +241,7 @@ sub S_mode {
           }
           if ( $mode =~ /\+([$chanmodes->[0]])/ ) {
                 my $flag = $1;
-                $self->{STATE}->{Chans}->{ $uchan }->{Lists}->{ $flag }->{ $arg } = { SetBy => $who, Time => time() };
+                $self->{STATE}->{Chans}->{ $uchan }->{Lists}->{ $flag }->{ $arg } = { SetBy => $who, SetAt => time() };
                 last SWITCH;
           }
           if ( $mode =~ /-([$chanmodes->[0]])/ ) {
@@ -287,6 +287,19 @@ sub S_mode {
      }
   }
   return PCI_EAT_NONE;
+}
+
+sub S_topic {
+  my ($self,$irc) = splice @_, 0, 2;
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my $who = ${ $_[0] };
+  my $channel = ${ $_[1] };
+  my $uchan = u_irc $channel, $mapping;
+  my $topic = ${ $_[2] };
+
+  $self->{STATE}->{Chans}->{ $uchan }->{Topic} = { Value => $topic, SetBy => $who, SetAt => time() };
+
+  return PCI_EAT_NONE;  
 }
 
 # RPL_WHOREPLY
@@ -351,7 +364,7 @@ sub S_367 {
   my $uchan = u_irc $channel, $mapping;
   my ($mask, $who, $when) = @args;
 
-  $self->{STATE}->{Chans}->{ $uchan }->{Lists}->{b}->{ $mask } = { SetBy => $who, Time => $when };
+  $self->{STATE}->{Chans}->{ $uchan }->{Lists}->{b}->{ $mask } = { SetBy => $who, SetAt => $when };
   return PCI_EAT_NONE;
 }
 
@@ -380,7 +393,7 @@ sub S_346 {
   my ($mask, $who, $when) = @args;
   my $invex = $irc->isupport('INVEX');
 
-  $self->{STATE}->{Chans}->{ $uchan }->{Lists}->{ $invex }->{ $mask } = { SetBy => $who, Time => $when };
+  $self->{STATE}->{Chans}->{ $uchan }->{Lists}->{ $invex }->{ $mask } = { SetBy => $who, SetAt => $when };
   return PCI_EAT_NONE;
 }
 
@@ -409,7 +422,7 @@ sub S_348 {
   my ($mask, $who, $when) = @args;
   my $excepts = $irc->isupport('EXCEPTS');
 
-  $self->{STATE}->{Chans}->{ $uchan }->{Lists}->{ $excepts }->{ $mask } = { SetBy => $who, Time => $when };
+  $self->{STATE}->{Chans}->{ $uchan }->{Lists}->{ $excepts }->{ $mask } = { SetBy => $who, SetAt => $when };
   return PCI_EAT_NONE;
 }
 
@@ -456,6 +469,44 @@ sub S_324 {
 	delete $self->{CHANNEL_SYNCH}->{ $uchan };
 	$self->_send_event( 'irc_chan_sync', $channel );
   }
+  return PCI_EAT_NONE;
+}
+
+# RPL_NOTOPIC
+sub S_331 {
+  my ($self,$irc) = splice @_, 0, 2;
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my $uchan = u_irc ${ $_[2] }->[0], $mapping;
+
+  $self->{STATE}->{Chans}->{ $uchan }->{Topic} = {};
+
+  return PCI_EAT_NONE;
+}
+
+# RPL_TOPIC
+sub S_332 {
+  my ($self,$irc) = splice @_, 0, 2;
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my $channel = ${ $_[2] }->[0];
+  my $topic = ${ $_[2] }->[1];
+  my $uchan = u_irc $channel, $mapping;
+
+  $self->{STATE}->{Chans}->{ $uchan }->{Topic}->{Value} = $topic;
+
+  return PCI_EAT_NONE;
+}
+
+# RPL_TOPICWHOTIME
+sub S_333 {
+  my ($self,$irc) = splice @_, 0, 2;
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my @args = split / /, ${ $_[1] };
+  my ($channel, $who, $when) = @args;
+  my $uchan = u_irc $channel, $mapping;
+
+  $self->{STATE}->{Chans}->{ $uchan }->{Topic}->{SetBy} = $who;
+  $self->{STATE}->{Chans}->{ $uchan }->{Topic}->{SetAt} = $when;
+
   return PCI_EAT_NONE;
 }
 
@@ -745,7 +796,7 @@ sub channel_ban_list {
 
   return undef unless $self->_channel_exists($channel);
 
-  if ( $self->_channel_exists($channel) and defined ( $self->{STATE}->{Chans}->{ $channel }->{Lists}->{b} ) ) {
+  if ( defined ( $self->{STATE}->{Chans}->{ $channel }->{Lists}->{b} ) ) {
     %result = %{ $self->{STATE}->{Chans}->{ $channel }->{Lists}->{b} };
   }
 
@@ -761,7 +812,7 @@ sub channel_except_list {
 
   return undef unless $self->_channel_exists($channel);
 
-  if ( $self->_channel_exists($channel) and defined ( $self->{STATE}->{Chans}->{ $channel }->{Lists}->{ $excepts } ) ) {
+  if ( defined ( $self->{STATE}->{Chans}->{ $channel }->{Lists}->{ $excepts } ) ) {
     %result = %{ $self->{STATE}->{Chans}->{ $channel }->{Lists}->{ $excepts } };
   }
 
@@ -777,8 +828,23 @@ sub channel_invex_list {
 
   return undef unless $self->_channel_exists($channel);
 
-  if ( $self->_channel_exists($channel) and defined ( $self->{STATE}->{Chans}->{ $channel }->{Lists}->{ $invex } ) ) {
+  if ( defined ( $self->{STATE}->{Chans}->{ $channel }->{Lists}->{ $invex } ) ) {
     %result = %{ $self->{STATE}->{Chans}->{ $channel }->{Lists}->{ $invex } };
+  }
+
+  return \%result;
+}
+
+sub channel_topic {
+  my $self = shift;
+  my $mapping = $self->isupport('CASEMAPPING');
+  my $channel = u_irc ( $_[0], $mapping ) || return undef;
+  my %result;
+
+  return undef unless $self->_channel_exists($channel);
+
+  if ( defined ( $self->{STATE}->{Chans}->{ $channel }->{Topic} ) ) {
+    %result = %{ $self->{STATE}->{Chans}->{ $channel }->{Topic} };
   }
 
   return \%result;
@@ -990,21 +1056,27 @@ ban mask or an empty list if the channel doesn't exist in the state or there are
 
 =item channel_ban_list
 
-Each expects a channel as a parameter. Returns a hashref containing the banlist if the channel is in the state, undef if not.
-The hashref keys are the entries on the list, each with the keys 'SetBy' and 'Time'. These keys will hold the nick!hostmask of
-the user who set the entry (or just nick if it's all the ircd gives us), and the time at which it was set respectively.
+Expects a channel as a parameter. Returns a hashref containing the banlist if the channel is in the state, undef if not.
+The hashref keys are the entries on the list, each with the keys 'SetBy' and 'SetAt'. These keys will hold the nick!hostmask of
+the user who set the entry (or just the nick if it's all the ircd gives us), and the time at which it was set respectively.
 
 =item channel_invex_list
 
-Each expects a channel as a parameter. Returns a hashref containing the invite exception list if the channel is in the state, undef if not.
-The hashref keys are the entries on the list, each with the keys 'SetBy' and 'Time'. These keys will hold the nick!hostmask of
-the user who set the entry (or just nick if it's all the ircd gives us), and the time at which it was set respectively.
+Expects a channel as a parameter. Returns a hashref containing the invite exception list if the channel is in the state, undef if not.
+The hashref keys are the entries on the list, each with the keys 'SetBy' and 'SetAt'. These keys will hold the nick!hostmask of
+the user who set the entry (or just the nick if it's all the ircd gives us), and the time at which it was set respectively.
 
 =item channel_except_list                                             
 
-Each expects a channel as a parameter. Returns a hashref containing the except list if the channel is in the state, undef if not.
-The hashref keys are the entries on the list, each with the keys 'SetBy' and 'Time'. These keys will hold the nick!hostmask of
-the user who set the entry (or just nick if it's all the ircd gives us), and the time at which it was set respectively.
+Expects a channel as a parameter. Returns a hashref containing the ban exception list if the channel is in the state, undef if not.
+The hashref keys are the entries on the list, each with the keys 'SetBy' and 'SetAt'. These keys will hold the nick!hostmask of
+the user who set the entry (or just the nick if it's all the ircd gives us), and the time at which it was set respectively.
+
+=item channel_topic
+
+Expects a channel as a parameter. Returns a hashref containing topic information if the channel is in the state, undef if not.
+The hashref contains the following keys: 'Value', 'SetBy', 'SetAt'. These keys will hold the topic itself, the nick!hostmask of
+the user who set it (or just the nick if it's all the ircd gives us), and the time at which it was set respectively.
 
 =back
 

@@ -21,6 +21,8 @@ Revision history for Perl extension POE::Component::IRC.
     - Changed the simpleclient.pl script to accept a filename as
       a second argument to /dump_state command.
     - Documentation tweaks to ::State by Kinks
+    - Channel topic support added to ::State. Added the method
+      channel_topic to return a hashref of topic data - Kinks
 
 4.90  Mon May 22 13:23:09 BST 2006
     - Missed the Filter::Stackable in plugins Console and Proxy.
