@@ -971,7 +971,7 @@ will be returned if the nickname does not exist in the state.
 =item nick_info
 
 Expects a nickname. Returns a hashref containing similar information to that returned by WHOIS. Returns an undef
-if the nickname doesn't exist in the state. The hashref contains the following keys: 'Nick', 'User', 'Host', 'Userhost', 'Server' and, if applicable, 'IRCop'.
+if the nickname doesn't exist in the state. The hashref contains the following keys: 'Nick', 'User', 'Host', 'Userhost', 'Real', 'Server' and, if applicable, 'IRCop'.
 
 =item ban_mask
 
