@@ -300,11 +300,7 @@ sub S_topic {
   my $uchan = u_irc $channel, $mapping;
   my $topic = ${ $_[2] };
 
-  if ( defined $topic and length $topic > 0 ) {
-    $self->{STATE}->{Chans}->{ $uchan }->{Topic} = { Value => $topic, SetBy => $who, SetAt => time() };
-  } else {
-    $self->{STATE}->{Chans}->{ $uchan }->{Topic} = { };
-  }
+  $self->{STATE}->{Chans}->{ $uchan }->{Topic} = { Value => $topic, SetBy => $who, SetAt => time() };
 
   return PCI_EAT_NONE;  
 }
