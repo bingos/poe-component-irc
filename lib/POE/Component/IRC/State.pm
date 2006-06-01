@@ -16,7 +16,7 @@ use POE::Component::IRC::Plugin qw(:ALL);
 use base qw(POE::Component::IRC);
 use vars qw($VERSION);
 
-$VERSION = '1.6';
+$VERSION = '1.7';
 
 # Event handlers for tracking the STATE. $self->{STATE} is used as our namespace.
 # u_irc() is used to create unique keys.

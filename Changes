@@ -26,6 +26,8 @@ Revision history for Perl extension POE::Component::IRC.
     - Changed 'Time' keys for channel lists and topic to 'SetAt'
     - Added irc_chan_mode event to ::State to allow everyone
       to enjoy the mode parsing State does internally - Kinks
+    - Refactored ::Qnet::State subclass after all Kinks' 
+      changes to ::State.
 
 4.90  Mon May 22 13:23:09 BST 2006
     - Missed the Filter::Stackable in plugins Console and Proxy.

@@ -17,7 +17,7 @@ use POE::Component::IRC::Plugin qw(:ALL);
 use vars qw($VERSION);
 use base qw(POE::Component::IRC::Qnet POE::Component::IRC::State);
 
-$VERSION = '1.4';
+$VERSION = '1.5';
 
 # Qnet extension to RPL_WHOIS
 sub S_330 {
@@ -70,14 +70,13 @@ sub S_315 {
 
   # If it begins with #, &, + or ! its a channel apparently. RFC2812.
   if ( $channel =~ /^[\x23\x2B\x21\x26]/ ) {
-    $self->_channel_sync_who($channel);
-    if ( $self->_channel_sync($channel) ) {
-        delete ( $self->{CHANNEL_SYNCH}->{ $uchan } );
+    if ( $self->_channel_sync($channel, 'WHO' ) ) {
+        delete $self->{CHANNEL_SYNCH}->{ $uchan };
         $self->_send_event( 'irc_chan_sync', $channel );
     }
   # Otherwise we assume its a nickname
   } else {
-	if ( defined ( $self->{USER_AUTHED}->{ $uchan } ) ) {
+	if ( defined $self->{USER_AUTHED}->{ $uchan } ) {
 	   $self->_send_event( 'irc_nick_authed', $channel, delete $self->{USER_AUTHED}->{ $uchan } );
 	} else {
            $self->_send_event( 'irc_nick_sync', $channel );
@@ -94,15 +93,28 @@ sub S_join {
   my $userhost = ( split /!/, ${ $_[0] } )[1];
   my ($user,$host) = split(/\@/,$userhost);
   my $channel = ${ $_[1] };
-  my $flags = '%cunharsft';
-  my $unick = u_irc $nick, $mapping;
   my $uchan = u_irc $channel, $mapping;
+  my $unick = u_irc $nick, $mapping;
+  my $excepts = $irc->isupport('EXCEPTS');
+  my $invex = $irc->isupport('INVEX');
+  my $flags = '%cunharsft';
 
-  if ( $unick eq u_irc ( $self->{RealNick}, $mapping ) ) {
-        delete $self->{STATE}->{Chans}->{ $uchan };
-        $self->{CHANNEL_SYNCH}->{ $uchan } = { MODE => 0, WHO => 0 };
+  if ( $unick eq u_irc ( $self->nick_name(), $mapping ) ) {
+	delete $self->{STATE}->{Chans}->{ $uchan };
+	$self->{CHANNEL_SYNCH}->{ $uchan } = { MODE => 0, WHO => 0, BAN => 0 };
+        $self->{STATE}->{Chans}->{ $uchan } = { Name => $channel, Mode => '' };
+        if ($excepts) {
+          $self->{CHANNEL_SYNCH}->{ $uchan }->{EXCEPTS} = 0;
+          $irc->yield ( 'mode' => $channel => $excepts );
+        }
+        if ($invex) {
+          $self->{CHANNEL_SYNCH}->{ $uchan }->{INVEX} = 0;
+          $irc->yield ( 'mode' => $channel => $invex );
+        }
         $self->yield ( 'sl' => "WHO $channel $flags,101" );
         $self->yield ( 'mode' => $channel );
+        $self->yield ( 'mode' => $channel => 'b');
+
   } else {
         $self->yield ( 'sl' => "WHO $nick $flags,102" );
         $self->{STATE}->{Nicks}->{ $unick }->{Nick} = $nick;
@@ -114,85 +126,18 @@ sub S_join {
   return PCI_EAT_NONE;
 }
 
-# Channel MODE
-sub S_mode {
+sub S_chan_mode {
   my ($self,$irc) = splice @_, 0, 2;
   my $mapping = $irc->isupport('CASEMAPPING');
-  my $source = u_irc ( ( split /!/, ${ $_[0] } )[0], $mapping );
-  my $channel = ${ $_[1] };
-  my $uchan = u_irc $channel, $mapping;
-  pop @_;
-  my @modes = map { ${ $_ } } @_[2 .. $#_];
-
-  # Do nothing if it is UMODE
-  if ( $uchan ne u_irc ( $self->{RealNick}, $mapping ) ) {
-     my $parsed_mode = parse_mode_line( @modes );
-     while ( my $mode = shift @{ $parsed_mode->{modes} } ) {
-        my $arg;
-        $arg = shift ( @{ $parsed_mode->{args} } ) if ( $mode =~ /^(\+[hovklbIe]|-[hovbIe])/ );
-        SWITCH: {
-          if ( $mode =~ /\+([ohv])/ ) {
-                my $flag = $1;
-		my $uarg = u_irc $arg, $mapping;
-                unless ( $self->{STATE}->{Nicks}->{ $uarg }->{CHANS}->{ $uchan } and $self->{STATE}->{Nicks}->{ $uarg }->{CHANS}->{ $uchan } =~ $flag ) {
-                	$self->{STATE}->{Nicks}->{ $uarg }->{CHANS}->{ $uchan } .= $flag;
-                	$self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $uarg } = $self->{STATE}->{Nicks}->{ $uarg }->{CHANS}->{ $uchan };
-		}
-		if ( $source =~ /^[QL]$/ and !$self->is_nick_authed($arg) and !$self->{USER_AUTHED}->{ $uarg } ) {
-		   $self->{USER_AUTHED}->{ $uarg } = 0;
-		   $self->yield ( 'sl' => "WHO $arg " . '%cunharsft,102' );
-		}
-                last SWITCH;
-          }
-          if ( $mode =~ /-([ohv])/ ) {
-                my $flag = $1;
-		my $uarg = u_irc $arg, $mapping;
-                $self->{STATE}->{Nicks}->{ $uarg }->{CHANS}->{ $uchan } =~ s/$flag//;
-                $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $uarg } = $self->{STATE}->{Nicks}->{ $uarg }->{CHANS}->{ $uchan };
-                last SWITCH;
-          }
-          if ( $mode =~ /[bIe]/ ) {
-                last SWITCH;
-          }
-          if ( $mode eq '+l' and defined $arg ) {
-                $self->{STATE}->{Chans}->{ $uchan }->{Mode} .= 'l' unless $self->{STATE}->{Chans}->{ $uchan }->{Mode} =~ /l/;
-                $self->{STATE}->{Chans}->{ $uchan }->{ChanLimit} = $arg;
-                last SWITCH;
-          }
-          if ( $mode eq '+k' and defined $arg ) {
-                $self->{STATE}->{Chans}->{ $uchan }->{Mode} .= 'k' unless $self->{STATE}->{Chans}->{ $uchan }->{Mode} =~ /k/;
-                $self->{STATE}->{Chans}->{ $uchan }->{ChanKey} = $arg;
-                last SWITCH;
-          }
-          if ( $mode eq '-l' ) {
-                $self->{STATE}->{Chans}->{ $uchan }->{Mode} =~ s/l//;
-                delete ( $self->{STATE}->{Chans}->{ $uchan }->{ChanLimit} );
-                last SWITCH;
-          }
-          if ( $mode eq '-k' ) {
-                $self->{STATE}->{Chans}->{ $uchan }->{Mode} =~ s/k//;
-                delete ( $self->{STATE}->{Chans}->{ $uchan }->{ChanKey} );
-                last SWITCH;
-          }
-          # Anything else doesn't have arguments so just adjust {Mode} as necessary.
-          if ( $mode =~ /^\+(.)/ ) {
-                my $flag = $1;
-                $self->{STATE}->{Chans}->{ $uchan }->{Mode} .= $flag unless $self->{STATE}->{Chans}->{ $uchan }->{Mode} =~ /$flag/;
-                last SWITCH;
-          }
-          if ( $mode =~ /^-(.)/ ) {
-                my $flag = $1;
-                $self->{STATE}->{Chans}->{ $uchan }->{Mode} =~ s/$flag//;
-                last SWITCH;
-          }
-        }
-     }
-     # Lets make the channel mode nice
-     if ( $self->{STATE}->{Chans}->{ $uchan }->{Mode} ) {
-        $self->{STATE}->{Chans}->{ $uchan }->{Mode} = join('', sort( split( //, $self->{STATE}->{Chans}->{ $uchan }->{Mode} ) ) );
-     } else {
-        delete $self->{STATE}->{Chans}->{ $uchan }->{Mode};
-     }
+  my $who = ${ $_[0] };
+  my $source = u_irc ( ( split /!/, $who )[0], $mapping );
+  my $mode = ${ $_[2] };
+  my $arg = ${ $_[3] };
+  my $uarg = u_irc $arg, $mapping;
+  return PCI_EAT_NONE unless $source =~ /^[QL]$/ and $mode =~ /[ov]/;
+  if ( !$self->is_nick_authed($arg) and !$self->{USER_AUTHED}->{ $uarg } ) {
+	   $self->{USER_AUTHED}->{ $uarg } = 0;
+	   $self->yield ( 'sl' => "WHO $arg " . '%cunharsft,102' );
   }
   return PCI_EAT_NONE;
 }
