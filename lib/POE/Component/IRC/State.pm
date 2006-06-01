@@ -70,7 +70,7 @@ sub S_join {
   if ( $unick eq u_irc ( $self->nick_name(), $mapping ) ) {
 	delete $self->{STATE}->{Chans}->{ $uchan };
 	$self->{CHANNEL_SYNCH}->{ $uchan } = { MODE => 0, WHO => 0, BAN => 0 };
-        $self->{STATE}->{Chans}->{ $uchan } = { };
+        $self->{STATE}->{Chans}->{ $uchan } = { Name => $channel, Mode => '' };
         if ($excepts) {
           $self->{CHANNEL_SYNCH}->{ $uchan }->{EXCEPTS} = 0;
           $irc->yield ( 'mode' => $channel => $excepts );

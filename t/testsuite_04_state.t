@@ -1,4 +1,4 @@
-use Test::More tests => 19;
+use Test::More tests => 21;
 
 BEGIN { use_ok('POE::Component::IRC::Test::Harness') };
 BEGIN { use_ok('POE::Component::IRC::State') };
@@ -24,6 +24,8 @@ POE::Session->create(
 			 irc_whois 
 			 irc_join
 			 irc_chan_sync
+			 irc_chan_mode
+			 irc_mode
 			 irc_error
 			 irc_disconnected
 	   )],
@@ -125,8 +127,22 @@ sub irc_chan_sync {
   ok( $object->is_channel_member($channel, $mynick ), "Is Channel Member" );
   ok( $object->is_channel_operator($channel, $mynick ), "Is Channel Operator" );
   ok( $object->ban_mask( $channel, $mynick ), "Ban Mask Test" );
-  warn "# Waiting 7 seconds for the dust to settle\n";
-  $object->delay( [ 'quit' ], 7 );
+  $object->yield( 'mode', $channel, '+nt' );
+  undef;
+}
+
+sub irc_chan_mode {
+  my ($sender,$who,$channel,$mode) = @_[SENDER,ARG0,ARG1,ARG2];
+  my $object = $sender->get_heap();
+  $mode =~ s/\+//g;
+  ok( $object->is_channel_mode_set( $channel, $mode ), "Channel Mode Set: $mode" );
+  undef;
+}
+
+sub irc_mode {
+  my $object = $_[SENDER]->get_heap();
+  warn "# Waiting 3 seconds for the dust to settle\n";
+  $object->delay( [ 'quit' ], 3 );
   undef;
 }
 
