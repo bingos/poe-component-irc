@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-4.91  <Date>
+4.91  Thu Jun 01 21:08:13 BST 2006
     - Tweak to ::State to deal with ircds that don't report @+ 
       status in WHO replies ( like unreal ). Thanks to Kinks
       for reporting that.
