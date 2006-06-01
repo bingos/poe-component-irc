@@ -1,5 +1,6 @@
 #!/usr/bin/perl -w
 
+use lib '../blib/lib';
 use Getopt::Long;
 use POE qw(Component::IRC::State Wheel::ReadLine);
 use Data::Dumper;
@@ -27,6 +28,8 @@ die unless $nick and $server;
 print "$nick $server\n";
 
 my $irc = POE::Component::IRC::State->spawn( Nick => $nick, Server => $server, Port => $port, Ircname => $ircname, Username => $user, Password => $password );
+
+print STDOUT $irc->version(), "\n";
 
 POE::Session->create(
 	package_states => [

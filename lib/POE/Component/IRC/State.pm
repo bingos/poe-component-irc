@@ -300,7 +300,11 @@ sub S_topic {
   my $uchan = u_irc $channel, $mapping;
   my $topic = ${ $_[2] };
 
-  $self->{STATE}->{Chans}->{ $uchan }->{Topic} = { Value => $topic, SetBy => $who, SetAt => time() };
+  if ( defined $topic and length $topic > 0 ) {
+    $self->{STATE}->{Chans}->{ $uchan }->{Topic} = { Value => $topic, SetBy => $who, SetAt => time() };
+  } else {
+    $self->{STATE}->{Chans}->{ $uchan }->{Topic} = { };
+  }
 
   return PCI_EAT_NONE;  
 }
@@ -481,7 +485,7 @@ sub S_331 {
   my $mapping = $irc->isupport('CASEMAPPING');
   my $uchan = u_irc ${ $_[2] }->[0], $mapping;
 
-  $self->{STATE}->{Chans}->{ $uchan }->{Topic} = {};
+  $self->{STATE}->{Chans}->{ $uchan }->{Topic} = { };
 
   return PCI_EAT_NONE;
 }
