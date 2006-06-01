@@ -309,8 +309,7 @@ sub S_topic {
 sub S_352 {
   my ($self,$irc) = splice @_, 0, 2;
   my $mapping = $irc->isupport('CASEMAPPING');
-  my ($first,$second) = split(/ :/,${ $_[1] } );
-  my ($channel,$user,$host,$server,$nick,$status) = split(/ /,$first);
+  my ($channel,$user,$host,$server,$nick,$status,$second) = @{ ${ $_[2] } };
   my $real = substr($second,index($second," ")+1);
   my $unick = u_irc $nick, $mapping;
   my $uchan = u_irc $channel, $mapping;
@@ -342,7 +341,8 @@ sub S_352 {
 sub S_315 {
   my ($self,$irc) = splice @_, 0, 2;
   my $mapping = $irc->isupport('CASEMAPPING');
-  my $channel = ( split / :/, ${ $_[1] } )[0];
+  #my $channel = ( split / :/, ${ $_[1] } )[0];
+  my $channel = ${ $_[2] }->[0];
   my $uchan = u_irc $channel, $mapping;
 
   # If it begins with #, &, + or ! its a channel apparently. RFC2812.
@@ -362,7 +362,8 @@ sub S_315 {
 sub S_367 {
   my ($self,$irc) = splice @_, 0, 2;
   my $mapping = $irc->isupport('CASEMAPPING');
-  my @args = split / /, ${ $_[1] };
+  #my @args = split / /, ${ $_[1] };
+  my @args = @{ ${ $_[2] } };
   my $channel = shift @args;
   my $uchan = u_irc $channel, $mapping;
   my ($mask, $who, $when) = @args;
@@ -375,7 +376,8 @@ sub S_367 {
 sub S_368 {
   my ($self,$irc) = splice @_, 0, 2;
   my $mapping = $irc->isupport('CASEMAPPING');
-  my @args = split / /, ${ $_[1] };
+  #my @args = split / /, ${ $_[1] };
+  my @args = @{ ${ $_[2] } };
   my $channel = shift @args;
   my $uchan = u_irc $channel, $mapping;
 
@@ -390,7 +392,8 @@ sub S_368 {
 sub S_346 {
   my ($self,$irc) = splice @_, 0, 2;
   my $mapping = $irc->isupport('CASEMAPPING');
-  my @args = split / /, ${ $_[1] };
+  #my @args = split / /, ${ $_[1] };
+  my @args = @{ ${ $_[2] } };
   my $channel = shift @args;
   my $uchan = u_irc $channel, $mapping;
   my ($mask, $who, $when) = @args;
@@ -404,7 +407,8 @@ sub S_346 {
 sub S_347 {
   my ($self,$irc) = splice @_, 0, 2;
   my $mapping = $irc->isupport('CASEMAPPING');
-  my @args = split / /, ${ $_[1] };
+  #my @args = split / /, ${ $_[1] };
+  my @args = @{ ${ $_[2] } };
   my $channel = shift @args;
   my $uchan = u_irc $channel, $mapping;
 
@@ -419,7 +423,8 @@ sub S_347 {
 sub S_348 {
   my ($self,$irc) = splice @_, 0, 2;
   my $mapping = $irc->isupport('CASEMAPPING');
-  my @args = split / /, ${ $_[1] };
+  #my @args = split / /, ${ $_[1] };
+  my @args = @{ ${ $_[2] } };
   my $channel = shift @args;
   my $uchan = u_irc $channel, $mapping;
   my ($mask, $who, $when) = @args;
@@ -433,7 +438,8 @@ sub S_348 {
 sub S_349 {
   my ($self,$irc) = splice @_, 0, 2;
   my $mapping = $irc->isupport('CASEMAPPING');
-  my @args = split / /, ${ $_[1] };
+  #my @args = split / /, ${ $_[1] };
+  my @args = @{ ${ $_[2] } };
   my $channel = shift @args;
   my $uchan = u_irc $channel, $mapping;
 
@@ -448,7 +454,8 @@ sub S_349 {
 sub S_324 {
   my ($self,$irc) = splice @_, 0, 2;
   my $mapping = $irc->isupport('CASEMAPPING');
-  my @args = split / /, ${ $_[1] };
+  #my @args = split / /, ${ $_[1] };
+  my @args = @{ ${ $_[2] } };
   my $channel = shift @args;
   my $uchan = u_irc $channel, $mapping;
   my $chanmodes = $irc->isupport('CHANMODES');
@@ -492,7 +499,8 @@ sub S_332 {
 sub S_333 {
   my ($self,$irc) = splice @_, 0, 2;
   my $mapping = $irc->isupport('CASEMAPPING');
-  my @args = split / /, ${ $_[1] };
+  #my @args = split / /, ${ $_[1] };
+  my @args = @{ ${ $_[2] } };
   my ($channel, $who, $when) = @args;
   my $uchan = u_irc $channel, $mapping;
 

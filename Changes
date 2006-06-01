@@ -28,6 +28,8 @@ Revision history for Perl extension POE::Component::IRC.
       to enjoy the mode parsing State does internally - Kinks
     - Refactored ::Qnet::State subclass after all Kinks' 
       changes to ::State.
+    - Refactored ::State slightly to use ARG2 for numerics 
+      handlers instead of trying to parse ARG1 ourselves. FTW.
 
 4.90  Mon May 22 13:23:09 BST 2006
     - Missed the Filter::Stackable in plugins Console and Proxy.

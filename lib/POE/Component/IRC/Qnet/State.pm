@@ -32,8 +32,7 @@ sub S_330 {
 sub S_354 {
   my ($self,$irc) = splice @_, 0, 2;
   my $mapping = $irc->isupport('CASEMAPPING');
-  my ($first,$real) = split(/ :/,${ $_[1] });
-  my ($query,$channel,$user,$host,$server,$nick,$status,$auth) = split(/ /,$first);
+  my ($query,$channel,$user,$host,$server,$nick,$status,$auth,$real) = @{ ${ $_[2] } };
   my $unick = u_irc $nick, $mapping;
   my $uchan = u_irc $channel, $mapping;
   
@@ -65,7 +64,7 @@ sub S_354 {
 sub S_315 {
   my ($self,$irc) = splice @_, 0, 2;
   my $mapping = $irc->isupport('CASEMAPPING');
-  my $channel = ( split / :/, ${ $_[1] } )[0];
+  my $channel = ${ $_[2] }->[0];
   my $uchan = u_irc $channel, $mapping;
 
   # If it begins with #, &, + or ! its a channel apparently. RFC2812.
