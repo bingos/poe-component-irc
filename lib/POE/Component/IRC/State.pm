@@ -220,6 +220,9 @@ sub S_mode {
      while ( my $mode = shift ( @{ $parsed_mode->{modes} } ) ) {
         my $arg;
         $arg = shift ( @{ $parsed_mode->{args} } ) if ( $mode =~ /^(.[$alwaysarg]|\+[$chanmodes->[2]])/ );
+
+        $self->_send_event( 'irc_chan_mode', $who, $channel, $mode, $arg );
+
         SWITCH: {
           if ( $mode =~ /\+([$statmodes])/ ) {
                 my $flag = $1;
@@ -1094,6 +1097,11 @@ Sent whenever the component has completed synchronising a channel that it has jo
 
 Sent whenever the component has completed synchronising a user who has joined a channel the component is on.
 ARG0 is the user's nickname.
+
+=item irc_chan_mode
+
+This is almost identical to irc_mode, except that it's sent once for each individual mode with it's respective
+argument if it has one (ie. the banmask if it's +b or -b). However, this event is only sent for channel modes.
 
 =back
 
