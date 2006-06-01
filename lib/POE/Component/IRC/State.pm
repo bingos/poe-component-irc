@@ -475,17 +475,6 @@ sub S_324 {
   return PCI_EAT_NONE;
 }
 
-# RPL_NOTOPIC
-sub S_331 {
-  my ($self,$irc) = splice @_, 0, 2;
-  my $mapping = $irc->isupport('CASEMAPPING');
-  my $uchan = u_irc ${ $_[2] }->[0], $mapping;
-
-  $self->{STATE}->{Chans}->{ $uchan }->{Topic} = { };
-
-  return PCI_EAT_NONE;
-}
-
 # RPL_TOPIC
 sub S_332 {
   my ($self,$irc) = splice @_, 0, 2;
