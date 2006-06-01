@@ -962,7 +962,7 @@ to query the collected state.
 
 =head1 METHODS
 
-All of the L<POE::Component::IRC|POE::Component::IRC> methods are supported, plus the following:
+All of the L<POE::Component::IRC> methods are supported, plus the following:
 
 =over
 
@@ -1085,7 +1085,7 @@ the user who set it (or just the nick if it's all the ircd gives us), and the ti
 
 =head1 OUTPUT
 
-As well as all the usual L<POE::Component::IRC|POE::Component::IRC> 'irc_*' events, there are the following events you can register for:
+As well as all the usual L<POE::Component::IRC> 'irc_*' events, there are the following events you can register for:
 
 =over
 
@@ -1105,7 +1105,7 @@ argument if it has one (ie. the banmask if it's +b or -b). However, this event i
 
 =back
 
-The following two 'irc_*' events are the same as their L<POE::Component::IRC|POE::Component::IRC> counterparts,
+The following two 'irc_*' events are the same as their L<POE::Component::IRC> counterparts,
 with the additional parameters:
 
 =over
@@ -1130,6 +1130,8 @@ You may want to ignore these. When someones joins a channel the bot is on, it is
 
 Chris Williams <chris@bingosnet.co.uk>
 
+With contributions from the Kinky Black Goat.
+
 =head1 SEE ALSO
 
-L<POE::Component::IRC|POE::Component::IRC>
+L<POE::Component::IRC>
