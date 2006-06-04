@@ -28,12 +28,13 @@ use Socket;
 use Sys::Hostname;
 use File::Basename ();
 use Symbol;
+use Data::Dumper;
 use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '4.91';
+$VERSION = '4.92';
 $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -491,7 +492,9 @@ sub _dcc_up {
 sub _parseline {
   my ($session, $self, $ev) = @_[SESSION, OBJECT, ARG0];
 
-  $self->_send_event( 'irc_raw' => $ev->{raw_line} ) if ( $self->{raw_events} );
+  return unless $ev->{name};
+
+  $self->_send_event( 'irc_raw' => $ev->{raw_line} ) if $self->{raw_events};
 
   # If its 001 event grab the server name and stuff it into {INFO}
   if ( $ev->{name} eq '001' ) {
