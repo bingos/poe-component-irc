@@ -850,6 +850,18 @@ sub channel_topic {
   return \%result;
 }
 
+sub nick_channel_modes {
+  my $self = shift;
+  my $mapping = $self->isupport('CASEMAPPING');
+  my $channel = u_irc ( $_[0], $mapping ) || return undef;
+  my $nick = u_irc ( $_[1], $mapping ) || return undef;
+
+  return undef unless $self->is_channel_member($channel, $nick);
+
+  return $self->{STATE}->{Nicks}->{ $nick }->{CHANS}->{ $channel };
+}
+
+
 1;
 
 =head1 NAME
@@ -1077,6 +1089,11 @@ the user who set the entry (or just the nick if it's all the ircd gives us), and
 Expects a channel as a parameter. Returns a hashref containing topic information if the channel is in the state, undef if not.
 The hashref contains the following keys: 'Value', 'SetBy', 'SetAt'. These keys will hold the topic itself, the nick!hostmask of
 the user who set it (or just the nick if it's all the ircd gives us), and the time at which it was set respectively.
+
+=item nick_channel_modes
+
+Expects a channel and a nickname as parameters. Returns the modes of the specified nick on the specified channel (ie. qaohv).
+If the nick is not on the channel in the state, undef will be returned.
 
 =back
 
