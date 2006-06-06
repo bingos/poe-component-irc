@@ -4,6 +4,8 @@ Revision history for Perl extension POE::Component::IRC.
     - Added nick_channel_modes method to ::State to return
       the channel modes (ie. qaohv) of a given nick on a
       given channel - Kinks
+    - Added note concerning the issues surrounding the SetAt
+      and SetBy values to CAVEATS in the ::State pod - Kinks
 
 4.91  Thu Jun 01 21:08:13 BST 2006
     - Tweak to ::State to deal with ircds that don't report @+ 
