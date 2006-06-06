@@ -1140,7 +1140,7 @@ The component gathers information by registering for 'irc_quit', 'irc_nick', 'ir
 various numeric replies. When the component is asked to join a channel, when it joins it will issue a 'WHO #channel' and a 'MODE #channel'. These will solicit between them the numerics, 'irc_352' and 'irc_324'.
 You may want to ignore these. When someones joins a channel the bot is on, it issues a 'WHO nick'.
 
-Currently, whenever the component sees a topic or channel list change, it will use time() for the SetAt value and the full address of the user who set it for the SetAt value. When an ircd gives us it's record 
+Currently, whenever the component sees a topic or channel list change, it will use time() for the SetAt value and the full address of the user who set it for the SetBy value. When an ircd gives us it's record 
 of such changes, it will use it's own time (obviously) and may only give us the nickname of the user, rather than their full address. Thus, if our time() and the ircd's time do not match, or the ircd uses the
 nickname only, ugly inconsistencies can develop. This leaves the SetAt and SetBy values at best, inaccurate, and you should use them with this in mind (for now, at least).
 
