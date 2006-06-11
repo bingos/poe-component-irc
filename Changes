@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-4.92  <Date>
+4.92  Sun Jun 11 18:09:13 BST 2006
     - Added a check to _parseline for spurious blank events,
       reported by dec.
     - Added nick_channel_modes method to ::State to return
