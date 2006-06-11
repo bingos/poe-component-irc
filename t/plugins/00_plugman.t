@@ -16,7 +16,7 @@ BEGIN { use_ok('POE::Component::IRC::Plugin::PlugMan') };
 
 use POE;
 
-my ($self) = POE::Component::IRC::State->spawn( );
+my $self = POE::Component::IRC::State->spawn( );
 
 isa_ok ( $self, 'POE::Component::IRC::State' );
 
@@ -36,7 +36,7 @@ sub test_start {
 
   $self->yield( 'register' => 'all' );
 
-  my $plugin = POE::Component::IRC::Plugin::PlugMan->new();
+  my $plugin = POE::Component::IRC::Plugin::PlugMan->new( debug => 0 );
   isa_ok ( $plugin, 'POE::Component::IRC::Plugin::PlugMan' );
   
   unless ( $self->plugin_add( 'TestPlugin' => $plugin ) ) {

@@ -4,6 +4,16 @@ use strict;
 use warnings;
 use POE::Component::IRC::Plugin qw( :ALL );
 
+BEGIN { 
+    # Turn on the debugger's symbol source tracing
+    $^P |= 0x10;
+
+    # Work around bug in pre-5.8.7 perl where turning on $^P
+    # causes caller() to be confused about eval {}'s in the stack.
+    # (See http://rt.perl.org/rt3/Ticket/Display.html?id=35059 for more info.)
+    eval 'sub DB::sub' if $] < 5.008007;
+}
+
 sub new {
   my $package = shift;
   my %parms = @_;
@@ -199,22 +209,13 @@ sub load {
   my ($self,$desc,$plugin) = splice @_, 0, 3;
   return unless $desc and $plugin;
 
-  my $loaded = 0;
-
-  $plugin .= '.pm' unless ( $plugin =~ /\.pm$/ );
-  $plugin =~ s/::/\//g;
-
-  eval { 
-	require $plugin;
-	$loaded = 1;
-  };
-
-  return 0 unless $loaded;
-
-  $plugin =~ s/\.pm$//;
-  $plugin =~ s/\//::/g;
-
   my $module = $plugin;
+
+  $module .= '.pm' unless $module =~ /\.pm$/;
+  $module =~ s/::/\//g;
+
+  eval "require $plugin;";
+  return 0 if $@;
 
   my $object = $plugin->new( @_ );
 
@@ -223,6 +224,7 @@ sub load {
   my $args = [ @_ ];
 
   $self->{plugins}->{ $desc }->{module} = $module;
+  $self->{plugins}->{ $desc }->{plugin} = $plugin;
 
   my $return = $self->{irc}->plugin_add( $desc, $object );
   if ( $return ) {
@@ -242,9 +244,26 @@ sub unload {
   my $plugin = $self->{irc}->plugin_del( $desc );
   return 0 unless $plugin;
   my $module = $self->{plugins}->{ $desc }->{module};
+  my $file = $self->{plugins}->{ $desc }->{plugin};
   delete $INC{$module};
   delete $self->{plugins}->{ $desc };
+  $self->unload_subs($file);
   return 1;
+}
+
+sub unload_subs {
+    my $self = shift;
+    my $file = shift;
+
+    foreach my $sym (
+        grep { index( $_, "$file:" ) == 0 } keys %DB::sub
+    ) {
+        eval { undef &$sym };
+        warn "$sym: $@" if $@;
+        delete $DB::sub{$sym};
+    }
+
+    return $self;
 }
 
 sub reload {
@@ -256,8 +275,8 @@ sub reload {
   print STDERR "Unloading plugin $desc\n" if $self->{debug};
   return 0 unless $self->unload( $desc );
 
-  print STDERR "Loading plugin $desc " . $plugin_state->{module} . " [ " . join(', ',@{ $plugin_state->{args} }) . " ]\n" if $self->{debug};
-  return 0 unless $self->load( $desc, $plugin_state->{module}, @{ $plugin_state->{args} } );
+  print STDERR "Loading plugin $desc " . $plugin_state->{plugin} . " [ " . join(', ',@{ $plugin_state->{args} }) . " ]\n" if $self->{debug};
+  return 0 unless $self->load( $desc, $plugin_state->{plugin}, @{ $plugin_state->{args} } );
   return 1;
 }
 

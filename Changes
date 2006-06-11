@@ -8,8 +8,13 @@ Revision history for Perl extension POE::Component::IRC.
       given channel - Kinks
     - Added note concerning the issues surrounding the SetAt
       and SetBy values to CAVEATS in the ::State pod - Kinks
+    - Improvements to Plugin::PlugMan, it should actually 
+      work properly now >:) Thanks to mst and dngor.
+    - ::State, nick_sync now has the channel name as ARG1.
+    - Moved the INVEX and EXCEPTS sync'ing until we are +o'd,
+      created irc_chan_sync_(invex|excepts). irc_chan_sync 
+      features the time in seconds taken to sync as ARG1 now.
 
->>>>>>> .r196
 4.91  Thu Jun 01 21:08:13 BST 2006
     - Tweak to ::State to deal with ircds that don't report @+ 
       status in WHO replies ( like unreal ). Thanks to Kinks

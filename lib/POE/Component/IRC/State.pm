@@ -64,21 +64,11 @@ sub S_join {
   my $channel = ${ $_[1] };
   my $uchan = u_irc $channel, $mapping;
   my $unick = u_irc $nick, $mapping;
-  my $excepts = $irc->isupport('EXCEPTS');
-  my $invex = $irc->isupport('INVEX');
 
   if ( $unick eq u_irc ( $self->nick_name(), $mapping ) ) {
 	delete $self->{STATE}->{Chans}->{ $uchan };
-	$self->{CHANNEL_SYNCH}->{ $uchan } = { MODE => 0, WHO => 0, BAN => 0 };
+	$self->{CHANNEL_SYNCH}->{ $uchan } = { MODE => 0, WHO => 0, BAN => 0, _time => time() };
         $self->{STATE}->{Chans}->{ $uchan } = { Name => $channel, Mode => '' };
-        if ($excepts) {
-          $self->{CHANNEL_SYNCH}->{ $uchan }->{EXCEPTS} = 0;
-          $irc->yield ( 'mode' => $channel => $excepts );
-        }
-        if ($invex) {
-          $self->{CHANNEL_SYNCH}->{ $uchan }->{INVEX} = 0;
-          $irc->yield ( 'mode' => $channel => $invex );
-        }
         $self->yield ( 'who' => $channel );
         $self->yield ( 'mode' => $channel );
         $self->yield ( 'mode' => $channel => 'b');
@@ -90,6 +80,7 @@ sub S_join {
         $self->{STATE}->{Nicks}->{ $unick }->{Host} = $host;
         $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan } = '';
         $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick } = '';
+	push @{ $self->{NICK_SYNCH}->{ $unick } }, $channel;
   }
   return PCI_EAT_NONE;
 }
@@ -195,6 +186,23 @@ sub S_nick {
         }
         $self->{STATE}->{Nicks}->{ $unew } = $record;
   }
+  return PCI_EAT_NONE;
+}
+
+sub S_chan_mode {
+  my ($self,$irc) = splice @_, 0, 2;
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my $who = ${ $_[0] };
+  my $channel = ${ $_[1] };
+  my $mynick = u_irc $self->nick_name(), $mapping;
+  pop @_;
+  my $mode = ${ $_[2] };
+  my $arg = ${ $_[3] };
+  return PCI_EAT_NONE unless $mode eq '+o' and $mynick = u_irc $arg, $mapping;
+  my $excepts = $irc->isupport('EXCEPTS');
+  my $invex = $irc->isupport('INVEX');
+  $irc->yield ( 'mode' => $channel => $excepts ) if $excepts;
+  $irc->yield ( 'mode' => $channel => $invex ) if $invex;
   return PCI_EAT_NONE;
 }
 
@@ -348,12 +356,14 @@ sub S_315 {
   # If it begins with #, &, + or ! its a channel apparently. RFC2812.
   if ( $channel =~ /^[\x23\x2B\x21\x26]/ ) {
     if ( $self->_channel_sync($channel, 'WHO') ) {
-	delete $self->{CHANNEL_SYNCH}->{ $uchan };
-	$self->_send_event( 'irc_chan_sync', $channel );
+	my $rec = delete $self->{CHANNEL_SYNCH}->{ $uchan };
+	$self->_send_event( 'irc_chan_sync', $channel, time() - $rec->{_time} );
     }
   # Otherwise we assume its a nickname
   } else {
-	$self->_send_event( 'irc_nick_sync', $channel );
+	my $chan = shift @{ $self->{NICK_SYNCH}->{ $uchan } };
+	delete $self->{NICK_SYNCH}->{ $uchan } unless scalar @{ $self->{NICK_SYNCH}->{ $uchan } };
+	$self->_send_event( 'irc_nick_sync', $channel, $chan );
   }
   return PCI_EAT_NONE;
 }
@@ -382,8 +392,8 @@ sub S_368 {
   my $uchan = u_irc $channel, $mapping;
 
   if ( $self->_channel_sync($channel, 'BAN') ) {
-        delete $self->{CHANNEL_SYNCH}->{ $uchan };
-        $self->_send_event( 'irc_chan_sync', $channel );
+	my $rec = delete $self->{CHANNEL_SYNCH}->{ $uchan };
+	$self->_send_event( 'irc_chan_sync', $channel, time() - $rec->{_time} );
   }
   return PCI_EAT_NONE;
 }
@@ -411,11 +421,7 @@ sub S_347 {
   my @args = @{ ${ $_[2] } };
   my $channel = shift @args;
   my $uchan = u_irc $channel, $mapping;
-
-  if ( $self->_channel_sync($channel, 'INVEX') ) {
-        delete $self->{CHANNEL_SYNCH}->{ $uchan };
-        $self->_send_event( 'irc_chan_sync', $channel );
-  }
+  $self->_send_event( 'irc_chan_sync_invex', $channel );
   return PCI_EAT_NONE;
 }
 
@@ -442,11 +448,7 @@ sub S_349 {
   my @args = @{ ${ $_[2] } };
   my $channel = shift @args;
   my $uchan = u_irc $channel, $mapping;
-
-  if ( $self->_channel_sync($channel, 'EXCEPTS') ) {
-        delete $self->{CHANNEL_SYNCH}->{ $uchan };
-        $self->_send_event( 'irc_chan_sync', $channel );
-  }
+  $self->_send_event( 'irc_chan_sync_excepts', $channel );
   return PCI_EAT_NONE;
 }
 
@@ -476,8 +478,8 @@ sub S_324 {
         $self->{STATE}->{Chans}->{ $uchan }->{Mode} = join('', sort {uc $a cmp uc $b} split //, $self->{STATE}->{Chans}->{ $uchan }->{Mode} );
   }
   if ( $self->_channel_sync($channel, 'MODE') ) {
-	delete $self->{CHANNEL_SYNCH}->{ $uchan };
-	$self->_send_event( 'irc_chan_sync', $channel );
+	my $rec = delete $self->{CHANNEL_SYNCH}->{ $uchan };
+	$self->_send_event( 'irc_chan_sync', $channel, time() - $rec->{_time} );
   }
   return PCI_EAT_NONE;
 }
@@ -522,11 +524,12 @@ sub _channel_sync {
 
   return 0 unless ( $self->_channel_exists($channel) and defined ( $self->{CHANNEL_SYNCH}->{ $channel } ) );
 
-  if ($sync) { $self->{CHANNEL_SYNCH}->{ $channel }->{ $sync } = 1 }
+  $self->{CHANNEL_SYNCH}->{ $channel }->{ $sync } = 1 if $sync;
 
-  for my $is_sync ( values %{ $self->{CHANNEL_SYNCH}->{ $channel } } ) {
-      return 0 unless $is_sync;
+  foreach my $item ( qw(BAN MODE WHO) ) {
+	return 0 unless $self->{CHANNEL_SYNCH}->{ $channel }->{ $item };
   }
+
   return 1;
 }
 
@@ -1105,12 +1108,20 @@ As well as all the usual L<POE::Component::IRC> 'irc_*' events, there are the fo
 
 =item irc_chan_sync
 
-Sent whenever the component has completed synchronising a channel that it has joined. ARG0 is the channel name.
+Sent whenever the component has completed synchronising a channel that it has joined. ARG0 is the channel name and ARG1 is the time in seconds that the channel took to synchronise.
+
+=item irc_chan_sync_invex
+
+Sent whenever the component has synchronising a channel's INVEX ( invite list ). Usually triggered by the component being opped on a channel. ARG0 is the channel.
+
+=item irc_chan_sync_excepts
+
+Sent whenever the component has synchronising a channel's EXCEPTS ( ban exemption list ). Usually triggered by the component being opped on a channel. ARG0 is the channel.
 
 =item irc_nick_sync
 
 Sent whenever the component has completed synchronising a user who has joined a channel the component is on.
-ARG0 is the user's nickname.
+ARG0 is the user's nickname and the channel they have joined.
 
 =item irc_chan_mode
 

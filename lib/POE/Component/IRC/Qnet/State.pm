@@ -70,15 +70,17 @@ sub S_315 {
   # If it begins with #, &, + or ! its a channel apparently. RFC2812.
   if ( $channel =~ /^[\x23\x2B\x21\x26]/ ) {
     if ( $self->_channel_sync($channel, 'WHO' ) ) {
-        delete $self->{CHANNEL_SYNCH}->{ $uchan };
-        $self->_send_event( 'irc_chan_sync', $channel );
+        my $rec = delete $self->{CHANNEL_SYNCH}->{ $uchan };
+        $self->_send_event( 'irc_chan_sync', $channel, time() - $rec->{_time} );
     }
   # Otherwise we assume its a nickname
   } else {
 	if ( defined $self->{USER_AUTHED}->{ $uchan } ) {
 	   $self->_send_event( 'irc_nick_authed', $channel, delete $self->{USER_AUTHED}->{ $uchan } );
 	} else {
-           $self->_send_event( 'irc_nick_sync', $channel );
+	   my $chan = shift @{ $self->{NICK_SYNCH}->{ $uchan } };
+	   delete $self->{NICK_SYNCH}->{ $uchan } unless scalar @{ $self->{NICK_SYNCH}->{ $uchan } };
+           $self->_send_event( 'irc_nick_sync', $channel, $chan );
 	}
   }
   return PCI_EAT_NONE;
@@ -94,22 +96,12 @@ sub S_join {
   my $channel = ${ $_[1] };
   my $uchan = u_irc $channel, $mapping;
   my $unick = u_irc $nick, $mapping;
-  my $excepts = $irc->isupport('EXCEPTS');
-  my $invex = $irc->isupport('INVEX');
   my $flags = '%cunharsft';
 
   if ( $unick eq u_irc ( $self->nick_name(), $mapping ) ) {
 	delete $self->{STATE}->{Chans}->{ $uchan };
-	$self->{CHANNEL_SYNCH}->{ $uchan } = { MODE => 0, WHO => 0, BAN => 0 };
+	$self->{CHANNEL_SYNCH}->{ $uchan } = { MODE => 0, WHO => 0, BAN => 0, _time => time() };
         $self->{STATE}->{Chans}->{ $uchan } = { Name => $channel, Mode => '' };
-        if ($excepts) {
-          $self->{CHANNEL_SYNCH}->{ $uchan }->{EXCEPTS} = 0;
-          $irc->yield ( 'mode' => $channel => $excepts );
-        }
-        if ($invex) {
-          $self->{CHANNEL_SYNCH}->{ $uchan }->{INVEX} = 0;
-          $irc->yield ( 'mode' => $channel => $invex );
-        }
         $self->yield ( 'sl' => "WHO $channel $flags,101" );
         $self->yield ( 'mode' => $channel );
         $self->yield ( 'mode' => $channel => 'b');
@@ -121,6 +113,7 @@ sub S_join {
         $self->{STATE}->{Nicks}->{ $unick }->{Host} = $host;
         $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan } = '';
         $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick } = '';
+	push @{ $self->{NICK_SYNCH}->{ $unick } }, $channel;
   }
   return PCI_EAT_NONE;
 }
