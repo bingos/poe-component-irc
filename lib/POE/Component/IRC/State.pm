@@ -1112,16 +1112,16 @@ Sent whenever the component has completed synchronising a channel that it has jo
 
 =item irc_chan_sync_invex
 
-Sent whenever the component has synchronising a channel's INVEX ( invite list ). Usually triggered by the component being opped on a channel. ARG0 is the channel.
+Sent whenever the component has completed synchronising a channel's INVEX ( invite list ). Usually triggered by the component being opped on a channel. ARG0 is the channel.
 
 =item irc_chan_sync_excepts
 
-Sent whenever the component has synchronising a channel's EXCEPTS ( ban exemption list ). Usually triggered by the component being opped on a channel. ARG0 is the channel.
+Sent whenever the component has completed synchronising a channel's EXCEPTS ( ban exemption list ). Usually triggered by the component being opped on a channel. ARG0 is the channel.
 
 =item irc_nick_sync
 
 Sent whenever the component has completed synchronising a user who has joined a channel the component is on.
-ARG0 is the user's nickname and the channel they have joined.
+ARG0 is the user's nickname and ARG1 the channel they have joined.
 
 =item irc_chan_mode
 
