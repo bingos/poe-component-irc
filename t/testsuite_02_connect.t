@@ -1,4 +1,4 @@
-use Test::More tests => 31;
+use Test::More tests => 32;
 
 BEGIN { use_ok('POE::Component::IRC::Test::Harness') };
 BEGIN { use_ok('POE::Component::IRC') };
@@ -28,6 +28,7 @@ POE::Session->create(
 			 irc_isupport
 			 irc_error
 			 irc_disconnected
+			 irc_shutdown
 	   )],
 	],
 	options => { trace => 0 },
@@ -135,6 +136,11 @@ sub irc_join {
 
 sub irc_error {
   pass( "irc_error" );
+  undef;
+}
+
+sub irc_shutdown {
+  pass( "irc_shutdown" );
   undef;
 }
 

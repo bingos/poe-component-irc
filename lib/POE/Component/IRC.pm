@@ -547,7 +547,7 @@ sub _send_event  {
   # We have a hack here, because the component used to send 'irc_connected' and
   # 'irc_disconnected' events to every registered session regardless of whether
   # that session had registered from them or not.
-  if ( $event =~ /connected$/ ) {
+  if ( $event =~ /connected$/ or $event eq 'irc_shutdown' ) {
     $kernel->post( $self->{sessions}->{$_}->{'ref'},
 		   $event, @args ) for keys %{ $self->{sessions} };
     return 1;
@@ -1374,6 +1374,7 @@ sub shutdown {
   $args = ':' . $args if $args and $args =~ /\s/;
   my $cmd = join ' ', 'QUIT', $args || '';
   $self->{_shutdown} = 1;
+  $self->_send_event( 'irc_shutdown', $_[SENDER]->ID() );
   $self->_unregister_sessions();
   $kernel->alarm_remove_all();
   $kernel->alias_remove( $_ ) for $kernel->alias_list( $_[SESSION] );
@@ -2838,6 +2839,10 @@ by the component from the IRC server, before it has been mangled by filters and 
 
 Sent once to the requesting session on registration ( see register() ). ARG0 is a reference to
 the component's object.
+
+=item irc_shutdown
+
+Sent to all registered sessions when the component has been asked to shutdown(). ARG0 will be the session ID of the requesting session.
 
 =item irc_isupport
 
