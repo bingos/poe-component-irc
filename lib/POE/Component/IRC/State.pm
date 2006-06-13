@@ -170,9 +170,7 @@ sub S_nick {
   my $unick = u_irc $nick, $mapping;
   my $unew = u_irc $new, $mapping;
 
-  if ( $nick eq $self->{RealNick} ) {
-	$self->{RealNick} = $new;
-  }
+  $self->{RealNick} = $new if $nick eq $self->{RealNick};
 
   if ( $unick eq $unew ) {
         # Case Change

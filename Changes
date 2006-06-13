@@ -1,9 +1,12 @@
 Revision history for Perl extension POE::Component::IRC.
 
-4.93  <Date>
+4.93  Tue Jun 13 19:25:45 BST 2006
     - ::State, invex & excepts sync'ing when we +[qoah].
     - ::State, documentation fixes.
     - Added 'irc_shutdown' event. 
+    - Bug in Qnet::State spotted by helios. Changed 
+      inheritance order and cpoied some code from Qnet to
+      Qnet::State accordingly.
 
 4.92  Sun Jun 11 18:09:13 BST 2006
     - Added a check to _parseline for spurious blank events,

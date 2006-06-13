@@ -15,9 +15,85 @@ use Carp;
 use POE::Component::IRC::Common qw(:ALL);
 use POE::Component::IRC::Plugin qw(:ALL);
 use vars qw($VERSION);
-use base qw(POE::Component::IRC::Qnet POE::Component::IRC::State);
+use base qw(POE::Component::IRC::State POE::Component::IRC::Qnet);
 
 $VERSION = '1.5';
+
+sub _create {
+  my $self = shift;
+
+  $self->SUPER::_create();
+
+  # Stuff specific to IRC-Qnet
+
+  my @qbot_commands = qw(
+        hello
+        whoami
+        challengeauth
+        showcommands
+        auth
+        challenge
+        help
+        unlock
+        requestpassword
+        reset
+        newpass
+        email
+        authhistory
+        banclear
+        op
+        invite
+        removeuser
+        banlist
+        recover
+        limit
+        unbanall
+        whois
+        version
+        autolimit
+        ban
+        clearchan
+        adduser
+        settopic
+        chanflags
+        deopall
+        requestowner
+        bandel
+        chanlev
+        key
+        welcome
+        voice
+        );
+
+  my @lbot_commands = qw(
+        whoami
+        whois
+        chanlev
+        adduser
+        removeuser
+        showcommands
+        op
+        voice
+        invite
+        setinvite
+        clearinvite
+        recover
+        deopall
+        unbanall
+        clearchan
+        version
+        welcome
+        requestowner
+        );
+
+  $self->{OBJECT_STATES_HASHREF}->{'qbot_' . $_} = 'qnet_bot_commands' for @qbot_commands;
+  $self->{OBJECT_STATES_HASHREF}->{'lbot_' . $_} = 'qnet_bot_commands' for @lbot_commands;
+  $self->{server} = 'irc.quakenet.org';
+  $self->{QBOT} = 'Q@Cserve.quakenet.org';
+  $self->{LBOT} = 'L@lightweight.quakenet.org';
+
+  return 1;
+}
 
 # Qnet extension to RPL_WHOIS
 sub S_330 {
