@@ -1,5 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
+4.94  <Date>
+    - Amended the DNS code to implement round-robin type 
+      behaviour.
+
 4.93  Tue Jun 13 19:25:45 BST 2006
     - ::State, invex & excepts sync'ing when we +[qoah].
     - ::State, documentation fixes.

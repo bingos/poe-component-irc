@@ -25,7 +25,7 @@ use POE::Component::IRC::Constants;
 use POE::Component::IRC::Pipeline;
 use Carp;
 use Socket;
-use Sys::Hostname;
+#use Sys::Hostname;
 use File::Basename ();
 use Symbol;
 use Data::Dumper;
@@ -34,7 +34,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '4.93';
+$VERSION = '4.94';
 $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -776,6 +776,11 @@ sub connect {
 
   $self->_configure( \%arg );
 
+  if ( $self->{resolver} and $self->{res_addresses} and scalar @{ $self->{res_addresses} } ) {
+	push @{ $self->{res_addresses} }, $self->{'server'};
+	$self->{'server'} = shift @{ $self->{res_addresses} };
+  }
+
   # try and use non-blocking resolver if needed
   if ( $self->{resolver} && $self->{'server'} !~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/ && !$self->{'NoDNS'} ) {
     my $response = $self->{resolver}->resolve( event => "got_dns_response", host =>  $self->{'server'}, context => { } );
@@ -816,6 +821,7 @@ sub got_dns_response {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
   my ($net_dns_packet) = $_[ARG0]->{response};
   my ($net_dns_errorstring) = $_[ARG0]->{error};
+  $self->{res_addresses} = [ ] unless $self->{res_addresses};
 
   unless(defined $net_dns_packet) {
     $self->_send_event( 'irc_socketerr', $net_dns_errorstring );
@@ -831,8 +837,13 @@ sub got_dns_response {
 
   foreach my $net_dns_answer (@net_dns_answers) {
     next unless $net_dns_answer->type eq "A";
+    push @{ $self->{res_addresses} }, $net_dns_answer->rdatastr;
+  }
 
-    $self->{'server'} = $net_dns_answer->rdatastr;
+  warn Dumper($self->{res_addresses});
+
+  if ( my $address = shift @{ $self->{res_addresses} } ) {
+    $self->{'server'} = $address;
     $kernel->yield("do_connect");
     return;
   }
