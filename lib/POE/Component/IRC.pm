@@ -76,6 +76,7 @@ sub _create {
 
   $self->{IRC_CMDS} =
   { 'rehash'    => [ PRI_HIGH,   'noargs',        ],
+    'die'	=> [ PRI_HIGH,	 'noargs',	  ],
     'restart'   => [ PRI_HIGH,   'noargs',        ],
     'quit'      => [ PRI_NORMAL, 'oneoptarg',     ],
     'version'   => [ PRI_HIGH,   'oneoptarg',     ],
@@ -2272,8 +2273,7 @@ So the following would be functionally equivalent:
 =item connect
 
 Takes one argument: a hash reference of attributes for the new
-connection (see the L<SYNOPSIS> section of this doc for an
-example). This event tells the IRC client to connect to a
+connection. This event tells the IRC client to connect to a
 new/different server. If it has a connection already open, it'll close
 it gracefully before reconnecting. Possible attributes for the new
 connection are:
@@ -2493,6 +2493,9 @@ If you are connected, 'shutdown' will send a quit message to ircd and
 disconnect. If you provide an argument that will be used as the QUIT
 message.
 
+Terminating multiple components can be tricky. Check the 'SIGNALS' section of
+this documentation for an alternative method of shutting down multiple poco-ircs.
+
 =item unregister
 
 Takes N arguments: a list of event names which you I<don't> want to
@@ -2684,12 +2687,17 @@ logged-on global opers.  This option is specific to EFNet.
 
 =item rehash
 
-Tells the IRC server you're connected to to rehash its configuration
+Tells the IRC server you're connected to, to rehash its configuration
 files. Only useful for IRCops. Takes no arguments.
+
+=item die
+
+Tells the IRC server you're connect to, to terminate. Only useful for
+IRCops, thank goodness. Takes no arguments. 
 
 =item restart
 
-Tells the IRC server you're connected to to shut down and restart itself.
+Tells the IRC server you're connected to, to shut down and restart itself.
 Only useful for IRCops, thank goodness. Takes no arguments.
 
 =item sconnect

@@ -6,6 +6,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Added POCOIRC_REGISTER and POCOIRC_SHUTDOWN signals
       for multiple registration and shutdown, respectively.
       Added applicable tests to the testsuite.
+    - Documentation fixes. Added DIE command.
 
 4.93  Tue Jun 13 19:25:45 BST 2006
     - ::State, invex & excepts sync'ing when we +[qoah].
