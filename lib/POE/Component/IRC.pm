@@ -25,7 +25,6 @@ use POE::Component::IRC::Constants;
 use POE::Component::IRC::Pipeline;
 use Carp;
 use Socket;
-#use Sys::Hostname;
 use File::Basename ();
 use Symbol;
 use Data::Dumper;
@@ -671,6 +670,11 @@ sub _sock_up {
 sub _start {
   my ($kernel, $session, $self, $alias) = @_[KERNEL, SESSION, OBJECT, ARG0];
   my @options = @_[ARG1 .. $#_];
+
+  $kernel->state( '_poco_irc_sig_register' => $self );
+  $kernel->sig( POCOIRC_REGISTER => '_poco_irc_sig_register' );
+  $kernel->state( '_poco_irc_sig_shutdown' => $self );
+  $kernel->sig( POCOIRC_SHUTDOWN => '_poco_irc_sig_shutdown' );
 
   # Send queue is used to hold pending lines so we don't flood off.
   # The count is used to track the number of lines sent at any time.
@@ -1319,6 +1323,41 @@ sub privandnotice {
   undef;
 }
 
+sub _poco_irc_sig_shutdown {
+  my ($kernel,$self,$session,$signal) = @_[KERNEL,OBJECT,SESSION,ARG0];
+  $kernel->yield( 'shutdown', @_[ARG1..$#_] );
+  return 0;
+}
+
+sub _poco_irc_sig_register {
+  my ($kernel,$self,$session,$signal,$sender,@events) = @_[KERNEL,OBJECT,SESSION,ARG0..$#_];
+  return 0 unless $sender;
+  my $session_id = $session->ID();
+  my $sender_id;
+  if ( my $ref = $kernel->alias_resolve( $sender ) ) {
+	$sender_id = $ref->ID();
+  } else {
+	warn "Can\'t resolve $sender\n";
+	return 0;
+  }
+  unless (@events) {
+    warn "Signal POCOIRC: Not enough arguments";
+    return 0;
+  }
+
+  foreach (@events) {
+    $_ = "irc_" . $_ unless /^_/;
+    $self->{events}->{$_}->{$sender_id} = $sender_id;
+    $self->{sessions}->{$sender_id}->{'ref'} = $sender_id;
+    unless ($self->{sessions}->{$sender_id}->{refcnt}++ or $session_id == $sender_id) {
+      $kernel->refcount_increment($sender_id, PCI_REFCOUNT_TAG);
+    }
+  }
+
+  $kernel->post( $sender_id => 'irc_registered' => $self );
+  
+  return 0;
+}
 
 # Ask P::C::IRC to send you certain events, listed in @events.
 sub register {
@@ -1384,6 +1423,8 @@ sub shutdown {
   $args = join '', @_[ARG0..$#_] if scalar @_[ARG0..$#_];
   $args = ':' . $args if $args and $args =~ /\s/;
   my $cmd = join ' ', 'QUIT', $args || '';
+  $kernel->signal( 'POCOIRC_REGISTER' );
+  $kernel->signal( 'POCOIRC_SHUTDOWN' );
   $self->{_shutdown} = 1;
   $self->_send_event( 'irc_shutdown', $_[SENDER]->ID() );
   $self->_unregister_sessions();
@@ -2435,6 +2476,10 @@ trap. ARG0 is the components object. Useful if you want to bolt PoCo-IRC's
 new features such as Plugins into a bot coded to the older deprecated API.
 If you are using the new API, ignore this :)
 
+Registering with multiple component sessions can be tricky, especially if
+one wants to marry up sessions/objects, etc. Check 'SIGNALS' section of this
+documentation for an alternative method of registering with multiple poco-ircs.
+
 =item shutdown
 
 By default, POE::Component::IRC sessions never go away. Even after
@@ -3002,6 +3047,77 @@ about it. ARG0 is the text of the server's message.
        delete $_[OBJECT]->{cookies}->{$filename};
        #TODO beware a possible memory leak here...
     }# if($type eq 'ACCEPT')
+
+=back
+
+=head1 SIGNALS
+
+The component will handle a number of custom signals that you may send using 
+L<POE::Kernel> signal() method.
+
+=over
+
+=item POCOIRC_REGISTER
+
+Registering with multiple PoCo-IRC components has been a pita. Well, no more,
+using the power of L<POE::Kernel> signals.
+
+If the component receives a 'POCOIRC_REGISTER' signal it'll register the requesting
+session and trigger an 'irc_registered' event. From that event one can get all the 
+information necessary such as the poco-irc object and the SENDER session to do 
+whatever one needs to build a poco-irc dispatch table.
+
+The way the signal handler in PoCo-IRC is written also supports sending the 
+'POCOIRC_REGISTER' to multiple sessions simultaneously, by sending the signal to the 
+POE Kernel itself.
+
+Pass the signal your session, session ID or alias, and the IRC events ( as specified
+to 'register' ).
+
+To register with multiple PoCo-IRCs one can do the following in your session's _start
+handler:
+
+  sub _start {
+     my ($kernel,$session) = @_[KERNEL,SESSION];
+
+     # Registering with multiple pocoircs for 'all' IRC events
+     $kernel->signal( $kernel, 'POCOIRC_REGISTER', $session->ID(), 'all' );
+
+     undef;
+  }
+
+Each poco-irc will send your session an 'irc_registered' event:
+
+  sub irc_registered {
+     my ($kernel,$sender,$heap,$irc_object) = @_[KERNEL,SENDER,HEAP,ARG0];
+     
+     # Get the poco-irc session ID 
+     my $sender_id = $sender->ID();
+     
+     # Or it's alias
+     my $poco_alias = $irc_object->session_alias();
+
+     # Store it in our heap maybe
+     $heap->{irc_objects}->{ $sender_id } = $irc_object;
+
+     # Make the poco connect 
+     $irc_object->yield( connect => { } );
+
+     undef;
+  }
+
+=item POCOIRC_SHUTDOWN
+
+Telling multiple poco-ircs to shutdown was a pita as well. The same principle as
+with registering applies to shutdown too.
+
+Send a 'POCOIRC_SHUTDOWN' to the POE Kernel to terminate all the active poco-ircs
+simultaneously.
+
+  $poe_kernel->signal( $poe_kernel, 'POCOIRC_SHUTDOWN' );
+
+Any additional parameters passed to the signal will become your quit messages on 
+each IRC network.
 
 =back
 
