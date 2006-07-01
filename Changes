@@ -7,6 +7,7 @@ Revision history for Perl extension POE::Component::IRC.
       for multiple registration and shutdown, respectively.
       Added applicable tests to the testsuite.
     - Documentation fixes. Added DIE command.
+    - Added multiple bot SYNOPSIS.
 
 4.93  Tue Jun 13 19:25:45 BST 2006
     - ::State, invex & excepts sync'ing when we +[qoah].
