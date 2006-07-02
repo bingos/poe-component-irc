@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-4.94  <Date>
+4.94  Sun Jul 02 10:01:45 BST 2006
     - Amended the DNS code to implement round-robin type 
       behaviour.
     - Added POCOIRC_REGISTER and POCOIRC_SHUTDOWN signals
