@@ -27,13 +27,12 @@ use Carp;
 use Socket;
 use File::Basename ();
 use Symbol;
-use Data::Dumper;
 use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '4.94';
+$VERSION = '4.95';
 $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -218,7 +217,7 @@ sub _configure {
     # This is a hack to make sure that the component doesn't die if no IRCServer is
     # specified as the result of being called from new() via spawn().
 
-    $spawned = $arg{'CALLED_FROM_SPAWN'} if exists $arg{'CALLED_FROM_SPAWN'};
+    $spawned = $arg{'CALLED_FROM_SPAWN'};
   }
 
   if ( $spawned and !$self->{NoDNS} and $GOT_CLIENT_DNS and !$self->{resolver} ) {
@@ -844,8 +843,6 @@ sub got_dns_response {
     next unless $net_dns_answer->type eq "A";
     push @{ $self->{res_addresses} }, $net_dns_answer->rdatastr;
   }
-
-  warn Dumper($self->{res_addresses});
 
   if ( my $address = shift @{ $self->{res_addresses} } ) {
     $self->{'server'} = $address;

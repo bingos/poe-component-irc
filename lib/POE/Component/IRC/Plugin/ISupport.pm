@@ -5,7 +5,7 @@ use warnings;
 
 use POE::Component::IRC::Plugin qw(:ALL);
 
-our $VERSION = '0.51';
+our $VERSION = '0.52';
 
 sub new {
   return bless { }, shift;
@@ -37,26 +37,28 @@ sub S_001 {
 
 sub S_005 {
   my ($self,$irc,@args) = @_;
-
+  my @vals = @{ ${ $args[2] } };
+  pop @vals;
   my $support = $self->{server};
-  (my $spec = ${ $args[1] }) =~ s/:are (?:available|supported).*//;
+  #(my $spec = ${ $args[1] }) =~ s/:are (?:available|supported).*//;
 
-  for (split ' ', $spec) {
+  #for (split ' ', $spec) {
+  for (@vals) {
     if (/=/) {
       my ($key, $val) = split /=/, $_, 2;
 
       if ($key eq 'CASEMAPPING') {
         $support->{$key} = $val;
-        if ($val eq 'ascii') { }
-        elsif ($val eq 'rfc1459') {
-          $self->{server}->cmp(sub { (my $s = pop) =~ tr/A-Z[]\\^/a-z{}|~/; $s });
-        }
-        elsif ($val eq 'strict-rfc1459') {
-          $self->{server}->cmp(sub { (my $s = pop) =~ tr/A-Z[]\\/a-z{}|/; $s });
-        }
-        else {
-          #$irc->_send_event(IRCE_UNKCMAP, 0, [$val]);
-        }
+        #if ($val eq 'ascii') { }
+        #elsif ($val eq 'rfc1459') {
+        #  $self->{server}->cmp(sub { (my $s = pop) =~ tr/A-Z[]\\^/a-z{}|~/; $s });
+        #}
+        #elsif ($val eq 'strict-rfc1459') {
+        #  $self->{server}->cmp(sub { (my $s = pop) =~ tr/A-Z[]\\/a-z{}|/; $s });
+        #}
+        #else {
+        #  #$irc->_send_event(IRCE_UNKCMAP, 0, [$val]);
+        #}
       }
       elsif ($key eq 'CHANLIMIT') {
         while ($key =~ /([^:]+):(\d+),?/g) {
@@ -126,7 +128,7 @@ sub _default {
   # when we get a code higher than 005, we unload ourselves
   # (but we don't want to unregister the /support function)
 
-  return PCI_EAT_NONE if ( $self->{done_005} );
+  return PCI_EAT_NONE if $self->{done_005};
   if ($e =~ /^S_0*(\d+)/ and $1 > 5) {
     #$irc->plugin_unregister($self, SERVER => qw( 005 all ));
     $irc->_send_event(irc_isupport => $self);
@@ -137,15 +139,15 @@ sub _default {
 }
 
 sub isupport {
-  my ($self) = shift;
-  my ($value) = uc ( $_[0] ) || return undef;
+  my $self = shift;
+  my $value = uc ( $_[0] ) || return undef;
   
-  return $self->{server}->{$value} if ( defined ( $self->{server}->{$value} ) );
+  return $self->{server}->{$value} if defined $self->{server}->{$value};
   undef;
 }
 
 sub isupport_dump_keys {
-  my ($self) = shift;
+  my $self = shift;
 
   if ( scalar ( keys %{ $self->{server} } ) > 0 ) {
 	return keys %{ $self->{server} };

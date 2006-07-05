@@ -1,5 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
+4.95  Wed Jul 05 11:46:34 BST 2006
+    - Removed stray Dumper() in IRC.pm.
+    - Fixed serious bug in ISupport plugin.
+
 4.94  Sun Jul 02 10:01:45 BST 2006
     - Amended the DNS code to implement round-robin type 
       behaviour.
