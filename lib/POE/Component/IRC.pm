@@ -2551,6 +2551,30 @@ you specify. Takes 2 arguments: the nick or channel to send a message
 to (use an array reference here to specify multiple recipients), and
 the text of the message to send.
 
+To send IRC colours wrap the text you want coloured with \x03 followed
+by the colour code, your text and a \x03 to switch back.
+
+  $kernel->post( $sender => privmsg => $channel => "Foo \x034bar\x03" );
+
+The colour codes are:
+
+    1 - Black
+    2 - Navy Blue
+    3 - Green
+    4 - Red
+    5 - Brown
+    6 - Purple
+    7 - Olive
+    8 - Yellow
+    9 - Lime Green
+    10 - Teal
+    11 - Aqua Light
+    12 - Royal Blue
+    13 - Hot Pink
+    14 - Dark Gray
+    15 - Light Gray
+    16 - White 
+
 =item quit
 
 Tells the IRC server to disconnect you. Takes one optional argument:
