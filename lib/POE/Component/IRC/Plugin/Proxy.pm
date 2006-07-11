@@ -8,7 +8,7 @@ use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Common qw( :ALL );
 
 sub new {
-  my ($package) = shift;
+  my $package = shift;
   my $self = bless { @_ }, $package;
   $self->{ lc $_ } = delete $self->{ $_ } for keys %{ $self };
   return $self;
@@ -20,7 +20,6 @@ sub PCI_register {
   $self->{raw_events} = $irc->raw_events();
   $irc->raw_events( '1' );
   $self->{irc} = $irc;
-  #$irc->plugin_register( $self, 'SERVER', qw(raw 001 disconnected socketerr error msg join part kick) );
   $irc->plugin_register( $self, 'SERVER', qw(all) );
 
   $self->{SESSION_ID} = POE::Session->create(
@@ -36,7 +35,7 @@ sub PCI_register {
 sub PCI_unregister {
   my ($self,$irc) = splice @_, 0, 2;
   $irc->raw_events( $self->{raw_events} );
-  $poe_kernel->post( $self->{SESSION_ID} => '_shutdown' => delete ( $self->{irc} ) );
+  $poe_kernel->post( $self->{SESSION_ID} => '_shutdown' => delete $self->{irc} );
   $poe_kernel->refcount_decrement( $self->{SESSION_ID}, __PACKAGE__ );
   return 1;
 }
@@ -69,28 +68,28 @@ sub S_msg {
 
 sub S_join {
   my ($self,$irc) = splice @_, 0, 2;
-  my ($joiner) = ( split /!/, ${ $_[0] } )[0];
+  my $joiner = ( split /!/, ${ $_[0] } )[0];
   return PCI_EAT_NONE unless $joiner eq $irc->nick_name();
-  my ($channel) = ${ $_[1] };
-  delete $self->{current_channels}->{ u_irc( $channel ) };
-  $self->{current_channels}->{ u_irc( $channel ) } = $channel;
+  my $channel = ${ $_[1] };
+  delete $self->{current_channels}->{ u_irc $channel };
+  $self->{current_channels}->{ u_irc $channel } = $channel;
   return PCI_EAT_NONE;
 }
 
 sub S_part {
   my ($self,$irc) = splice @_, 0, 2;
-  my ($partee) = ( split /!/, ${ $_[0] } )[0];
+  my $partee = ( split /!/, ${ $_[0] } )[0];
   return PCI_EAT_NONE unless $partee eq $irc->nick_name();
-  my ($channel) = u_irc( ${ $_[1] } );
+  my $channel = u_irc ${ $_[1] };
   delete $self->{current_channels}->{ $channel };
   return PCI_EAT_NONE;
 }
 
 sub S_kick {
   my ($self,$irc) = splice @_, 0, 2;
-  my ($kicked) = u_irc( ${ $_[2] } );
-  return PCI_EAT_NONE unless $kicked eq u_irc( $irc->nick_name() ); 
-  my ($channel) = u_irc ( ${ $_[1] } );
+  my $kicked = u_irc( ${ $_[2] } );
+  return PCI_EAT_NONE unless $kicked eq u_irc $irc->nick_name(); 
+  my $channel = u_irc ${ $_[1] };
   delete $self->{current_channels}->{ $channel };
   return PCI_EAT_NONE;
 }
@@ -118,9 +117,9 @@ sub S_error {
 
 sub S_raw {
   my ($self,$irc) = splice @_, 0, 2;
-  my ($line) = ${ $_[0] };
+  my $line = ${ $_[0] };
 
-  return PCI_EAT_ALL if ( $line =~ /^PING\s*/ );
+  return PCI_EAT_ALL if $line =~ /^PING\s*/;
   foreach my $wheel_id ( keys %{ $self->{wheels} } ) {
 	$self->_send_to_client( $wheel_id, $line );
   }
@@ -134,27 +133,27 @@ sub _stash_line {
   return if $self->{stashed};
   my ($prefix,$numeric) = ( split / /, $line )[0..1];
   if ( $prefix eq 'NOTICE' ) {
-    push( @{ $self->{stash} }, $line );
+    push @{ $self->{stash} }, $line;
     return;
   }
   $prefix =~ s/^://;
   if ( $numeric eq 'NOTICE' and $prefix eq $self->{irc}->server_name() ) {
-    push( @{ $self->{stash} }, $line );
+    push @{ $self->{stash} }, $line;
     return;
   }
   return unless ( $numeric and $numeric =~ /^\d{3,3}$/ );
   if ( $numeric eq '376' or $numeric eq '422' ) {
-    push( @{ $self->{stash} }, $line );
+    push @{ $self->{stash} }, $line;
     $self->{stashed} = 1;
     return;
   }
-  push( @{ $self->{stash} }, $line );
+  push @{ $self->{stash} }, $line;
   undef;
 }
 
 sub _send_to_client {
   my ($self,$wheel_id,$line) = splice @_, 0, 3;
-  return unless defined ( $self->{wheels}->{ $wheel_id }->{wheel} );
+  return unless defined $self->{wheels}->{ $wheel_id }->{wheel};
   return unless $self->{wheels}->{ $wheel_id }->{reg};
   $self->{wheels}->{ $wheel_id }->{wheel}->put( $line );
   return 1;
@@ -202,7 +201,7 @@ sub _spawn_listener {
 sub _listener_accept {
   my ($kernel,$self,$socket,$peeradr,$peerport) = @_[KERNEL,OBJECT,ARG0 .. ARG2];
 
-  my ($wheel) = POE::Wheel::ReadWrite->new(
+  my $wheel = POE::Wheel::ReadWrite->new(
 	Handle => $socket,
 	InputFilter => $self->{ircd_filter},
 	OutputFilter => POE::Filter::Line->new(),
@@ -269,8 +268,8 @@ sub _client_input {
 		$self->{wheels}->{ $wheel_id }->{quiting}++;
 		last SWITCH;
 	}
-	my ($nickname) = $self->{irc}->nick_name();
-	my ($fullnick) = join('!', $nickname, $self->{iamthis} );
+	my $nickname = $self->{irc}->nick_name();
+	my $fullnick = join('!', $nickname, $self->{iamthis} );
 	if ( $nickname ne $self->{wheels}->{ $wheel_id }->{nick} ) {
 	  $self->_send_to_client( $wheel_id, $self->{wheels}->{ $wheel_id }->{nick} . " NICK :$nickname" );
 	}
@@ -285,7 +284,7 @@ sub _client_input {
 	$self->{irc}->_send_event( 'irc_proxy_authed' => $wheel_id );
 	last SWITCH;
     }
-    if ( not $self->{wheels}->{ $wheel_id }->{reg} ) {
+    unless ( $self->{wheels}->{ $wheel_id }->{reg} ) {
 	last SWITCH;
     }
     if ( $input->{command} eq 'NICK' or $input->{command} eq 'USER' or $input->{command} eq 'PASS' ) {
@@ -334,15 +333,15 @@ sub getsockname {
 }
 
 sub list_wheels {
-  my ($self) = shift;
+  my $self = shift;
 
   return keys %{ $self->{wheels} };
 }
 
 sub wheel_info {
-  my ($self) = shift;
-  my ($wheel_id) = shift || return undef;
-  return undef unless defined ( $self->{wheels}->{ $wheel_id } );
+  my $self = shift;
+  my $wheel_id = shift || return undef;
+  return undef unless defined $self->{wheels}->{ $wheel_id };
   return $self->{wheels}->{ $wheel_id }->{start} unless wantarray();
   return map { $self->{wheels}->{ $wheel_id }->{$_} } qw(peer port start lag);
 }

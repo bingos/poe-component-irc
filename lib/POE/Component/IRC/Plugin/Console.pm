@@ -6,10 +6,8 @@ use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::IRCD Filter::Line Filte
 use POE::Component::IRC::Plugin qw( :ALL );
 
 sub new {
-  my ($package) = shift;
-
+  my $package = shift;
   my $self = bless { @_ }, $package;
-
   return $self;
 }
 
@@ -33,8 +31,7 @@ sub PCI_register {
 sub PCI_unregister {
   my ($self,$irc) = splice @_, 0, 2;
 
-  delete ( $self->{irc} );
-
+  delete $self->{irc};
   $poe_kernel->post( $self->{SESSION_ID} => '_shutdown' );
   $poe_kernel->refcount_decrement( $self->{SESSION_ID}, __PACKAGE__ );
   return 1;
@@ -42,9 +39,11 @@ sub PCI_unregister {
 
 sub _default {
   my ($self,$irc) = splice @_, 0, 2;
-  my ($event) = shift;
-  my (@args) = map { $$_ } @_;
-  my (@output) = ( "$event: " );
+  my $event = shift;
+  return PCI_EAT_NONE if $event eq 'S_raw';
+  pop @_ if ref $_[$#_] eq 'ARRAY';
+  my @args = map { $$_ } @_;
+  my @output = ( "$event: " );
 
   foreach my $arg ( @args ) {
         if ( ref($arg) eq 'ARRAY' ) {
@@ -87,7 +86,7 @@ sub _start {
 sub _listener_accept {
   my ($kernel,$self,$socket,$peeradr,$peerport) = @_[KERNEL,OBJECT,ARG0 .. ARG2];
 
-  my ($wheel) = POE::Wheel::ReadWrite->new(
+  my $wheel = POE::Wheel::ReadWrite->new(
 	Handle => $socket,
 	InputFilter => $self->{ircd_filter},
 	OutputFilter => POE::Filter::Line->new(),
@@ -110,7 +109,7 @@ sub _listener_accept {
 }
 
 sub _listener_failed {
-  delete ( $_[OBJECT]->{listener} );
+  delete $_[OBJECT]->{listener};
   undef;
 }
 
@@ -139,7 +138,7 @@ sub _client_input {
 sub _client_flush {
   my ($self,$wheel_id) = @_[OBJECT,ARG0];
 
-  return unless ( $self->{exit}->{ $wheel_id } );
+  return unless $self->{exit}->{ $wheel_id };
   delete $self->{wheels}->{ $wheel_id };
   undef;
 }
@@ -147,8 +146,8 @@ sub _client_flush {
 sub _client_error {
   my ($self,$wheel_id) = @_[OBJECT,ARG3];
 
-  delete ( $self->{wheels}->{ $wheel_id } );
-  delete ( $self->{authed}->{ $wheel_id } );
+  delete $self->{wheels}->{ $wheel_id };
+  delete $self->{authed}->{ $wheel_id };
   $self->{irc}->_send_event( 'irc_console_close' => $wheel_id );
   undef;
 }
@@ -156,14 +155,14 @@ sub _client_error {
 sub _shutdown {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
 
-  delete ( $self->{listener} );
-  delete ( $self->{wheels} );
-  delete ( $self->{authed} );
+  delete $self->{listener};
+  delete $self->{wheels};
+  delete $self->{authed};
   undef;
 }
 
 sub getsockname {
-  my ($self) = shift;
+  my $self = shift;
   return undef unless $self->{listener};
   return $self->{listener}->getsockname();
 }
