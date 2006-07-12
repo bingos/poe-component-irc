@@ -41,8 +41,6 @@ $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 #		the same name, gets passed to POE::Session->create as $self => [ ];
 #	  $self->{OBJECT_STATES_HASHREF} contains event mappings to methods, where the
 #		event and the method have diferent names.
-#	  $self->{IRC_EVTS} is an array of IRC events that the component will register to
-#		receive from itself. Should be specified without the 'irc_' prefix.
 #	  $self->{IRC_CMDS} contains the traditional %irc_commands, mapping commands to events
 #		and the priority that the command has.
 
@@ -692,7 +690,6 @@ sub _start {
      $self->{alias} = "$self";
   }
 
-  $kernel->yield( 'register', @{ $self->{IRC_EVTS} } ) if $self->{IRC_EVTS} and scalar @{ $self->{IRC_EVTS} };
   $self->{ircd_filter} = POE::Filter::IRCD->new( DEBUG => $self->{debug} );
   $self->{ircd_compat} = POE::Filter::IRC::Compat->new( DEBUG => $self->{debug} );
   $self->{ctcp_filter} = POE::Filter::CTCP->new();
