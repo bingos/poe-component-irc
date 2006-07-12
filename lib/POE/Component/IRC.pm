@@ -2383,6 +2383,40 @@ So the following would be functionally equivalent:
 
 =over
 
+=item register
+
+Takes N arguments: a list of event names that your session wants to
+listen for, minus the "irc_" prefix. So, for instance, if you just
+want a bot that keeps track of which people are on a channel, you'll
+need to listen for JOINs, PARTs, QUITs, and KICKs to people on the
+channel you're in. You'd tell POE::Component::IRC that you want those
+events by saying this:
+
+  $kernel->post( 'my client', 'register', qw(join part quit kick) );
+
+Then, whenever people enter or leave a channel your bot is on (forcibly
+or not), your session will receive events with names like "irc_join",
+"irc_kick", etc., which you can use to update a list of people on the
+channel.
+
+Registering for C<'all'> will cause it to send all IRC-related events to
+you; this is the easiest way to handle it. See the test script for an
+example.
+
+Registering will generate an 'irc_registered' event that your session can
+trap. ARG0 is the components object. Useful if you want to bolt PoCo-IRC's
+new features such as Plugins into a bot coded to the older deprecated API.
+If you are using the new API, ignore this :)
+
+Registering with multiple component sessions can be tricky, especially if
+one wants to marry up sessions/objects, etc. Check 'SIGNALS' section of this
+documentation for an alternative method of registering with multiple poco-ircs.
+
+Starting with version 4.96, if you spawn the component from inside another POE
+session, the component will automatically register that session as wanting 'all'
+irc events. That session will receive an 'irc_registered' event indicating that
+the component is up and ready to go.
+
 =item connect
 
 Takes one argument: a hash reference of attributes for the new
@@ -2587,35 +2621,6 @@ Tells the IRC server to disconnect you. Takes one optional argument:
 some clever, witty string that other users in your channels will see
 as you leave. You can expect to get an C<irc_disconnect> event shortly
 after sending this.
-
-=item register
-
-Takes N arguments: a list of event names that your session wants to
-listen for, minus the "irc_" prefix. So, for instance, if you just
-want a bot that keeps track of which people are on a channel, you'll
-need to listen for JOINs, PARTs, QUITs, and KICKs to people on the
-channel you're in. You'd tell POE::Component::IRC that you want those
-events by saying this:
-
-  $kernel->post( 'my client', 'register', qw(join part quit kick) );
-
-Then, whenever people enter or leave a channel your bot is on (forcibly
-or not), your session will receive events with names like "irc_join",
-"irc_kick", etc., which you can use to update a list of people on the
-channel.
-
-Registering for C<'all'> will cause it to send all IRC-related events to
-you; this is the easiest way to handle it. See the test script for an
-example.
-
-Registering will generate an 'irc_registered' event that your session can
-trap. ARG0 is the components object. Useful if you want to bolt PoCo-IRC's
-new features such as Plugins into a bot coded to the older deprecated API.
-If you are using the new API, ignore this :)
-
-Registering with multiple component sessions can be tricky, especially if
-one wants to marry up sessions/objects, etc. Check 'SIGNALS' section of this
-documentation for an alternative method of registering with multiple poco-ircs.
 
 =item shutdown
 
