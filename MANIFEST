@@ -53,6 +53,7 @@ t/3_connect.t
 t/4_testharness.t
 t/5_pod.t
 t/6_common.t
+t/7_parent.t
 t/plugins/00_plugman.t
 t/plugins/01_connector.t
 t/plugins/02_botaddressed.t

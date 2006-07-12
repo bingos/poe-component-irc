@@ -3,6 +3,9 @@ Revision history for Perl extension POE::Component::IRC.
 4.96  <Date>
     - Fixed a bug in Console plugin.
     - Minor code changes to Proxy plugin.
+    - Component will automatically register a parent session 
+      if spawned from another session. Added testcase for
+      this also.
 
 4.95  Wed Jul 05 11:46:34 BST 2006
     - Removed stray Dumper() in IRC.pm.

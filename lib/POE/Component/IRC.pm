@@ -668,7 +668,7 @@ sub _sock_up {
 
 # Set up the component's IRC session.
 sub _start {
-  my ($kernel, $session, $self, $alias) = @_[KERNEL, SESSION, OBJECT, ARG0];
+  my ($kernel, $session, $sender, $self, $alias) = @_[KERNEL, SESSION, SENDER, OBJECT, ARG0];
   my @options = @_[ARG1 .. $#_];
 
   $kernel->state( '_poco_irc_sig_register' => $self );
@@ -717,6 +717,15 @@ sub _start {
 
   $self->{isupport} = POE::Component::IRC::Plugin::ISupport->new();
   $self->plugin_add( 'ISupport' . $self->{SESSION_ID}, $self->{isupport} );
+
+  if ( $kernel != $sender ) {
+    my $sender_id = $sender->ID;
+    $self->{events}->{'irc_all'}->{$sender_id} = $sender_id;
+    $self->{sessions}->{$sender_id}->{'ref'} = $sender_id;
+    $kernel->refcount_increment($sender_id, PCI_REFCOUNT_TAG);
+    $kernel->post( $sender, 'irc_registered', $self );
+  }
+
   return 1;
 }
 
