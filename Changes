@@ -6,6 +6,8 @@ Revision history for Perl extension POE::Component::IRC.
     - Component will automatically register a parent session 
       if spawned from another session. Added testcase for
       this also.
+    - Removed the deprecated IRC_EVTS registration bit from 
+      _start as the component uses plugin API stylee handlers now.
 
 4.95  Wed Jul 05 11:46:34 BST 2006
     - Removed stray Dumper() in IRC.pm.
