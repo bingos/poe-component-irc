@@ -3,6 +3,7 @@ package POE::Component::IRC::Plugin::PlugMan;
 use strict;
 use warnings;
 use POE::Component::IRC::Plugin qw( :ALL );
+use POE::Component::IRC::Common qw( :ALL );
 
 BEGIN { 
     # Turn on the debugger's symbol source tracing
@@ -111,8 +112,9 @@ sub S_public {
 
 sub S_msg {
   my ($self,$irc) = splice @_, 0 , 2;
+  my $who = ${ $_[0] };
   my ($nick,$userhost) = ( split /!/, ${ $_[0] } )[0..1];
-  return PCI_EAT_NONE unless $self->_bot_owner( $nick );
+  return PCI_EAT_NONE unless $self->_bot_owner( $who );
   my $channel = ${ $_[1] }->[0];
   my $command = ${ $_[2] };
   
@@ -172,32 +174,10 @@ sub S_msg {
 
 sub _bot_owner {
   my $self = shift;
-  my $who = $_[0] || return 0;
-  my ($nick,$userhost);
-
   return unless $self->{botowner};
-
-  if ( $who =~ /!/ ) {
-	($nick,$userhost) = ( split /!/, $who )[0..1];
-  } else {
-	($nick,$userhost) = ( split /!/, $self->{irc}->nick_long_form($who) )[0..1];
-  }
-
-  return unless $nick and $userhost;
-
-  $who = l_irc ( $nick ) . '!' . l_irc ( $userhost );
-
-  if ( $self->{botowner} =~ /[\x2A\x3F]/ ) {
-	my ($owner) = l_irc ( $self->{botowner} );
-	$owner =~ s/\x2A/[\x01-\xFF]{0,}/g;
-	$owner =~ s/\x3F/[\x01-\xFF]{1,1}/g;
-	if ( $who =~ /$owner/ ) {
-		return 1;
-	}
-  } elsif ( $who eq l_irc ( $self->{botowner} ) ) {
-	return 1;
-  }
-
+  my $who = $_[0] || return 0;
+  $who = $self->{irc}->nick_long_form($who) unless $who =~ /!/;
+  return 1 if matches_mask( $self->{botowner}, $who );
   return 0;
 }
 
@@ -283,22 +263,6 @@ sub reload {
 sub loaded {
   my $self = shift;
   return keys %{ $self->{plugins} };
-}
-
-###########################
-# Miscellaneous functions #
-###########################
-
-sub u_irc {
-  my $value = shift || return;
-  $value =~ tr/a-z{}|/A-Z[]\\/;
-  return $value;
-}
-
-sub l_irc {
-  my $value = shift || return;
-  $value =~ tr/A-Z[]\\/a-z{}|/;
-  return $value;
 }
 
 1;
