@@ -3284,6 +3284,14 @@ Chris 'BinGOs' Williams E<lt>chris@bingosnet.co.ukE<gt>
 
 Dennis Taylor.
 
+=head1 LICENCE
+
+Copyright (c) Dennis Taylor and Chris Williams
+
+This module may be used, modified, and distributed under the same
+terms as Perl itself. Please see the license that came with your Perl
+distribution for details.
+
 =head1 MAD PROPS
 
 The maddest of mad props go out to Rocco "dngor" Caputo
