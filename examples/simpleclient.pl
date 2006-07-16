@@ -130,7 +130,7 @@ sub _default {
 	    last SWITCH;
         }
 	if ( ref($_) eq 'HASH' ) {
-	    push ( @output, "{", join ( ", ", keys %$_ ), "}" );
+	    push ( @output, "{", join ( ", ", %$_ ), "}" );
 	    last SWITCH;
 	}
         push ( @output, "'$_'" );

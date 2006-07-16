@@ -3027,6 +3027,7 @@ keys:
   'server', their server ( might not be useful on some networks );
   'oper', whether they are an IRCop, contains the IRC operator string if they are, 
           undef if they aren't.
+  'actually', some ircds report the users actual ip address, that'll be here;
 
 On Freenode if the user has identified with NICKSERV there will be an additional key:
 

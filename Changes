@@ -11,6 +11,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Tidied up PlugMan plugin code.
     - Updated documentation stipulating that the module is licensed
       the same as perl is.
+    - Refactored Whois plugin. Added RPL_WHOISACTUALLY support.
 
 4.95  Wed Jul 05 11:46:34 BST 2006
     - Removed stray Dumper() in IRC.pm.

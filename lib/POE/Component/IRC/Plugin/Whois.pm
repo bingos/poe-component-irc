@@ -7,7 +7,7 @@ use strict qw(subs vars refs);                          # Make sure we can't mes
 use warnings FATAL => 'all';                            # Enable warnings to catch errors
 
 # Initialize our version
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 # Import the stuff from Plugin
 use POE::Component::IRC::Plugin qw( PCI_EAT_NONE );
@@ -15,34 +15,29 @@ use POE::Component::IRC::Common qw(:ALL);
 
 # The constructor
 sub new {
-        return bless ( { }, shift );
+  return bless { }, shift;
 }
 
 # Register ourself!
 sub PCI_register {
-        my( $self, $irc ) = @_;
-
-        # Register our events!
-        $irc->plugin_register( $self, 'SERVER', qw(311 313 312 317 319 320 330 318 314 369) );
-
-        # All done!
-        return 1;
+  my( $self, $irc ) = @_;
+  $irc->plugin_register( $self, 'SERVER', qw(311 313 312 317 319 320 330 338 318 314 369) );
+  return 1;
 }
 
 # Unregister ourself!
 sub PCI_unregister {
-        my( $self, $irc ) = @_;
-
-        # All done!
-        return 1;
+  return 1;
 }
 
 # RPL_WHOISUSER
 sub S_311 {
   my ($self,$irc) = splice @_, 0, 2;
-  my ($rnick,$user,$host) = ( split / /, ${ $_[1] } )[0..2];
-  my ($real) = substr(${ $_[1] },index(${ $_[1] },' :')+2);
-  my ($nick) = u_irc ( $rnick );
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my @args = @{ ${ $_[2] } };
+  my $real = pop @args;
+  my ($rnick,$user,$host) = @args;
+  my $nick = u_irc $rnick, $mapping;
 
   $self->{WHOIS}->{ $nick }->{nick} = $rnick;
   $self->{WHOIS}->{ $nick }->{user} = $user;
@@ -55,19 +50,20 @@ sub S_311 {
 # RPL_WHOISOPERATOR
 sub S_313 {
   my ($self,$irc) = splice @_, 0, 2;
-  my ($oper) = substr(${ $_[1] },index(${ $_[1] },' :')+2);
-  my ($nick) = u_irc ( ( split / :/, ${ $_[1] } )[0] );
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my $nick = u_irc ${ $_[2] }->[0], $mapping;
+  my $oper = ${ $_[2] }->[1];
 
   $self->{WHOIS}->{ $nick }->{oper} = $oper;
-
   return PCI_EAT_NONE;
 }
 
 # RPL_WHOISSERVER
 sub S_312 {
   my ($self,$irc) = splice @_, 0, 2;
-  my ($nick,$server) = ( split / /, ${ $_[1] } )[0..1];
-  $nick = u_irc ( $nick );
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my ($nick,$server) = @{ ${ $_[2] } };
+  $nick = u_irc $nick, $mapping;
 
   # This can be returned in reply to either a WHOIS or a WHOWAS *sigh*
   if ( defined ( $self->{WHOWAS}->{ $nick } ) ) {
@@ -82,8 +78,9 @@ sub S_312 {
 # RPL_WHOISIDLE
 sub S_317 {
   my ($self,$irc) = splice @_, 0, 2;
-  my ($nick,@args) = split (/ /, ( split / :/, ${ $_[1] } )[0] );
-  $nick = u_irc ( $nick );
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my ($nick,@args) = @{ ${ $_[2] } };
+  $nick = u_irc $nick, $mapping;
 
   $self->{WHOIS}->{ $nick }->{idle} = $args[0];
   $self->{WHOIS}->{ $nick }->{signon} = $args[1];
@@ -94,14 +91,15 @@ sub S_317 {
 # RPL_WHOISCHANNELS
 sub S_319 {
   my ($self,$irc) = splice @_, 0, 2;
-  my (@args) = split(/ /, ${ $_[1] } );
-  my ($nick) = u_irc ( shift @args );
-  $args[0] =~ s/^://;
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my @args = @{ ${ $_[2] } };
+  my $nick = u_irc shift ( @args ), $mapping;
+  my @chans = split / /, shift @args;
 
-  if ( not defined ( $self->{WHOIS}->{ $nick }->{channels} ) ) {
-        $self->{WHOIS}->{ $nick }->{channels} = [ @args ];
+  if ( !defined $self->{WHOIS}->{ $nick }->{channels} ) {
+        $self->{WHOIS}->{ $nick }->{channels} = [ @chans ];
   } else {
-        push( @{ $self->{WHOIS}->{ $nick }->{channels} }, @args );
+        push( @{ $self->{WHOIS}->{ $nick }->{channels} }, @chans );
   }
 
   return PCI_EAT_NONE;
@@ -110,19 +108,31 @@ sub S_319 {
 # RPL_WHOISIDENTIFIED ( Freenode hack )
 sub S_320 {
   my ($self,$irc) = splice @_, 0, 2;
-  my ($nick, $ident) = ( split / :/, ${ $_[1] } )[0..1];
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my ($nick, $ident) = @{ ${ $_[2] } };
 
-  $self->{WHOIS}->{ u_irc ( $nick ) }->{identified} = $ident;
+  $self->{WHOIS}->{ u_irc ( $nick, $mapping  ) }->{identified} = $ident;
 
   return PCI_EAT_NONE;
 }
 
-# RPL_WHOISAUTHEDAS?
+# RPL_WHOISACTUALLY (Hybrid/Ratbox/others)
+sub S_338 {
+  my ($self,$irc) = splice @_, 0, 2;
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my $nick = u_irc ${ $_[2] }->[0], $mapping;
+  my $ip = ${ $_[2] }->[1];
+  $self->{WHOIS}->{ $nick }->{actually} = $ip;
+  return PCI_EAT_NONE;
+}
+
+# RPL_WHOISACCOUNT (ircu)
 sub S_330 {
   my ($self,$irc) = splice @_, 0, 2;
-  my ($nick,$account) = ( split / /, ${ $_[1] } )[0..1];
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my ($nick,$account) = @{ ${ $_[2] } };
 
-  $self->{WHOIS}->{ u_irc ( $nick ) }->{account} = $account;
+  $self->{WHOIS}->{ u_irc ( $nick, $mapping ) }->{account} = $account;
 
   return PCI_EAT_NONE;
 }
@@ -131,23 +141,21 @@ sub S_330 {
 # RPL_ENDOFWHOIS
 sub S_318 {
   my ($self,$irc) = splice @_, 0, 2;
-  my ($nick) = u_irc ( ( split / :/, ${ $_[1] } )[0] );
-
-  my ($whois) = delete ( $self->{WHOIS}->{ $nick } );
-
-  if ( defined ( $whois ) ) {
-        $irc->_send_event( 'irc_whois', $whois );
-  }
-
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my $nick = u_irc ${ $_[2] }->[0], $mapping;
+  my $whois = delete $self->{WHOIS}->{ $nick };
+  $irc->_send_event( 'irc_whois', $whois ) if defined $whois;
   return PCI_EAT_NONE;
 }
 
 # RPL_WHOWASUSER
 sub S_314 {
   my ($self,$irc) = splice @_, 0, 2;
-  my ($rnick,$user,$host) = ( split / /, ${ $_[1] } )[0..2];
-  my ($real) = substr(${ $_[1] },index(${ $_[1] },' :')+2);
-  my ($nick) = u_irc ( $rnick );
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my @args = @{ ${ $_[2] } };
+  my $real = pop @args;
+  my ($rnick,$user,$host) = @args;
+  my $nick = u_irc $rnick, $mapping;
 
   $self->{WHOWAS}->{ $nick }->{nick} = $rnick;
   $self->{WHOWAS}->{ $nick }->{user} = $user;
@@ -160,14 +168,11 @@ sub S_314 {
 # RPL_ENDOFWHOWAS
 sub S_369 {
   my ($self,$irc) = splice @_, 0, 2;
-  my ($nick) = u_irc ( ( split / :/, ${ $_[1] } )[0] );
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my $nick = u_irc ${ $_[2] }->[0], $mapping;
 
-  my ($whowas) = delete ( $self->{WHOWAS}->{ $nick } );
-
-  if ( defined ( $whowas ) ) {
-        $irc->_send_event( 'irc_whowas', $whowas );
-  }
-
+  my $whowas = delete $self->{WHOWAS}->{ $nick };
+  $irc->_send_event( 'irc_whowas', $whowas ) if defined $whowas;
   return PCI_EAT_NONE;
 }
 
@@ -182,7 +187,7 @@ POE::Component::IRC::Plugin::Whois - A PoCo-IRC plugin that implements 'irc_whoi
 =head1 DESCRIPTION
 
 POE::Component::IRC::Plugin::Whois is the reimplementation of the 'irc_whois' and 'irc_whowas' code from
-L<POE::Component::IRC|POE::Component::IRC> as a plugin. It is used internally by L<POE::Component::IRC|POE::Component::IRC>
+L<POE::Component::IRC> as a plugin. It is used internally by L<POE::Component::IRC>
 so there is no need to use this plugin yourself.
 
 =head1 AUTHOR
@@ -191,8 +196,9 @@ Chris "BinGOs" Williams
 
 =head1 SEE ALSO
 
-L<POE::Component::IRC|POE::Component::IRC>
-L<POE::Component::IRC::Plugin|POE::Component::IRC::Plugin>
+L<POE::Component::IRC>
+
+L<POE::Component::IRC::Plugin>
 
 =cut
 
