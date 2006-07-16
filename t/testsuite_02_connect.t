@@ -1,4 +1,4 @@
-use Test::More tests => 32;
+use Test::More tests => 41;
 
 BEGIN { use_ok('POE::Component::IRC::Test::Harness') };
 BEGIN { use_ok('POE::Component::IRC') };
@@ -114,6 +114,9 @@ sub irc_isupport {
   isa_ok( $isupport, 'POE::Component::IRC::Plugin::ISupport' );
   ok( $isupport->isupport('NETWORK') eq 'poconet', "ISupport Network" );
   ok( $isupport->isupport('CASEMAPPING') eq 'rfc1459', "ISupport Casemapping" );
+  foreach my $isupp ( qw(MAXCHANNELS MAXBANS MAXTARGETS NICKLEN TOPICLEN KICKLEN CHANTYPES PREFIX CHANMODES) ) {
+    ok( $isupport->isupport($isupp), "Testing $isupp" );
+  }
   undef;
 }
 

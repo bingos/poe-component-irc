@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-4.96  <Date>
+4.96  Sun Jul 16 14:35:34 BST 2006
     - Fixed a bug in Console plugin.
     - Minor code changes to Proxy plugin.
     - Component will automatically register a parent session 
