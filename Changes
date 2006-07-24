@@ -1,5 +1,11 @@
 Revision history for Perl extension POE::Component::IRC.
 
+4.97  <Date>
+    - Fixed 'sconnect', it should send 'CONNECT' to the ircd
+      now instead of 'SCONNECT'.
+    - ::State assumed that ircd had returned ISupport info. 
+      Set reasonable defaults for ircd's that don't.
+
 4.96  Sun Jul 16 14:35:34 BST 2006
     - Fixed a bug in Console plugin.
     - Minor code changes to Proxy plugin.

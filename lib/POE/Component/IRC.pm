@@ -32,7 +32,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '4.96';
+$VERSION = '4.97';
 $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -1219,6 +1219,7 @@ sub oneandtwoopt {
   my $arg = join '', @_[ARG0 .. $#_];
   my $pri = $_[OBJECT]->{IRC_CMDS}->{$state}->[CMD_PRI];
 
+  $state = 'connect' if $state eq 'sconnect';
   $state = uc $state;
   if (defined $arg) {
     $arg = ':' . $arg if $arg =~ /\s/;

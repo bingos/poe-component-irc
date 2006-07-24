@@ -216,8 +216,9 @@ sub S_mode {
 
   # CHANMODES is [$list_mode, $always_arg, $arg_when_set, $no_arg]
   # A $list_mode always has an argument
-  my $statmodes = join '', keys %{ $irc->isupport('PREFIX') };
-  my $chanmodes = $irc->isupport('CHANMODES');
+  my $prefix = $irc->isupport('PREFIX') || { 'o', '@', 'v', '+' };
+  my $statmodes = join '', keys %{ $prefix };
+  my $chanmodes = $irc->isupport('CHANMODES') || [ qw(beI k l imnpstaqr) ];
   my $alwaysarg = join '', $statmodes,  @{ $chanmodes }[0 .. 1];
 
   # Do nothing if it is UMODE
@@ -328,7 +329,7 @@ sub S_352 {
   if ( $channel ne '*' ) {
     my $whatever = '';
     my $existing = $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan } || '';    
-    my $prefix = $irc->isupport('PREFIX');
+    my $prefix = $irc->isupport('PREFIX') || { 'o', '@', 'v', '+' };
     foreach my $mode ( keys %{ $prefix } ) {
       $whatever .= $mode if ( $status =~ /\Q$prefix->{$mode}/ and $existing !~ /\Q$prefix->{$mode}/ );
     }
@@ -458,7 +459,7 @@ sub S_324 {
   my @args = @{ ${ $_[2] } };
   my $channel = shift @args;
   my $uchan = u_irc $channel, $mapping;
-  my $chanmodes = $irc->isupport('CHANMODES');
+  my $chanmodes = $irc->isupport('CHANMODES') || [ qw(beI k l imnpstaqr) ];
 
   my $parsed_mode = parse_mode_line( @args );
   while ( my $mode = shift ( @{ $parsed_mode->{modes} } ) ) {
