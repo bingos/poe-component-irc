@@ -155,7 +155,7 @@ sub _create {
 				      unregister
 				      userhost )];
 
-  $self->{OBJECT_STATES_HASHREF} = { @event_map, '_tryclose' => 'dcc_close' };
+  $self->{OBJECT_STATES_HASHREF} = { @event_map, '_tryclose' => 'dcc_close', 'quote' => 'sl' };
 
   return 1;
 }
@@ -2725,7 +2725,7 @@ for. If called without any channel names, it'll tell you the nicks of
 everyone on the IRC network. This is a really big list, so don't do
 this much.
 
-=item sl
+=item quote
 
 Sends a raw line of text to the server. Takes one argument: a string
 of a raw IRC command to send to the server. It is more optimal to use

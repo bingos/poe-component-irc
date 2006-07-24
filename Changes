@@ -5,6 +5,8 @@ Revision history for Perl extension POE::Component::IRC.
       now instead of 'SCONNECT'.
     - ::State assumed that ircd had returned ISupport info. 
       Set reasonable defaults for ircd's that don't.
+    - Changed 'sl' to 'quote' instead as far as the documented
+      API.
 
 4.96  Sun Jul 16 14:35:34 BST 2006
     - Fixed a bug in Console plugin.

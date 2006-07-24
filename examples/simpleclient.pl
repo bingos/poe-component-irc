@@ -111,7 +111,11 @@ sub parse_input {
 	  }
 	  last SWITCH;
 	}
-	$irc->yield( $cmd => @args );
+	if ( $cmd eq 'sl' or $cmd eq 'quote' ) {
+	  $irc->yield( $cmd => join ( ' ', @args ) );
+	} else {
+	  $irc->yield( $cmd => @args );
+	}
         $heap->{readline_wheel}->put($cmd . " " . join(' ',@args) );
     }
   }
