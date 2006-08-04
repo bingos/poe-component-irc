@@ -32,7 +32,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '4.97';
+$VERSION = '4.98';
 $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -196,6 +196,7 @@ sub _configure {
     $self->{'NoDNS'} = $arg{'nodns'} if exists $arg{'nodns'};
     $self->{'nat_addr'} = $arg{'nataddr'} if exists $arg{'nataddr'};
     $self->{'user_bitmode'} = $arg{'bitmode'} if exists $arg{'bitmode'};
+    $self->{'compress'} = $arg{'compress'} if exists $arg{'compress'};
     if (exists $arg{'debug'}) {
       $self->{'debug'} = $arg{'debug'};
       $self->{ircd_filter}->{DEBUG} = $arg{'debug'};
@@ -621,6 +622,10 @@ sub _sock_up {
     }
   }
 
+  if ( $self->{compress} ) {
+	$self->compress_uplink(1);
+	$self->compress_downlink(1);
+  }
   # Create a new ReadWrite wheel for the connected socket.
   $self->{'socket'} = new POE::Wheel::ReadWrite
     ( Handle       => $socket,
@@ -704,7 +709,7 @@ sub _start {
   $self->{out_filter} = POE::Filter::Stackable->new( Filters => [ POE::Filter::Line->new( OutputLiteral => "\015\012" ) ] );
 
   eval{ 
-	require POE::Filter::Zlib;
+	require POE::Filter::Zlib::Stream;
   };
   $self->{can_do_zlib} = 1 unless $@;
   $self->{SESSION_ID} = $session->ID();
@@ -1723,7 +1728,7 @@ sub compress_uplink {
   return unless $self->{can_do_zlib};
   return $self->{uplink} unless defined $value;
   if ( $value ) {
-	$self->{out_filter}->unshift( POE::Filter::Zlib->new() ) unless $self->{uplink};
+	$self->{out_filter}->unshift( POE::Filter::Zlib::Stream->new() ) unless $self->{uplink};
 	$self->{uplink} = 1;
   } else {
 	$self->{out_filter}->shift() if $self->{uplink};
@@ -1737,7 +1742,7 @@ sub compress_downlink {
   return unless $self->{can_do_zlib};
   return $self->{downlink} unless defined $value;
   if ( $value ) {
-	$self->{srv_filter}->unshift( POE::Filter::Zlib->new() ) unless $self->{downlink};
+	$self->{srv_filter}->unshift( POE::Filter::Zlib::Stream->new() ) unless $self->{downlink};
 	$self->{downlink} = 1;
   } else {
 	$self->{srv_filter}->shift() if $self->{uplink};

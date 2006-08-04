@@ -35,6 +35,7 @@ our %cmd_server = map { ( 'server_' . $_ => 'cmd_input' ) } qw (kick kill mode);
 
 our $GOT_IDENT;
 our $GOT_DNS;
+our $GOT_ZLIB;
 
 BEGIN: {
 	$GOT_IDENT = 0;
@@ -51,6 +52,14 @@ BEGIN: {
 	   if ( $POE::Component::Client::DNS::VERSION >= 0.99 ) {
 	     $GOT_DNS = 1;
 	   }
+	};
+}
+
+BEGIN: {
+	$GOT_ZLIB = 0;
+	eval {
+	   require POE::Filter::Zlib::Stream;
+	   $GOT_ZLIB = 1;
 	};
 }
 
@@ -431,10 +440,17 @@ sub accept_failed {
 sub accept_new_connection {
   my ($kernel,$self,$socket,$peeraddr,$peerport,$wheel_id) = @_[KERNEL,OBJECT,ARG0 .. ARG3];
   $peeraddr = inet_ntoa($peeraddr);
+  my $filter;
+
+  if ( $GOT_ZLIB and $self->{Listeners}->{ $self->{Listener_Wheels}->{ $wheel_id } }->{Compress} ) {
+	$filter = POE::Filter::Stackable->new( Filters => [ POE::Filter::Zlib::Stream->new(), $self->{filter} ] );
+  } else {
+	$filter = $self->{filter};
+  }
 
   my $wheel = POE::Wheel::ReadWrite->new (
 	Handle => $socket,
-	Filter => $self->{filter},
+	Filter => $filter,
 	InputEvent => 'connection_input',
 	ErrorEvent => 'connection_error',
 	FlushedEvent => 'connection_flushed',

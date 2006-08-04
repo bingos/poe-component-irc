@@ -80,3 +80,4 @@ t/testsuite_13_dcc_nat.t
 t/testsuite_14_multi_state.t
 t/testsuite_15_signal.t
 t/testsuite_16_multi_signal.t
+t/testsuite_17_ziplink.t
