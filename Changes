@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-4.98  <Date>
+4.98  Fri Aug 18 12:30:31 BST 2006
     - Added support for connecting to ircds that support compressed
       links; only PCSI does this afaik, so limited use for most peeps.
     - Applied a patch from dec to fix a bug in ISupport plugin, RT #21058.
