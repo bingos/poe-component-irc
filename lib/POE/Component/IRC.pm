@@ -682,7 +682,6 @@ sub _start {
   # Send queue is used to hold pending lines so we don't flood off.
   # The count is used to track the number of lines sent at any time.
   $self->{send_queue} = [ ];
-  #$_[HEAP]->{send_queue} = $self->{send_queue};
   $self->{send_time}  = 0;
 
   $session->option( @options ) if @options;
