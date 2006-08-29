@@ -12,12 +12,13 @@ package POE::Component::IRC::Qnet::State;
 use strict;
 use warnings;
 use Carp;
+use POE;
 use POE::Component::IRC::Common qw(:ALL);
 use POE::Component::IRC::Plugin qw(:ALL);
 use vars qw($VERSION);
 use base qw(POE::Component::IRC::State POE::Component::IRC::Qnet);
 
-$VERSION = '1.5';
+$VERSION = '1.6';
 
 sub _create {
   my $self = shift;
@@ -88,11 +89,55 @@ sub _create {
 
   $self->{OBJECT_STATES_HASHREF}->{'qbot_' . $_} = 'qnet_bot_commands' for @qbot_commands;
   $self->{OBJECT_STATES_HASHREF}->{'lbot_' . $_} = 'qnet_bot_commands' for @lbot_commands;
+  $self->{OBJECT_STATES_HASHREF}->{'resync_chan'} = '_resync_chan';
+  $self->{OBJECT_STATES_HASHREF}->{'resync_nick'} = '_resync_nick';
   $self->{server} = 'irc.quakenet.org';
   $self->{QBOT} = 'Q@Cserve.quakenet.org';
   $self->{LBOT} = 'L@lightweight.quakenet.org';
 
   return 1;
+}
+
+sub _resync_chan {
+  my ($kernel,$self,@channels) = @_[KERNEL,OBJECT,ARG0..$#_];
+  my $mapping = $self->isupport('CASEMAPPING');
+  my $nickname = $self->nick_name();
+  my $flags = '%cunharsft';
+  foreach my $channel ( @channels ) {
+	next unless $self->is_channel_member( $channel, $nickname );
+  	my $uchan = u_irc $channel, $mapping;
+	delete $self->{STATE}->{Chans}->{ $uchan };
+	$self->{CHANNEL_SYNCH}->{ $uchan } = { MODE => 0, WHO => 0, BAN => 0, _time => time() };
+        $self->{STATE}->{Chans}->{ $uchan } = { Name => $channel, Mode => '' };
+        $self->yield ( 'sl' => "WHO $channel $flags,101" );
+        $self->yield ( 'mode' => $channel );
+        $self->yield ( 'mode' => $channel => 'b');
+  }
+  undef;
+}
+
+sub _resync_nick {
+  my ($kernel,$self,$nick,@channels) = @_[KERNEL,OBJECT,ARG0..$#_];
+  my $info = $self->nick_info( $nick );
+  return unless $info;
+  $nick = $info->{Nick};
+  my $user = $info->{User};
+  my $host = $info->{Host};
+  my $mapping = $self->isupport('CASEMAPPING');
+  my $unick = u_irc $nick, $mapping;
+  my $flags = '%cunharsft';
+  foreach my $channel ( @channels ) {
+	next unless $self->is_channel_member( $channel, $nick );
+  	my $uchan = u_irc $channel, $mapping;
+        $self->yield ( 'sl' => "WHO $nick $flags,102" );
+        $self->{STATE}->{Nicks}->{ $unick }->{Nick} = $nick;
+        $self->{STATE}->{Nicks}->{ $unick }->{User} = $user;
+        $self->{STATE}->{Nicks}->{ $unick }->{Host} = $host;
+        $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan } = '';
+        $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick } = '';
+	push @{ $self->{NICK_SYNCH}->{ $unick } }, $channel;
+  }
+  undef;
 }
 
 # Qnet extension to RPL_WHOIS
@@ -346,6 +391,22 @@ and have authed with Q. Returns undef if the user is not authed or the nick does
 Expects a nickname. Returns a hashref containing similar information to that returned by WHOIS. Returns an undef
 if the nickname doesn't exist in the state. The hashref contains the following keys: 'Nick', 'User', 'Host', 'Se
 rver', 'Auth', if authed, and, if applicable, 'IRCop'.
+
+=back
+
+=head1 INPUT
+
+These additional events are accepted:
+
+=over
+
+=item resync_chan
+
+Accepts a list of channels, will resynchronise each of those channels as if they have been joined for the first time. Expect to see an 'irc_chan_sync' event for each channel given.
+
+=item resync_nick
+
+Accepts a nickname and a list of channels. Will resynchronise the given nickname and issue an 'irc_nick_sync' event for each of the given channels ( assuming that nick is on each of those channels ).
 
 =back
 

@@ -1,5 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
+4.99  <Date>
+    - Added resync_chan and resync_nick to Qnet::State subclass, as
+      suggested by helios.
+
 4.98  Fri Aug 18 12:30:31 BST 2006
     - Added support for connecting to ircds that support compressed
       links; only PCSI does this afaik, so limited use for most peeps.
