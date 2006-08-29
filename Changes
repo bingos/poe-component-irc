@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-4.99  <Date>
+4.99  Tue Aug 29 17:47:04 BST 2006
     - Added resync_chan and resync_nick to Qnet::State subclass, as
       suggested by helios.
 
