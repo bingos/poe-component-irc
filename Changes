@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-5.00  <Date>
+5.00  Fri Sep 01 02:20:54 BST 2006 YAPC::EU Birmingham 2006 release
     - Test::Pod::Coverage test added, inspired by CPANTS hackathon,
       cheers, domm.
     - Added use strict to ::Constants.
