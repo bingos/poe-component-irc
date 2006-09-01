@@ -190,6 +190,16 @@ POE::Component::IRC::Plugin::Whois is the reimplementation of the 'irc_whois' an
 L<POE::Component::IRC> as a plugin. It is used internally by L<POE::Component::IRC>
 so there is no need to use this plugin yourself.
 
+=head1 CONSTRUCTOR
+
+=over
+
+=item new
+
+No arguments required. Returns an POE::Component::IRC::Plugin::Whois object.
+
+=back
+
 =head1 AUTHOR
 
 Chris "BinGOs" Williams

@@ -70,26 +70,26 @@ sub spawn {
 
   croak "You must specify an Alias to $package->spawn" unless $args{Alias};
 
-  my $self = $package->new(@_);
+  my $self = $package->_new(@_);
 
-  my @object_client_handlers = map { 'ircd_client_' . lc } @client_commands;
-  my @object_server_handlers = map { 'ircd_server_' . lc } @server_commands;
-  my @object_connection_handlers = map { 'ircd_connection_' . lc } @connection_commands;
+  my %object_client_handlers = map { 'ircd_client_' . lc => '_ircd_client_' . lc } @client_commands;
+  my %object_server_handlers = map { 'ircd_server_' . lc => '_ircd_server_' . lc } @server_commands;
+  my %object_connection_handlers = map { 'ircd_connection_' . lc => '_ircd_connection_' . lc } @connection_commands;
 
   POE::Session->create(
 	object_states => [
-		$self => { _start              => 'ircd_start',
-			   _stop               => 'ircd_stop',
-			   ircd_client_privmsg => 'ircd_client_message',
-			   ircd_client_rehash  => 'ircd_client_o_cmds',
-			   ircd_client_restart => 'ircd_client_o_cmds',
-			   ircd_client_die     => 'ircd_client_o_cmds',
-			   ircd_client_notice  => 'ircd_client_message',
-			   shutdown            => 'ircd_shutdown' },
+		$self => { _start              => '_ircd_start',
+			   _stop               => '_ircd_stop',
+			   ircd_client_privmsg => '_ircd_client_message',
+			   ircd_client_rehash  => '_ircd_client_o_cmds',
+			   ircd_client_restart => '_ircd_client_o_cmds',
+			   ircd_client_die     => '_ircd_client_o_cmds',
+			   ircd_client_notice  => '_ircd_client_message',
+			   shutdown            => '_ircd_shutdown' },
 		$self => [ qw(got_hostname_response got_ip_response poll_connections client_registered auth_client register unregister configure add_operator add_listener accept_new_connection accept_failed connection_input connection_error connection_flushed set_motd ident_client_reply ident_client_error auth_done add_i_line sig_hup_rehash client_dispatcher client_ping cmd_input) ],
-		$self => \@object_client_handlers,
-		$self => \@object_server_handlers,
-		$self => \@object_connection_handlers,
+		$self => \%object_client_handlers,
+		$self => \%object_server_handlers,
+		$self => \%object_connection_handlers,
 		$self => \%cmd_server,
 		$self => \@cmd_server,
 	],
@@ -99,7 +99,7 @@ sub spawn {
   return $self;
 }
 
-sub new {
+sub _new {
   my $package = shift;
   my %args = @_;
 
@@ -167,7 +167,7 @@ sub new {
   return bless $self, $package;
 }
 
-sub ircd_start {
+sub _ircd_start {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
 
   $kernel->sig( HUP => 'sig_hup_rehash' );
@@ -194,11 +194,11 @@ sub ircd_start {
   $kernel->delay ( 'poll_connections' => $self->lowest_ping_frequency() );
 }
 
-sub ircd_stop {
+sub _ircd_stop {
   # Probably need some cleanup code here.
 }
 
-sub ircd_shutdown {
+sub _ircd_shutdown {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
 
   unless ( $self->{CANT_AUTH} ) {
@@ -638,7 +638,7 @@ sub auth_client {
   undef;
 }
 
-sub ircd_connection_nick {
+sub _ircd_connection_nick {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
   my ($nickname) = $input->{params}->[0];
   $nickname = substr($nickname,0,$self->{Config}->{NICKLEN}) if ( defined ( $nickname ) and length($nickname) > $self->{Config}->{NICKLEN} );
@@ -676,7 +676,7 @@ sub ircd_connection_nick {
   undef;
 }
 
-sub ircd_connection_user {
+sub _ircd_connection_user {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -702,7 +702,7 @@ sub ircd_connection_user {
   undef;
 }
 
-sub ircd_connection_quit {
+sub _ircd_connection_quit {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -715,7 +715,7 @@ sub ircd_connection_quit {
   undef;
 }
 
-sub ircd_connection_pass {
+sub _ircd_connection_pass {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -731,7 +731,7 @@ sub ircd_connection_pass {
   undef;
 }
 
-sub ircd_connection_server {
+sub _ircd_connection_server {
   undef;
 }
 
@@ -876,7 +876,7 @@ sub ident_client_error {
   undef;
 }
 
-sub ircd_client_oper {
+sub _ircd_client_oper {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -904,7 +904,7 @@ sub ircd_client_oper {
   undef;
 }
 
-sub ircd_client_nick {
+sub _ircd_client_nick {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -925,7 +925,7 @@ sub ircd_client_nick {
   undef;
 }
 
-sub ircd_client_user {
+sub _ircd_client_user {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -937,7 +937,7 @@ sub ircd_client_user {
   undef;
 }
 
-sub ircd_client_pass {
+sub _ircd_client_pass {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -949,7 +949,7 @@ sub ircd_client_pass {
   undef;
 }
 
-sub ircd_client_part {
+sub _ircd_client_part {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -977,7 +977,7 @@ sub ircd_client_part {
   undef;
 }
 
-sub ircd_client_quit {
+sub _ircd_client_quit {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   if ( $self->client_exists( $wheel_id ) ) {
@@ -1004,7 +1004,7 @@ sub ircd_client_quit {
   undef;
 }
 
-sub ircd_client_join {
+sub _ircd_client_join {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
   my (@channels); my (@channel_keys);
 
@@ -1074,7 +1074,7 @@ sub ircd_client_join {
   undef;
 }
 
-sub ircd_client_invite {
+sub _ircd_client_invite {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -1120,7 +1120,7 @@ sub ircd_client_invite {
   undef;
 }
 
-sub ircd_client_kick {
+sub _ircd_client_kick {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
   my (@channels); my (@nicknames);
 
@@ -1177,7 +1177,7 @@ sub ircd_client_kick {
   undef;
 }
 
-sub ircd_client_names {
+sub _ircd_client_names {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   # TODO: Rework this SWITCH so that we aren't duplicating code.
@@ -1223,7 +1223,7 @@ sub ircd_client_names {
   undef;
 }
 
-sub ircd_client_mode {
+sub _ircd_client_mode {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -1337,7 +1337,7 @@ sub ircd_client_mode {
   undef;
 }
 
-sub ircd_client_topic {
+sub _ircd_client_topic {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -1374,7 +1374,7 @@ sub ircd_client_topic {
   undef;
 }
 
-sub ircd_client_o_cmds {
+sub _ircd_client_o_cmds {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -1407,7 +1407,7 @@ sub sig_hup_rehash {
     $kernel->sig_handled();
 }
 
-sub ircd_client_kill {
+sub _ircd_client_kill {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -1451,7 +1451,7 @@ sub ircd_client_kill {
   undef;
 }
 
-sub ircd_client_wallops {
+sub _ircd_client_wallops {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -1479,7 +1479,7 @@ sub ircd_client_wallops {
   undef;
 }
 
-sub ircd_client_message {
+sub _ircd_client_message {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -1535,7 +1535,7 @@ sub ircd_client_message {
   undef;
 }
 
-sub ircd_client_summon {
+sub _ircd_client_summon {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -1547,7 +1547,7 @@ sub ircd_client_summon {
   undef;
 }
 
-sub ircd_client_users {
+sub _ircd_client_users {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -1559,7 +1559,7 @@ sub ircd_client_users {
   undef;
 }
 
-sub ircd_client_who {
+sub _ircd_client_who {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -1611,7 +1611,7 @@ sub ircd_client_who {
   undef;
 }
 
-sub ircd_client_whois {
+sub _ircd_client_whois {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -1684,7 +1684,7 @@ sub ircd_client_whois {
   undef;
 }
 
-sub ircd_client_whowas {
+sub _ircd_client_whowas {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -1716,7 +1716,7 @@ sub ircd_client_whowas {
   undef;
 }
 
-sub ircd_client_away {
+sub _ircd_client_away {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -1746,7 +1746,7 @@ sub ircd_client_away {
   undef;
 }
 
-sub ircd_client_motd {
+sub _ircd_client_motd {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -1780,7 +1780,7 @@ sub ircd_client_motd {
   undef;
 }
 
-sub ircd_client_lusers {
+sub _ircd_client_lusers {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -1809,7 +1809,7 @@ sub ircd_client_lusers {
   undef;
 }
 
-sub ircd_client_version {
+sub _ircd_client_version {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -1832,7 +1832,7 @@ sub ircd_client_version {
   undef;
 }
 
-sub ircd_client_time {
+sub _ircd_client_time {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -1855,7 +1855,7 @@ sub ircd_client_time {
   undef;
 }
 
-sub ircd_client_userhost {
+sub _ircd_client_userhost {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -1879,7 +1879,7 @@ sub ircd_client_userhost {
   undef;
 }
 
-sub ircd_client_ping {
+sub _ircd_client_ping {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -1905,7 +1905,7 @@ sub ircd_client_ping {
   undef;
 }
 
-sub ircd_client_pong {
+sub _ircd_client_pong {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -1931,7 +1931,7 @@ sub ircd_client_pong {
   undef;
 }
 
-sub ircd_client_list {
+sub _ircd_client_list {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -1966,7 +1966,7 @@ sub ircd_client_list {
   undef;
 }
 
-sub ircd_client_admin {
+sub _ircd_client_admin {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -1999,7 +1999,7 @@ sub ircd_client_admin {
   undef;
 }
 
-sub ircd_client_stats {
+sub _ircd_client_stats {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -2037,7 +2037,7 @@ sub ircd_client_stats {
   undef;
 }
 
-sub ircd_client_info {
+sub _ircd_client_info {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -2064,7 +2064,7 @@ sub ircd_client_info {
   undef;
 }
 
-sub ircd_client_ison {
+sub _ircd_client_ison {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {
@@ -2134,7 +2134,7 @@ sub server_registered {
   undef;
 }
 
-sub ircd_server_wallops {
+sub _ircd_server_wallops {
   my ($kernel,$self,$input,$wheel_id) = @_[KERNEL,OBJECT,ARG0,ARG1];
 
   SWITCH: {

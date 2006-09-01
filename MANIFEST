@@ -52,6 +52,7 @@ t/2_Qnet_State.t
 t/3_connect.t
 t/4_testharness.t
 t/5_pod.t
+t/5_pod_coverage.t
 t/6_common.t
 t/7_parent.t
 t/plugins/00_plugman.t

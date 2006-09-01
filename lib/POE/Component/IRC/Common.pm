@@ -153,6 +153,8 @@ POE::Component::IRC::Common - provides a set of common functions for the L<POE::
 	print "EEK!";
   }
 
+  my $results_hashref = matches_mask_array( \@masks, \@items_to_match_against );
+
   my $nick = parse_user( 'stalin!joe@kremlin.ru' );
   my ($nick,$user,$host) = parse_user( 'stalin!joe@kremlin.ru' );
 
@@ -202,6 +204,10 @@ Example:
 =item matches_mask
 
 Takes two parameters, a string representing an IRC mask ( it'll be processed with parse_ban_mask() to ensure that it is normalised ) and something to match against the IRC mask, such as a nick!user@hostname string. Returns 1 if they match, 0 otherwise. Returns undef if parameters are missing. Optionally, one may pass the casemapping ( see u_irc() ), as this function ises u_irc() internally.
+
+=item matches_mask_array
+
+Takes two array references, the first being a list of strings representing IRC mask, the second a list of somethings to test against the masks. Returns an empty hashref if there are no matches. Matches are returned are arrayrefs keyed on the mask that they matched.
 
 =item parse_user
 

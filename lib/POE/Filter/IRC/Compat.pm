@@ -138,3 +138,47 @@ sub _decolon ($) {
 
 1;
 __END__
+
+=head1 NAME
+
+POE::Filter::IRC::Compat - hackery to convert POE::Filter::IRCD output into POE::Component::IRC events.
+
+=head1 DESCRIPTION
+
+POE::Filter::IRC::Compat is a L<POE::Filter> that converts L<POE::Filter::IRCD> output into the L<POE::Component::IRC> compatible event references. Basically a hack, so I could replace L<POE::Filter::IRC> with something that was more generic.
+
+=head1 CONSTRUCTOR
+
+=over
+
+=item new
+
+Returns a POE::Filter::IRC::Compat object.
+
+=back
+
+=head1 METHODS
+
+=over
+
+=item get
+
+Takes an arrayref of L<POE::Filter::IRCD> hashrefs and produces an arrayref of L<POE::Component::IRC> compatible event hashrefs. Yay.
+
+=item get_one_start
+
+=item get_one
+
+These perform a similar function as get() but enable the filter to work with L<POE::Filter::Stackable>.
+
+=back
+
+=head1 AUTHOR
+
+Chris 'BinGOs' Williams
+
+=head1 SEE ALSO
+
+L<POE::Filter>
+
+L<POE::Filter::Stackable>

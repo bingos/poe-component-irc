@@ -195,7 +195,10 @@ sub load {
   $module =~ s/::/\//g;
 
   eval "require $plugin;";
-  return 0 if $@;
+  if ( $@ ) {
+     warn "$@\n";
+     return 0;
+  }
 
   my $object = $plugin->new( @_ );
 
@@ -227,11 +230,11 @@ sub unload {
   my $file = $self->{plugins}->{ $desc }->{plugin};
   delete $INC{$module};
   delete $self->{plugins}->{ $desc };
-  $self->unload_subs($file);
+  $self->_unload_subs($file);
   return 1;
 }
 
-sub unload_subs {
+sub _unload_subs {
     my $self = shift;
     my $file = shift;
 

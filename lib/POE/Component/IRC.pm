@@ -32,7 +32,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '4.99';
+$VERSION = '5.00';
 $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -138,12 +138,11 @@ sub _create {
 				      dcc_resume
 				      dcc_chat
 				      dcc_close
-				      do_connect
-				      got_dns_response
+				      _do_connect
+				      _got_dns_response
 				      ison
 				      kick
 				      register
-				      register_session
 				      remove
 				      shutdown
 				      sl
@@ -577,8 +576,8 @@ sub _sock_down {
   $kernel->delay( sl_delayed => undef );
 
   # Reset the filters if necessary
-  $self->compress_uplink( 0 );
-  $self->compress_downlink( 0 );
+  $self->_compress_uplink( 0 );
+  $self->_compress_downlink( 0 );
 
   # post a 'irc_disconnected' to each session that cares
   $self->_send_event( 'irc_disconnected', $self->{server} );
@@ -623,8 +622,8 @@ sub _sock_up {
   }
 
   if ( $self->{compress} ) {
-	$self->compress_uplink(1);
-	$self->compress_downlink(1);
+	$self->_compress_uplink(1);
+	$self->_compress_downlink(1);
   }
   # Create a new ReadWrite wheel for the connected socket.
   $self->{'socket'} = new POE::Wheel::ReadWrite
@@ -797,12 +796,12 @@ sub connect {
 
   # try and use non-blocking resolver if needed
   if ( $self->{resolver} && $self->{'server'} !~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/ && !$self->{'NoDNS'} ) {
-    my $response = $self->{resolver}->resolve( event => "got_dns_response", host =>  $self->{'server'}, context => { } );
+    my $response = $self->{resolver}->resolve( event => "_got_dns_response", host =>  $self->{'server'}, context => { } );
     if ( $response ) {
-	$kernel->yield( got_dns_response => $response );
+	$kernel->yield( _got_dns_response => $response );
     }
   } else {
-    $kernel->yield("do_connect");
+    $kernel->yield("_do_connect");
   }
 
   $self->{RealNick} = $self->{nick};
@@ -810,7 +809,7 @@ sub connect {
 }
 
 # open the connection
-sub do_connect {
+sub _do_connect {
   my ($kernel, $self, $session, $args) = @_[KERNEL, OBJECT, SESSION];
 
   # Disconnect if we're already logged into a server.
@@ -831,7 +830,7 @@ sub do_connect {
 }
 
 # got response from POE::Component::Client::DNS
-sub got_dns_response {
+sub _got_dns_response {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
   my ($net_dns_packet) = $_[ARG0]->{response};
   my ($net_dns_errorstring) = $_[ARG0]->{error};
@@ -856,7 +855,7 @@ sub got_dns_response {
 
   if ( my $address = shift @{ $self->{res_addresses} } ) {
     $self->{'server'} = $address;
-    $kernel->yield("do_connect");
+    $kernel->yield("_do_connect");
     return;
   }
 
@@ -1399,32 +1398,6 @@ sub register {
   undef;
 }
 
-sub register_session {
-  my ($kernel, $self, $session, $called_by, $sender, @events) =
-    @_[KERNEL, OBJECT, SESSION, SENDER, ARG0 .. $#_];
-
-  unless ($session eq $called_by) {
-    warn "register_session: Naughty. Naughty. Only my session can call this";
-    return;
-  }
-  unless (@events) {
-    warn "register_session: Not enough arguments";
-    return;
-  }
-
-  # FIXME: What "special" event names go here? (ie, "errors")
-  # basic, dcc (implies ctcp), ctcp, oper ...what other categories?
-  foreach (@events) {
-    $_ = "irc_" . $_ unless /^_/;
-    $self->{events}->{$_}->{$sender} = $sender;
-    $self->{sessions}->{$sender}->{'ref'} = $sender;
-    unless ($self->{sessions}->{$sender}->{refcnt}++ or $session == $sender) {
-      $kernel->refcount_increment($sender->ID(), PCI_REFCOUNT_TAG);
-    }
-  }
-  undef;
-}
-
 # Tell the IRC session to go away.
 sub shutdown {
   my ($kernel, $self, $session) = @_[KERNEL, OBJECT, SESSION];
@@ -1722,7 +1695,7 @@ sub connected {
   return $self->{connected};
 }
 
-sub compress_uplink {
+sub _compress_uplink {
   my ($self,$value) = splice @_, 0, 2;
   return unless $self->{can_do_zlib};
   return $self->{uplink} unless defined $value;
@@ -1736,7 +1709,7 @@ sub compress_uplink {
   return $self->{uplink};
 }
 
-sub compress_downlink {
+sub _compress_downlink {
   my ($self,$value) = splice @_, 0, 2;
   return unless $self->{can_do_zlib};
   return $self->{downlink} unless defined $value;
@@ -2361,6 +2334,10 @@ second argument is the time in seconds that one wishes to delay the command bein
 
 Returns a reference to the L<POE::Component::Client::DNS> object that is internally 
 created by the component.
+
+=item pipeline
+
+Returns a reference to the L<POE::Component::IRC::Pipeline> object used by the plugin system.
 
 =back
 

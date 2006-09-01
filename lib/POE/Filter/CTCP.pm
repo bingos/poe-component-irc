@@ -235,31 +235,35 @@ messages? WTF? It looks like it's practically complexity for
 complexity's sake -- and don't even get me started on the design of the
 DCC protocol! Anyhow, enough ranting. Onto the rest of the docs...
 
+=head1 CONSTRUCTOR
+
+=over
+
+=item new
+
+Creates a new POE::Filter::CTCP object. Duh. :-)   Takes no arguments.
+
+=back
+
 =head1 METHODS
 
 =over
 
-=item *
-
-new
-
-Creates a new POE::Filter::CTCP object. Duh. :-)   Takes no arguments.
-
-=item *
-
-get
+=item get
 
 Takes an array reference containing one or more lines of CTCP-quoted
 text. Returns an array reference of processed, pasteurized events.
 
-=item *
-
-put
+=item put
 
 Takes an array reference of CTCP messages to be properly quoted. This
 doesn't support CTCPs embedded in normal messages, which is a
 brain-dead hack in the protocol, so do it yourself if you really need
 it. Returns an array reference of the quoted lines for sending.
+
+=item debug 
+
+Takes a true/false value which enables/disbles debugging accordingly.
 
 =back
 

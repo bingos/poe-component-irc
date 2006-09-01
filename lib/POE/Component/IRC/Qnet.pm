@@ -85,8 +85,8 @@ sub _create {
         requestowner
         );
 
-  $self->{OBJECT_STATES_HASHREF}->{'qbot_' . $_} = 'qnet_bot_commands' for @qbot_commands;
-  $self->{OBJECT_STATES_HASHREF}->{'lbot_' . $_} = 'qnet_bot_commands' for @lbot_commands;
+  $self->{OBJECT_STATES_HASHREF}->{'qbot_' . $_} = '_qnet_bot_commands' for @qbot_commands;
+  $self->{OBJECT_STATES_HASHREF}->{'lbot_' . $_} = '_qnet_bot_commands' for @lbot_commands;
   $self->{server} = 'irc.quakenet.org';
   $self->{QBOT} = 'Q@Cserve.quakenet.org';
   $self->{LBOT} = 'L@lightweight.quakenet.org';
@@ -94,7 +94,7 @@ sub _create {
   return 1;
 }
 
-sub qnet_bot_commands {
+sub _qnet_bot_commands {
   my ($kernel, $state, $self) = @_[KERNEL,STATE,OBJECT];
   my $message = join ' ', @_[ARG0 .. $#_];
   my $pri = $self->{IRC_CMDS}->{'privmsghi'}->[CMD_PRI];

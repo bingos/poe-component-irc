@@ -1,5 +1,7 @@
 package POE::Component::IRC::Constants;
 
+use strict;
+
 require Exporter;
 
 our @ISA    = qw(Exporter);

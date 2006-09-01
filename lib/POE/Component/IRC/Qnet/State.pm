@@ -87,8 +87,8 @@ sub _create {
         requestowner
         );
 
-  $self->{OBJECT_STATES_HASHREF}->{'qbot_' . $_} = 'qnet_bot_commands' for @qbot_commands;
-  $self->{OBJECT_STATES_HASHREF}->{'lbot_' . $_} = 'qnet_bot_commands' for @lbot_commands;
+  $self->{OBJECT_STATES_HASHREF}->{'qbot_' . $_} = '_qnet_bot_commands' for @qbot_commands;
+  $self->{OBJECT_STATES_HASHREF}->{'lbot_' . $_} = '_qnet_bot_commands' for @lbot_commands;
   $self->{OBJECT_STATES_HASHREF}->{'resync_chan'} = '_resync_chan';
   $self->{OBJECT_STATES_HASHREF}->{'resync_nick'} = '_resync_nick';
   $self->{server} = 'irc.quakenet.org';

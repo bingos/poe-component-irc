@@ -152,26 +152,30 @@ POE::Component::IRC. They look like this:
 
     { name => 'event name', args => [ some info about the event ] }
 
+=head1 CONSTRUCTOR
+
+=over
+
+=item new
+
+Creates a new POE::Filter::IRC object. Duh. :-)   Takes no arguments.
+
+=back
+
 =head1 METHODS
 
 =over
 
-=item *
+=item debug
 
-new
+Without arguments, returns the current debug state. True/false argument will toggle the debug state.
 
-Creates a new POE::Filter::IRC object. Duh. :-)   Takes no arguments.
-
-=item *
-
-get
+=item get
 
 Takes an array reference full of lines of raw IRC text. Returns an
 array reference of processed, pasteurized events.
 
-=item *
-
-put
+=item put
 
 There is no "put" method. That would be kinda silly for this filter,
 don't you think?

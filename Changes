@@ -1,5 +1,12 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.00  <Date>
+    - Test::Pod::Coverage test added, inspired by CPANTS hackathon,
+      cheers, domm.
+    - Added use strict to ::Constants.
+    - PlugMan plugin will dump $@ when a plugin fails to 'load' now.
+    - Documentation fixes to a lot of modules due to Pod::Coverage.
+
 4.99  Tue Aug 29 17:47:04 BST 2006
     - Added resync_chan and resync_nick to Qnet::State subclass, as
       suggested by helios.
