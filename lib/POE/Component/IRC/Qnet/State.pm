@@ -268,13 +268,25 @@ sub is_nick_authed {
   return undef;
 }
 
+sub find_auth_nicks {
+  my $self = shift;
+  my $auth = shift || return;
+  my $chan = shift || return;
+  return unless _channel_exists( $chan );
+  my @results;
+  foreach my $nick ( keys %{ $self->{STATE}->{Chans}->{ $chan }->{Nicks} } ) {
+    push @results, $self->{STATE}->{Nicks}->{ $nick }->{Nick} if defined ( $self->{STATE}->{Nicks}->{ $nick }->{Auth} ) and $self->{STATE}->{Nicks}->{ $nick }->{Auth} eq $auth;
+  }
+  return @results; 
+}
+
 1;
 __END__
 
 =head1 NAME
 
 POE::Component::IRC::Qnet::State - a fully event-driven IRC client module for Quakenet,
-with nickname and channel tracking from L<POE::Component::IRC::State|POE::Component::IRC::State>.
+with nickname and channel tracking from L<POE::Component::IRC::State>.
 
 =head1 SYNOPSIS
 
@@ -372,10 +384,10 @@ with nickname and channel tracking from L<POE::Component::IRC::State|POE::Compon
 
 =head1 DESCRIPTION
 
-POE::Component::IRC::Qnet::State is an extension to L<POE::Component::IRC::Qnet|POE::Component::IRC::Qnet>
+POE::Component::IRC::Qnet::State is an extension to L<POE::Component::IRC::Qnet>
 specifically for use on Quakenet L<http://www.quakenet.org/>, which includes the nickname and channel tracking
-from L<POE::Component::IRC::State|POE::Component::IRC::State>. See the documentation for
-L<POE::Component::IRC::Qnet|POE::Component::IRC::Qnet> and L<POE::Component::IRC::State|POE::Component::IRC::State> for general usage. This document covers the extensions.
+from L<POE::Component::IRC::State>. See the documentation for
+L<POE::Component::IRC::Qnet> and L<POE::Component::IRC::State> for general usage. This document covers the extensions.
 
 =head1 METHODS
 
@@ -385,6 +397,10 @@ L<POE::Component::IRC::Qnet|POE::Component::IRC::Qnet> and L<POE::Component::IRC
 
 Expects a nickname as parameter. Will return that users authname ( account ) if that nick is in the state 
 and have authed with Q. Returns undef if the user is not authed or the nick doesn't exist in the state.
+
+=item find_auth_nicks
+
+Expects an authname and a channel name. Will return a list of nicks on the given channel that have authed with the given authname.
 
 =item nick_info
 
@@ -427,8 +443,8 @@ only way to do it, unfortunately.
 
 =head1 CAVEATS
 
-Like L<POE::Component::IRC::State|POE::Component::IRC::State> this component registers itself for
-a number of events. The main difference with L<POE::Component::IRC::State|POE::Component::IRC::State> is
+Like L<POE::Component::IRC::State> this component registers itself for
+a number of events. The main difference with L<POE::Component::IRC::State> is
 that it uses an extended form of 'WHO' supported by the Quakenet ircd, asuka. This WHO returns a different
 numeric reply than the original WHO, namely, 'irc_354'. Also, due to the way Quakenet is configured all users
 will appear to be on the server '*.quakenet.org'.
@@ -444,13 +460,16 @@ Chris 'BinGOs' Williams E<lt>chris@bingosnet.co.ukE<gt>
 
 Based on the original POE::Component::IRC by:
 
-Dennis Taylor, E<lt>dennis@funkplanet.comE<gt>
+Dennis Taylor
 
 =head1 SEE ALSO
 
-L<POE::Component::IRC|POE::Component::IRC>
-L<POE::Component::IRC::State|POE::Component::IRC::State>
-L<POE::Component::IRC::Qnet|POE::Component::IRC::Qnet>
+L<POE::Component::IRC>
+
+L<POE::Component::IRC::State>
+
+L<POE::Component::IRC::Qnet>
+
 L<http://www.quakenet.org/>
 
 =cut

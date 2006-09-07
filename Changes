@@ -3,6 +3,8 @@ Revision history for Perl extension POE::Component::IRC.
 5.01  <Foo>
     - Fixed file permissions in the distribution. Again a CPANTS
       gripe.
+    - Fiddled with State's insides.
+    - Added find_auth_nicks method to Qnet::State, requested by helios.
 
 5.00  Fri Sep 01 02:20:54 BST 2006 YAPC::EU Birmingham 2006 release
     - Test::Pod::Coverage test added, inspired by CPANTS hackathon,
