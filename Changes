@@ -1,6 +1,10 @@
 Revision history for Perl extension POE::Component::IRC.
 
-5.01  <Foo>
+5.02  Fri Sep 08 15:43:49 BST 2006
+    - POE-0.37 has found a serious flaw in the shutdown() handler. Fixed.
+    - ::Test::Harness was registering for HUP signal. Stopped that nonsense.
+
+5.01  Thu Sep 07 17:53:00 BST 2006
     - Fixed file permissions in the distribution. Again a CPANTS
       gripe.
     - Fiddled with State's insides.

@@ -170,7 +170,6 @@ sub new {
 sub ircd_start {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
 
-  $kernel->sig( HUP => 'sig_hup_rehash' );
   $kernel->alias_set ( $self->{Alias} );
 
   $self->{StartTime} = time();
@@ -183,7 +182,7 @@ sub ircd_start {
   $self->{Ident_Client} = 'poco_' . $self->{Alias} . '_ident';
   $self->{Resolver} = 'poco_' . $self->{Alias} . '_resolver';
 
-  if ( $GOT_DNS and $GOT_IDENT ) {
+  if ( $GOT_DNS and $GOT_IDENT and $self->{Config}->{Auth} ) {
     POE::Component::Client::Ident->spawn ( $self->{Ident_Client} );
     $self->{ $self->{Resolver} } = POE::Component::Client::DNS->spawn( Alias => $self->{Resolver}, Timeout => 10 );
   } else {
