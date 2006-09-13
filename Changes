@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.03  <Date>
+    - Switched Makefile.PL to using Make::Install. Added Build.PL
+
 5.02  Fri Sep 08 16:32:12 BST 2006
     - POE-0.37 has found a serious flaw in the shutdown() handler. Fixed.
     - ::Test::Harness was registering for HUP signal. Stopped that nonsense.
