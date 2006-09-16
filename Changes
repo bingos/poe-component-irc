@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-5.03  <Date>
+5.03  Sat Sep 16 14:17:01 BST 2006
     - Switched Makefile.PL to using Make::Install. Added Build.PL
     - Fixed META.yml handling.
     - Fixed an unregister bug reported via CPAN::Forum. *sigh*
