@@ -31,6 +31,8 @@ NOTICE
 
 _no_dns() unless $GOT_DNS;
 
+license 'perl';
+
 WriteMakefile(
 			  'NAME'	=> 'POE::Component::IRC',
 			  'PREREQ_PM' => {

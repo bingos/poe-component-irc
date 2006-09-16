@@ -44,7 +44,6 @@ lib/POE/Component/IRC/Test/Plugin.pm
 lib/POE/Filter/CTCP.pm
 lib/POE/Filter/IRC.pm
 lib/POE/Filter/IRC/Compat.pm
-Makefile
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP
