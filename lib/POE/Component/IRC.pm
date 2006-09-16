@@ -1567,7 +1567,12 @@ sub _unregister {
   my $sender_id = $sender->ID();
 
   foreach (@_) {
-    delete $self->{events}->{$_}->{$sender_id};
+    $_ = "irc_" . $_ unless /^_/;
+    my $blah = delete $self->{events}->{$_}->{$sender_id};
+    unless ( $blah ) {
+	warn "$sender_id hasn't registered for '$_' events\n";
+	next;
+    }
     if (--$self->{sessions}->{$sender_id}->{refcnt} <= 0) {
       delete $self->{sessions}->{$sender_id};
       unless ($session == $sender) {
@@ -2627,6 +2632,9 @@ receive. If you've previously done a 'register' for a particular event
 which you no longer care about, this event will tell the IRC
 connection to stop sending them to you. (If you haven't, it just
 ignores you. No big deal.)
+
+If you have registered with 'all', attempting to unregister individual 
+events such as 'mode', etc. will not work. This is a 'feature'.
 
 =item debug
 
