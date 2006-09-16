@@ -32,6 +32,7 @@ NOTICE
 _no_dns() unless $GOT_DNS;
 
 license 'perl';
+author 'Chris Williams <chris@bingosnet.co.uk>';
 
 WriteMakefile(
 			  'NAME'	=> 'POE::Component::IRC',
