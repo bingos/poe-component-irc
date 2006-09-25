@@ -32,7 +32,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '5.03';
+$VERSION = '5.04';
 $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -647,7 +647,14 @@ sub _sock_up {
 
   # CONNECT if we're using a proxy
   if ($self->{proxy}) {
-    $kernel->call($session, 'sl_login', "CONNECT $self->{server}:$self->{port}");
+    
+    #The original proxy code, AFAIK, did not actually work with an HTTP proxy.
+    $kernel->call($session, 'sl_login', 'CONNECT ' . $self->{'server'} . ":" . $self->{'port'} . " HTTP/1.0\n\n");
+
+    #KLUDGE: Also, the original proxy code assumes the connection is instantaneous
+    #Since this is not always the case, mess with the queueing so that the sent text 
+    #is delayed...
+    $self->{send_time} = time() + 10;
   }
 
   # Now that we're connected, attempt to log into the server.

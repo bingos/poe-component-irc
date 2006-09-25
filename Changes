@@ -1,5 +1,10 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.04  Mon Sep 25 13:30:46 BST 2006
+    - Removed Build.PL
+    - Applied a patch from Ben Jackson which fixes the proxy 
+      support. Yay.
+
 5.03  Sat Sep 16 14:17:01 BST 2006
     - Switched Makefile.PL to using Make::Install. Added Build.PL
     - Fixed META.yml handling.
