@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-5.05  <Date>
+5.05  Fri Oct 06 14:40:37 BST 2006
     - ISupport documentation fix.
     - Amendments to plugin processing, plugin debugging should be 
       less noisy now. 
