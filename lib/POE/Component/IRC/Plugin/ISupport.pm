@@ -125,13 +125,8 @@ sub S_005 {
 sub _default {
   my ($self, $irc, $e) = @_;
 
-  # this is designed to determine when to stop reading
-  # when we get a code higher than 005, we unload ourselves
-  # (but we don't want to unregister the /support function)
-
   return PCI_EAT_NONE if $self->{done_005};
   if ($e =~ /^S_0*(\d+)/ and $1 > 5) {
-    #$irc->plugin_unregister($self, SERVER => qw( 005 all ));
     $irc->_send_event(irc_isupport => $self);
     $self->{done_005} = 1;
   }
@@ -162,7 +157,7 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Plugin::ISupport - A PoCo-IRC plugin that handles server capabilities.
+POE::Component::IRC::Plugin::ISupport - A POE::Component::IRC plugin that handles server capabilities.
 
 =head1 DESCRIPTION
 
@@ -205,8 +200,8 @@ Denotes the capabilities of the server.
 
 =item all
 
-Once the next signal is received that is I<greater> than C<irc_005>, the
-plugin unregisters itself and emits an C<irc_isupport> signal.
+Once the next signal is received that is I<greater> than C<irc_005>,
+it emits an C<irc_isupport> signal.
 ck
 
 =back
@@ -231,8 +226,9 @@ Jeff C<japhy> Pinyan, F<japhy@perlmonk.org>
 
 =head1 SEE ALSO
 
-L<POE::Component::IRC|POE::Component::IRC>
-L<POE::Component::IRC::Plugin|POE::Component::IRC::Plugin>
+L<POE::Component::IRC>
+
+L<POE::Component::IRC::Plugin>
 
 =cut
 

@@ -8,7 +8,7 @@ use Socket;
 use Data::Dumper;
 
 my $ircd = POE::Component::IRC::Test::Harness->spawn( Alias => 'ircd', Auth => 0, AntiFlood => 0, Debug => 0 );
-my $irc = POE::Component::IRC->spawn( options => { trace => 0 } );
+my $irc = POE::Component::IRC->spawn( options => { trace => 0 }, plugin_debug => 1 );
 
 isa_ok ( $ircd, 'POE::Component::IRC::Test::Harness' );
 isa_ok ( $irc, 'POE::Component::IRC' );
