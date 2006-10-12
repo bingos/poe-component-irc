@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.06  Thu Oct 12 12:45:06 BST 2006
+    - Adjusted load() in PlugMan, suggested by Stefan Schwarzkopf.
+
 5.05  Fri Oct 06 14:40:37 BST 2006
     - ISupport documentation fix.
     - Amendments to plugin processing, plugin debugging should be 

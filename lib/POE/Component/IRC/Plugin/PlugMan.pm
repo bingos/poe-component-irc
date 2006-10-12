@@ -196,6 +196,8 @@ sub load {
 
   eval "require $plugin;";
   if ( $@ ) {
+     delete $INC{$module};
+     $self->_unload_subs($plugin);
      warn "$@\n";
      return 0;
   }
@@ -215,7 +217,7 @@ sub load {
 	$self->{plugins}->{ $desc }->{args} = $args;
   } else {
 	# Cleanup
-	delete ( $self->{plugins}->{ $desc } );
+	delete $self->{plugins}->{ $desc };
   }
   return $return;
 }
