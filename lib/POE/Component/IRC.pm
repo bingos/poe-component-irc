@@ -32,7 +32,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '5.06';
+$VERSION = '5.07';
 $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -503,14 +503,18 @@ sub _parseline {
   undef;
 }
 
+sub send_event {
+  my $self = shift;
+  $poe_kernel->call( $self->{SESSION_ID}, '__send_event', @_ );
+  return 1;
+}
 
 # Hack to make plugin_add/del send events from OUR session
 sub __send_event {
-	my( $self, $event, @args ) = @_[ OBJECT, ARG0, ARG1 .. $#_ ];
-
-	# Actually send the event...
-	$self->_send_event( $event, @args );
-	return 1;
+  my( $self, $event, @args ) = @_[ OBJECT, ARG0, ARG1 .. $#_ ];
+  # Actually send the event...
+  $self->_send_event( $event, @args );
+  return 1;
 }
 
 # Sends an event to all interested sessions. This is a separate sub
@@ -2353,6 +2357,11 @@ created by the component.
 =item pipeline
 
 Returns a reference to the L<POE::Component::IRC::Pipeline> object used by the plugin system.
+
+=item send_event
+
+Sends an event through the components event handling system. These will get processed by 
+plugins then by registered sessions. First argument is the event name, followed by any parameters for that event.
 
 =back
 

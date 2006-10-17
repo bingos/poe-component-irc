@@ -14,6 +14,7 @@ sub new {
     PIPELINE => [],
     HANDLES => {},
     IRC => $irc,
+    DEBUG => $irc->{plugin_debug},
   }, $class;
 }
 
@@ -26,6 +27,7 @@ sub push {
   my $return;
 
   eval { $return = $plug->PCI_register($self->{IRC}) };
+  warn "$@\n" if $@ and $self->{DEBUG};
 
   if ($return) {
     push @{ $self->{PIPELINE} }, $plug;
@@ -49,6 +51,7 @@ sub pop {
   delete $self->{HANDLES}{$plug};
 
   eval { $plug->PCI_unregister($self->{IRC}) };
+  warn "$@\n" if $@ and $self->{DEBUG};
   $self->{IRC}->yield(__send_event => irc_plugin_del => $alias, $plug);
 
   return wantarray() ? ($plug, $alias) : $plug;
@@ -63,6 +66,7 @@ sub unshift {
   my $return;
 
   eval { $return = $plug->PCI_register($self->{IRC}) };
+  warn "$@\n" if $@ and $self->{DEBUG};
 
   if ($return) {
     unshift @{ $self->{PIPELINE} }, $plug;
@@ -88,6 +92,7 @@ sub shift {
   delete $self->{HANDLES}{$plug};
 
   eval { $plug->PCI_unregister($self->{IRC}) };
+  warn "$@\n" if $@ and $self->{DEBUG};
   $self->{IRC}->yield(__send_event => irc_plugin_del => $alias, $plug);
 
   return wantarray() ? ($plug, $alias) : $plug;
@@ -107,6 +112,7 @@ sub replace {
   delete $self->{PLUGS}{$old_a};
   delete $self->{HANDLES}{$old_p};
   eval { $old_p->PCI_unregister($self->{IRC}) };
+  warn "$@\n" if $@ and $self->{DEBUG};
   $self->{IRC}->yield(__send_event => irc_plugin_del => $old_a, $old_p);
 
   $@ = "Plugin named '$new_a' already exists ($self->{PLUGS}{$new_a}", return
@@ -115,6 +121,7 @@ sub replace {
   my $return;
 
   eval { $return = $new_p->PCI_register($self->{IRC}) };
+  warn "$@\n" if $@ and $self->{DEBUG};
 
   if ($return) {
     $self->{PLUGS}{$new_p} = $new_a;
@@ -152,6 +159,7 @@ sub remove {
   }
 
   eval { $old_p->PCI_unregister($self->{IRC}) };
+  warn "$@\n" if $@ and $self->{DEBUG};
   $self->{IRC}->yield(__send_event => irc_plugin_del => $old_a, $old_p);
 
   return wantarray ? ($old_p, $old_a) : $old_p;
@@ -203,6 +211,7 @@ sub insert_before {
   my $return;
 
   eval { $return = $new_p->PCI_register($self->{IRC}) };
+  warn "$@\n" if $@ and $self->{DEBUG};
 
   if ($return) {
     $self->{PLUGS}{$new_p} = $new_a;
@@ -237,6 +246,7 @@ sub insert_after {
   my $return;
 
   eval { $return = $new_p->PCI_register($self->{IRC}) };
+  warn "$@\n" if $@ and $self->{DEBUG};
 
   if ($return) {
     $self->{PLUGS}{$new_p} = $new_a;
