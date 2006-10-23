@@ -1,5 +1,13 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.08  Mon Oct 23 12:35:04 BST 2006
+    - Remove ::Test::Plugin and relocated code to the actual test.
+    - Removed the optional debug in Pipeline. If there are errors
+      you'll see them now.
+    - New plugin tests, testing running POE sessions in plugins and
+      dying in PCI_register().
+    - Deprecated 1_new.t test by removing it.
+
 5.07  Tue Oct 17 11:37:28 BST 2006
     - Enabled plugin_debug effect Pipeline.
     - Added send_event() method for injecting events in the event

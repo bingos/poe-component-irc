@@ -1,4 +1,4 @@
-use Test::More tests => 15;
+use Test::More tests => 6;
 
 {
   package PCI::Test::Plugin;
@@ -57,14 +57,14 @@ sub test_start {
 
   $self->yield( 'register' => 'all' );
 
-  my $plugin = PCI::Test::Plugin->new( 'die' => 0 );
+  my $plugin = PCI::Test::Plugin->new( 'die' => 1 );
   isa_ok ( $plugin, 'PCI::Test::Plugin' );
   
-  $heap->{counter} = 6;
+  $heap->{counter} = 1;
   unless ( $self->plugin_add( 'TestPlugin' => $plugin ) ) {
-	fail( 'plugin_add' );
-  	$self->yield( 'unregister' => 'all' );
-  	$self->yield( 'shutdown' );
+	pass( 'plugin_add' );
+	$plugin->_die_test(0);
+	$self->plugin_add( 'TestPlugin' => $plugin );
   }
 
   undef;
@@ -74,7 +74,6 @@ sub irc_plugin_add {
   my ($kernel,$heap,$desc,$plugin) = @_[KERNEL,HEAP,ARG0,ARG1];
 
   isa_ok ( $plugin, 'PCI::Test::Plugin' );
-  $plugin->_die_test(0);
   
   unless ( $self->plugin_del( 'TestPlugin' ) ) {
   	fail( 'plugin_del' );

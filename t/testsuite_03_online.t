@@ -132,7 +132,7 @@ sub _shutdown {
     skip "$skip", 5 if $skip;
   }
   $poe_kernel->alarm_remove_all();
-  $irc->yield( 'unregister' => 'all' );
+  #$irc->yield( 'unregister' => 'all' );
   $irc->yield( 'shutdown' );
   $dns->shutdown() if $dns;
   undef;

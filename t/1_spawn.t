@@ -1,5 +1,6 @@
 use Test::More tests => 4;
 BEGIN { use_ok('POE::Component::IRC') };
+diag( "Testing POE::Component::IRC $POE::Component::IRC::VERSION $POE::Component::IRC::REVISION, POE $POE::VERSION, Perl $], $^X" );
 
 my $GOT_DNS;
 
