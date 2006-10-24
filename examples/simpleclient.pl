@@ -1,6 +1,5 @@
 #!/usr/bin/perl -w
 
-use lib '../blib/lib';
 use Getopt::Long;
 use POE qw(Component::IRC::State Wheel::ReadLine);
 use Data::Dumper;

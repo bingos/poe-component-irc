@@ -16,7 +16,7 @@ use POE::Component::IRC::Plugin qw(:ALL);
 use base qw(POE::Component::IRC);
 use vars qw($VERSION);
 
-$VERSION = '2.0';
+$VERSION = '2.1';
 
 # Event handlers for tracking the STATE. $self->{STATE} is used as our namespace.
 # u_irc() is used to create unique keys.
@@ -137,6 +137,7 @@ sub S_kick {
   my $mapping = $irc->isupport('CASEMAPPING');
   my $channel = ${ $_[1] };
   my $nick = ${ $_[2] };
+  push @{ $_[$#_] }, $self->nick_long_form( $nick );
   my $unick = u_irc $nick, $mapping;
   my $uchan = u_irc $channel, $mapping;
 
@@ -1121,13 +1122,17 @@ ARG2 contains an arrayref of channel names that are common to the quitting clien
 
 ARG2 contains an arrayref of channel names that are common to the nick changing client and the component.
 
+=item irc_kick
+
+Additional parameter ARG4 contains the full nick!user@host of the kicked individual.
+
 =back
 
 =head1 CAVEATS
 
 The component gathers information by registering for 'irc_quit', 'irc_nick', 'irc_join', 'irc_part', 'irc_mode', 'irc_kick' and
 various numeric replies. When the component is asked to join a channel, when it joins it will issue a 'WHO #channel' and a 'MODE #channel'. These will solicit between them the numerics, 'irc_352' and 'irc_324'.
-You may want to ignore these. When someones joins a channel the bot is on, it issues a 'WHO nick'.
+You may want to ignore these. When someone joins a channel the bot is on, it issues a 'WHO nick'.
 
 Currently, whenever the component sees a topic or channel list change, it will use time() for the SetAt value and the full address of the user who set it for the SetBy value. When an ircd gives us it's record 
 of such changes, it will use it's own time (obviously) and may only give us the nickname of the user, rather than their full address. Thus, if our time() and the ircd's time do not match, or the ircd uses the

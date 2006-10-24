@@ -1,5 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.10  Tue Oct 24 18:02:46 BST 2006
+    - ::State 'irc_kick' event has ARG4 which is the full nick!user@host
+      of the kicked person. Suggested by helios.
+
 5.09  Tue Oct 24 14:48:07 BST 2006
     - Forgot a test with the Test::Plugin relocation. Damnit.
     - Reinstated ::Test::Plugin for the PlugMan tests.
