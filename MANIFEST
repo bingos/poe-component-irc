@@ -39,6 +39,7 @@ lib/POE/Component/IRC/Qnet.pm
 lib/POE/Component/IRC/Qnet/State.pm
 lib/POE/Component/IRC/State.pm
 lib/POE/Component/IRC/Test/Harness.pm
+lib/POE/Component/IRC/Test/Plugin.pm
 lib/POE/Filter/CTCP.pm
 lib/POE/Filter/IRC.pm
 lib/POE/Filter/IRC/Compat.pm

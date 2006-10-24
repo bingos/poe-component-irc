@@ -1,4 +1,4 @@
-use Test::More tests => 6;
+use Test::More tests => 7;
 
 {
   package PCI::Test::Plugin;
@@ -9,7 +9,7 @@ use Test::More tests => 6;
   }
 
   sub PCI_register {
-    die "DIE TEST! In 'PCI_register'\n" if $_[0]->{die};
+    die "DIE TEST! In 'PCI_register'" if $_[0]->{die};
     $_[1]->plugin_register( $_[0], 'SERVER', qw(all) );
     return 1;
   }
@@ -19,7 +19,7 @@ use Test::More tests => 6;
   }
 
   sub _default {
-    die "DIE TEST! In '_default'\n" if $_[0]->{die};
+    die "DIE TEST! In '_default'" if $_[0]->{die};
     return PCI_EAT_NONE;
   }
 
@@ -29,7 +29,7 @@ use Test::More tests => 6;
   }
 
   sub S_test_plugin_die {
-    die "Testing eval is protecting us\n";
+    die "Testing eval is protecting us";
     return PCI_EAT_NONE;
   }
 
@@ -45,7 +45,7 @@ isa_ok ( $self, 'POE::Component::IRC' );
 POE::Session->create(
 	inline_states => { _start => \&test_start, },
 	package_states => [
-	  'main' => [ qw(irc_plugin_add irc_plugin_del) ],
+	  'main' => [ qw(irc_plugin_add irc_plugin_del irc_test_plugin_die) ],
 	],
 );
 
@@ -74,7 +74,12 @@ sub irc_plugin_add {
   my ($kernel,$heap,$desc,$plugin) = @_[KERNEL,HEAP,ARG0,ARG1];
 
   isa_ok ( $plugin, 'PCI::Test::Plugin' );
-  
+  $self->send_event( 'irc_test_plugin_die', "DIE! DIE! DIE!" );
+  undef;
+}
+
+sub irc_test_plugin_die {
+  pass "Test Plugin Die";
   unless ( $self->plugin_del( 'TestPlugin' ) ) {
   	fail( 'plugin_del' );
   	$self->yield( 'unregister' => 'all' );
