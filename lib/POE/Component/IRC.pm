@@ -32,7 +32,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '5.10';
+$VERSION = '5.11';
 $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -1922,7 +1922,8 @@ sub _plugin_process {
   my $sub = ($type eq 'SERVER' ? "S" : "U") . "_$event";
   my $return = PCI_EAT_NONE;
 
-  $self->$sub( $self, @args ) if $self->can($sub);
+  eval { $self->$sub( $self, @args ) } if $self->can($sub);
+  warn "$@" if $@;
 
   for my $plugin (@{ $pipeline->{PIPELINE} }) {
     next if $self eq $plugin;

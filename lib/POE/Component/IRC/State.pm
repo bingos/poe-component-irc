@@ -224,7 +224,7 @@ sub S_mode {
 
   # Do nothing if it is UMODE
   if ( $uchan ne u_irc ( $self->{RealNick}, $mapping ) ) {
-     my $parsed_mode = parse_mode_line( @modes );
+     my $parsed_mode = parse_mode_line( $prefix, $chanmodes, @modes );
      while ( my $mode = shift ( @{ $parsed_mode->{modes} } ) ) {
         my $arg;
         $arg = shift ( @{ $parsed_mode->{args} } ) if ( $mode =~ /^(.[$alwaysarg]|\+[$chanmodes->[2]])/ );

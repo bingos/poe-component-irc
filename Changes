@@ -1,5 +1,10 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.11  Wed Oct 25 16:32:03 BST 2006
+    - Changed plugin processing so that any poco plugin handlers 
+      are now in an eval as well. Pesky edge-cases.
+    - Refactored parse_mode_line() to handle dangerous edge cases.
+
 5.10  Tue Oct 24 18:02:46 BST 2006
     - ::State 'irc_kick' event has ARG4 which is the full nick!user@host
       of the kicked person. Suggested by helios.

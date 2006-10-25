@@ -3,7 +3,7 @@ package POE::Component::IRC::Common;
 use strict;
 use warnings;
 
-our $VERSION = '4.86';
+our $VERSION = '5.11';
 
 # We export some stuff
 require Exporter;
@@ -50,10 +50,20 @@ sub l_irc {
 }
 
 sub parse_mode_line {
+  my @args = @_;
+  my $chanmodes = [qw(beI k l imnpstaqr)];
+  my $statmodes = 'ov';
   my $hashref = { };
-
   my $count = 0;
-  foreach my $arg ( @_ ) {
+  while ( my $arg = shift @args ) {
+        if ( ref $arg eq 'ARRAY' ) {
+           $chanmodes = $arg;
+           next;
+        }
+        if ( ref $arg eq 'HASH' ) {
+           $statmodes = join '', keys %{ $arg };
+           next;
+        }
         if ( $arg =~ /^(\+|-)/ or $count == 0 ) {
            my $action = '+';
            foreach my $char ( split (//,$arg) ) {
@@ -62,6 +72,8 @@ sub parse_mode_line {
                 } else {
                    push @{ $hashref->{modes} }, $action . $char;
                 }
+                push @{ $hashref->{args} }, shift @args if $char =~ /[$statmodes$chanmodes->[0]$chanmodes->[1]]/;
+                push @{ $hashref->{args} }, shift @args if $action eq '+' and $char =~ /[$chanmodes->[2]]/;
            }
          } else {
                 push @{ $hashref->{args} }, $arg;

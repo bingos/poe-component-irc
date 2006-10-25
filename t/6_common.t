@@ -1,4 +1,4 @@
-use Test::More tests => 18;
+use Test::More tests => 20;
 BEGIN { use_ok('POE::Component::IRC::Common', qw(:ALL)) }
 ok( 'SIMPLE' eq u_irc( 'simple' ), "Upper simple test" );
 ok( 'simple' eq l_irc( 'SIMPLE' ), "Lower simple test" );
@@ -11,6 +11,9 @@ ok( 'c0mpl^{x}' eq l_irc ( 'C0MPL^[X]', 'strict-rfc1459' ), "Lower complex test 
 my $hashref = parse_mode_line( qw(ov rita bob) );
 ok( $hashref->{modes}->[0] eq '+o', "Parse mode test 1" );
 ok( $hashref->{args}->[0] eq 'rita', "Parse mode test 2" );
+my $hashref2 = parse_mode_line( qw(-b +b!*@*) );
+ok( $hashref2->{modes}->[0] eq '-b', "Parse mode test 3" );
+ok( $hashref2->{args}->[0] eq '+b!*@*', "Parse mode test 4" );
 my $banmask = parse_ban_mask( 'stalin*' );
 ok( $banmask eq 'stalin*!*@*', "Parse ban mask test 1" );
 ok( matches_mask( $banmask, 'stalin!joe@kremlin.ru' ), "Matches Mask test 1" );
