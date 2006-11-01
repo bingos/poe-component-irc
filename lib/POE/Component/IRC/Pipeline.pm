@@ -3,7 +3,7 @@ package POE::Component::IRC::Pipeline;
 use strict;
 use warnings;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 
 sub new {
@@ -520,8 +520,11 @@ None known so far.
 
 =head1 SEE ALSO
 
-L<POE::Component::IRC>, L<POE::Component::IRC::Plugin>.  Also look at
-L<POE::Component::Session::MultipleDispatch> which does something similar for session events.
+L<POE::Component::IRC>, 
+
+L<POE::Component::IRC::Plugin>.  Also look at
+
+L<POE::Session::MultiDispatch> which does something similar for session events.
 
 =head1 AUTHOR
 

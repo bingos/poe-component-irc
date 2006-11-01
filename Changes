@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.12  <Date>
+    - Documentation fix for ::Pipeline, spotted by Martijn van Beers.
+
 5.11  Wed Oct 25 16:32:03 BST 2006
     - Changed plugin processing so that any poco plugin handlers 
       are now in an eval as well. Pesky edge-cases.
