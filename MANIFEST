@@ -69,6 +69,7 @@ t/plugins/05_ctcp.t
 t/plugins/06_console.t
 t/plugins/07_proxy.t
 t/plugins/08_nickreclaim.t
+t/testsuite_00_delays.t
 t/testsuite_00_socketerr.t
 t/testsuite_01_plugin.t
 t/testsuite_01_plugin_poe.t

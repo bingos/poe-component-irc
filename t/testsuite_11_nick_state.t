@@ -1,4 +1,4 @@
-use Test::More tests => 21;
+use Test::More tests => 23;
 
 BEGIN { use_ok('POE::Component::IRC::Test::Harness') };
 BEGIN { use_ok('POE::Component::IRC::State') };
@@ -27,6 +27,7 @@ POE::Session->create(
 			 irc_nick
 			 irc_error
 			 irc_disconnected
+			 irc_delay_set
 	   )],
 	],
 	options => { trace => 0 },
@@ -128,6 +129,13 @@ sub irc_chan_sync {
   ok( $object->ban_mask( $channel, $mynick ), "Ban Mask Test" );
   warn "# Waiting 3 seconds for the dust to settle\n";
   $object->delay( [ 'nick', 'TestBot2' ], 3 );
+  undef;
+}
+
+sub irc_delay_set {
+  my ($alarm_id,$event,$thing) = @_[ARG0..ARG2];
+  ok( $event eq 'nick', 'Delayed Event 1' );
+  ok( $thing eq 'TestBot2', 'Delayed Event 2' );
   undef;
 }
 

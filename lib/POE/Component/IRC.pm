@@ -124,6 +124,7 @@ sub _create {
 				      _dcc_timeout
 				      _dcc_up
 				      _delayed_cmd
+				      _delay_remove
 				      _parseline
 				      __send_event
 				      _sock_down
@@ -1685,13 +1686,31 @@ sub delay {
   $poe_kernel->call( $self->session_id() => '_delayed_cmd' => $arrayref => @_ );
 }
 
+sub delay_remove {
+  my $self = shift;
+  $poe_kernel->call( $self->session_id(), '_delay_remove', @_ );
+}
+
 sub _delayed_cmd {
   my ($kernel,$self,$arrayref,$time) = @_[KERNEL,OBJECT,ARG0,ARG1];
   return unless scalar @{ $arrayref };
   return unless $time;
   my $event = shift @{ $arrayref };
-  $kernel->delay_set( $event => $time => @{ $arrayref } );
-  undef;
+  my $alarm_id = $kernel->delay_set( $event => $time => @{ $arrayref } );
+  $self->send_event( 'irc_delay_set', $alarm_id, $event, @{ $arrayref } ) if $alarm_id;
+  return $alarm_id;
+}
+
+sub _delay_remove {
+  my ($kernel,$self,$alarm_id) = @_[KERNEL,OBJECT,ARG0];
+  return unless $alarm_id;
+  my @old_alarm_list = $kernel->alarm_remove( $alarm_id );
+  if ( @old_alarm_list ) {
+    splice @old_alarm_list, 1, 1;
+    $self->send_event( 'irc_delay_removed', $alarm_id, @old_alarm_list );
+    return \@old_alarm_list;
+  }
+  return;
 }
 
 sub _validate_command {
@@ -2348,7 +2367,19 @@ This method provides a way of posting delayed events to the component. The first
 is an arrayref consisting of the delayed command to post and any command arguments. The 
 second argument is the time in seconds that one wishes to delay the command being posted.
 
-  $irc->delay( [ 'mode' => $channel => '+o' => $dude ], 60 );
+  my $alarm_id = $irc->delay( [ 'mode' => $channel => '+o' => $dude ], 60 );
+
+Returns an alarm ID that can be used with delay_remove() to cancel the delayed event. This
+will be undefined if something went wrong.
+
+=item delay_remove
+
+This method removes a previously scheduled delayed event from the component. Takes one
+argument, the alarm_id that was returned by a delay() method call.
+
+  my $arrayref = $irc->delay_remove( $alarm_id );
+
+Returns an arrayref that was originally requested to be delayed.
 
 =item resolver
 
@@ -3064,6 +3095,16 @@ Sent to all registered sessions when the component has been asked to shutdown().
 =item irc_isupport
 
 Emitted by the first event after an irc_005, to indicate that isupport information has been gathered. ARG0 is the L<POE::Component::IRC::Plugin::ISupport|POE::Component::IRC::Plugin::ISupport> object.
+
+=item irc_delay_set
+
+Emitted on a succesful addition of a delayed event using delay() method. ARG0 will be the
+alarm_id which can be used later with delay_remove(). Subsequent parameters are the arguments that were passed to delay().
+
+=item irc_delay_removed
+
+Emitted when a delayed command is successfully removed. ARG0 will be the alarm_id that was removed. 
+Subsequent parameters are the arguments that were passed to delay().
 
 =item All numeric events (see RFC 1459)
 

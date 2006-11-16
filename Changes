@@ -2,6 +2,10 @@ Revision history for Perl extension POE::Component::IRC.
 
 5.12  <Date>
     - Documentation fix for ::Pipeline, spotted by Martijn van Beers.
+    - Amended 6_common.t test-case to make sure it covered other edge
+      case reported by 'Elvis Dead' via email.
+    - Setting a delayed command with delay() generates a 'irc-delay_set'
+      event.
 
 5.11  Wed Oct 25 16:32:03 BST 2006
     - Changed plugin processing so that any poco plugin handlers 
