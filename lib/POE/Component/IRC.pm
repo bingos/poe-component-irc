@@ -32,7 +32,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '5.12';
+$VERSION = '5.13';
 $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -1554,7 +1554,10 @@ sub topic {
   my ($kernel, $chan) = @_[KERNEL, ARG0];
   my $topic = join '', @_[ARG1 .. $#_];
 
-  $chan .= " :$topic" if length $topic;
+  if ( defined $topic ) {
+     $chan .= " :";
+     $chan .= $topic if length $topic;
+  }
   $kernel->yield( 'sl_prioritized', PRI_NORMAL, "TOPIC $chan" );
   undef;
 }
@@ -2789,7 +2792,8 @@ query. If not supplied, defaults to current server.
 Retrieves or sets the topic for particular channel. If called with just
 the channel name as an argument, it will ask the server to return the
 current topic. If called with the channel name and a string, it will
-set the channel topic to that string.
+set the channel topic to that string. Supply an empty string to unset a
+channel topic.
 
 =item trace
 

@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.13  Sun Nov 19 14:20:51 GMT 2006
+    - Fixed long standing bug in 'topic' command.
+
 5.12  Thu Nov 16 14:04:51 GMT 2006 'Hairy COO!'
     - Documentation fix for ::Pipeline, spotted by Martijn van Beers.
     - Amended 6_common.t test-case to make sure it covered other edge
