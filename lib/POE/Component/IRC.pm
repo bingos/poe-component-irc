@@ -32,7 +32,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '5.13';
+$VERSION = '5.14';
 $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -734,6 +734,7 @@ sub _start {
     my $sender_id = $sender->ID;
     $self->{events}->{'irc_all'}->{$sender_id} = $sender_id;
     $self->{sessions}->{$sender_id}->{'ref'} = $sender_id;
+    $self->{sessions}->{$sender_id}->{refcnt}++;
     $kernel->refcount_increment($sender_id, PCI_REFCOUNT_TAG);
     $kernel->post( $sender, 'irc_registered', $self );
   }
@@ -1600,13 +1601,12 @@ sub _unregister {
 
 sub _unregister_sessions {
   my $self = shift;
-  my $poco_id = $self->session_id();
   foreach my $session_id ( keys %{ $self->{sessions} } ) {
-     if (--$self->{sessions}->{$session_id}->{refcnt} <= 0) {
-        delete $self->{sessions}->{$session_id};
+     my $refcnt = $self->{sessions}->{$session_id}->{refcnt};
+     while ( $refcnt --> 0 ) {
 	$poe_kernel->refcount_decrement($session_id, PCI_REFCOUNT_TAG) 
-		unless ( $session_id eq $poco_id );
      }
+     delete $self->{sessions}->{$session_id};
   }
 }
 

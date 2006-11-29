@@ -1,5 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.14  Wed Nov 29 10:56:57 GMT 2006
+    - Found a serious problem with refcounts in the registration
+      code. Fixed with merlyn's help.
+
 5.13  Sun Nov 19 14:20:51 GMT 2006
     - Fixed long standing bug in 'topic' command.
 

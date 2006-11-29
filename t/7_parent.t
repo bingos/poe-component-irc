@@ -1,4 +1,4 @@
-use Test::More tests => 3;
+use Test::More tests => 5;
 BEGIN { use_ok('POE::Component::IRC') };
 use POE;
 
@@ -17,6 +17,15 @@ sub test_start {
 }
 
 sub registered {
+  my ($kernel,$heap,$sender,$poco) = @_[KERNEL,HEAP,SENDER,ARG0];
+  pass('Child registered us');
+  isa_ok( $poco, 'POE::Component::IRC' );
+  $kernel->state( 'irc_registered', \&registered_again );
+  $kernel->post( $sender, 'register', 'all' );
+  undef;
+}
+
+sub registered_again {
   my ($kernel,$heap,$sender,$poco) = @_[KERNEL,HEAP,SENDER,ARG0];
   pass('Child registered us');
   isa_ok( $poco, 'POE::Component::IRC' );
