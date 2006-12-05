@@ -32,7 +32,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '5.14';
+$VERSION = '5.15';
 $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -130,6 +130,7 @@ sub _create {
 				      _sock_down
 				      _sock_failed
 				      _sock_up
+				      _socks_proxy_connect
 				      _start
 				      _stop
 				      debug
@@ -140,6 +141,7 @@ sub _create {
 				      dcc_chat
 				      dcc_close
 				      _do_connect
+				      _send_login
 				      _got_dns_response
 				      ison
 				      kick
@@ -197,6 +199,10 @@ sub _configure {
     $self->{'nat_addr'} = $arg{'nataddr'} if exists $arg{'nataddr'};
     $self->{'user_bitmode'} = $arg{'bitmode'} if exists $arg{'bitmode'};
     $self->{'compress'} = $arg{'compress'} if exists $arg{'compress'};
+    $self->{'socks_proxy'} = $arg{'socks_proxy'} if exists $arg{'socks_proxy'};
+    $self->{'socks_port'} = $arg{'socks_port'} if exists $arg{'socks_port'};
+    $self->{'socks_id'} = $arg{'socks_id'} if exists $arg{'socks_id'};
+
     if (exists $arg{'debug'}) {
       $self->{'debug'} = $arg{'debug'};
       $self->{ircd_filter}->{DEBUG} = $arg{'debug'};
@@ -570,6 +576,9 @@ sub _sock_flush {
 sub _sock_down {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
 
+  # Reset '_parseline' event
+  $kernel->state( '_parseline', $self, '_parseline' );
+
   # Destroy the RW wheel for the socket.
   delete $self->{'socket'};
   $self->{connected} = 0;
@@ -613,6 +622,36 @@ sub _sock_up {
 
   # Remember what IP address we're connected through, for multihomed boxes.
   $self->{'localaddr'} = (unpack_sockaddr_in( getsockname $socket ))[1];
+
+  if ( $self->{socks_proxy} ) {
+    $self->{'socket'} = new POE::Wheel::ReadWrite
+    ( Handle       => $socket,
+      Driver       => POE::Driver::SysRW->new(),
+      Filter	   => POE::Filter::Stream->new(),
+      InputEvent   => '_parseline',
+      ErrorEvent   => '_sock_down',
+      FlushedEvent => '_sock_flush',
+    );
+    unless ( $self->{'socket'} ) {
+	$self->_send_event( 'irc_socketerr', "Couldn't create ReadWrite wheel for SOCKS socket" );
+	return;
+    }
+    $kernel->state( '_parseline', $self, '_socks_proxy_response' );
+    my $packet;
+    if ( $self->{server} =~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/ ) {
+      # SOCKS 4
+      $packet = pack ('CCn', 4, 1, $self->{port}) .
+	inet_aton($self->{server}) . ( $self->{socks_id} || '' ) . (pack 'x');
+    }
+    else {
+      # SOCKS 4a
+      $packet = pack ('CCn', 4, 1, $self->{port}) .
+	inet_aton('0.0.0.1') . ( $self->{socks_id} || '' ) . (pack 'x') .
+	$self->{server} . (pack 'x');
+    }
+    $self->{'socket'}->put( $packet );
+    return;
+  }
 
   #ssl!
   if ($GOT_SSL and $self->{'UseSSL'}) {
@@ -661,6 +700,49 @@ sub _sock_up {
     #is delayed...
     $self->{send_time} = time() + 10;
   }
+  $kernel->yield( '_send_login' );
+  undef;
+}
+
+sub _socks_proxy_response {
+  my ($kernel,$self,$session,$input) = @_[KERNEL,OBJECT,SESSION,ARG0];
+  $kernel->state( '_parseline', $self, '_parseline' );
+  if ( length $input != 8 ) {
+     warn "Mangled response from SOCKS proxy\n";
+     $self->disconnect();
+     return;
+  }
+  my @resp = unpack 'CCnN', $input;
+  unless ( scalar @resp == 4 and $resp[0] eq '0' and $resp[1] =~ /^(90|91|92|93)$/ ) {
+     warn "Mangled response from SOCKS proxy\n";
+     $self->disconnect();
+     return;
+  }
+  if ( $resp[1] eq '90' ) {
+     $kernel->call( $session, '_socks_proxy_connect' );
+     $self->{connected} = 1;
+     $self->_send_event( 'irc_connected', $self->{server} );
+     $kernel->yield( '_send_login' );
+  }
+  else {
+     warn "SOCKS request rejected or failed\n" if $resp[1] eq '91';
+     warn "SOCKS request rejected. No Identd.\n" if $resp[1] eq '92';
+     warn "SOCKS request rejected. Program and Identd User-IDs differ\n" if $resp[1] eq '93';
+     $self->disconnect();
+  }
+  undef;
+}
+
+sub _socks_proxy_connect {
+  my ($kernel,$self) = @_[KERNEL,OBJECT];
+  $kernel->state( '_parseline', $self, '_parseline' );
+  $self->{socket}->set_input_filter( $self->{srv_filter} );
+  $self->{socket}->set_output_filter( $self->{out_filter} );
+  undef;
+}
+
+sub _send_login {
+  my ($kernel,$self,$session) = @_[KERNEL,OBJECT,SESSION];
 
   # Now that we're connected, attempt to log into the server.
   if ($self->{password}) {
@@ -823,28 +905,31 @@ sub connect {
 
 # open the connection
 sub _do_connect {
-  my ($kernel, $self, $session, $args) = @_[KERNEL, OBJECT, SESSION];
+  my ($kernel,$self,$session) = @_[KERNEL,OBJECT,SESSION];
 
   # Disconnect if we're already logged into a server.
-  $kernel->call( $session, 'quit' ) if $self->{'sock'};
+  $kernel->call( $session, 'quit' ) if $self->{'socket'};
+
+  $self->{socks_port} = 1080 if $self->{socks_proxy} and !$self->{socks_port};
 
   $self->{'socketfactory'} =
-    POE::Wheel::SocketFactory->new( SocketDomain   => AF_INET,
-				    SocketType     => SOCK_STREAM,
-				    SocketProtocol => 'tcp',
-				    RemoteAddress  => $self->{'proxy'} || $self->{'server'},
-				    RemotePort     => $self->{'proxyport'} || $self->{'port'},
-				    SuccessEvent   => '_sock_up',
-				    FailureEvent   => '_sock_failed',
-				    ($self->{localaddr} ?
-				       (BindAddress => $self->{localaddr}) : ()),
-				  );
+  POE::Wheel::SocketFactory->new( 
+	SocketDomain   => AF_INET,
+	SocketType     => SOCK_STREAM,
+	SocketProtocol => 'tcp',
+	RemoteAddress  => $self->{socks_proxy} || $self->{'proxy'} || $self->{'server'},
+	RemotePort     => $self->{socks_port} || $self->{'proxyport'} || $self->{'port'},
+	SuccessEvent   => '_sock_up',
+	FailureEvent   => '_sock_failed',
+	($self->{localaddr} ?
+	       (BindAddress => $self->{localaddr}) : ()),
+  );
   undef;
 }
 
 # got response from POE::Component::Client::DNS
 sub _got_dns_response {
-  my ($kernel, $self) = @_[KERNEL, OBJECT];
+  my ($kernel,$self) = @_[KERNEL,OBJECT];
   my ($net_dns_packet) = $_[ARG0]->{response};
   my ($net_dns_errorstring) = $_[ARG0]->{error};
   $self->{res_addresses} = [ ] unless $self->{res_addresses};
@@ -2485,6 +2570,9 @@ connection are:
   "DCCPorts", an arrayref containing tcp ports that can be used for DCC sends.
   "Resolver", provide a POE::Component::Client::DNS object for the component to use.
   "plugin_debug", set to some true value to print plugin debug info, default 0.
+  "socks_proxy", specify a SOCKS4/SOCKS4a proxy to use.
+  "socks_port", the SOCKS port to use, defaults to 1080 if not specified.
+  "socks_id", specify a SOCKS user_id. Default is none.
 
 C<connect()> will supply
 reasonable defaults for any of these attributes which are missing, so
@@ -2505,7 +2593,7 @@ IRC traffic through a proxy server.  "Proxy"'s value should be the IP
 address or server name of the proxy.  "ProxyPort"'s value should be the
 port on the proxy to connect to.  C<connect()> will default to using the
 I<actual> IRC server's port if you provide a proxy but omit the proxy's
-port. SOCKS v4 supported.
+port. These are for HTTP Proxies. See 'socks_proxy' for SOCKS4 and SOCKS4a support.
 
 For those people who run bots behind firewalls and/or Network Address Translation
 there are two additional attributes for DCC. "DCCPorts", is an arrayref of ports
@@ -2528,6 +2616,9 @@ dns lookups using it.
 , saves the overhead of multiple dns sessions.
 
 'plugin_debug', setting to true enables plugin debug info. Plugins are processed inside an eval, so debugging them can be hard. This should help with that.
+
+SOCKS4 proxy support is provided by 'socks_proxy', 'socks_port' and 'socks_id' parameters. If something goes wrong
+with the SOCKS connection you should get a warning on STDERR. This is fairly experimental currently.
 
 =item ctcp and ctcpreply
 
