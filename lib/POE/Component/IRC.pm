@@ -708,13 +708,13 @@ sub _socks_proxy_response {
   my ($kernel,$self,$session,$input) = @_[KERNEL,OBJECT,SESSION,ARG0];
   $kernel->state( '_parseline', $self, '_parseline' );
   if ( length $input != 8 ) {
-     warn "Mangled response from SOCKS proxy\n";
+     $self->_send_event( 'irc_socks_failed', 'Mangled response from SOCKS proxy', $input );
      $self->disconnect();
      return;
   }
   my @resp = unpack 'CCnN', $input;
   unless ( scalar @resp == 4 and $resp[0] eq '0' and $resp[1] =~ /^(90|91|92|93)$/ ) {
-     warn "Mangled response from SOCKS proxy\n";
+     $self->_send_event( 'irc_socks_failed', 'Mangled response from SOCKS proxy', $input );
      $self->disconnect();
      return;
   }
@@ -725,9 +725,7 @@ sub _socks_proxy_response {
      $kernel->yield( '_send_login' );
   }
   else {
-     warn "SOCKS request rejected or failed\n" if $resp[1] eq '91';
-     warn "SOCKS request rejected. No Identd.\n" if $resp[1] eq '92';
-     warn "SOCKS request rejected. Program and Identd User-IDs differ\n" if $resp[1] eq '93';
+     $self->_send_event( 'irc_socks_rejected', $resp[1], $self->{socks_proxy}, $self->{socks_port}, $self->{socks_id} );
      $self->disconnect();
   }
   undef;
@@ -3200,6 +3198,16 @@ alarm_id which can be used later with delay_remove(). Subsequent parameters are 
 
 Emitted when a delayed command is successfully removed. ARG0 will be the alarm_id that was removed. 
 Subsequent parameters are the arguments that were passed to delay().
+
+=item irc_socks_failed
+
+Emitted whenever we fail to connect successfully to a SOCKS server or the SOCKS server is not actually a SOCKS
+server. ARG0 will be some vague reason as to what went wrong. Hopefully.
+
+=item irc_socks_rejected
+
+Emitted whenever a SOCKS connection is rejected by a SOCKS server. ARG0 is the SOCKS code, ARG1 the SOCKS server
+address, ARG2 the SOCKS port and ARG3 the SOCKS user id ( if defined ).
 
 =item All numeric events (see RFC 1459)
 

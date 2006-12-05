@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-5.15  <Date>
+5.15  Tue Dec 05 19:26:34 GMT 2006
     - Implemented SOCKS4 support. Requested by netmunky @ Efnet. Somni 
       assisted with the design. Thanks!
 
