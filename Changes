@@ -1,5 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.16  Wed Dec 06 11:54:08 GMT 2006
+    - Refactored the SOCKS code to use $wheel->event() to switch 
+      InputEvent. Thanks to dngor for pointing that out.
+
 5.15  Tue Dec 05 19:26:34 GMT 2006
     - Implemented SOCKS4 support. Requested by netmunky @ Efnet. Somni 
       assisted with the design. Thanks!

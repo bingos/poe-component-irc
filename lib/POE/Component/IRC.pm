@@ -32,7 +32,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '5.15';
+$VERSION = '5.16';
 $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -131,6 +131,7 @@ sub _create {
 				      _sock_failed
 				      _sock_up
 				      _socks_proxy_connect
+				      _socks_proxy_response
 				      _start
 				      _stop
 				      debug
@@ -576,9 +577,6 @@ sub _sock_flush {
 sub _sock_down {
   my ($kernel, $self) = @_[KERNEL, OBJECT];
 
-  # Reset '_parseline' event
-  $kernel->state( '_parseline', $self, '_parseline' );
-
   # Destroy the RW wheel for the socket.
   delete $self->{'socket'};
   $self->{connected} = 0;
@@ -628,7 +626,7 @@ sub _sock_up {
     ( Handle       => $socket,
       Driver       => POE::Driver::SysRW->new(),
       Filter	   => POE::Filter::Stream->new(),
-      InputEvent   => '_parseline',
+      InputEvent   => '_socks_proxy_response',
       ErrorEvent   => '_sock_down',
       FlushedEvent => '_sock_flush',
     );
@@ -636,7 +634,6 @@ sub _sock_up {
 	$self->_send_event( 'irc_socketerr', "Couldn't create ReadWrite wheel for SOCKS socket" );
 	return;
     }
-    $kernel->state( '_parseline', $self, '_socks_proxy_response' );
     my $packet;
     if ( $self->{server} =~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/ ) {
       # SOCKS 4
@@ -706,7 +703,6 @@ sub _sock_up {
 
 sub _socks_proxy_response {
   my ($kernel,$self,$session,$input) = @_[KERNEL,OBJECT,SESSION,ARG0];
-  $kernel->state( '_parseline', $self, '_parseline' );
   if ( length $input != 8 ) {
      $self->_send_event( 'irc_socks_failed', 'Mangled response from SOCKS proxy', $input );
      $self->disconnect();
@@ -733,7 +729,7 @@ sub _socks_proxy_response {
 
 sub _socks_proxy_connect {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
-  $kernel->state( '_parseline', $self, '_parseline' );
+  $self->{socket}->event( InputEvent => '_parseline' );
   $self->{socket}->set_input_filter( $self->{srv_filter} );
   $self->{socket}->set_output_filter( $self->{out_filter} );
   undef;
@@ -909,6 +905,8 @@ sub _do_connect {
   $kernel->call( $session, 'quit' ) if $self->{'socket'};
 
   $self->{socks_port} = 1080 if $self->{socks_proxy} and !$self->{socks_port};
+
+  warn $self->{socks_port}, "\n";
 
   $self->{'socketfactory'} =
   POE::Wheel::SocketFactory->new( 
