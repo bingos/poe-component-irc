@@ -16,6 +16,7 @@ my $current_channel;
 my $socks_proxy;
 my $socks_port;
 my $socks_id;
+my $no_dns;
 
 GetOptions(
 "nick=s" => \$nick,
@@ -27,12 +28,13 @@ GetOptions(
 "socksport=s" => \$socks_port,
 "socksuser=s" => \$socks_id,
 "ircname=s" => \$ircname,
+"nodns" => \$no_dns,
 );
 
 die unless $nick and $server;
 print "$nick $server\n";
 
-my $irc = POE::Component::IRC::State->spawn( Nick => $nick, Server => $server, Port => $port, Ircname => $ircname, Username => $user, Password => $password, socks_proxy => $socks_proxy, socks_port => $socks_port, socks_id => $socks_id );
+my $irc = POE::Component::IRC::State->spawn( Nick => $nick, Server => $server, Port => $port, Ircname => $ircname, Username => $user, Password => $password, socks_proxy => $socks_proxy, socks_port => $socks_port, socks_id => $socks_id, NoDNS => $no_dns );
 
 print STDOUT $irc->version(), "\n";
 

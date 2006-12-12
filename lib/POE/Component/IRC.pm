@@ -32,7 +32,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '5.16';
+$VERSION = '5.17';
 $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -906,8 +906,6 @@ sub _do_connect {
 
   $self->{socks_port} = 1080 if $self->{socks_proxy} and !$self->{socks_port};
 
-  warn $self->{socks_port}, "\n";
-
   $self->{'socketfactory'} =
   POE::Wheel::SocketFactory->new( 
 	SocketDomain   => AF_INET,
@@ -1634,7 +1632,10 @@ sub spacesep {
 # Set or query the current topic on a channel.
 sub topic {
   my ($kernel, $chan) = @_[KERNEL, ARG0];
-  my $topic = join '', @_[ARG1 .. $#_];
+  my $topic; 
+  if ( scalar @_[ARG1 .. $#_] ) {
+	$topic = join '', @_[ARG1 .. $#_];
+  }
 
   if ( defined $topic ) {
      $chan .= " :";
