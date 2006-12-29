@@ -1631,11 +1631,9 @@ sub spacesep {
 
 # Set or query the current topic on a channel.
 sub topic {
-  my ($kernel, $chan) = @_[KERNEL, ARG0];
+  my ($kernel,$chan,@args) = @_[KERNEL,ARG0,ARG1..$#_];
   my $topic; 
-  if ( scalar @_[ARG1 .. $#_] ) {
-	$topic = join '', @_[ARG1 .. $#_];
-  }
+  $topic = join '', @args if scalar @args;
 
   if ( defined $topic ) {
      $chan .= " :";
