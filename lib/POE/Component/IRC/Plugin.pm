@@ -158,7 +158,7 @@ The plugins themselves will conform to the standard API described here. What the
 limited only by imagination and the IRC RFC's ;)
 
 	# Import the constants
-	use POE::Component::Plugin qw( :ALL );
+	use POE::Component::IRC::Plugin qw( :ALL );
 
 	# Our constructor
 	sub new {

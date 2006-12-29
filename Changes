@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.18  DATE
+    - Documentation fix to ::Plugin by Kinks.
+
 5.17  Tue Dec 12 22:52:48 GMT 2006
     - Serious bug in TOPIC handling spotted. Fixed.
 
