@@ -117,8 +117,19 @@ sub S_quit {
   my ($self,$irc) = splice @_, 0, 2;
   my $mapping = $irc->isupport('CASEMAPPING');
   my $nick = ( split /!/, ${ $_[0] } )[0];
+  my $msg = ${ $_[1] };
   push @{ $_[2] }, [ $self->nick_channels( $nick ) ];
   my $unick = u_irc $nick, $mapping;
+
+  # Check if it is a netsplit
+  if ( $msg ) {
+    SWITCH: {
+       my @args = split /\s/, $msg;
+       if ( @args != 2 ) {
+	 last SWITCH;
+       }
+    }
+  }
 
   if ( $unick eq u_irc ( $self->nick_name(), $mapping ) ) {
         delete $self->{STATE};
