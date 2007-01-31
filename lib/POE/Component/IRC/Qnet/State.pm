@@ -18,7 +18,7 @@ use POE::Component::IRC::Plugin qw(:ALL);
 use vars qw($VERSION);
 use base qw(POE::Component::IRC::State POE::Component::IRC::Qnet);
 
-$VERSION = '1.6';
+$VERSION = '1.7';
 
 sub _create {
   my $self = shift;
@@ -258,14 +258,11 @@ sub S_chan_mode {
 sub is_nick_authed {
   my $self = shift;
   my $mapping = $self->isupport('CASEMAPPING');
-  my $nick = u_irc ( $_[0], $mapping ) || return undef;
-
-  return undef unless $self->_nick_exists($nick);
-
-  if ( defined ( $self->{STATE}->{Nicks}->{ $nick }->{Auth} ) ) {
-	return $self->{STATE}->{Nicks}->{ $nick }->{Auth};
-  }
-  return undef;
+  my $nick = u_irc ( $_[0], $mapping ) || return;
+  return unless $self->_nick_exists($nick);
+  return $self->{STATE}->{Nicks}->{ $nick }->{Auth} 
+	if defined $self->{STATE}->{Nicks}->{ $nick }->{Auth};
+  return;
 }
 
 sub find_auth_nicks {
@@ -278,6 +275,36 @@ sub find_auth_nicks {
     push @results, $self->{STATE}->{Nicks}->{ $nick }->{Nick} if defined ( $self->{STATE}->{Nicks}->{ $nick }->{Auth} ) and $self->{STATE}->{Nicks}->{ $nick }->{Auth} eq $auth;
   }
   return @results; 
+}
+
+sub ban_mask {
+  my $self = shift;
+  my $mapping = $self->isupport('CASEMAPPING');
+  my $channel = u_irc $_[0], $mapping || return;
+  my $mask = parse_ban_mask ( $_[1] ) || return;
+  my @result;
+
+  return unless $self->_channel_exists($channel);
+
+  # Convert the mask from IRC to regex.
+  $mask = u_irc ( $mask, $mapping );
+  $mask = quotemeta $mask;
+  $mask =~ s/\\\*/[\x01-\xFF]{0,}/g;
+  $mask =~ s/\\\?/[\x01-\xFF]{1,1}/g;
+
+  foreach my $nick ( $self->channel_list($channel) ) {
+     my $long_form = $self->nick_long_form($nick);
+     if ( u_irc ( $long_form ) =~ /^$mask$/ ) {
+	push @result, $nick;
+	next;
+     }
+     if ( my $auth = $self->is_nick_authed( $nick ) ) {
+	$long_form =~ s/\@(.+)$/\@$auth.users.quakenet.org/;
+	push @result, $nick if u_irc ( $long_form ) =~ /^$mask$/;
+     }
+  }
+
+  return @result;
 }
 
 1;
@@ -392,6 +419,12 @@ L<POE::Component::IRC::Qnet> and L<POE::Component::IRC::State> for general usage
 =head1 METHODS
 
 =over
+
+=item ban_mask
+
+Expects a channel and a ban mask, as passed to MODE +b-b. Returns a list of nicks on that channel that match the specified
+ban mask or an empty list if the channel doesn't exist in the state or there are no matches.
+Follows Quakenet ircd rules for matching authed users.
 
 =item is_nick_authed
 

@@ -1,5 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.19  Wed Jan 31 11:54:36 GMT 2007
+    - Change to ban_mask() method in Qnet::State, suggested by
+      helios.
+
 5.18  Fri Dec 29 10:55:05 GMT 2006
     - Documentation fix to ::Plugin by Kinks.
     - Still a problem with TOPIC command. Fixed.
