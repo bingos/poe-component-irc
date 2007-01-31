@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.20  Wed Jan 31 17:25:31 GMT 2007
+    - Finally converted Makefile.PL to full Module::Install-ness.
+
 5.19  Wed Jan 31 11:54:36 GMT 2007
     - Change to ban_mask() method in Qnet::State, suggested by
       helios.

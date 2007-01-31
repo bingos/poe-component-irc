@@ -1,6 +1,3 @@
-# $Id: Makefile.PL,v 3.9 2005/04/14 19:23:16 chris Exp $
-
-#use ExtUtils::MakeMaker;
 use inc::Module::Install;
 
 my $GOT_DNS;
@@ -31,25 +28,19 @@ NOTICE
 
 _no_dns() unless $GOT_DNS;
 
+name 'POE-Component-IRC';
 license 'perl';
 author 'Chris Williams <chris@bingosnet.co.uk>';
-
-WriteMakefile(
-			  'NAME'	=> 'POE::Component::IRC',
-			  'PREREQ_PM' => {
-					  'warnings' => 0,
-					  'POE'    => 0.3202,
-					  'POE::Filter::IRCD' => 1.7,
-					  'Carp'   => 0,
-					  'Socket' => 0,
-					  'POSIX' => 0,
-							 },
-			  'VERSION_FROM' => 'lib/POE/Component/IRC.pm', # finds $VERSION
-			  'dist' => { 'COMPRESS' => 'gzip --best' },
-			  'test' => { TESTS => 't/*.t t/*/*.t' },
-			  'clean' => { FILES => "README.send" },
-			 );
-
+version_from 'lib/POE/Component/IRC.pm';
+requires 'warnings' => 0;
+requires 'POE'    => 0.3202;
+requires 'POE::Filter::IRCD' => 1.7;
+requires 'Carp'   => 0;
+requires 'Socket' => 0;
+requires 'POSIX' => 0;
+tests 't/*.t t/*/*.t';
+clean_files 'README.send';
+WriteAll();
 exit 0;
 
 sub _no_dns {
