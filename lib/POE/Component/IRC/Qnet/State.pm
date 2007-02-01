@@ -18,7 +18,7 @@ use POE::Component::IRC::Plugin qw(:ALL);
 use vars qw($VERSION);
 use base qw(POE::Component::IRC::State POE::Component::IRC::Qnet);
 
-$VERSION = '1.7';
+$VERSION = '1.8';
 
 sub _create {
   my $self = shift;
@@ -255,6 +255,101 @@ sub S_chan_mode {
   return PCI_EAT_NONE;
 }
 
+# Channel PART messages
+sub S_part {
+  my ($self,$irc) = splice @_, 0, 2;
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my $nick = u_irc ( ( split /!/, ${ $_[0] } )[0], $mapping );
+  my $channel = u_irc ${ $_[1] }, $mapping;
+  if ( ref $_[2] eq 'ARRAY' ) {
+    push @{ $_[$#_] }, '', $self->is_nick_authed( $nick );
+  }
+  else {
+    push @{ $_[$#_] }, $self->is_nick_authed( $nick );
+  }
+
+  if ( $nick eq u_irc ( $self->nick_name(), $mapping ) ) {
+        delete $self->{STATE}->{Nicks}->{ $nick }->{CHANS}->{ $channel };
+        delete $self->{STATE}->{Chans}->{ $channel }->{Nicks}->{ $nick };
+        foreach my $member ( keys %{ $self->{STATE}->{Chans}->{ $channel }->{Nicks} } ) {
+           delete $self->{STATE}->{Nicks}->{ $member }->{CHANS}->{ $channel };
+           if ( scalar keys %{ $self->{STATE}->{Nicks}->{ $member }->{CHANS} } <= 0 ) {
+                delete $self->{STATE}->{Nicks}->{ $member };
+           }
+        }
+	delete $self->{STATE}->{Chans}->{ $channel };
+  } else {
+        delete $self->{STATE}->{Nicks}->{ $nick }->{CHANS}->{ $channel };
+        delete $self->{STATE}->{Chans}->{ $channel }->{Nicks}->{ $nick };
+        if ( scalar keys %{ $self->{STATE}->{Nicks}->{ $nick }->{CHANS} } <= 0 ) {
+                delete $self->{STATE}->{Nicks}->{ $nick };
+        }
+  }
+  return PCI_EAT_NONE;
+}
+
+# QUIT messages
+sub S_quit {
+  my ($self,$irc) = splice @_, 0, 2;
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my $nick = ( split /!/, ${ $_[0] } )[0];
+  my $msg = ${ $_[1] };
+  push @{ $_[2] }, [ $self->nick_channels( $nick ) ];
+  push @{ $_[2] }, $self->is_nick_authed( $nick );
+  my $unick = u_irc $nick, $mapping;
+
+  # Check if it is a netsplit
+  if ( $msg ) {
+    SWITCH: {
+       my @args = split /\s/, $msg;
+       if ( @args != 2 ) {
+	 last SWITCH;
+       }
+    }
+  }
+
+  if ( $unick eq u_irc ( $self->nick_name(), $mapping ) ) {
+        delete $self->{STATE};
+  } else {
+        foreach my $channel ( keys %{ $self->{STATE}->{Nicks}->{ $unick }->{CHANS} } ) {
+                delete $self->{STATE}->{Chans}->{ $channel }->{Nicks}->{ $unick };
+        }
+        delete $self->{STATE}->{Nicks}->{ $unick };
+  }
+  return PCI_EAT_NONE;
+}
+
+# Channel KICK messages
+sub S_kick {
+  my ($self,$irc) = splice @_, 0, 2;
+  my $mapping = $irc->isupport('CASEMAPPING');
+  my $channel = ${ $_[1] };
+  my $nick = ${ $_[2] };
+  push @{ $_[$#_] }, $self->nick_long_form( $nick );
+  push @{ $_[$#_] }, $self->is_nick_authed( $nick );
+  my $unick = u_irc $nick, $mapping;
+  my $uchan = u_irc $channel, $mapping;
+
+  if ( $unick eq u_irc ( $self->nick_name(), $mapping ) ) {
+        delete $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan };
+        delete $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick };
+        foreach my $member ( keys %{ $self->{STATE}->{Chans}->{ $uchan }->{Nicks} } ) {
+           delete $self->{STATE}->{Nicks}->{ $member }->{CHANS}->{ $uchan };
+           if ( scalar keys %{ $self->{STATE}->{Nicks}->{ $member }->{CHANS} } <= 0 ) {
+                delete $self->{STATE}->{Nicks}->{ $member };
+           }
+        }
+	delete $self->{STATE}->{Chans}->{ $uchan };
+  } else {
+        delete $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan };
+        delete $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick };
+        if ( scalar keys %{ $self->{STATE}->{Nicks}->{ $unick }->{CHANS} } <= 0 ) {
+                delete $self->{STATE}->{Nicks}->{ $unick };
+        }
+  }
+  return PCI_EAT_NONE;
+}
+
 sub is_nick_authed {
   my $self = shift;
   my $mapping = $self->isupport('CASEMAPPING');
@@ -471,6 +566,25 @@ Sent when the component detects that a user has authed with Q. Due to the mechan
 usually only receive this if an unauthed user joins a channel, then at some later point auths with Q. The
 component 'detects' the auth by seeing if Q or L decides to +v or +o the user. Klunky? Indeed. But it is the
 only way to do it, unfortunately.
+
+=back
+
+The following two 'irc_*' events are the same as their L<POE::Component::IRC::State> counterparts,
+with the additional parameters:
+
+=over
+
+=item irc_quit
+
+ARG3 contains the quitting clients auth name if applicable.
+
+=item irc_part
+
+ARG3 contains the parting clients auth name if applicable.
+
+=item irc_kick
+
+ARG5 contains the kick victim's auth name if applicable.
 
 =back
 
