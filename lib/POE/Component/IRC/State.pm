@@ -16,7 +16,7 @@ use POE::Component::IRC::Plugin qw(:ALL);
 use base qw(POE::Component::IRC);
 use vars qw($VERSION);
 
-$VERSION = '2.1';
+$VERSION = '2.2';
 
 # Event handlers for tracking the STATE. $self->{STATE} is used as our namespace.
 # u_irc() is used to create unique keys.
@@ -208,7 +208,7 @@ sub S_chan_mode {
   pop @_;
   my $mode = ${ $_[2] };
   my $arg = ${ $_[3] };
-  return PCI_EAT_NONE unless $mynick = u_irc( $arg, $mapping ) and $mode =~ /\+[qoah]/;
+  return PCI_EAT_NONE unless $mynick eq u_irc( $arg, $mapping ) and $mode =~ /\+[qoah]/;
   my $excepts = $irc->isupport('EXCEPTS');
   my $invex = $irc->isupport('INVEX');
   $irc->yield ( 'mode' => $channel => $excepts ) if $excepts;
