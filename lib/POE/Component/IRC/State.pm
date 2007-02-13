@@ -16,7 +16,7 @@ use POE::Component::IRC::Plugin qw(:ALL);
 use base qw(POE::Component::IRC);
 use vars qw($VERSION);
 
-$VERSION = '2.2';
+$VERSION = '2.3';
 
 # Event handlers for tracking the STATE. $self->{STATE} is used as our namespace.
 # u_irc() is used to create unique keys.
@@ -208,7 +208,7 @@ sub S_chan_mode {
   pop @_;
   my $mode = ${ $_[2] };
   my $arg = ${ $_[3] };
-  return PCI_EAT_NONE unless $mynick eq u_irc( $arg, $mapping ) and $mode =~ /\+[qoah]/;
+  return PCI_EAT_NONE unless $mode =~ /\+[qoah]/ and $mynick eq u_irc( $arg, $mapping );
   my $excepts = $irc->isupport('EXCEPTS');
   my $invex = $irc->isupport('INVEX');
   $irc->yield ( 'mode' => $channel => $excepts ) if $excepts;
@@ -546,26 +546,31 @@ sub _channel_sync {
 
 sub _nick_exists {
   my $self = shift;
+  my $nick = shift || return;
   my $mapping = $self->isupport('CASEMAPPING');
-  my $nick = u_irc $_[0], $mapping || return 0;
+  $nick = u_irc $nick, $mapping;
   return 1 if defined $self->{STATE}->{Nicks}->{ $nick };
   return 0;
 }
 
 sub _channel_exists {
   my $self = shift;
+  my $channel = shift || return;
   my $mapping = $self->isupport('CASEMAPPING');
-  my $channel = u_irc $_[0], $mapping || return 0;
+  $channel = u_irc $channel, $mapping;
   return 1 if defined $self->{STATE}->{Chans}->{ $channel };
   return 0;
 }
 
 sub _nick_has_channel_mode {
   my $self = shift;
+  my $channel = shift || return;
+  my $nick = shift || return;
+  my $flag = shift || return;
   my $mapping = $self->isupport('CASEMAPPING');
-  my $channel = u_irc $_[0], $mapping || return 0;
-  my $nick = u_irc $_[1], $mapping || return 0;
-  my $flag = ( split //, $_[2] )[0] || return 0;
+  $channel = u_irc $channel, $mapping;
+  $nick = u_irc $nick, $mapping;
+  $flag = ( split //, $flag )[0];
 
   return 0 unless $self->is_channel_member($channel,$nick);
   return 1 if $self->{STATE}->{Nicks}->{ $nick }->{CHANS}->{ $channel } =~ /$flag/;
@@ -600,13 +605,9 @@ sub nick_info {
   return unless $self->_nick_exists($nick);
 
   my $record = $self->{STATE}->{Nicks}->{ $nick };
-
   my %result = %{ $record };
-
   $result{Userhost} = $result{User} . '@' . $result{Host};
-
   delete $result{'CHANS'};
-
   return \%result;
 }
 

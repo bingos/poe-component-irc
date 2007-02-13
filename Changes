@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.23  <Date>
+    - Added Test::Kwalitee test.
+
 5.22  Fri Feb 02 12:02:36 GMT 2007
     - Found a bug in ::State that was causing problems during netsplits.
 
