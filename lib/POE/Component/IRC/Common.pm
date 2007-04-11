@@ -3,12 +3,14 @@ package POE::Component::IRC::Common;
 use strict;
 use warnings;
 
-our $VERSION = '5.11';
+our $VERSION = '5.12';
+our $ERROR;
+our $ERRNO;
 
 # We export some stuff
 require Exporter;
 our @ISA = qw( Exporter );
-our %EXPORT_TAGS = ( 'ALL' => [ qw(u_irc l_irc parse_mode_line parse_ban_mask matches_mask parse_user) ] );
+our %EXPORT_TAGS = ( 'ALL' => [ qw(u_irc l_irc parse_mode_line parse_ban_mask matches_mask parse_user irc_ip_get_version irc_ip_is_ipv4 irc_ip_is_ipv6) ] );
 Exporter::export_ok_tags( 'ALL' );
 
 sub u_irc {
@@ -136,6 +138,140 @@ sub parse_user {
   return $n;
 }
 
+#------------------------------------------------------------------------------
+# Subroutine ip_get_version
+# Purpose           : Get an IP version
+# Params            : IP address
+# Returns           : 4, 6, 0(don't know)
+sub irc_ip_get_version {
+    my $ip = shift;
+
+    # If the address does not contain any ':', maybe it's IPv4
+    $ip !~ /:/ and irc_ip_is_ipv4($ip) and return '4';
+
+    # Is it IPv6 ?
+    irc_ip_is_ipv6($ip) and return '6';
+
+    return;
+}
+
+#------------------------------------------------------------------------------
+# Subroutine ip_is_ipv4
+# Purpose           : Check if an IP address is version 4
+# Params            : IP address
+# Returns           : 1 (yes) or 0 (no)
+sub irc_ip_is_ipv4 {
+    my $ip = shift;
+
+    # Check for invalid chars
+    unless ($ip =~ m/^[\d\.]+$/) {
+        $ERROR = "Invalid chars in IP $ip";
+        $ERRNO = 107;
+        return 0;
+    }
+
+    if ($ip =~ m/^\./) {
+        $ERROR = "Invalid IP $ip - starts with a dot";
+        $ERRNO = 103;
+        return 0;
+    }
+
+    if ($ip =~ m/\.$/) {
+        $ERROR = "Invalid IP $ip - ends with a dot";
+        $ERRNO = 104;
+        return 0;
+    }
+
+    # Single Numbers are considered to be IPv4
+    if ($ip =~ m/^(\d+)$/ and $1 < 256) { return 1 }
+
+    # Count quads
+    my $n = ($ip =~ tr/\./\./);
+
+    # IPv4 must have from 1 to 4 quads
+    unless ($n >= 0 and $n < 4) {
+        $ERROR = "Invalid IP address $ip";
+        $ERRNO = 105;
+        return 0;
+    }
+
+    # Check for empty quads
+    if ($ip =~ m/\.\./) {
+        $ERROR = "Empty quad in IP address $ip";
+        $ERRNO = 106;
+        return 0;
+    }
+
+    foreach (split /\./, $ip) {
+
+        # Check for invalid quads
+        unless ($_ >= 0 and $_ < 256) {
+            $ERROR = "Invalid quad in IP address $ip - $_";
+            $ERRNO = 107;
+            return 0;
+        }
+    }
+    return 1;
+}
+
+#------------------------------------------------------------------------------
+# Subroutine ip_is_ipv6
+# Purpose           : Check if an IP address is version 6
+# Params            : IP address
+# Returns           : 1 (yes) or 0 (no)
+sub irc_ip_is_ipv6 {
+    my $ip = shift;
+
+    # Count octets
+    my $n = ($ip =~ tr/:/:/);
+    return (0) unless ($n > 0 and $n < 8);
+
+    # $k is a counter
+    my $k;
+
+    foreach (split /:/, $ip) {
+        $k++;
+
+        # Empty octet ?
+        next if ($_ eq '');
+
+        # Normal v6 octet ?
+        next if (/^[a-f\d]{1,4}$/i);
+
+        # Last octet - is it IPv4 ?
+        if ($k == $n + 1) {
+            next if (ip_is_ipv4($_));
+        }
+
+        $ERROR = "Invalid IP address $ip";
+        $ERRNO = 108;
+        return 0;
+    }
+
+    # Does the IP address start with : ?
+    if ($ip =~ m/^:[^:]/) {
+        $ERROR = "Invalid address $ip (starts with :)";
+        $ERRNO = 109;
+        return 0;
+    }
+
+    # Does the IP address finish with : ?
+    if ($ip =~ m/[^:]:$/) {
+        $ERROR = "Invalid address $ip (ends with :)";
+        $ERRNO = 110;
+        return 0;
+    }
+
+    # Does the IP address have more than one '::' pattern ?
+    if ($ip =~ s/:(?=:)//g > 1) {
+        $ERROR = "Invalid address $ip (More than one :: pattern)";
+        $ERRNO = 111;
+        return 0;
+    }
+
+    return 1;
+}
+
 1;
 __END__
 
@@ -225,12 +361,43 @@ Takes two array references, the first being a list of strings representing IRC m
 
 Takes one parameter, a string representing a user in the form nick!user@hostname. In a scalar context it returns just the nickname. In a list context it returns a list consisting of the nick, user and hostname, respectively.
 
+=item irc_ip_get_version
+
+Try to guess the IP version of an IP address.
+
+    Params  : IP address
+    Returns : 4, 6, undef(unable to determine)
+
+C<$version = ip_get_version ($ip)>
+
+=item irc_ip_is_ipv4
+
+Check if an IP address is of type 4.
+
+    Params  : IP address
+    Returns : 1 (yes) or 0 (no)
+
+C<ip_is_ipv4($ip) and print "$ip is IPv4";>
+
+=item irc_ip_is_ipv6
+
+Check if an IP address is of type 6.
+
+    Params            : IP address
+    Returns           : 1 (yes) or 0 (no)
+
+C<ip_is_ipv6($ip) and print "$ip is IPv6";>
+
 =back
 
 =head1 AUTHOR
 
 Chris 'BinGOs' Williams
 
+IP functions are shamelessly 'borrowed' from L<Net::IP> by Manuel Valente
+
 =head1 SEE ALSO
 
 L<POE::Component::IRC>
+
+L<Net::IP>

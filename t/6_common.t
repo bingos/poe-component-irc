@@ -1,4 +1,4 @@
-use Test::More tests => 22;
+use Test::More tests => 25;
 BEGIN { use_ok('POE::Component::IRC::Common', qw(:ALL)) }
 ok( 'SIMPLE' eq u_irc( 'simple' ), "Upper simple test" );
 ok( 'simple' eq l_irc( 'SIMPLE' ), "Lower simple test" );
@@ -27,3 +27,6 @@ ok( $nick eq 'BinGOs', "Parse User Test 1" );
 ok( $nick eq $args[0], "Parse User Test 2" );
 ok( $args[1] eq 'null', "Parse User Test 3" );
 ok( $args[2] eq 'fubar.com', "Parse User Test 4" );
+ok( irc_ip_get_version('100.0.0.1') == 4, "IPv4" );
+ok( irc_ip_get_version('2001:0db8:0000:0000:0000:0000:1428:57ab') == 6, "IPv6" );
+ok( !irc_ip_get_version('blah'), "Not an IP" );
