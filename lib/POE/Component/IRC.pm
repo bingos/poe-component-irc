@@ -76,6 +76,7 @@ BEGIN {
 	eval {
 		require Socket6;
 		import Socket6;
+		$GOT_SOCKET6 = 1;
 	};
 }
 
@@ -891,9 +892,7 @@ sub connect {
     }
   }
 
-  foreach my $key ( keys %arg ) {
-	$arg{ lc $key } = delete $arg{$key};
-  }
+  $arg{ lc $_ } = delete $arg{$_} for keys %arg;
 
   $self->_configure( \%arg );
 
@@ -904,7 +903,7 @@ sub connect {
 
   # try and use non-blocking resolver if needed
   if ( $self->{resolver} && !irc_ip_get_version( $self->{'server'} ) && !$self->{'NoDNS'} ) {
-    $kernel->yield( _resolve_addresses => $self->{'server'}, 'AAAA' );
+    $kernel->yield( _resolve_addresses => $self->{'server'}, ( $GOT_SOCKET6 ? 'AAAA' : 'A' ) );
   } 
   else {
     $kernel->yield("_do_connect");

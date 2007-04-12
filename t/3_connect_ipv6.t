@@ -71,7 +71,12 @@ sub test_start {
 	FailureEvent => 'oops',
   );
 
-  ($heap->{bindport}, undef) = unpack_sockaddr_in6( $heap->{sockfactory}->getsockname );
+  my $packed_socket = $heap->{sockfactory}->getsockname;
+  return unless $packed_socket;
+  eval {
+    ($heap->{bindport}, undef) = unpack_sockaddr_in6( $packed_socket );
+  };
+  return if $@;
 
   $heap->{filter} = POE::Filter::IRC->new();
 
@@ -100,7 +105,9 @@ sub accept_client {
 sub factory_failed {
   my ($syscall, $errno, $error) = @_[ARG0..ARG2];
   delete $_[HEAP]->{sockfactory};
-  plan skip_all => "AF_INET6 probably not supported ($syscall error $errno: $error)";
+  SKIP: {
+    skip "AF_INET6 probably not supported ($syscall error $errno: $error)", 11;
+  }
   undef;
 }
 
