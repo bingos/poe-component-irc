@@ -33,7 +33,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '5.24';
+$VERSION = '5.23';
 $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -216,6 +216,9 @@ sub _configure {
     $self->{'socks_proxy'} = $arg{'socks_proxy'} if exists $arg{'socks_proxy'};
     $self->{'socks_port'} = $arg{'socks_port'} if exists $arg{'socks_port'};
     $self->{'socks_id'} = $arg{'socks_id'} if exists $arg{'socks_id'};
+    $self->{'useipv6'} = $arg{'useipv6'} if exists $arg{'useipv6'};
+    warn "'useipv6' specified, but Socket6 isn't loaded\n" 
+	if $self->{'useipv6'} and !$GOT_SOCKET6;
 
     if (exists $arg{'debug'}) {
       $self->{'debug'} = $arg{'debug'};
@@ -955,6 +958,16 @@ sub _do_connect {
 	   return;
 	}
 	$domain = AF_INET6;
+  }
+  elsif ( $self->{localaddr} and irc_ip_is_ipv6( $self->{localaddr} ) ) {
+	unless ( $GOT_SOCKET6 ) {
+	   warn "IPv6 address specified for 'localaddr' but Socket6 not found\n";
+	   return;
+	}
+	$domain = AF_INET6;
+  }
+  elsif ( $self->{useipv6} and $GOT_SOCKET6 ) {
+  	$domain = AF_INET6;
   }
 
   $self->{'socketfactory'} =
@@ -2625,6 +2638,7 @@ connection are:
   "socks_proxy", specify a SOCKS4/SOCKS4a proxy to use.
   "socks_port", the SOCKS port to use, defaults to 1080 if not specified.
   "socks_id", specify a SOCKS user_id. Default is none.
+  "useipv6", force the use of IPv6 for connections.
 
 C<connect()> will supply
 reasonable defaults for any of these attributes which are missing, so
@@ -2671,6 +2685,9 @@ dns lookups using it.
 
 SOCKS4 proxy support is provided by 'socks_proxy', 'socks_port' and 'socks_id' parameters. If something goes wrong
 with the SOCKS connection you should get a warning on STDERR. This is fairly experimental currently.
+
+IPv6 support is available for connecting to IPv6 enabled ircds ( it won't work for DCC though ).
+L<Socket6> is required to be installed. If you have L<Socket6> and L<POE::Component::Client::DNS> installed and specify a hostname that resolves to an IPv6 address then IPv6 support is automagically enabled. If you specify an ipv6 'localaddr' then IPv6 is enabled. You may also force the component to use IPv6 by setting 'useipv6'
 
 =item ctcp and ctcpreply
 
