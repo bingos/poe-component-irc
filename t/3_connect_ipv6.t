@@ -63,6 +63,7 @@ sub test_start {
   my ($kernel,$heap) = @_[KERNEL,HEAP];
 
   pass('blah');
+  $heap->{tests} = 11;
   $heap->{sockfactory} = POE::Wheel::SocketFactory->new(
 	SocketDomain => AF_INET6,
 	BindAddress => '::1',
@@ -83,6 +84,7 @@ sub test_start {
   $self->yield( 'register' => 'all' );
   $self->yield( 'connect' => { Nick => 'testbot',
 			       Server => '::1',
+			       useipv6 => 1,
 			       Port => $heap->{bindport},
 			       Username => 'testbot',
 			       Ircname => 'testbot 1.1', } );
@@ -103,10 +105,10 @@ sub accept_client {
 }
 
 sub factory_failed {
-  my ($syscall, $errno, $error) = @_[ARG0..ARG2];
+  my ($heap,$syscall, $errno, $error) = @_[HEAP,ARG0..ARG2];
   delete $_[HEAP]->{sockfactory};
   SKIP: {
-    skip "AF_INET6 probably not supported ($syscall error $errno: $error)", 11;
+    skip "AF_INET6 probably not supported ($syscall error $errno: $error)", $heap->{tests};
   }
   undef;
 }
@@ -117,11 +119,13 @@ sub client_input {
   SWITCH: {
     if ( $input =~ /^NICK / ) {
 	pass('nick');
+	$heap->{tests}--;
 	$heap->{got_nick} = 1;
 	last SWITCH;
     }
     if ( $input =~ /^USER / ) {
 	pass('user');
+	$heap->{tests}--;
 	$heap->{got_user} = 1;
 	last SWITCH;
     }
@@ -146,17 +150,21 @@ sub client_error {
 }
 
 sub irc_connected {
+  $_[HEAP]->{tests}--;
   pass('connected');
   undef;
 }
 
 sub irc_socketerr {
-  fail('connected');
+  SKIP: {
+    skip "AF_INET6 probably not supported ($_[ARG0])", $_[HEAP]->{tests};
+  }
   $self->yield( 'shutdown' );
   undef;
 }
 
 sub irc_registered {
+  $_[HEAP]->{tests}--;
   isa_ok( $_[ARG0], 'POE::Component::IRC' );
   undef;
 }
@@ -164,6 +172,7 @@ sub irc_registered {
 sub irc_001 {
   my ($heap,$sender) = @_[HEAP,SENDER];
 
+  $heap->{tests}--;
   pass('irc_001');
 
   my $poco_object = $sender->get_heap();
@@ -171,10 +180,15 @@ sub irc_001 {
   isa_ok( $poco_object, 'POE::Component::IRC' );
 
   ok( $poco_object->session_id() eq $sender->ID(), "Session ID" );
+  $heap->{tests}--;
   ok( $poco_object->session_alias() eq 'blahblah', "Alias name" );
+  $heap->{tests}--;
   ok( $poco_object->connected(), "Connected test" );
+  $heap->{tests}--;
   ok( $poco_object->server_name() eq 'test.script', "Server Name" );
+  $heap->{tests}--;
   ok( $poco_object->nick_name() eq 'testbot', "Nick Name" );
+  $heap->{tests}--;
 
   #$self->yield( 'unregister' => 'all' );
   $self->yield( 'shutdown');

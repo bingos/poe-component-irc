@@ -1,5 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.24  Mon Apr 16 13:43:36 BST 2007
+    - Changed the IPv6 support to only be enabled when 'useipv6'
+      is explicitly used.
+
 5.23  Thu Apr 12 16:07:56 BST 2007
     - Added Test::Kwalitee test.
     - Added new IP functions to ::Common
