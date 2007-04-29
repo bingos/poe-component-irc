@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.26  Sun Apr 29 15:19:56 BST 2007
+    - Fixed a bug relating to PoCo-Client-DNS use, reported by dec
+
 5.25  Sun Apr 29 13:03:07 BST 2007
     - Applied fix for problem with ipv6 support from bsmith
     - Fixed RT #26735 reported by dec
