@@ -163,7 +163,7 @@ sub _close_wheel {
   my ($self,$wheel_id) = splice @_, 0, 2;
   return unless defined $self->{wheels}->{ $wheel_id };
   delete $self->{wheels}->{ $wheel_id };
-  $self->{irc}->_send_event( 'irc_proxy_close' => $wheel_id );
+  $self->{irc}->send_event( 'irc_proxy_close' => $wheel_id );
 }
 
 sub _start {
@@ -194,7 +194,7 @@ sub _spawn_listener {
 	$irc->plugin_del( $self );
 	return undef;
   }
-  $self->{irc}->_send_event( 'irc_proxy_up' => $self->{listener}->getsockname() );
+  $self->{irc}->send_event( 'irc_proxy_up' => $self->{listener}->getsockname() );
   undef;
 }
 
@@ -218,9 +218,9 @@ sub _listener_accept {
 	$self->{wheels}->{ $wheel_id }->{start} = time();
 	$self->{wheels}->{ $wheel_id }->{reg} = 0;
 	$self->{wheels}->{ $wheel_id }->{register} = 0;
-	$self->{irc}->_send_event( 'irc_proxy_connect' => $wheel_id );
+	$self->{irc}->send_event( 'irc_proxy_connect' => $wheel_id );
   } else {
-	$self->{irc}->_send_event( 'irc_proxy_rw_fail' => inet_ntoa( $peeradr ) => $peerport );
+	$self->{irc}->send_event( 'irc_proxy_rw_fail' => inet_ntoa( $peeradr ) => $peerport );
   }
   undef;
 }
@@ -281,7 +281,7 @@ sub _client_input {
 	  $self->{irc}->yield( 'names' => $channel );
 	  $self->{irc}->yield( 'topic' => $channel );
 	}
-	$self->{irc}->_send_event( 'irc_proxy_authed' => $wheel_id );
+	$self->{irc}->send_event( 'irc_proxy_authed' => $wheel_id );
 	last SWITCH;
     }
     unless ( $self->{wheels}->{ $wheel_id }->{reg} ) {
@@ -322,7 +322,7 @@ sub _shutdown {
 	$self->_close_wheel( $wheel_id );
   }
   delete $self->{wheels};
-  $irc->_send_event( 'irc_proxy_down' => $mysockaddr );
+  $irc->send_event( 'irc_proxy_down' => $mysockaddr );
   undef;
 }
 
