@@ -524,6 +524,11 @@ sub _parseline {
   }
   $ev->{name} = 'irc_' . $ev->{name};
   $self->_send_event( $ev->{name}, @{$ev->{args}} );
+
+  if ($ev->{name} =~ /^irc_ctcp_(.+)$/) {
+    $self->_send_event(irc_ctcp => $1 => @{$ev->{args}});
+  }
+  
   undef;
 }
 
@@ -3100,6 +3105,18 @@ B<NOTE:> When you get an "irc_connected" event, this doesn't mean you
 can start sending commands to the server yet. Wait until you receive
 an irc_001 event (the server welcome message) before actually sending
 anything back to the server.
+
+=item irc_ctcp
+
+irc_ctcp events are generated upon receipt of CTCP messages, in addition to
+the irc_ctcp_* events mentioned below.  They are identical in every way to
+these, with one difference: instead of the * being in the method name, it
+is prepended to the argument list.  For example, if someone types C</ctcp
+Flibble foo bar>, an irc_ctcp event will be sent with C<foo> as ARG0,
+and the rest as given below.
+
+It is not recommended that you register for both irc_ctcp and irc_ctcp_*
+events, since they will both be fired and presumably cause duplication.
 
 =item irc_ctcp_*
 
