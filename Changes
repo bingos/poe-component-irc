@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.28  Tue May 01 14:50:08 BST 2007
+    - Applied a patch from dec to Plugin::Proxy.
+
 5.27  Tue May 01 13:43:39 BST 2007
     - Fixed a serious bug relating to PoCo-Client-DNS use, reported by dec
 

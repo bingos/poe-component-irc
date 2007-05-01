@@ -137,7 +137,7 @@ sub _stash_line {
     return;
   }
   $prefix =~ s/^://;
-  if ( $numeric eq 'NOTICE' and $prefix eq $self->{irc}->server_name() ) {
+  if ( defined $self->{irc}->server_name and $numeric eq 'NOTICE' and $prefix eq $self->{irc}->server_name() ) {
     push @{ $self->{stash} }, $line;
     return;
   }
