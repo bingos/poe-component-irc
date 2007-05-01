@@ -33,7 +33,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '5.26';
+$VERSION = '5.27';
 $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -1000,11 +1000,6 @@ sub _got_dns_response {
 
   my @net_dns_answers = $net_dns_packet->answer;
 
-  unless (@net_dns_answers and $type eq 'AAAA') {
-    $self->_send_event( 'irc_socketerr', "Unable to resolve $self->{'server'}");
-    return;
-  }
-
   foreach my $net_dns_answer (@net_dns_answers) {
     next unless $net_dns_answer->type =~ /^A/;
     push @{ $self->{res_addresses} }, $net_dns_answer->rdatastr;
@@ -1012,6 +1007,11 @@ sub _got_dns_response {
 
   if ( !scalar @{ $self->{res_addresses} } and $type eq 'AAAA') {
     $kernel->yield( _resolve_addresses => $self->{'server'}, 'A' );
+    return;
+  }
+
+  unless ( scalar @{ $self->{res_addresses} } ) {
+    $self->_send_event( 'irc_socketerr', "Unable to resolve $self->{'server'}");
     return;
   }
 
