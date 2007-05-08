@@ -119,6 +119,8 @@ sub S_raw {
   my ($self,$irc) = splice @_, 0, 2;
   my $line = ${ $_[0] };
 
+  return PCI_EAT_NONE unless defined $line;
+
   return PCI_EAT_ALL if $line =~ /^PING\s*/;
   foreach my $wheel_id ( keys %{ $self->{wheels} } ) {
 	$self->_send_to_client( $wheel_id, $line );
