@@ -33,7 +33,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '5.30';
+$VERSION = '5.31';
 $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -227,6 +227,9 @@ sub _configure {
     $self->{plugin_debug} = $arg{'plugin_debug'} if exists $arg{'plugin_debug'};
     my $dccport = delete $arg{'dccports'};
     $self->{'UseSSL'} = $arg{'usessl'} if exists $arg{'usessl'};
+
+    warn "POE::Component::SSLify wasn\'t found, but you have specified 'usessl'\n"
+	if $self->{'UseSSL'} and !$GOT_SSL;
 
     if ( defined ( $dccport ) and ref ( $dccport ) eq 'ARRAY' ) {
 	  $self->{dcc_bind_port} = $dccport;

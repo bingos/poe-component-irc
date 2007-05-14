@@ -1,5 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.31  <Date>
+    - Added a warning if UseSSL is specified but SSLify wasn't found,
+      requested by H.Merijn Brand;
+
 5.30  Tue May 08 19:25:06 BST 2007
     - Applied a patch from dec for Plugin::Proxy.pm
 
