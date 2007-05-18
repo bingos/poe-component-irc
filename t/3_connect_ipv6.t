@@ -29,6 +29,10 @@ unless (defined $addr) {
 
 plan tests => 14;
 
+my $debug;
+
+$debug = 1 if $^O eq 'solaris'; # switch on debugging for Solaris
+
 #########################
 
 # Insert your test code below, the Test::More module is use()ed here so read
@@ -62,6 +66,7 @@ exit 0;
 sub test_start {
   my ($kernel,$heap) = @_[KERNEL,HEAP];
 
+  diag("Starting tests: Socket6 appears to be $Socket6::VERSION\n") if $debug;
   pass('blah');
   $heap->{tests} = 11;
   $heap->{sockfactory} = POE::Wheel::SocketFactory->new(
@@ -73,11 +78,15 @@ sub test_start {
   );
 
   my $packed_socket = $heap->{sockfactory}->getsockname;
+  diag("Couldn't get the packed socket\n") if $debug and !$packed_socket;
   return unless $packed_socket;
   eval {
     ($heap->{bindport}, undef) = unpack_sockaddr_in6( $packed_socket );
   };
+  diag("ERROR: $@\n") if $debug and $@;
   return if $@;
+
+  diag("Okay connecting to port " . $heap->{bindport} . "\n") if $debug;
 
   $heap->{filter} = POE::Filter::IRC->new();
 
@@ -106,6 +115,7 @@ sub accept_client {
 
 sub factory_failed {
   my ($heap,$syscall, $errno, $error) = @_[HEAP,ARG0..ARG2];
+  diag("Tests left: " . $heap->{tests} . "\n") if $debug;
   delete $_[HEAP]->{sockfactory};
   SKIP: {
     skip "AF_INET6 probably not supported ($syscall error $errno: $error)", $heap->{tests};
@@ -146,6 +156,7 @@ sub client_error {
     my ( $heap, $wheel_id ) = @_[ HEAP, ARG3 ];
     delete $heap->{client}->{$wheel_id}; 
     delete $heap->{sockfactory};
+    diag("Client Error\n") if $debug;
   undef;
 }
 
@@ -156,6 +167,8 @@ sub irc_connected {
 }
 
 sub irc_socketerr {
+  diag("irc_socketerr $_[ARG0]\n") if $debug;
+  diag("Tests left: " . $_[HEAP]->{tests} . "\n") if $debug;
   SKIP: {
     skip "AF_INET6 probably not supported ($_[ARG0])", $_[HEAP]->{tests};
   }
