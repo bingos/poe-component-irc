@@ -116,6 +116,7 @@ sub accept_client {
 sub factory_failed {
   my ($heap,$syscall, $errno, $error) = @_[HEAP,ARG0..ARG2];
   diag("Tests left: " . $heap->{tests} . "\n") if $debug;
+  diag("Factory failed: $syscall error $errno: $error\n") if $debug;
   delete $_[HEAP]->{sockfactory};
   SKIP: {
     skip "AF_INET6 probably not supported ($syscall error $errno: $error)", $heap->{tests};
