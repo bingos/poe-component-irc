@@ -121,6 +121,8 @@ sub factory_failed {
   SKIP: {
     skip "AF_INET6 probably not supported ($syscall error $errno: $error)", $heap->{tests};
   }
+  $heap->{tests} = 0;
+  $self->yield( 'shutdown' );
   undef;
 }
 
@@ -170,6 +172,7 @@ sub irc_connected {
 sub irc_socketerr {
   diag("irc_socketerr $_[ARG0]\n") if $debug;
   diag("Tests left: " . $_[HEAP]->{tests} . "\n") if $debug;
+  return unless $_[HEAP]->{tests};
   SKIP: {
     skip "AF_INET6 probably not supported ($_[ARG0])", $_[HEAP]->{tests};
   }
