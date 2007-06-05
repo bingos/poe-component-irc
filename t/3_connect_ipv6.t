@@ -86,6 +86,15 @@ sub test_start {
   diag("ERROR: $@\n") if $debug and $@;
   return if $@;
 
+  if ( $heap->{bindport} == 0 ) {
+    SKIP: {
+      skip 'AF_INET6 probably not supported $heap->{bindport} == 0', $heap->{tests};
+    }
+    delete $heap->{sockfactory};
+    $self->yield( 'shutdown' );
+    return;
+  }
+
   diag("Okay connecting to port " . $heap->{bindport} . "\n") if $debug;
 
   $heap->{filter} = POE::Filter::IRC->new();
