@@ -476,6 +476,7 @@ with nickname and channel tracking from L<POE::Component::IRC::State>.
     my ($kernel,$sender,$who,$where,$what) = @_[KERNEL,SENDER,ARG0,ARG1,ARG2];
     my $nick = ( split /!/, $who )[0];
     my $channel = $where->[0];
+    my $poco_object = $sender->get_heap();
 
     if ( my ($rot13) = $what =~ /^rot13 (.+)/ ) {
         # Only operators can issue a rot13 command to us.
