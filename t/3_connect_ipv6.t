@@ -87,9 +87,11 @@ sub test_start {
   return if $@;
 
   if ( $heap->{bindport} == 0 ) {
+    diag('$heap->{bindport} == ' . $heap->{bindport} . "\n");
     SKIP: {
       skip 'AF_INET6 probably not supported $heap->{bindport} == 0', $heap->{tests};
     }
+    $heap->{tests} = 0;
     delete $heap->{sockfactory};
     $self->yield( 'shutdown' );
     return;
@@ -127,6 +129,7 @@ sub factory_failed {
   diag("Tests left: " . $heap->{tests} . "\n") if $debug;
   diag("Factory failed: $syscall error $errno: $error\n") if $debug;
   delete $_[HEAP]->{sockfactory};
+  return unless $heap->{tests};
   SKIP: {
     skip "AF_INET6 probably not supported ($syscall error $errno: $error)", $heap->{tests};
   }
