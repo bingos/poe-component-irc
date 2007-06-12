@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.32  Tue Jun 12 12:20:21 BST 2007
+    - Stable release after working around issues on Solaris.
+
 5.31_05  Mon Jun 11 09:57:09 BST 2007
     - Fixed an error in the SYNOPSIS example for Qnet::State;
     - More diagnostics to the ipv6 test to trigger on solaris;
