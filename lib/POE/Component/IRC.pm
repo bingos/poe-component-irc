@@ -33,7 +33,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '5.32';
+$VERSION = '5.33_01';
 $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -2431,13 +2431,85 @@ $_[SENDER]->get_heap(). See also 'register' and 'irc_registered'.
 
 =item spawn
 
-Takes a number of arguments: 
+Takes a number of arguments, all of which are optional: 
 
-	"alias", a name (kernel alias) that this instance will be known by;
-	"options", a hashref containing POE::Session options;
+  "alias", a name (kernel alias) that this instance will be known by;
+  "options", a hashref containing POE::Session options;
 
-See 'connect()' for additional
-arguments that this method accepts. All arguments are optional.
+  "Server", the server name;
+  "Port", the remote port number;
+  "Password", an optional password for restricted servers;
+  "Nick", your client's IRC nickname;
+  "Username", your client's username;
+  "Ircname", some cute comment or something.
+
+  "UseSSL", set to some true value if you want to connect using SSL.
+  "Raw", set to some true value to enable the component to send 'irc_raw' events.
+  "LocalAddr", which local IP address on a multihomed box to connect as;
+  "LocalPort", the local TCP port to open your socket on;
+  "NoDNS", set this to 1 to disable DNS lookups using PoCo-Client-DNS. ( See note below ).
+  "Flood", set this to 1 to get quickly disconnected and klined from an ircd >;]
+  "Proxy", IP address or server name of a proxy server to use.
+  "ProxyPort", which tcp port on the proxy to connect to.
+  "NATAddr", what other clients see as your IP address.
+  "DCCPorts", an arrayref containing tcp ports that can be used for DCC sends.
+  "Resolver", provide a POE::Component::Client::DNS object for the component to use.
+  "plugin_debug", set to some true value to print plugin debug info, default 0.
+  "socks_proxy", specify a SOCKS4/SOCKS4a proxy to use.
+  "socks_port", the SOCKS port to use, defaults to 1080 if not specified.
+  "socks_id", specify a SOCKS user_id. Default is none.
+  "useipv6", enable the use of IPv6 for connections.
+
+C<spawn> will supply
+reasonable defaults for any of these attributes which are missing, so
+don't feel obliged to write them all out.
+
+All the above options may be supplied to C<connect()> input event as well.
+
+If the component finds that L<POE::Component::Client::DNS|POE::Component::Client::DNS>
+is installed it will use that to resolve the server name passed. Disable this
+behaviour if you like, by passing: NoDNS => 1.
+
+Additionally there is a "Flood" parameter.  When true, it disables the
+component's flood protection algorithms, allowing it to send messages
+to an IRC server at full speed.  Disconnects and k-lines are some
+common side effects of flooding IRC servers, so care should be used
+when enabling this option.
+
+Two new attributes are "Proxy" and "ProxyPort" for sending your
+IRC traffic through a proxy server.  "Proxy"'s value should be the IP
+address or server name of the proxy.  "ProxyPort"'s value should be the
+port on the proxy to connect to.  C<connect()> will default to using the
+I<actual> IRC server's port if you provide a proxy but omit the proxy's
+port. These are for HTTP Proxies. See 'socks_proxy' for SOCKS4 and SOCKS4a support.
+
+For those people who run bots behind firewalls and/or Network Address Translation
+there are two additional attributes for DCC. "DCCPorts", is an arrayref of ports
+to use when initiating DCC, using dcc(). "NATAddr", is the NAT'ed IP address that your bot is
+hidden behind, this is sent whenever you do DCC.
+
+SSL support requires POE::Component::SSLify, as well as an IRC server that supports
+SSL connections. If you're missing POE::Component::SSLify, specifing 'UseSSL' will do
+nothing. The default is to not try to use SSL.
+
+Setting 'Raw' to true, will enable the component to send 'irc_raw' events to interested plugins
+and sessions. See below for more details on what a 'irc_raw' events is :)
+
+'NoDNS' has different results depending on whether it is set with spawn() or connect(). Setting it
+with spawn(), disables the creation of the POE::Component::Client::DNS completely. Setting it with
+connect() on the other hand allows the PoCo-Client-DNS session to be spawned, but will disable any 
+dns lookups using it.
+
+'Resolver', requires a POE::Component::Client::DNS object. Useful when spawning multiple poco-irc sessions
+, saves the overhead of multiple dns sessions.
+
+'plugin_debug', setting to true enables plugin debug info. Plugins are processed inside an eval, so debugging them can be hard. This should help with that.
+
+SOCKS4 proxy support is provided by 'socks_proxy', 'socks_port' and 'socks_id' parameters. If something goes wrong
+with the SOCKS connection you should get a warning on STDERR. This is fairly experimental currently.
+
+IPv6 support is available for connecting to IPv6 enabled ircds ( it won't work for DCC though ). To enable it, specify 'useipv6'. L<Socket6> is required to be installed.
+If you have L<Socket6> and L<POE::Component::Client::DNS> installed and specify a hostname that resolves to an IPv6 address then IPv6 will be used. If you specify an ipv6 'localaddr' then IPv6 will be used.
 
 =item new
 
@@ -2619,83 +2691,9 @@ the component is up and ready to go.
 =item connect
 
 Takes one argument: a hash reference of attributes for the new
-connection. This event tells the IRC client to connect to a
+connection, see C<spawn()> for details. This event tells the IRC client to connect to a
 new/different server. If it has a connection already open, it'll close
-it gracefully before reconnecting. Possible attributes for the new
-connection are:
-
-  "Server", the server name;
-  "Port", the remote port number;
-  "Password", an optional password for restricted servers;
-  "Nick", your client's IRC nickname;
-  "Username", your client's username;
-  "Ircname", some cute comment or something.
-
-  "UseSSL", set to some true value if you want to connect using SSL.
-  "Raw", set to some true value to enable the component to send 'irc_raw' events.
-  "LocalAddr", which local IP address on a multihomed box to connect as;
-  "LocalPort", the local TCP port to open your socket on;
-  "NoDNS", set this to 1 to disable DNS lookups using PoCo-Client-DNS. ( See note below ).
-  "Flood", set this to 1 to get quickly disconnected and klined from an ircd >;]
-  "Proxy", IP address or server name of a proxy server to use.
-  "ProxyPort", which tcp port on the proxy to connect to.
-  "NATAddr", what other clients see as your IP address.
-  "DCCPorts", an arrayref containing tcp ports that can be used for DCC sends.
-  "Resolver", provide a POE::Component::Client::DNS object for the component to use.
-  "plugin_debug", set to some true value to print plugin debug info, default 0.
-  "socks_proxy", specify a SOCKS4/SOCKS4a proxy to use.
-  "socks_port", the SOCKS port to use, defaults to 1080 if not specified.
-  "socks_id", specify a SOCKS user_id. Default is none.
-  "useipv6", enable the use of IPv6 for connections.
-
-C<connect()> will supply
-reasonable defaults for any of these attributes which are missing, so
-don't feel obliged to write them all out.
-
-If the component finds that L<POE::Component::Client::DNS|POE::Component::Client::DNS>
-is installed it will use that to resolve the server name passed. Disable this
-behaviour if you like, by passing: NoDNS => 1.
-
-Additionally there is a "Flood" parameter.  When true, it disables the
-component's flood protection algorithms, allowing it to send messages
-to an IRC server at full speed.  Disconnects and k-lines are some
-common side effects of flooding IRC servers, so care should be used
-when enabling this option.
-
-Two new attributes are "Proxy" and "ProxyPort" for sending your
-IRC traffic through a proxy server.  "Proxy"'s value should be the IP
-address or server name of the proxy.  "ProxyPort"'s value should be the
-port on the proxy to connect to.  C<connect()> will default to using the
-I<actual> IRC server's port if you provide a proxy but omit the proxy's
-port. These are for HTTP Proxies. See 'socks_proxy' for SOCKS4 and SOCKS4a support.
-
-For those people who run bots behind firewalls and/or Network Address Translation
-there are two additional attributes for DCC. "DCCPorts", is an arrayref of ports
-to use when initiating DCC, using dcc(). "NATAddr", is the NAT'ed IP address that your bot is
-hidden behind, this is sent whenever you do DCC.
-
-SSL support requires POE::Component::SSLify, as well as an IRC server that supports
-SSL connections. If you're missing POE::Component::SSLify, specifing 'UseSSL' will do
-nothing. The default is to not try to use SSL.
-
-Setting 'Raw' to true, will enable the component to send 'irc_raw' events to interested plugins
-and sessions. See below for more details on what a 'irc_raw' events is :)
-
-'NoDNS' has different results depending on whether it is set with spawn() or connect(). Setting it
-with spawn(), disables the creation of the POE::Component::Client::DNS completely. Setting it with
-connect() on the other hand allows the PoCo-Client-DNS session to be spawned, but will disable any 
-dns lookups using it.
-
-'Resolver', requires a POE::Component::Client::DNS object. Useful when spawning multiple poco-irc sessions
-, saves the overhead of multiple dns sessions.
-
-'plugin_debug', setting to true enables plugin debug info. Plugins are processed inside an eval, so debugging them can be hard. This should help with that.
-
-SOCKS4 proxy support is provided by 'socks_proxy', 'socks_port' and 'socks_id' parameters. If something goes wrong
-with the SOCKS connection you should get a warning on STDERR. This is fairly experimental currently.
-
-IPv6 support is available for connecting to IPv6 enabled ircds ( it won't work for DCC though ). To enable it, specify 'useipv6'. L<Socket6> is required to be installed.
-If you have L<Socket6> and L<POE::Component::Client::DNS> installed and specify a hostname that resolves to an IPv6 address then IPv6 will be used. If you specify an ipv6 'localaddr' then IPv6 will be used.
+it gracefully before reconnecting.
 
 =item ctcp and ctcpreply
 
