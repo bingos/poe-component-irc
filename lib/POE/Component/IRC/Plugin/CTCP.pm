@@ -6,7 +6,7 @@ use POE::Component::IRC::Plugin qw( :ALL );
 use POSIX;
 use vars qw($VERSION);
 
-$VERSION = '1.0';
+$VERSION = '1.1';
 
 sub new {
   my $package = shift;
@@ -20,7 +20,7 @@ sub PCI_register {
   my ($self,$irc) = splice @_, 0, 2;
 
   $self->{irc} = $irc;
-  $irc->plugin_register( $self, 'SERVER', qw(ctcp_version ctcp_userinfo ctcp_time) );
+  $irc->plugin_register( $self, 'SERVER', qw(ctcp_version ctcp_userinfo ctcp_time ctcp_ping) );
 
   return 1;
 }
@@ -44,6 +44,14 @@ sub S_ctcp_time {
   my $nick = ( split /!/, ${ $_[0] } )[0];
   
   $irc->yield( ctcpreply => $nick => strftime( "TIME %a %h %e %T %Y %Z", localtime ) );
+  return PCI_EAT_CLIENT if $self->eat();
+  return PCI_EAT_NONE;
+}
+
+sub S_ctcp_ping {
+  my ($self,$irc) = splice @_, 0, 2;
+  my $nick = ( split /!/, ${ $_[0] } )[0];
+  $irc->yield( ctcpreply => $nick => "PING " . time() );
   return PCI_EAT_CLIENT if $self->eat();
   return PCI_EAT_NONE;
 }
@@ -112,7 +120,7 @@ POE::Component::IRC::Plugin::CTCP - A POE::Component::IRC plugin that auto-respo
 
 =head1 DESCRIPTION
 
-POE::Component::IRC::Plugin::CTCP is a L<POE::Component::IRC|POE::Component::IRC> plugin. It watches for 'irc_ctcp_version', 'irc_ctcp_userinfo' and 'irc_ctcp_time' events and autoresponds on your behalf.
+POE::Component::IRC::Plugin::CTCP is a L<POE::Component::IRC|POE::Component::IRC> plugin. It watches for 'irc_ctcp_version', 'irc_ctcp_userinfo', 'irc_ctcp_ping' and 'irc_ctcp_time' events and autoresponds on your behalf.
 
 =head1 CONSTRUCTOR
 
