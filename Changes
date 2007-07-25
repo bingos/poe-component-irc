@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.34  Wed Jul 25 10:51:45 BST 2007
+    - Fixed abstract_from in Makefile.PL.
+
 5.33_01  Tue Jul 10 17:53:01 BST 2007
     - Moved documentation for connect() to spawn();
     - Added CTCP PING to Plugin::CTCP;
