@@ -3,7 +3,7 @@ package POE::Component::IRC::Plugin::Connector;
 use strict;
 use warnings;
 use POE;
-use POE::Component::IRC 4.5;
+use POE::Component::IRC;
 use POE::Component::IRC::Plugin qw( :ALL );
 
 sub new {

@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.37_01  Wed Dec  5 21:11:46 GMT 2007
+    - Added umode support to IRC::State
+
 5.36  Thu Nov  1 13:51:02 GMT 2007
     - Updated Module::Install to 0.68
 

@@ -16,14 +16,17 @@ use POE::Component::IRC::Plugin qw(:ALL);
 use base qw(POE::Component::IRC);
 use vars qw($VERSION);
 
-$VERSION = '2.3';
+$VERSION = '2.40';
 
 # Event handlers for tracking the STATE. $self->{STATE} is used as our namespace.
 # u_irc() is used to create unique keys.
 
 # Make sure we have a clean STATE when we first join the network and if we inadvertently get disconnected
 sub S_001 {
-  delete $_[0]->{STATE};
+  my $self = shift;
+  delete $self->{STATE};
+  $self->{STATE}->{usermode} = '';
+  $self->yield( 'mode', $self->{RealNick} );
   return PCI_EAT_NONE;
 }
 
@@ -216,6 +219,14 @@ sub S_chan_mode {
   return PCI_EAT_NONE;
 }
 
+sub S_221 {
+  my ($self,$irc) = splice @_, 0, 2;
+  my $mode = ${ $_[0] };
+  $mode =~ s/^\+//;
+  ($self->{STATE}->{usermode} = $mode ) =~ s/^\+//;
+  return PCI_EAT_NONE;
+}
+
 # Channel MODE
 sub S_mode {
   my ($self,$irc) = splice @_, 0, 2;
@@ -306,6 +317,21 @@ sub S_mode {
         $self->{STATE}->{Chans}->{ $uchan }->{Mode} = join('', sort {uc $a cmp uc $b} ( split( //, $self->{STATE}->{Chans}->{ $uchan }->{Mode} ) ) );
      } else {
         delete $self->{STATE}->{Chans}->{ $uchan }->{Mode};
+     }
+  }
+  else {
+     my $parsed_mode = parse_mode_line( @modes );
+     while ( my $mode = shift ( @{ $parsed_mode->{modes} } ) ) {
+	if ( $mode =~ /^\+(.)/ ) {
+		my $flag = $1;
+		$self->{STATE}->{usermode} .= $flag unless $self->{STATE}->{usermode} =~ /$flag/;
+		next;
+	}
+        if ( $mode =~ /^-(.)/ ) {
+                my $flag = $1;
+		$self->{STATE}->{usermode} =~ s/$flag// if $self->{STATE}->{usermode} =~ /$flag/;
+		next;
+	}
      }
   }
   return PCI_EAT_NONE;
@@ -526,6 +552,11 @@ sub S_333 {
 # Methods for STATE query
 # Internal methods begin with '_'
 #
+
+sub umode {
+  my $self = shift;
+  return $self->{STATE}->{usermode};
+}
 
 sub _channel_sync {
   my $self = shift;
@@ -968,6 +999,10 @@ to query the collected state.
 All of the L<POE::Component::IRC> methods are supported, plus the following:
 
 =over
+
+=item umode
+
+Takes no parameters. Returns the current user mode set for the bot.
 
 =item channels
 
