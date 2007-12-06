@@ -15,8 +15,9 @@ use POE::Component::IRC::Common qw(:ALL);
 use POE::Component::IRC::Plugin qw(:ALL);
 use base qw(POE::Component::IRC);
 use vars qw($VERSION);
+use Data::Dumper;
 
-$VERSION = '2.40';
+$VERSION = '2.41';
 
 # Event handlers for tracking the STATE. $self->{STATE} is used as our namespace.
 # u_irc() is used to create unique keys.
@@ -322,13 +323,12 @@ sub S_mode {
   else {
      my $parsed_mode = parse_mode_line( @modes );
      while ( my $mode = shift ( @{ $parsed_mode->{modes} } ) ) {
-	if ( $mode =~ /^\+(.)/ ) {
-		my $flag = $1;
+        $self->_send_event( 'irc_user_mode', $who, $channel, $mode );
+	if ( my ($flag) = $mode =~ /^\+(.)/ ) {
 		$self->{STATE}->{usermode} .= $flag unless $self->{STATE}->{usermode} =~ /$flag/;
 		next;
 	}
-        if ( $mode =~ /^-(.)/ ) {
-                my $flag = $1;
+        if ( my ($flag) = $mode =~ /^-(.)/ ) {
 		$self->{STATE}->{usermode} =~ s/$flag// if $self->{STATE}->{usermode} =~ /$flag/;
 		next;
 	}
@@ -557,6 +557,16 @@ sub umode {
   my $self = shift;
   return $self->{STATE}->{usermode};
 }
+
+sub is_user_mode_set {
+  my $self = shift;
+  my $mode = ( split //, $_[0] )[0] || return 0;
+  $mode =~ s/[^A-Za-z]//g;
+  return unless $mode;
+  return 1 if $self->{STATE}->{usermode} =~ /$mode/;
+  return 0;
+}
+
 
 sub _channel_sync {
   my $self = shift;
@@ -1004,6 +1014,10 @@ All of the L<POE::Component::IRC> methods are supported, plus the following:
 
 Takes no parameters. Returns the current user mode set for the bot.
 
+=item is_user_mode_set
+
+Expects single user mode flag [A-Za-z]. Returns 1 if that user mode is set, 0 otherwise.
+
 =item channels
 
 Takes no parameters. Returns a hashref, keyed on channel name and whether the bot is operator, halfop or 
@@ -1153,6 +1167,10 @@ ARG0 is the user's nickname and ARG1 the channel they have joined.
 
 This is almost identical to irc_mode, except that it's sent once for each individual mode with it's respective
 argument if it has one (ie. the banmask if it's +b or -b). However, this event is only sent for channel modes.
+
+=item irc_user_mode
+
+This is almost identical to irc_mode, except it is sent for each individual umode that is being set.
 
 =back
 

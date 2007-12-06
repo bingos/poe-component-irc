@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.37_02  Thu Dec  6 08:35:47 GMT 2007
+    - Added is_user_mode_set() method and 'irc_user_mode' event
+
 5.37_01  Wed Dec  5 21:11:46 GMT 2007
     - Added umode support to IRC::State
 

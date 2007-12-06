@@ -1,4 +1,4 @@
-use Test::More tests => 21;
+use Test::More tests => 24;
 
 BEGIN { use_ok('POE::Component::IRC::Test::Harness') };
 BEGIN { use_ok('POE::Component::IRC::State') };
@@ -21,9 +21,11 @@ POE::Session->create(
 			 irc_registered 
 			 irc_connected 
 			 irc_001 
+			 irc_221
 			 irc_whois 
 			 irc_join
 			 irc_chan_sync
+			 irc_user_mode
 			 irc_chan_mode
 			 irc_mode
 			 irc_error
@@ -139,11 +141,27 @@ sub irc_chan_mode {
   undef;
 }
 
+sub irc_user_mode {
+  my ($sender,$who,$channel,$mode) = @_[SENDER,ARG0,ARG1,ARG2];
+  my $object = $sender->get_heap();
+  $mode =~ s/\+//g;
+  ok( $object->is_user_mode_set( $mode ), "User Mode Set: $mode" );
+  undef;
+}
+
 sub irc_mode {
   my $object = $_[SENDER]->get_heap();
+  return unless $_[ARG1] =~ /^\#/;
   warn "# Waiting 3 seconds for the dust to settle\n";
   $object->delay( [ 'quit' ], 3 );
   undef;
+}
+
+sub irc_221 {
+  my $object = $_[SENDER]->get_heap();
+  pass("State did a MODE query");
+  $object->yield( 'mode', $object->nick_name(), '+iw' );
+  return;
 }
 
 sub irc_error {
