@@ -17,7 +17,7 @@ use base qw(POE::Component::IRC);
 use vars qw($VERSION);
 use Data::Dumper;
 
-$VERSION = '2.41';
+$VERSION = '2.42';
 
 # Event handlers for tracking the STATE. $self->{STATE} is used as our namespace.
 # u_irc() is used to create unique keys.
@@ -222,7 +222,7 @@ sub S_chan_mode {
 
 sub S_221 {
   my ($self,$irc) = splice @_, 0, 2;
-  my $mode = ${ $_[0] };
+  my $mode = ${ $_[1] };
   $mode =~ s/^\+//;
   ($self->{STATE}->{usermode} = $mode ) =~ s/^\+//;
   return PCI_EAT_NONE;
