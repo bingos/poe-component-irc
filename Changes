@@ -1,5 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.44  Tue Jan  1 13:58:15 GMT 2008
+    - Enhancement to part command to handle part messages. RT #32029
+      reported by Hinrik
+
 5.42  Mon Dec 31 12:29:50 GMT 2007
     - Amendments to NickReclaim plugin by Zoffix Znet
 

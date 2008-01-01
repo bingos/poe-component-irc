@@ -33,7 +33,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '5.42';
+$VERSION = '5.44';
 $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -871,6 +871,14 @@ sub commasep {
     if ( $state eq 'whois' and scalar @args > 1 ) {
 	$args = shift @args;
 	$args .= ' ' . join ',', @args;
+	last SWITCH;
+    }
+    if ( $state eq 'part' and scalar @args > 1 ) {
+	my $chantypes = join '', @{ $self->isupport('CHANTYPES') || [ '#', '&' ] };
+	my $message;
+	$message = pop @args if $args[$#args] =~ /\s+/ or $args[$#args] !~ /^[$chantypes]/;
+	$args = join(',', @args);
+	$args .= " :$message" if $message;
 	last SWITCH;
     }
     $args = join ',', @args;
@@ -2789,7 +2797,9 @@ text of the notice to send.
 =item part
 
 Tell your IRC client to leave the channels which you pass to it. Takes
-any number of arguments: channel names to depart from.
+any number of arguments: channel names to depart from. If the last argument
+doesn't begin with a channel name identifier or contains a space character,
+it will be treated as a PART message and dealt with accordingly.
 
 =item privmsg
 
