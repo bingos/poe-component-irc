@@ -7,7 +7,7 @@ use POE::Filter::CTCP;
 use Data::Dumper;
 use base qw(POE::Filter);
 
-our $VERSION = '1.0';
+our $VERSION = '1.1';
 
 sub new {
   my $type = shift;
@@ -15,7 +15,16 @@ sub new {
   my $buffer = { @_ };
   $buffer->{BUFFER} = [];
   $buffer->{_ctcp} = POE::Filter::CTCP->new( debug => $buffer->{DEBUG} );
+  $buffer->{chantypes} = [ '#', '&' ] unless $buffer->{chantypes} and ref $buffer->{chantypes} eq 'ARRAY';
   return bless($buffer, $type);
+}
+
+sub chantypes {
+  my $self = shift;
+  my $ref = shift || return;
+  return unless ref $ref eq 'ARRAY' and scalar @{ $ref };
+  $self->{chantypes} = $ref;
+  return 1;
 }
 
 sub get {
@@ -48,8 +57,7 @@ sub get {
         } elsif ( $event->{name} =~ /(privmsg|notice)/ ) {
           if ( $event->{name} eq 'notice' ) {
             $event->{args} = [ _decolon( $record->{prefix} ), [split /,/, $record->{params}->[0]], $record->{params}->[1] ];
-          } elsif ( index( $record->{params}->[0], '#' ) >= 0 or index( $record->{params}->[0], '&' ) >= 0
-                                or index( $record->{params}->[0], '+' ) >= 0) {
+	  } elsif ( grep { index( $record->{params}->[0], $_ ) >= 0 } @{ $self->{chantypes} } ) {
             $event->{args} = [ _decolon( $record->{prefix} ), [split /,/, $record->{params}->[0]], $record->{params}->[1] ];
             $event->{name} = 'public';
           } else {
@@ -107,8 +115,7 @@ sub get_one {
         } elsif ( $event->{name} =~ /(privmsg|notice)/ ) {
           if ( $event->{name} eq 'notice' ) {
             $event->{args} = [ _decolon( $record->{prefix} ), [split /,/, $record->{params}->[0]], $record->{params}->[1] ];
-          } elsif ( index( $record->{params}->[0], '#' ) >= 0 or index( $record->{params}->[0], '&' ) >= 0
-                                or index( $record->{params}->[0], '+' ) >= 0) {
+	  } elsif ( grep { index( $record->{params}->[0], $_ ) >= 0 } @{ $self->{chantypes} } ) {
             $event->{args} = [ _decolon( $record->{prefix} ), [split /,/, $record->{params}->[0]], $record->{params}->[1] ];
             $event->{name} = 'public';
           } else {
@@ -170,6 +177,10 @@ Takes an arrayref of L<POE::Filter::IRCD> hashrefs and produces an arrayref of L
 =item get_one
 
 These perform a similar function as get() but enable the filter to work with L<POE::Filter::Stackable>.
+
+=item chantypes
+
+Takes an arrayref of possible channel prefix indicators.
 
 =back
 

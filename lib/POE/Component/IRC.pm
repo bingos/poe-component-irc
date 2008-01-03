@@ -33,7 +33,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '5.44';
+$VERSION = '5.46';
 $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -614,6 +614,7 @@ sub _sock_down {
   # Reset the filters if necessary
   $self->_compress_uplink( 0 );
   $self->_compress_downlink( 0 );
+  $self->{ircd_compat}->chantypes( [ '#', '&' ] );
 
   # post a 'irc_disconnected' to each session that cares
   $self->_send_event( 'irc_disconnected', $self->{server} );
@@ -1943,6 +1944,12 @@ sub S_nick {
   my $nick = ( split /!/, ${ $_[0] } )[0];
   my $new = ${ $_[1] };
   $self->{RealNick} = $new if ( $nick eq $self->{RealNick} );
+  undef;
+}
+
+sub S_isupport {
+  my ($self, $irc) = splice @_, 0, 2;
+  $self->{ircd_compat}->chantypes( $self->{isupport}->isupport('CHANTYPES') || [ '#', '&' ] );
   undef;
 }
 
