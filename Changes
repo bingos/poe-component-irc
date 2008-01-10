@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.48  Thu Jan 10 20:13:10 GMT 2008
+    - Added plugin FollowTail, a tail following plugin
+
 5.46  Thu Jan  3 15:12:21 GMT 2008
     - 'irc_public' events should now be generated according to ISupport
       information

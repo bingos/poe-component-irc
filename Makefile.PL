@@ -41,7 +41,7 @@ requires 'Carp'   => 0;
 requires 'Socket' => 0;
 requires 'POSIX' => 0;
 tests 't/*.t t/*/*.t';
-clean_files 'README.send';
+clean_files 'README.send followtail';
 WriteAll();
 exit 0;
 
