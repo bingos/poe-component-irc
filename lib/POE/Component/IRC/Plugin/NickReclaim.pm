@@ -91,7 +91,7 @@ sub S_433 {
     #...and it's not a startup routine where ->nick_name cannot
     #...be used (and needs to be reclaimed)
     return PCI_EAT_NONE
-        if $self->{_did_start} and $irc->nick_name() eq $offending;
+        if $self->{_did_start} and $irc->nick_name() ne $offending;
     
     # we will store the nick with the underscore in ->{_claims}...
     #...so in sub U_nick{} we would know which ones were caused...

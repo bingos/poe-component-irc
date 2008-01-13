@@ -1,5 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.50  Sun Jan 13 10:19:05 GMT 2008
+    - RT #32271 reported by Hinrik
+    - RT #32265 is_away() support by Hinrik
+
 5.48  Thu Jan 10 20:13:10 GMT 2008
     - Added plugin FollowTail, a tail following plugin
 

@@ -17,7 +17,7 @@ use base qw(POE::Component::IRC);
 use vars qw($VERSION);
 use Data::Dumper;
 
-$VERSION = '2.42';
+$VERSION = '2.44';
 
 # Event handlers for tracking the STATE. $self->{STATE} is used as our namespace.
 # u_irc() is used to create unique keys.
@@ -228,6 +228,18 @@ sub S_221 {
   return PCI_EAT_NONE;
 }
 
+sub S_305 {
+	my ($self,$irc) = splice @_, 0, 2;
+	delete $self->{STATE}->{away};
+	return PCI_EAT_NONE;
+}
+
+sub S_306 {
+	my ($self,$irc) = splice @_, 0, 2;
+	$self->{STATE}->{away} = 1;
+	return PCI_EAT_NONE;
+}
+
 # Channel MODE
 sub S_mode {
   my ($self,$irc) = splice @_, 0, 2;
@@ -378,6 +390,12 @@ sub S_352 {
   }
   if ( $status =~ /\*/ ) {
     $self->{STATE}->{Nicks}->{ $unick }->{IRCop} = 1;
+  }
+  if ( $status =~ /G/ ) {
+    $self->{STATE}->{Nicks}->{ $unick }->{Away} = 1;
+  }
+  else {
+    $self->{STATE}->{Nicks}->{ $unick }->{Away} = 0;
   }
   return PCI_EAT_NONE;
 }
@@ -682,6 +700,20 @@ sub channel_list {
 
   return unless $self->_channel_exists($channel);
   return map { $self->{STATE}->{Nicks}->{$_}->{Nick} } keys %{ $self->{STATE}->{Chans}->{ $channel }->{Nicks} };
+}
+
+sub is_away {
+  my $self = shift;
+  my $mapping = $self->isupport('CASEMAPPING');
+  my $nick = u_irc $_[0], $mapping || return;
+  if ($nick eq u_irc $self->{RealNick}) {
+    # more accurate
+  	return 1 if $self->{STATE}->{away};
+	return 0;
+  }
+  return unless $self->_nick_exists($nick);
+  return 1 if $self->{STATE}->{Nicks}->{ $nick }->{Away};
+  return 0;
 }
 
 sub is_operator {
@@ -1038,6 +1070,12 @@ happens to be on no channels then an empty list is returned.
 
 Expects a channel as parameter. Returns a list of all nicks on the specified channel. If the component happens
 to not be on that channel an empty list will be returned.
+
+=item is_away
+
+Expects a nick as parameter. Returns 1 if the specified nick is away or 0 otherwise. If the nick does
+not exist in the state then a 0 will be returned. This is only guaranteed to be accurate for the Component's
+nick.
 
 =item is_operator
 
