@@ -13,7 +13,9 @@ use strict;
 use Carp;
 use File::Basename ();
 use POE::Filter::IRC;
+use vars qw($VERSION);
 
+$VERSION = '5.00';
 
 # Create a new, empty POE::Filter::CTCP object.
 sub new {
@@ -60,13 +62,15 @@ sub get {
 						      done => 0,
 						      addr => $3,
 						      port => $4,
-						    }, $basename, $5 ]
+						    }, $basename, $5 ],
+			 raw_line => $line,
 		       };
 
       } else {
 	push @$events, { name => $type . '_' . lc $name,
 			 args => [ $who, [split /,/, $where],
-				   (defined $args ? $args : '') ]
+				   (defined $args ? $args : '') ],
+			 raw_line => $line,
 		       };
       }
     }

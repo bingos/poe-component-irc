@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.52
+    - RT #32279: Filter/CTCP.pm doesn't provide raw_line by Hinrik
+
 5.50  Sun Jan 13 10:19:05 GMT 2008
     - RT #32271 reported by Hinrik
     - RT #32265 is_away() support by Hinrik
