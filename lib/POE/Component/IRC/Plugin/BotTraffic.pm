@@ -5,7 +5,7 @@ use warnings;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Filter::IRCD;
 use POE::Filter::CTCP;
-use vars qw($VERSION)
+use vars qw($VERSION);
 
 $VERSION = '5.52';
 
