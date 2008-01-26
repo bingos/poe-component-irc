@@ -14,12 +14,24 @@ sub new {
 sub PCI_register {
   my ($self,$irc) = splice @_, 0, 2;
 
-  $irc->plugin_register( $self, 'SERVER', qw(public) );
+  $irc->plugin_register( $self, 'SERVER', qw(ctcp_action public) );
   return 1;
 }
 
 sub PCI_unregister {
   return 1;
+}
+
+sub S_ctcp_action {
+  my ($self,$irc) = splice @_, 0, 2;
+  my $who = ${ $_[0] };
+  my $channel = ${ $_[1] }->[0];
+  my $what = ${ $_[2] };
+  my $mynick = $irc->nick_name();
+  return PCI_EAT_NONE unless $what m/$mynick/i;
+
+  $irc->_send_event('irc_bot_mentioned_action' => $who => [ $channel ] => $what);
+  return $self->{eat} ? PCI_EAT_ALL : PCI_EAT_NONE;
 }
 
 sub S_public {
@@ -29,9 +41,15 @@ sub S_public {
   my $what = ${ $_[2] };
   my $mynick = $irc->nick_name();
   my ($cmd) = $what =~ m/^\s*\Q$mynick\E[\:\,\;\.]?\s*(.*)$/i;
-  return PCI_EAT_NONE unless $cmd;
 
-  $irc->_send_event( ( $self->{event} || 'irc_bot_addressed' ) => $who => [ $channel ] => $cmd );
+  if (defined $cmd) {
+    $irc->_send_event( ( $self->{event} || 'irc_bot_addressed' ) => $who => [ $channel ] => $cmd );
+  }
+  else {
+    return PCI_EAT_NONE unless $what m/$mynick/i;
+    $irc->_send_event('irc_bot_mentioned' => $who => [ $channel ] => $what);
+  }
+  
   return $self->{eat} ? PCI_EAT_ALL : PCI_EAT_NONE;
 }
 
@@ -41,7 +59,7 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Plugin::BotAddressed - A POE::Component::IRC plugin that generates 'irc_bot_addressed' events whenever someone addresses your bot by name in a channel.
+POE::Component::IRC::Plugin::BotAddressed - A POE::Component::IRC plugin that generates 'irc_bot_addressed' events whenever someone addresses your bot by name in a channel, and an 'irc_bot_mentioned' or 'irc_bot_mentioned_action' event if its name is mentioned.
 
 =head1 SYNOPSIS
 
@@ -56,6 +74,14 @@ POE::Component::IRC::Plugin::BotAddressed - A POE::Component::IRC plugin that ge
     my ($what) = $_[ARG2];
 
     print "$nick addressed me in channel $channel with the message '$what'\n";
+  }
+
+  sub irc_bot_mentioned {
+    my ($nick) = ( split /!/, $_[ARG0] )[0];
+    my ($channel) = $_[ARG1]->[0];
+    my ($what) = $_[ARG2];
+
+    print "$nick mentioned my name in channel $channel with the message '$what'\n";
   }
 
 =head1 DESCRIPTION
@@ -90,6 +116,14 @@ Returns a plugin object suitable for feeding to L<POE::Component::IRC|POE::Compo
 
 Has the same parameters passed as 'irc_public'. ARG2 contains the message with the addressed nickname removed, ie. 
 Assuming that your bot is called LameBOT, and someone says 'LameBOT: dance for me', you will actually get 'dance for me'.
+
+=item irc_bot_mentioned
+
+Has the same parameters passed as 'irc_public'.
+
+=item irc_bot_mentioned_action
+
+Has the same parameters passed as 'irc_ctcp_action'.
 
 =back 
 
