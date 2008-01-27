@@ -52,7 +52,7 @@ sub S_chan_mode {
     my $mode = ${ $_[2] };
     my $arg = ${ $_[3] };
     $self->{Channels}->{$chan} = $arg if $mode eq '+k';
-    delete $self->{Channels}->{$chan} if $mode eq '-k';
+    $self->{Channels}->{$chan} = undef if $mode eq '-k';
     return PCI_EAT_NONE;
 }
 
