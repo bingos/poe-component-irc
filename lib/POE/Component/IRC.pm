@@ -2403,6 +2403,10 @@ A number of useful plugins have made their way into the core distribution:
 
 =over 
 
+=item L<POE::Component::IRC::Plugin::AutoJoin>
+
+Keeps you on your favorite channels throughout reconnects and even kicks.
+
 =item L<POE::Component::IRC::Plugin::Connector>
 
 Glues an irc bot to an IRC network, ie. deals with maintaining ircd connections.
@@ -2418,6 +2422,18 @@ Generates 'irc_bot_addressed' events whenever someone addresses your bot by name
 =item L<POE::Component::IRC::Plugin::Console>
 
 See inside the component. See what events are being sent. Generate irc commands manually. A TCP based console.
+
+=item L<POE::Component::IRC::Plugin::FollowTail>
+
+Follow the tail of an ever-growing file.
+
+=item L<POE::Component::IRC::Plugin::Logger>
+
+Log public and private messages to disk.
+
+=item L<POE::Component::IRC::Plugin::NickServID>
+
+Identify with FreeNode's NickServ when needed.
 
 =item L<POE::Component::IRC::Plugin::Proxy>
 
