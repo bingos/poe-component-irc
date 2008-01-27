@@ -28,7 +28,7 @@ sub S_ctcp_action {
   my $channel = ${ $_[1] }->[0];
   my $what = ${ $_[2] };
   my $mynick = $irc->nick_name();
-  return PCI_EAT_NONE unless $what m/$mynick/i;
+  return PCI_EAT_NONE unless $what =~ m/$mynick/i;
 
   $irc->_send_event('irc_bot_mentioned_action' => $who => [ $channel ] => $what);
   return $self->{eat} ? PCI_EAT_ALL : PCI_EAT_NONE;
@@ -46,7 +46,7 @@ sub S_public {
     $irc->_send_event( ( $self->{event} || 'irc_bot_addressed' ) => $who => [ $channel ] => $cmd );
   }
   else {
-    return PCI_EAT_NONE unless $what m/$mynick/i;
+    return PCI_EAT_NONE unless $what =~ m/$mynick/i;
     $irc->_send_event('irc_bot_mentioned' => $who => [ $channel ] => $what);
   }
   

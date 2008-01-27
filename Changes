@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.54  Sun Jan 27 09:21:27 GMT 2008
+    - Hinrik added numerous groovey plugins. Hinrik++
+
 5.52  Mon Jan 14 07:46:01 GMT 2008
     - RT #32279: Filter/CTCP.pm doesn't provide raw_line by Hinrik
 
