@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use vars qw($VERSION);
 
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 1;
 __END__
@@ -28,6 +28,10 @@ Inclusion to ( or inversely, exclusion from ) this list does not imply any sort 
 An alphabetically ordered list of bot frameworks, that are available on CPAN.
 
 =over
+
+=item L<App::Bondage|App::Bondage>
+
+A featureful easy-to-use IRC bouncer.
 
 =item L<Amethyst|Amethyst>
 
