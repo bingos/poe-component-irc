@@ -7,6 +7,7 @@ use Encode;
 use Encode::Guess;
 use Fcntl;
 use POE::Component::IRC::Plugin qw( :ALL );
+use POE::Component::IRC::Plugin::BotTraffic;
 use POE::Component::IRC::Common qw( l_irc parse_user );
 use POSIX qw(strftime);
 
@@ -28,7 +29,7 @@ sub PCI_register {
     }
     
     if ( !grep { $_->isa('POE::Component::IRC::Plugin::BotTraffic') } @{ $irc->pipeline->{PIPELINE} } ) {
-        croak __PACKAGE__ . ' requires PoCo::IRC::Plugin::BotTraffic';
+        $irc->plugin_add('BotTraffic', POE::Component::IRC::Plugin::BotTraffic->new());
     }
 
     if (! -d $self->{Path}) {
@@ -211,6 +212,7 @@ sub _log_msg {
     if (!exists $self->{logs}->{$context}) {
         sysopen(my $log, $self->{Path} . "/$context.log", O_WRONLY|O_APPEND|O_CREAT, 0600)
             or croak "Couldn't create file" . $self->{Path} . "/$context.log" . ": $!; aborted";
+        binmode $log, ':utf8';
         $log->autoflush(1);
         print $log "***\n*** LOGGING BEGINS\n***\n";
         $self->{logs}->{$context} = $log;
@@ -239,21 +241,21 @@ logs public and private messages to disk.
  use POE::Component::IRC::Plugin::Logger;
 
  $irc->plugin_add('Logger', POE::Component::IRC::Plugin::Logger->new(
-     Path => '/home/me/irclogs',
+     Path    => '/home/me/irclogs',
      Private => 0,
-     Public => 1,
+     Public  => 1,
  ));
 
 =head1 DESCRIPTION
 
 POE::Component::IRC::Plugin::Logger is a L<POE::Component::IRC|POE::Component::IRC> plugin.
 It logs messages and CTCP ACTIONs to either #some_channel.log or some_nickname.log in the supplied path.
-It uses Encode::Guess to detect UTF-8 encoding of every message or else falls back to
+It tries to detect UTF-8 encoding of every message or else falls back to
 CP1252 (like irssi does by default).
 
 This plugin requires the IRC component to be L<POE::Component::IRC::State|POE::Component::IRC::State>
 or a subclass thereof. It also requires a L<POE::Component::IRC::Plugin::BotTraffic|POE::Component::IRC::Plugin::BotTraffic>
-to be in the plugin pipeline.
+to be in the plugin pipeline. It will be added automatically if it is not present.
 
 =head1 METHODS
 
