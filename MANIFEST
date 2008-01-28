@@ -55,6 +55,7 @@ MANIFEST			This list of files
 MANIFEST.SKIP
 META.yml
 README
+t/0_compile.t
 t/1_filter_compat.t
 t/1_spawn.t
 t/2_Qnet.t
