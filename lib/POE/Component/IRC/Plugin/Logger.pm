@@ -40,6 +40,7 @@ sub PCI_register {
     $self->{logs} = { };
     $self->{Private} = 1 unless exists $self->{Private};
     $self->{Public} = 1 unless exists $self->{Public};
+    $self->{last_entry} = { } if exists $self->{SortByDate};
     $self->{mode_strings} = {
         'b' => { '+' => 'sets ban on ',                           '-' => 'removes ban on ' },
         'e' => { '+' => 'sets exempt on ',                        '-' => 'removes exempt on ' },
@@ -225,20 +226,37 @@ sub S_topic {
     return PCI_EAT_NONE;
 }
 
+sub _open_log {
+    my ($self, $file_name) = @_;
+    my $log = IO::File->new($file_name, '>>', 0600) or croak "Couldn't create file $file_name: $!; aborted";
+    $log->binmode(':utf8');
+    $log->autoflush(1);
+    return $log;
+}
+
 sub _log_msg {
     my ($self, $context, $line) = @_;
-    
-    return unless $context =~ /^[#&+!]/ && $self->{Public} or $context !~ /^[#&+!]/ && $self->{Private};
     $context = l_irc $context, $self->{irc}->isupport('CASEMAPPING');
-    my $now = strftime '%F %T', localtime;
+    return unless $context =~ /^[#&+!]/ && $self->{Public} or $context !~ /^[#&+!]/ && $self->{Private};
     
-    if (!exists $self->{logs}->{$context}) {
-        my $log = IO::File->new($self->{Path} . "/$context.log", '>>', 0600)
-            or croak "Couldn't create file" . $self->{Path} . "/$context.log" . ": $!; aborted";
-        $log->binmode(':utf8');
-        $log->autoflush(1);
-        print $log "***\n*** LOGGING BEGINS\n***\n";
-        $self->{logs}->{$context} = $log;
+    my $date = strftime '%F', localtime;
+    my $now = strftime '%F %T', localtime;
+
+    if ($self->{SortByDate}) {
+        if (! -d $self->{Path} . "/$context") {
+            mkdir $self->{Path} . "/$context", oct 700 or croak "Couldn't create directory " . $self->{Path} . "/$context: $!; aborted";
+        }
+
+        if (!exists $self->{logs}->{$context}) {
+            $self->{logs}->{$context} = $self->_open_log($self->{Path} . "/$context/$date.log");
+            print {$self->{logs}->{$context}} "***\n*** LOGGING BEGINS\n***\n";
+        }
+        elsif ($self->{last_entry}->{$context} ne $date) {
+            $self->{logs}->{$context} = $self->_open_log($self->{Path} . "/$context/$date.log");
+        }
+    }
+    elsif (!exists $self->{logs}->{$context}) {
+        $self->{logs}->{$context} = $self->_open_log($self->{Path} . "/$context.log");
     }
     
     my $decoder = guess_encoding($line, 'utf8');
@@ -248,8 +266,8 @@ sub _log_msg {
     else {
         $line = decode('cp1252', $line);
     }
-    my $log = $self->{logs}->{$context};
-    print $log "$now $line\n";
+    $self->{last_entry}->{$context} = $date if $self->{SortByDate};
+    print {$self->{logs}->{$context}} "$now $line\n";
 }
 
 1;
@@ -291,6 +309,8 @@ Arguments:
  'Path', the place where you want the logs saved.
  'Private', whether or not to log private messages. Defaults to 1.
  'Public', whether or not to log public messages. Defaults to 1.
+ 'SortByDate, whether or not to split log files by date. I.e. C<$channel/$date.log>
+ instead of C<$channel.log>. Defaults to 0.
 
 Returns a plugin object suitable for feeding to L<POE::Component::IRC|POE::Component::IRC>'s
 plugin_add() method.

@@ -1,7 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 ?.?? DATE
-    - Logger.pm: output something in English for every channel mode change
+    - Logger.pm: Add SortByDate argument to rotate logs (Hinrik)
+    - Logger.pm: output something in English for every channel mode change (Hinrik)
     - Logger.pm: made the ACTION syntax distinct from the MODE syntax
       to allow for sane parsing of log files (Hinrik)
     - Fix bug causing NickReclaim plugin to only try to reclaim once (Hinrik)
