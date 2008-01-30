@@ -5,7 +5,7 @@ use warnings;
 use Carp;
 use Encode;
 use Encode::Guess;
-use IO::File;
+use Fcntl;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Plugin::BotTraffic;
 use POE::Component::IRC::Common qw( l_irc parse_user );
@@ -228,7 +228,7 @@ sub S_topic {
 
 sub _open_log {
     my ($self, $file_name) = @_;
-    my $log = IO::File->new($file_name, '>>', 0600) or croak "Couldn't create file $file_name: $!; aborted";
+    sysopen(my $log, $file_name, O_WRONLY|O_EXCL|O_CREAT, 0600) or croak "Couldn't create file $file_name: $!; aborted";
     $log->binmode(':utf8');
     $log->autoflush(1);
     return $log;
