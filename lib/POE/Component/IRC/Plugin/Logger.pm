@@ -11,7 +11,7 @@ use POE::Component::IRC::Plugin::BotTraffic;
 use POE::Component::IRC::Common qw( l_irc parse_user );
 use POSIX qw(strftime);
 
-our $VERSION = '1.1';
+my $VERSION = '1.1';
 
 sub new {
     my ($package, %self) = @_;

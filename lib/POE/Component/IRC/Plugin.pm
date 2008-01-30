@@ -1,18 +1,20 @@
 # Declare our package
 package POE::Component::IRC::Plugin;
 
-# Standard stuff to catch errors
-use strict qw(subs vars refs);				# Make sure we can't mess up
-use warnings FATAL => 'all';				# Enable warnings to catch errors
-
-# Initialize our version
-our $VERSION = '0.08';
-
 # We export some stuff
 require Exporter;
-our @ISA = qw( Exporter );
-our %EXPORT_TAGS = ( 'ALL' => [ qw( PCI_EAT_NONE PCI_EAT_CLIENT PCI_EAT_PLUGIN PCI_EAT_ALL ) ] );
+@ISA = qw( Exporter );
+%EXPORT_TAGS = ( 'ALL' => [ qw( PCI_EAT_NONE PCI_EAT_CLIENT PCI_EAT_PLUGIN PCI_EAT_ALL ) ] );
 Exporter::export_ok_tags( 'ALL' );
+
+# Standard stuff to catch errors
+use strict;				# Make sure we can't mess up
+use warnings;				# Enable warnings to catch errors
+use vars qw($VERSION);
+
+# Initialize our version
+$VERSION = '0.09';
+
 
 # Our constants
 sub PCI_EAT_NONE	() { 1 }

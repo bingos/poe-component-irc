@@ -2,12 +2,13 @@
 package POE::Component::IRC::Plugin::Whois;
 
 # Standard stuff to catch errors
+use strict;                          # Make sure we can't mess up
+use warnings;                            # Enable warnings to catch errors
 use POE;
-use strict qw(subs vars refs);                          # Make sure we can't mess up
-use warnings FATAL => 'all';                            # Enable warnings to catch errors
+use vars qw($VERSION);
 
 # Initialize our version
-our $VERSION = '0.02';
+$VERSION = '0.03';
 
 # Import the stuff from Plugin
 use POE::Component::IRC::Plugin qw( PCI_EAT_NONE );

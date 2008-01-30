@@ -1,17 +1,17 @@
 package POE::Component::IRC::Common;
 
+# We export some stuff
+require Exporter;
+@ISA = qw( Exporter );
+%EXPORT_TAGS = ( 'ALL' => [ qw(u_irc l_irc parse_mode_line parse_ban_mask matches_mask parse_user irc_ip_get_version irc_ip_is_ipv4 irc_ip_is_ipv6) ] );
+Exporter::export_ok_tags( 'ALL' );
+
 use strict;
 use warnings;
 
-our $VERSION = '5.12';
-our $ERROR;
-our $ERRNO;
-
-# We export some stuff
-require Exporter;
-our @ISA = qw( Exporter );
-our %EXPORT_TAGS = ( 'ALL' => [ qw(u_irc l_irc parse_mode_line parse_ban_mask matches_mask parse_user irc_ip_get_version irc_ip_is_ipv4 irc_ip_is_ipv6) ] );
-Exporter::export_ok_tags( 'ALL' );
+my $VERSION = '5.12';
+my $ERROR;
+my $ERRNO;
 
 sub u_irc {
   my $value = shift || return;

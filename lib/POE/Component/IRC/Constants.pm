@@ -1,11 +1,14 @@
 package POE::Component::IRC::Constants;
 
-use strict;
-
 require Exporter;
+@ISA    = qw(Exporter);
+@EXPORT = qw(PCI_REFCOUNT_TAG BLOCKSIZE INCOMING_BLOCKSIZE DCC_TIMEOUT PRI_LOGIN PRI_HIGH PRI_NORMAL MSG_PRI MSG_TEXT CMD_PRI CMD_SUB);
 
-our @ISA    = qw(Exporter);
-our @EXPORT = qw(PCI_REFCOUNT_TAG BLOCKSIZE INCOMING_BLOCKSIZE DCC_TIMEOUT PRI_LOGIN PRI_HIGH PRI_NORMAL MSG_PRI MSG_TEXT CMD_PRI CMD_SUB);
+use strict;
+use warnings;
+use vars qw($VERSION);
+
+$VERSION = '0.01';
 
 # The name of the reference count P::C::I keeps in client sessions.
 use constant PCI_REFCOUNT_TAG => "P::C::I registered";

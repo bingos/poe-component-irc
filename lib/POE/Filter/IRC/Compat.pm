@@ -6,8 +6,9 @@ use Carp;
 use POE::Filter::CTCP;
 use Data::Dumper;
 use base qw(POE::Filter);
+use vars qw($VERSION);
 
-our $VERSION = '1.1';
+$VERSION = '1.2';
 
 sub new {
   my $type = shift;

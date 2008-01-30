@@ -2,10 +2,10 @@ package POE::Component::IRC::Plugin::ISupport;
 
 use strict;
 use warnings;
-
 use POE::Component::IRC::Plugin qw(:ALL);
+use vars qw($VERSION);
 
-our $VERSION = '0.53';
+$VERSION = '0.54';
 
 sub new {
   return bless { }, shift;

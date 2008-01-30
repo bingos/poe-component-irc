@@ -20,22 +20,22 @@ $VERSION = '0.5';
 
 use constant PCSI_REFCOUNT_TAG => "P::C::S::I registered";
 
-our @valid_commands = qw(PASS NICK USER SERVER OPER QUIT SQUIT JOIN PART MODE TOPIC NAMES LIST INVITE KICK VERSION STATS LINKS TIME CONNECT TRACE ADMIN INFO WHO WHOIS WHOWAS KILL PING PONG ERROR AWAY REHASH RESTART SUMMON USERS WALLOPS USERHOST ISON MOTD LUSERS DIE);
+my @valid_commands = qw(PASS NICK USER SERVER OPER QUIT SQUIT JOIN PART MODE TOPIC NAMES LIST INVITE KICK VERSION STATS LINKS TIME CONNECT TRACE ADMIN INFO WHO WHOIS WHOWAS KILL PING PONG ERROR AWAY REHASH RESTART SUMMON USERS WALLOPS USERHOST ISON MOTD LUSERS DIE);
 
-our @client_commands = qw(PASS NICK USER QUIT JOIN NAMES PART MODE TOPIC KICK OPER SUMMON USERS WHO AWAY MOTD LUSERS VERSION INVITE USERHOST PING PONG WHOIS LIST ISON ADMIN INFO WHOWAS TIME WALLOPS STATS KILL);
+my @client_commands = qw(PASS NICK USER QUIT JOIN NAMES PART MODE TOPIC KICK OPER SUMMON USERS WHO AWAY MOTD LUSERS VERSION INVITE USERHOST PING PONG WHOIS LIST ISON ADMIN INFO WHOWAS TIME WALLOPS STATS KILL);
 
-our @server_commands = qw(WALLOPS);
+my @server_commands = qw(WALLOPS);
 
-our @connection_commands = qw(PASS NICK USER SERVER QUIT);
+my @connection_commands = qw(PASS NICK USER SERVER QUIT);
 
-our @reserved_channels = qw(&CONNECTIONS &STATE);
+my @reserved_channels = qw(&CONNECTIONS &STATE);
 
-our @cmd_server = map { 'cmd_server_' . $_ } qw (kick kill mode);
-our %cmd_server = map { ( 'server_' . $_ => 'cmd_input' ) } qw (kick kill mode);
+my @cmd_server = map { 'cmd_server_' . $_ } qw (kick kill mode);
+my %cmd_server = map { ( 'server_' . $_ => 'cmd_input' ) } qw (kick kill mode);
 
-our $GOT_IDENT;
-our $GOT_DNS;
-our $GOT_ZLIB;
+my $GOT_IDENT;
+my $GOT_DNS;
+my $GOT_ZLIB;
 
 BEGIN: {
 	$GOT_IDENT = 0;
