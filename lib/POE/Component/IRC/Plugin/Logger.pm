@@ -228,8 +228,8 @@ sub S_topic {
 
 sub _open_log {
     my ($self, $file_name) = @_;
-    sysopen(my $log, $file_name, O_WRONLY|O_EXCL|O_CREAT, 0600) or croak "Couldn't create file $file_name: $!; aborted";
-    $log->binmode(':utf8');
+    sysopen(my $log, $file_name, O_WRONLY|O_APPEND|O_CREAT, 0600) or croak "Couldn't create file $file_name: $!; aborted";
+    binmode($log, ':utf8');
     $log->autoflush(1);
     return $log;
 }
