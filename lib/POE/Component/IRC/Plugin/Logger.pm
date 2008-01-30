@@ -72,7 +72,7 @@ sub S_332 {
     my ($self, $irc) = splice @_, 0, 2;
     my ($chan, $topic) = @{ ${ $_[2] } };
     # only log this if we were just joining the channel
-    $self->_log_msg($chan, "*   Topic for $chan is: $topic") if !$irc->channel_list($chan);
+    $self->_log_msg($chan, "---   Topic for $chan is: $topic") if !$irc->channel_list($chan);
     return PCI_EAT_NONE;
 }
 
@@ -81,7 +81,7 @@ sub S_333 {
     my ($chan, $nick, $time) = @{ ${ $_[2] } };
     my $date = localtime $time;
     # only log this if we were just joining the channel
-    $self->_log_msg($chan, "*   Topic for $chan set was by $nick at $date") if !$irc->channel_list($chan);
+    $self->_log_msg($chan, "---   Topic for $chan set was by $nick at $date") if !$irc->channel_list($chan);
     return PCI_EAT_NONE;
 }
 
@@ -94,7 +94,7 @@ sub S_chan_mode {
     $arg = '' unless defined $arg;
     
     if ($self->{mode_strings}->{$mode}) {
-        $self->_log_msg($chan, "*   $nick " . $self->{mode_strings}->{$mode}->{$type} . $arg);
+        $self->_log_msg($chan, "---   $nick " . $self->{mode_strings}->{$mode}->{$type} . $arg);
     }
     
     return PCI_EAT_NONE;
@@ -145,7 +145,7 @@ sub S_join {
     my ($self, $irc) = splice @_, 0, 2;
     my ($joiner, $user, $host) = parse_user(${ $_[0] });
     my $chan = ${ $_[1] };
-    $self->_log_msg($chan, "*   $joiner ($user\@$host) has joined $chan");
+    $self->_log_msg($chan, "-->   $joiner ($user\@$host) has joined $chan");
     return PCI_EAT_NONE;
 }
 
@@ -156,7 +156,7 @@ sub S_kick {
     my $victim = ${ $_[2] };
     my $reason = ${ $_[3] };
         
-    my $log_msg = "*   $kicker has kicked $victim from $chan";
+    my $log_msg = "<--   $kicker has kicked $victim from $chan";
     $log_msg .= " ($reason)" unless $reason eq '';
     $self->_log_msg($chan, $log_msg);
     return PCI_EAT_NONE;
@@ -176,7 +176,7 @@ sub S_nick {
     my $new_nick = ${ $_[1] };
     my $channels = @{ $_[2] }[0];
     for my $chan (@{ $channels }) {
-        $self->_log_msg($chan, "*   $old_nick is now known as $new_nick");
+        $self->_log_msg($chan, "---   $old_nick is now known as $new_nick");
     }
     return PCI_EAT_NONE;
 }
@@ -186,7 +186,7 @@ sub S_part {
     my ($parter, $user, $host) = parse_user(${ $_[0] });
     my $chan = ${ $_[1] };
     my $reason = ${ $_[2] };
-    my $log_msg = "*   $parter ($user\@$host) has left $chan";
+    my $log_msg = "<--   $parter ($user\@$host) has left $chan";
     $log_msg .= " ($reason)" unless $reason eq '';
     $self->_log_msg($chan, $log_msg);
     return PCI_EAT_NONE;
@@ -208,7 +208,7 @@ sub S_quit {
     my ($quitter, $user, $host) = parse_user(${ $_[0] });
     my $reason = ${ $_[1] };
     my $channels = @{ $_[2] }[0];
-    my $log_msg = "*   $quitter ($user\@$host) has quit";
+    my $log_msg = "<--   $quitter ($user\@$host) has quit";
     $log_msg .= " ($reason)" unless $reason eq '';
     for my $chan (@{ $channels }) {
         $self->_log_msg($chan, $log_msg);
@@ -221,7 +221,7 @@ sub S_topic {
     my $changer = parse_user(${ $_[0] });
     my $chan = ${ $_[1] };
     my $new_topic = ${ $_[2] };
-    $self->_log_msg($chan, "*   $changer has changed the topic to: $new_topic");
+    $self->_log_msg($chan, "---   $changer has changed the topic to: $new_topic");
     return PCI_EAT_NONE;
 }
 
