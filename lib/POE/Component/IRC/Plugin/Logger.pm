@@ -5,7 +5,7 @@ use warnings;
 use Carp;
 use Encode;
 use Encode::Guess;
-use Fcntl;
+use IO::File;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Plugin::BotTraffic;
 use POE::Component::IRC::Common qw( l_irc parse_user );
@@ -210,9 +210,9 @@ sub _log_msg {
     my $now = strftime '%F %T', localtime;
     
     if (!exists $self->{logs}->{$context}) {
-        sysopen(my $log, $self->{Path} . "/$context.log", O_WRONLY|O_APPEND|O_CREAT, 0600)
+        my $log = IO::File->new($self->{Path} . "/$context.log", '>>', 0600)
             or croak "Couldn't create file" . $self->{Path} . "/$context.log" . ": $!; aborted";
-        binmode $log, ':utf8';
+        $log->binmode(':utf8');
         $log->autoflush(1);
         print $log "***\n*** LOGGING BEGINS\n***\n";
         $self->{logs}->{$context} = $log;
