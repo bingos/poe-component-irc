@@ -40,7 +40,27 @@ sub PCI_register {
     $self->{logs} = { };
     $self->{Private} = 1 unless exists $self->{Private};
     $self->{Public} = 1 unless exists $self->{Public};
-    $irc->plugin_register($self, 'SERVER', qw(332 333 ctcp_action bot_ctcp_action bot_msg bot_public join kick mode msg nick part public quit topic));
+    $self->{mode_strings} = {
+        'b' => { '+' => 'sets ban on ',                           '-' => 'removes ban on ' },
+        'e' => { '+' => 'sets exempt on ',                        '-' => 'removes exempt on ' },
+        'I' => { '+' => 'sets invite on ',                        '-' => 'removes invite on ' },
+        'h' => { '+' => 'gives channel half-operator status to ', '-' => 'removes channel half-operator status from ' },
+        'o' => { '+' => 'gives channel operator status to ',      '-' => 'removes channel operator status from ' },
+        'v' => { '+' => 'gives voice to ',                        '-' => 'removes voice from ' },
+        'k' => { '+' => 'sets channel keyword to ',               '-' => 'removes channel keyword' },
+        'l' => { '+' => 'sets channel user limit to ',            '-' => 'removes channel user limit' },
+        'i' => { '+' => 'enables invite-only channel status',     '-' => 'disables invite-only channel status' },
+        'm' => { '+' => 'enables channel moderation',             '-' => 'disables channel moderation' },
+        'n' => { '+' => 'disables external messages',             '-' => 'enables external messages' },
+        'p' => { '+' => 'enables private channel status',         '-' => 'disables private channel status' },
+        's' => { '+' => 'enables secret channel status',          '-' => 'disables secret channel status', },
+        't' => { '+' => 'enables topic protection',               '-' => 'disables topic protection' },
+        'a' => { '+' => 'enables anonymous channel status',       '-' => 'disables anonymous channel status' },
+        'q' => { '+' => 'enables quiet channel status',           '-' => 'disables quiet channel status' },
+        'r' => { '+' => 'enables channel registered status',      '-' => 'disables channel registered status' },
+    };
+
+    $irc->plugin_register($self, 'SERVER', qw(332 333 chan_mode ctcp_action bot_ctcp_action bot_msg bot_public join kick msg nick part public quit topic));
     return 1;
 }
 
@@ -62,6 +82,21 @@ sub S_333 {
     my $date = localtime $time;
     # only log this if we were just joining the channel
     $self->_log_msg($chan, "*   Topic for $chan set by $nick at $date") if !$irc->channel_list($chan);
+    return PCI_EAT_NONE;
+}
+
+sub S_chan_mode {
+    my ($self, $irc) = splice @_, 0, 2;
+    my $nick = parse_user(${ $_[0] });
+    my $chan = ${ $_[1] };
+    my ($type, $mode) = split //, ${ $_[2] };
+    my $arg = ${ $_[3] };
+    $arg = '' unless defined $arg;
+    
+    if ($self->{mode_strings}->{$mode}) {
+        $self->_log_msg($chan, "*   $nick " . $self->{mode_strings}->{$mode}->{$type} . $arg);
+    }
+    
     return PCI_EAT_NONE;
 }
 
@@ -124,18 +159,6 @@ sub S_kick {
     my $log_msg = "*   $kicker has kicked $victim from $chan";
     $log_msg .= " ($reason)" unless $reason eq '';
     $self->_log_msg($chan, $log_msg);
-    return PCI_EAT_NONE;
-}
-
-sub S_mode {
-    my ($self, $irc) = splice @_, 0, 2;
-    my $nick = parse_user(${ $_[0] });
-    my $chan = ${ $_[1] };
-    my @modes = map { ${ $_ } } @_[2..$#_-1];
-    my $mode_string = join ' ', @modes;
-    # we're only interested in channel mode changes
-    return if $chan !~ /^[#&+!]/;
-    $self->_log_msg($chan, "*   $nick sets mode $mode_string");
     return PCI_EAT_NONE;
 }
 
