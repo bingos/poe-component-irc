@@ -28,7 +28,7 @@ sub S_ctcp_action {
   my $channel = ${ $_[1] }->[0];
   my $what = ${ $_[2] };
   my $mynick = $irc->nick_name();
-  return PCI_EAT_NONE unless $what =~ m/$mynick/i;
+  return PCI_EAT_NONE unless $channel =~ /^[#&+!]/ and $what =~ m/$mynick/i;
 
   $irc->_send_event('irc_bot_mentioned_action' => $who => [ $channel ] => $what);
   return $self->{eat} ? PCI_EAT_ALL : PCI_EAT_NONE;
@@ -59,7 +59,7 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Plugin::BotAddressed - A POE::Component::IRC plugin that generates 'irc_bot_addressed' events whenever someone addresses your bot by name in a channel, and an 'irc_bot_mentioned' or 'irc_bot_mentioned_action' event if its name is mentioned.
+POE::Component::IRC::Plugin::BotAddressed - A POE::Component::IRC plugin that generates an 'irc_bot_addressed', 'irc_bot_mentioned' or 'irc_bot_mentioned_action' event if its name comes up in channel discussion.
 
 =head1 SYNOPSIS
 
@@ -87,8 +87,8 @@ POE::Component::IRC::Plugin::BotAddressed - A POE::Component::IRC plugin that ge
 =head1 DESCRIPTION
 
 POE::Component::IRC::Plugin::BotAddressed is a L<POE::Component::IRC|POE::Component::IRC> plugin. It watches for
-public channel traffic ( ie. 'irc_public' ) and will generate an 'irc_bot_addressed' event if someone on a channel
-issues a message which 'addresses' the bot.
+public channel traffic (i.e. 'irc_public' and 'irc_ctcp_action') and will generate an 'irc_bot_addressed',
+'irc_bot_mentioned' or 'irc_bot_mentioned_action' event if its name comes up in channel discussion.
 
 It uses L<POE::Component::IRC|POE::Component::IRC>'s nick_name() method to work out it's current nickname.
 
@@ -100,8 +100,8 @@ It uses L<POE::Component::IRC|POE::Component::IRC>'s nick_name() method to work 
 
 Two optional arguments:
 
-  'eat', set to true to make the plugin eat the 'irc_public' event and only generate 
-         the 'irc_bot_addressed' event, default is 0;
+  'eat', set to true to make the plugin eat the 'irc_public' / 'irc_ctcp_action' event and only generate 
+         an appropriate event, default is 0;
   'event', change the default event name from 'irc_bot_addressed';
 
 Returns a plugin object suitable for feeding to L<POE::Component::IRC|POE::Component::IRC>'s plugin_add() method.
