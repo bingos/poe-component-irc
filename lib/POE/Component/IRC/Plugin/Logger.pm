@@ -81,7 +81,7 @@ sub S_333 {
     my ($chan, $nick, $time) = @{ ${ $_[2] } };
     my $date = localtime $time;
     # only log this if we were just joining the channel
-    $self->_log_msg($chan, "*   Topic for $chan set by $nick at $date") if !$irc->channel_list($chan);
+    $self->_log_msg($chan, "*   Topic for $chan set was by $nick at $date") if !$irc->channel_list($chan);
     return PCI_EAT_NONE;
 }
 
@@ -274,7 +274,7 @@ logs public and private messages to disk.
 POE::Component::IRC::Plugin::Logger is a L<POE::Component::IRC|POE::Component::IRC> plugin.
 It logs messages and CTCP ACTIONs to either #some_channel.log or some_nickname.log in the supplied path.
 It tries to detect UTF-8 encoding of every message or else falls back to
-CP1252 (like irssi does by default).
+CP1252 (like irssi does by default). The log format is similar to xchat's, except that it's sane and parsable.
 
 This plugin requires the IRC component to be L<POE::Component::IRC::State|POE::Component::IRC::State>
 or a subclass thereof. It also requires a L<POE::Component::IRC::Plugin::BotTraffic|POE::Component::IRC::Plugin::BotTraffic>
