@@ -1,6 +1,7 @@
 Revision history for Perl extension POE::Component::IRC.
 
 ?.?? DATE
+    - AutoJoin.pm: Silence some warnings (Hinrik)
     - Logger.pm: Add SortByDate argument to rotate logs (Hinrik)
     - Logger.pm: output something in English for every channel mode change (Hinrik)
     - Logger.pm: made the ACTION syntax distinct from the MODE syntax

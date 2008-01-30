@@ -27,7 +27,7 @@ sub PCI_register {
     }
     elsif (ref $self->{Channels} eq 'ARRAY') {
         my $channels;
-        $channels->{$_} = undef for @{ $self->{Channels} };
+        $channels->{$_} = '' for @{ $self->{Channels} };
         $self->{Channels} = $channels;
     }
     $irc->plugin_register($self, 'SERVER', qw(001 chan_mode join kick part));
@@ -52,7 +52,7 @@ sub S_chan_mode {
     my $mode = ${ $_[2] };
     my $arg = ${ $_[3] };
     $self->{Channels}->{$chan} = $arg if $mode eq '+k';
-    $self->{Channels}->{$chan} = undef if $mode eq '-k';
+    $self->{Channels}->{$chan} = '' if $mode eq '-k';
     return PCI_EAT_NONE;
 }
 
@@ -100,9 +100,9 @@ keeps you on your favorite channels throughout reconnects and even kicks.
  my $server = 'irc.blahblahblah.irc';
 
  my %channels = (
-     '#Blah'   => undef,
+     '#Blah'   => '',
      '#Secret' => 'secret_password',
-     '#Foo'    => undef
+     '#Foo'    => '',
  );
  
  POE::Session->create(
