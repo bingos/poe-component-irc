@@ -122,7 +122,7 @@ sub S_kick {
     my $reason = ${ $_[3] };
         
     my $log_msg = "*   $kicker has kicked $victim from $chan";
-    $log_msg .= " ($reason)" if defined $reason;
+    $log_msg .= " ($reason)" unless $reason eq '';
     $self->_log_msg($chan, $log_msg);
     return PCI_EAT_NONE;
 }
@@ -151,8 +151,8 @@ sub S_nick {
     my ($self, $irc) = splice @_, 0, 2;
     my $old_nick = parse_user(${ $_[0] });
     my $new_nick = ${ $_[1] };
-    my $chans = ${ $_[2] };
-    for my $chan (@{ $chans }) {
+    my $channels = @{ $_[2] }[0];
+    for my $chan (@{ $channels }) {
         $self->_log_msg($chan, "*   $old_nick is now known as $new_nick");
     }
     return PCI_EAT_NONE;
@@ -164,7 +164,7 @@ sub S_part {
     my $chan = ${ $_[1] };
     my $reason = ${ $_[2] };
     my $log_msg = "*   $parter ($user\@$host) has left $chan";
-    $log_msg .= " ($reason)" if defined $reason;
+    $log_msg .= " ($reason)" unless $reason eq '';
     $self->_log_msg($chan, $log_msg);
     return PCI_EAT_NONE;
 }
@@ -184,9 +184,9 @@ sub S_quit {
     my ($self, $irc) = splice @_, 0, 2;
     my ($quitter, $user, $host) = parse_user(${ $_[0] });
     my $reason = ${ $_[1] };
-    my $channels = ${ $_[2] };
+    my $channels = @{ $_[2] }[0];
     my $log_msg = "*   $quitter ($user\@$host) has quit";
-    $log_msg .= " ($reason)" if defined $reason;
+    $log_msg .= " ($reason)" unless $reason eq '';
     for my $chan (@{ $channels }) {
         $self->_log_msg($chan, $log_msg);
     }
