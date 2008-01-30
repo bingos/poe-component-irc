@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 ?.?? DATE
+    - Logger.pm: made the ACTION syntax distinct from the MODE syntax
+		  to allow for sane parsing of log files (Hinrik)
     - Fix bug causing NickReclaim plugin to only try to reclaim once (Hinrik)
     - Fix NICK/QUIT logging in Logger plugin (Hinrik)
     - Minor improvement and documentation update to BotAddressed plugin (Hinrik)

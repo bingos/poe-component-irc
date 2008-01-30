@@ -71,7 +71,7 @@ sub S_ctcp_action {
     my $recipients = ${ $_[1] };
     my $msg = ${ $_[2] };
     for my $recipient (@{ $recipients }) {
-        $self->_log_msg($recipient, "*   $sender $msg");
+        $self->_log_msg($recipient, "* $sender $msg");
     }
     return PCI_EAT_NONE;
 }
@@ -81,7 +81,7 @@ sub S_bot_ctcp_action {
     my $recipients = ${ $_[0] };
     my $msg = ${ $_[1] };
     for my $recipient (@{ $recipients }) {
-        $self->_log_msg($recipient, '*   ' . $irc->nick_name() . " $msg");
+        $self->_log_msg($recipient, '* ' . $irc->nick_name() . " $msg");
     }
     return PCI_EAT_NONE;
 }
