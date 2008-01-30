@@ -1,5 +1,10 @@
 Revision history for Perl extension POE::Component::IRC.
 
+?.?? DATE
+    - Fix bug causing NickReclaim plugin to only try to reclaim once (Hinrik)
+    - Fix NICK/QUIT logging in Logger plugin (Hinrik)
+    - Minor improvement and documentation update to BotAddressed plugin (Hinrik)
+
 5.54  Sun Jan 27 09:21:27 GMT 2008
     - Hinrik added numerous groovey plugins. Hinrik++
 
