@@ -16,7 +16,6 @@ use POE::Component::IRC::Common qw(:ALL);
 use POE::Component::IRC::Plugin qw(:ALL);
 use base qw(POE::Component::IRC);
 use vars qw($VERSION);
-use Data::Dumper;
 
 $VERSION = '2.46';
 
