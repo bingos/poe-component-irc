@@ -607,8 +607,9 @@ sub is_user_mode_set {
 }
 
 sub _away_sync {
-  my ($self, $channel) = @_[OBJECT, ARG1];
-  $self->{STATE}->{Chans}->{ $channel }->{AWAY_SYNCH} = 1;
+  my ($self, $channel) = @_[OBJECT, ARG0];
+  my $uchan = u_irc $channel;
+  $self->{STATE}->{Chans}->{ $uchan }->{AWAY_SYNCH} = 1;
   $self->_send_event( 'irc_away_sync_start', $channel );
   $self->yield( 'who' => $channel );
 }
@@ -1276,8 +1277,10 @@ Additional parameter ARG4 contains the full nick!user@host of the kicked individ
 =head1 CAVEATS
 
 The component gathers information by registering for 'irc_quit', 'irc_nick', 'irc_join', 'irc_part', 'irc_mode', 'irc_kick' and
-various numeric replies. When the component is asked to join a channel, when it joins it will issue a 'WHO #channel' and a 'MODE #channel'. These will solicit between them the numerics, 'irc_352' and 'irc_324'.
-You may want to ignore these. When someone joins a channel the bot is on, it issues a 'WHO nick'.
+various numeric replies. When the component is asked to join a channel, when it joins it will issue 'WHO #channel', 'MODE #channel',
+and 'MODE #channel b'. These will solicit between them the numerics, 'irc_352', 'irc_324' and 'irc_329', respectively.
+'WHO #channel' will then be issued once every minute from then on. When someone joins a channel the bot is on, it issues a 'WHO nick'.
+You may want to ignore these. 
 
 Currently, whenever the component sees a topic or channel list change, it will use time() for the SetAt value and the full address of the user who set it for the SetBy value. When an ircd gives us it's record 
 of such changes, it will use it's own time (obviously) and may only give us the nickname of the user, rather than their full address. Thus, if our time() and the ircd's time do not match, or the ircd uses the
