@@ -70,9 +70,10 @@ the supplied password.
 
 Arguments:
 
- 'Nickname', the nickname that is associated with the password. Defaults to the nick returned
- by $irc->nick_name() at the time of plugin registration.
- 'Password', the NickServ password.
+'Nickname', the nickname that is associated with the password. Defaults to the nick returned
+by $irc->nick_name() at the time of plugin registration.
+
+'Password', the NickServ password.
 
 Returns a plugin object suitable for feeding to L<POE::Component::IRC|POE::Component::IRC>'s
 plugin_add() method.

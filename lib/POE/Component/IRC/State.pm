@@ -11,13 +11,14 @@ package POE::Component::IRC::State;
 
 use strict;
 use warnings;
+use POE;
 use POE::Component::IRC::Common qw(:ALL);
 use POE::Component::IRC::Plugin qw(:ALL);
 use base qw(POE::Component::IRC);
 use vars qw($VERSION);
 use Data::Dumper;
 
-$VERSION = '2.44';
+$VERSION = '2.46';
 
 # Event handlers for tracking the STATE. $self->{STATE} is used as our namespace.
 # u_irc() is used to create unique keys.
@@ -76,6 +77,8 @@ sub S_join {
         $self->yield ( 'who' => $channel );
         $self->yield ( 'mode' => $channel );
         $self->yield ( 'mode' => $channel => 'b');
+        $poe_kernel->state( '_away_sync' => $self );
+        $poe_kernel->delay_add( '_away_sync' => 60 => $channel );
 
   } else {
         $self->yield ( 'who' => $nick );
@@ -228,16 +231,22 @@ sub S_221 {
   return PCI_EAT_NONE;
 }
 
+# RPL_UNAWAY
 sub S_305 {
-	my ($self,$irc) = splice @_, 0, 2;
-	delete $self->{STATE}->{away};
-	return PCI_EAT_NONE;
+  my ($self,$irc) = splice @_, 0, 2;
+  my $nick = $irc->nick_name();
+  $self->yield( 'irc_user_away' => $nick => [ $self->nick_channels( $nick ) ] ) if $self->{STATE}->{away};
+  $self->{STATE}->{away} = 0;
+  return PCI_EAT_NONE;
 }
 
+# RPL_NOWAWAY
 sub S_306 {
-	my ($self,$irc) = splice @_, 0, 2;
-	$self->{STATE}->{away} = 1;
-	return PCI_EAT_NONE;
+  my ($self,$irc) = splice @_, 0, 2;
+  my $nick = $irc->nick_name();
+    $self->yield( 'irc_user_back' => $nick => [ $self->nick_channels( $nick ) ] ) unless $self->{STATE}->{away};
+  $self->{STATE}->{away} = 1;
+  return PCI_EAT_NONE;
 }
 
 # Channel MODE
@@ -376,7 +385,7 @@ sub S_352 {
   $self->{STATE}->{Nicks}->{ $unick }->{Host} = $host;
   $self->{STATE}->{Nicks}->{ $unick }->{Real} = $real;
   $self->{STATE}->{Nicks}->{ $unick }->{Server} = $server;
-  if ( $channel ne '*' ) {
+  if ( exists $self->{STATE}->{Chans}->{ $uchan } ) {
     my $whatever = '';
     my $existing = $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan } || '';    
     my $prefix = $irc->isupport('PREFIX') || { 'o', '@', 'v', '+' };
@@ -387,6 +396,14 @@ sub S_352 {
     $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan } = $existing;
     $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick } = $existing;
     $self->{STATE}->{Chans}->{ $uchan }->{Name} = $channel;
+    if ($self->{STATE}->{Chans}->{ $uchan }->{AWAY_SYNCH}) {
+      if ( $status =~ /G/ && !$self->{STATE}->{Nicks}->{ $unick }->{Away} ) {
+        $self->yield( 'irc_user_away' => $nick => [ $self->nick_channels( $nick ) ] ) unless $unick eq uirc $irc->nick_name();
+      }
+      elsif ($status =~ /H/ && $self->{STATE}->{Nicks}->{ $unick }->{Away} ) {
+        $self->yield( 'irc_user_back' => $nick => [ $self->nick_channels( $nick ) ] ) unless $unick eq uirc $irc->nick_name();;
+      }
+    }
   }
   if ( $status =~ /\*/ ) {
     $self->{STATE}->{Nicks}->{ $unick }->{IRCop} = 1;
@@ -408,17 +425,21 @@ sub S_315 {
   my $channel = ${ $_[2] }->[0];
   my $uchan = u_irc $channel, $mapping;
 
-  # If it begins with #, &, + or ! its a channel apparently. RFC2812.
-  if ( $channel =~ /^[\x23\x2B\x21\x26]/ ) {
+  if ( exists $self->{STATE}->{Chans}->{ $uchan } ) {
     if ( $self->_channel_sync($channel, 'WHO') ) {
-	my $rec = delete $self->{CHANNEL_SYNCH}->{ $uchan };
-	$self->_send_event( 'irc_chan_sync', $channel, time() - $rec->{_time} );
+      my $rec = delete $self->{CHANNEL_SYNCH}->{ $uchan };
+      $self->_send_event( 'irc_chan_sync', $channel, time() - $rec->{_time} );
     }
-  # Otherwise we assume its a nickname
-  } else {
-	my $chan = shift @{ $self->{NICK_SYNCH}->{ $uchan } };
-	delete $self->{NICK_SYNCH}->{ $uchan } unless scalar @{ $self->{NICK_SYNCH}->{ $uchan } };
-	$self->_send_event( 'irc_nick_sync', $channel, $chan );
+    elsif ( $self->{STATE}->{Chans}->{ $uchan }->{AWAY_SYNCH} ) {
+      $self->{STATE}->{Chans}->{ $uchan }->{AWAY_SYNCH} = 0;
+      $self->_send_event( 'irc_away_sync_end', $channel );
+      $poe_kernel->delay_add( '_away_sync' => 60 => $channel );
+    }
+  }
+  else {
+    my $chan = shift @{ $self->{NICK_SYNCH}->{ $uchan } };
+    delete $self->{NICK_SYNCH}->{ $uchan } unless scalar @{ $self->{NICK_SYNCH}->{ $uchan } };
+    $self->_send_event( 'irc_nick_sync', $channel, $chan );
   }
   return PCI_EAT_NONE;
 }
@@ -585,6 +606,12 @@ sub is_user_mode_set {
   return 0;
 }
 
+sub _away_sync {
+  my ($self, $channel) = @_[OBJECT, ARG1];
+  $self->{STATE}->{Chans}->{ $channel }->{AWAY_SYNCH} = 1;
+  $self->_send_event( 'irc_away_sync_start', $channel );
+  $self->yield( 'who' => $channel );
+}
 
 sub _channel_sync {
   my $self = shift;
@@ -1074,8 +1101,7 @@ to not be on that channel an empty list will be returned.
 =item is_away
 
 Expects a nick as parameter. Returns 1 if the specified nick is away or 0 otherwise. If the nick does
-not exist in the state then a 0 will be returned. This is only guaranteed to be accurate for the Component's
-nick.
+not exist in the state then a 0 will be returned.
 
 =item is_operator
 
@@ -1184,6 +1210,14 @@ As well as all the usual L<POE::Component::IRC> 'irc_*' events, there are the fo
 
 =over
 
+=item irc_away_sync_start
+
+Sent whenever the component starts to synchronise the away statuses of channel members. It does this every 60 seconds. ARG0 is the channel name.
+
+=item irc_away_sync_end
+
+Sent whenever the component has completed synchronising the away statuses of channel members. It does this every 60 seconds. ARG0 is the channel name.
+
 =item irc_chan_sync
 
 Sent whenever the component has completed synchronising a channel that it has joined. ARG0 is the channel name and ARG1 is the time in seconds that the channel took to synchronise.
@@ -1209,6 +1243,14 @@ argument if it has one (ie. the banmask if it's +b or -b). However, this event i
 =item irc_user_mode
 
 This is almost identical to irc_mode, except it is sent for each individual umode that is being set.
+
+=item irc_user_away
+
+Sent when an IRC user sets his/her status to away. ARG0 is the nickname, ARG1 is an arrayref of channel names that are common to the nickname and the component.
+
+=item irc_user_back
+
+Sent when an IRC user unsets his/her away status. ARG0 is the nickname, ARG1 is an arrayref of channel names that are common to the nickname and the component.
 
 =back
 

@@ -1,6 +1,19 @@
 Revision history for Perl extension POE::Component::IRC.
 
-5.56
+5.58
+    - State.pm: Workaround for IRC servers (e.g. hybrid, hyperion) which send
+      user WHO replies starting with the name of a random channel that the
+      user is on (which the component might not be on) instead of '*' (Hinrik)
+    - State.pm: Track the away status of channel users and send an event if
+      the status changes (Hinrik)
+    - Projects.pm: Some additions and cleanup (Hinrik)
+    - Logger.pm: Add 'Restricted' argument for restricting read permissions
+      of created files/dirs (Hinrik)
+    - Logger.pm: Add 'Format' argument for specifying a custom log format (Hinrik)
+    - Logger.pm: Close log files after writing to them (Hinrik)
+    - Logger.pm: Omit date from timestamp if sorting log files by date (Hinrik)
+
+5.56  Thu Jan 31 12:30:25 GMT 2008
     - AutoJoin.pm: Silence some warnings (Hinrik)
     - Logger.pm: Add SortByDate argument to rotate logs (Hinrik)
     - Logger.pm: output something in English for every channel mode change (Hinrik)

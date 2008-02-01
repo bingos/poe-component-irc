@@ -11,7 +11,7 @@ use POE::Component::IRC::Plugin::BotTraffic;
 use POE::Component::IRC::Common qw( l_irc parse_user );
 use POSIX qw(strftime);
 
-my $VERSION = '1.1';
+my $VERSION = '1.2';
 
 sub new {
     my ($package, %self) = @_;
@@ -31,52 +31,98 @@ sub PCI_register {
     if ( !grep { $_->isa('POE::Component::IRC::Plugin::BotTraffic') } @{ $irc->pipeline->{PIPELINE} } ) {
         $irc->plugin_add('BotTraffic', POE::Component::IRC::Plugin::BotTraffic->new());
     }
+    
+    if ($self->{Restricted}) {
+        $self->{dir_perm} = oct 755;
+        $self->{file_perm} = oct 644;
+    }
+    else {
+        $self->{dir_perm} = oct 700;
+        $self->{file_perm} = oct 600;
+
+    }
 
     if (! -d $self->{Path}) {
-        mkdir $self->{Path}, oct 700 or croak 'Cannot create directory ' . $self->{Path} . ": $!; aborted";
+        mkdir $self->{Path}, $self->{dir_perm} or croak 'Cannot create directory ' . $self->{Path} . ": $!; aborted";
     }
     
     $self->{irc} = $irc;
-    $self->{logs} = { };
-    $self->{Private} = 1 unless exists $self->{Private};
-    $self->{Public} = 1 unless exists $self->{Public};
-    $self->{last_entry} = { } if exists $self->{SortByDate};
-    $self->{format} = {
-        privmsg      => '<%s> %s',
-        action       => '* %s %s',
-        join         => '--> %s (%s@%s) has joined %s',
-        part         => '<-- %s (%s@%s) has left %s (%s)',
-        quit         => '<-- %s (%s@%s) has quit (%s)',
-        kick         => '<-- %s has kicked %s from %s (%s)',
-        nick_change  => '--- %s is now known as %s',
-        topic_is     => '--- Topic for %s is: %s',
-        topic_set_by => '--- Topic for %s set was by %s at %s',
-        topic_change => '--- %s has changed the topic to: %s',
-        '+b' => '--- %s sets ban on %s',                           '-b' => '--- %s removes ban on %s',
-        '+e' => '--- %s sets exempt on %s',                        '-e' => '--- %s removes exempt on %s',
-        '+I' => '--- %s sets invite on %s',                        '-I' => '--- %s removes invite on %s',
-        '+h' => '--- %s gives channel half-operator status to %s', '-h' => '--- %s removes channel half-operator status from %s',
-        '+o' => '--- %s gives channel operator status to %s',      '-o' => '--- %s removes channel operator status from %s',
-        '+v' => '--- %s gives voice to %s',                        '-v' => '--- %s removes voice from %s',
-        '+k' => '--- %s sets channel keyword to %s',               '-k' => '--- %s removes channel keyword',
-        '+l' => '--- %s sets channel user limit to %s',            '-l' => '--- %s removes channel user limit',
-        '+i' => '--- %s enables invite-only channel status',       '-i' => '--- %s disables invite-only channel status',
-        '+m' => '--- %s enables channel moderation',               '-m' => '--- %s disables channel moderation',
-        '+n' => '--- %s disables external messages',               '-n' => '--- %s enables external messages',
-        '+p' => '--- %s enables private channel status',           '-p' => '--- %s disables private channel status',
-        '+s' => '--- %s enables secret channel status',            '-s' => '--- %s disables secret channel status',
-        '+t' => '--- %s enables topic protection',                 '-t' => '--- %s disables topic protection',
-        '+a' => '--- %s enables anonymous channel status',         '-a' => '--- %s disables anonymous channel status',
-        '+q' => '--- %s enables quiet channel status',             '-q' => '--- %s disables quiet channel status',
-        '+r' => '--- %s enables channel registered status',        '-r' => '--- %s disables channel registered status',
-    };
+    $self->{logging} = { };
+    $self->{Private} = 1 unless defined $self->{Private};
+    $self->{Public} = 1 unless defined $self->{Public};
+    $self->{Format} = {
+        '+b'         => sub { my ($nick, $mask) = @_;            "--- $nick sets ban on $mask" },
+        '-b'         => sub { my ($nick, $mask) = @_;            "--- $nick removes ban on $mask" },
+        '+e'         => sub { my ($nick, $mask) = @_;            "--- $nick sets exempt on $mask" },
+        '-e'         => sub { my ($nick, $mask) = @_;            "--- $nick removes exempt on $mask" },
+        '+I'         => sub { my ($nick, $mask) = @_;            "--- $nick sets invite on $mask" },
+        '-I'         => sub { my ($nick, $mask) = @_;            "--- $nick removes invite on $mask" },
+        '+h'         => sub { my ($nick, $subject) = @_;         "--- $nick gives channel half-operator status to $subject" },
+        '-h'         => sub { my ($nick, $subject) = @_;         "--- $nick removes channel half-operator status from $subject" },
+        '+o'         => sub { my ($nick, $subject) = @_;         "--- $nick gives channel operator status to $subject" },
+        '-o'         => sub { my ($nick, $subject) = @_;         "--- $nick removes channel operator status from $subject" },
+        '+v'         => sub { my ($nick, $subject) = @_;         "--- $nick gives voice to $subject" },
+        '-v'         => sub { my ($nick, $subject) = @_;         "--- $nick removes voice from $subject" },
+        '+k'         => sub { my ($nick, $key) = @_;             "--- $nick sets channel keyword to $key" },
+        '-k'         => sub { my ($nick) = @_;                   "--- $nick removes channel keyword" },
+        '+l'         => sub { my ($nick, $limit) = @_;           "--- $nick sets channel user limit to $limit" },
+        '-l'         => sub { my ($nick) = @_;                   "--- $nick removes channel user limit" },
+        '+i'         => sub { my ($nick) = @_;                   "--- $nick enables invite-only channel status" },
+        '-i'         => sub { my ($nick) = @_;                   "--- $nick disables invite-only channel status" },
+        '+m'         => sub { my ($nick) = @_;                   "--- $nick enables channel moderation" },
+        '-m'         => sub { my ($nick) = @_;                   "--- $nick disables channel moderation" },
+        '+n'         => sub { my ($nick) = @_;                   "--- $nick disables external messages" },
+        '-n'         => sub { my ($nick) = @_;                   "--- $nick enables external messages" },
+        '+p'         => sub { my ($nick) = @_;                   "--- $nick enables private channel status" },
+        '-p'         => sub { my ($nick) = @_;                   "--- $nick disables private channel status" },
+        '+s'         => sub { my ($nick) = @_;                   "--- $nick enables secret channel status" },
+        '-s'         => sub { my ($nick) = @_;                   "--- $nick disables secret channel status" },
+        '+t'         => sub { my ($nick) = @_;                   "--- $nick enables topic protection" },
+        '-t'         => sub { my ($nick) = @_;                   "--- $nick disables topic protection" },
+        '+a'         => sub { my ($nick) = @_;                   "--- $nick enables anonymous channel status" },
+        '-a'         => sub { my ($nick) = @_;                   "--- $nick disables anonymous channel status" },
+        '+q'         => sub { my ($nick) = @_;                   "--- $nick enables quiet channel status" },
+        '-q'         => sub { my ($nick) = @_;                   "--- $nick disables quiet channel status" },
+        '+r'         => sub { my ($nick) = @_;                   "--- $nick enables channel registered status" },
+        '-r'         => sub { my ($nick) = @_;                   "--- $nick disables channel registered status" },
+        nick_change  => sub { my ($old_nick, $new_nick) = @_;    "--- $old_nick is now known as $new_nick" },
+        topic_is     => sub { my ($chan, $topic) = @_;           "--- Topic for $chan is: $topic" },
+        topic_set_by => sub { my ($chan, $nick, $date) = @_;     "--- Topic for $chan set was by $nick at $date" },
+        topic_change => sub { my ($nick, $topic)= @_;            "--- $topic has changed the topic to: $topic" },
+        privmsg      => sub { my ($nick, $msg) = @_;             "<$nick> $msg" },
+        action       => sub { my ($nick, $action) = @_;          "* $nick $action" },
+        join         => sub { my ($nick, $userhost, $chan) = @_; "--> $nick ($userhost) has joined $chan" },
+        part         => sub {
+            my ($nick, $userhost, $chan, $msg) = @_;
+            my $line = "<-- $nick ($userhost) has left $chan";
+            $line .= " ($msg)" if $msg ne '';
+            return $line;
+        },
+        quit         => sub {
+            my ($nick, $userhost, $chan, $msg) = @_;
+            my $line = "<-- $nick ($userhost) has quit";
+            $line .= " ($msg)" if $msg ne '';
+            return $line;
+        },
+        kick         => sub {
+            my ($kicker, $victim, $chan, $msg) = @_;
+            my $line = "<-- $kicker has kicked $victim from $chan";
+            $line .= " ($msg)" if $msg ne '';
+            return $line;
+        },
+    } unless defined $self->{Format};
 
-    $irc->plugin_register($self, 'SERVER', qw(332 333 chan_mode ctcp_action bot_ctcp_action bot_msg bot_public join kick msg nick part public quit topic));
+    $irc->plugin_register($self, 'SERVER', qw(001 332 333 chan_mode ctcp_action bot_ctcp_action bot_msg bot_public join kick msg nick part public quit topic));
     return 1;
 }
 
 sub PCI_unregister {
     return 1;
+}
+
+sub S_001 {
+    my ($self, $irc) = splice @_, 0, 2;
+    $self->{logging} = { };
 }
 
 sub S_332 {
@@ -151,7 +197,7 @@ sub S_join {
     my ($self, $irc) = splice @_, 0, 2;
     my ($joiner, $user, $host) = parse_user(${ $_[0] });
     my $chan = ${ $_[1] };
-    $self->_log_entry($chan, join => $joiner, $user, $host, $chan);
+    $self->_log_entry($chan, join => $joiner, "$user\@$host", $chan);
     return PCI_EAT_NONE;
 }
 
@@ -160,8 +206,8 @@ sub S_kick {
     my $kicker = parse_user(${ $_[0] });
     my $chan = ${ $_[1] };
     my $victim = ${ $_[2] };
-    my $reason = ${ $_[3] };
-    $self->_log_entry($chan, kick => $kicker, $victim, $chan, $reason);
+    my $msg = ${ $_[3] };
+    $self->_log_entry($chan, kick => $kicker, $victim, $chan, $msg);
     return PCI_EAT_NONE;
 }
 
@@ -188,8 +234,8 @@ sub S_part {
     my ($self, $irc) = splice @_, 0, 2;
     my ($parter, $user, $host) = parse_user(${ $_[0] });
     my $chan = ${ $_[1] };
-    my $reason = ${ $_[2] };
-    $self->_log_entry($chan, part => $parter, $user, $host, $chan, $reason);
+    my $msg = ${ $_[2] };
+    $self->_log_entry($chan, part => $parter, "$user\@$host", $chan, $msg);
     return PCI_EAT_NONE;
 }
 
@@ -207,10 +253,10 @@ sub S_public {
 sub S_quit {
     my ($self, $irc) = splice @_, 0, 2;
     my ($quitter, $user, $host) = parse_user(${ $_[0] });
-    my $reason = ${ $_[1] };
+    my $msg = ${ $_[1] };
     my $channels = @{ $_[2] }[0];
     for my $chan (@{ $channels }) {
-        $self->_log_entry($chan, quit => $quitter, $user, $host, $reason);
+        $self->_log_entry($chan, quit => $quitter, "$user\@$host", $msg);
     }
     return PCI_EAT_NONE;
 }
@@ -226,30 +272,44 @@ sub S_topic {
 
 sub _log_entry {
     my ($self, $context, $type, @args) = @_;
+    my ($date, $time) = split / /, (strftime '%F %T', localtime);
     $context = l_irc $context, $self->{irc}->isupport('CASEMAPPING');
+    @args = map { $self->_to_utf8($_) } @args;
+
     return unless $context =~ /^[#&+!]/ && $self->{Public} or $context !~ /^[#&+!]/ && $self->{Private};
-    return unless exists $self->{format}->{$type};
+    return unless defined $self->{Format}->{$type};
     
-    my $date = strftime '%F', localtime;
+    my $log_file;
     if ($self->{SortByDate}) {
         if (! -d $self->{Path} . "/$context") {
-            mkdir $self->{Path} . "/$context", oct 700 or croak "Couldn't create directory " . $self->{Path} . "/$context: $!; aborted";
+            mkdir $self->{Path} . "/$context", $self->{dir_perm} or croak "Couldn't create directory " . $self->{Path} . "/$context: $!; aborted";
         }
-
-        if (!exists $self->{logs}->{$context}) {
-            $self->{logs}->{$context} = $self->_open_log($self->{Path} . "/$context/$date.log");
-            print {$self->{logs}->{$context}} "***\n*** LOGGING BEGINS\n***\n";
-        }
-        elsif ($self->{last_entry}->{$context} ne $date) {
-            $self->{logs}->{$context} = $self->_open_log($self->{Path} . "/$context/$date.log");
-        }
+        $log_file = $self->_open_log($self->{Path} . "/$context/$date.log");
     }
-    elsif (!exists $self->{logs}->{$context}) {
-        $self->{logs}->{$context} = $self->_open_log($self->{Path} . "/$context.log");
-        print {$self->{logs}->{$context}} "***\n*** LOGGING BEGINS\n***\n";
+    else {
+        $log_file = $self->_open_log($self->{Path} . "/$context.log");
     }
 
-    my $line = strftime('%F %T ', localtime) . sprintf($self->{format}->{$type}, @args);
+    if (!$self->{logging}->{$context}) {
+        print $log_file "***\n*** LOGGING BEGINS\n***\n";
+        $self->{logging}->{$context} = 1;
+    }
+    my $line = "$time " . $self->{Format}->{$type}->(@args);
+    $line = "$date $line" unless $self->{SortByDate};
+    print $log_file "$line\n";
+
+}
+
+sub _open_log {
+    my ($self, $file_name) = @_;
+    sysopen(my $log, $file_name, O_WRONLY|O_APPEND|O_CREAT, $self->{file_perm}) or croak "Couldn't create file $file_name: $!; aborted";
+    binmode($log, ':utf8');
+    $log->autoflush(1);
+    return $log;
+}
+
+sub _to_utf8 {
+    my ($self, $line) = @_;
     my $decoder = guess_encoding($line, 'utf8');
     if (ref $decoder) {
         $line = $decoder->decode($line);
@@ -257,16 +317,7 @@ sub _log_entry {
     else {
         $line = decode('cp1252', $line);
     }
-    print {$self->{logs}->{$context}} "$line\n";
-    $self->{last_entry}->{$context} = $date if $self->{SortByDate};
-}
-
-sub _open_log {
-    my ($self, $file_name) = @_;
-    sysopen(my $log, $file_name, O_WRONLY|O_APPEND|O_CREAT, 0600) or croak "Couldn't create file $file_name: $!; aborted";
-    binmode($log, ':utf8');
-    $log->autoflush(1);
-    return $log;
+    return $line;
 }
 
 1;
@@ -291,7 +342,8 @@ logs public and private messages to disk.
 POE::Component::IRC::Plugin::Logger is a L<POE::Component::IRC|POE::Component::IRC> plugin.
 It logs messages and CTCP ACTIONs to either #some_channel.log or some_nickname.log in the supplied path.
 It tries to detect UTF-8 encoding of every message or else falls back to
-CP1252 (like irssi does by default). The log format is similar to xchat's, except that it's sane and parsable.
+CP1252, like irssi (and, supposedly, mIRC) does by default. The default log format is similar to xchat's,
+except that it's sane and parsable.
 
 This plugin requires the IRC component to be L<POE::Component::IRC::State|POE::Component::IRC::State>
 or a subclass thereof. It also requires a L<POE::Component::IRC::Plugin::BotTraffic|POE::Component::IRC::Plugin::BotTraffic>
@@ -305,11 +357,21 @@ to be in the plugin pipeline. It will be added automatically if it is not presen
 
 Arguments:
 
- 'Path', the place where you want the logs saved.
- 'Private', whether or not to log private messages. Defaults to 1.
- 'Public', whether or not to log public messages. Defaults to 1.
- 'SortByDate, whether or not to split log files by date. I.e. C<$channel/$date.log>
- instead of C<$channel.log>. Defaults to 0.
+'Path', the place where you want the logs saved.
+
+'Private', whether or not to log private messages. Defaults to 1.
+
+'Public', whether or not to log public messages. Defaults to 1.
+
+'SortByDate', whether or not to split log files by date, i.e. C<#channel/YYYY-MM-DD.log>
+instead of C<#channel.log>. If enabled, the date will be omitted from the timestamp.
+Defaults to 0.
+
+'Restricted', set this to 1 if you want to all directories/files to be created without
+read permissions for other users (i.e. 700 for dirs and 600 for files). Defaults to 0.
+
+'Format', a hash reference representing the log format, if you want to define your own.
+See the source for details.
 
 Returns a plugin object suitable for feeding to L<POE::Component::IRC|POE::Component::IRC>'s
 plugin_add() method.

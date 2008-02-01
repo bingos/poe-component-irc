@@ -149,11 +149,11 @@ or a subclass thereof.
 
 Two optional arguments:
 
- 'Channels', either an array reference of channel names, or a hash reference keyed on channel name,
- containing the optional password for each channel. By default it uses the channels the component
- is already on, if any.
- 'RejoinOnKick', set this to 1 if you want the plugin to try to rejoin a channel (once) if you get kicked
- from it. Default is 0.
+'Channels', either an array reference of channel names, or a hash reference keyed on channel name,
+containing the password for each channel. By default it uses the channels the component is already on, if any.
+
+'RejoinOnKick', set this to 1 if you want the plugin to try to rejoin a channel (once) if you get kicked
+from it. Default is 0.
  
 
 Returns a plugin object suitable for feeding to L<POE::Component::IRC|POE::Component::IRC>'s
