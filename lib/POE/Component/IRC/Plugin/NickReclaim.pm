@@ -15,6 +15,7 @@ sub new {
     
     # the $irc->nick_name() and offending nickname will be...
     #...the same on start, thus won't change
+    $args{_claims} = 0;
     $args{_did_start} = 0;
     
     return bless \%args, $package;
