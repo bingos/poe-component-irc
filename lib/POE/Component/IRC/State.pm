@@ -22,6 +22,7 @@ $VERSION = '2.46';
 # Event handlers for tracking the STATE. $self->{STATE} is used as our namespace.
 # u_irc() is used to create unique keys.
 
+# RPL_WELCOME
 # Make sure we have a clean STATE when we first join the network and if we inadvertently get disconnected
 sub S_001 {
   my $self = shift;
@@ -222,6 +223,7 @@ sub S_chan_mode {
   return PCI_EAT_NONE;
 }
 
+# RPL_UMODEIS
 sub S_221 {
   my ($self,$irc) = splice @_, 0, 2;
   my $mode = ${ $_[1] };
