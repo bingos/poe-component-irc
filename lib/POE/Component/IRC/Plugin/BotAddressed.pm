@@ -40,7 +40,7 @@ sub S_public {
   my $channel = ${ $_[1] }->[0];
   my $what = ${ $_[2] };
   my $mynick = $irc->nick_name();
-  my ($cmd) = $what =~ m/^\s*\Q$mynick\E[\:\,\;\.]?\s*(.*)$/i;
+  my ($cmd) = $what =~ m/^\s*\Q$mynick\E[\:\,\;\.\~]?\s*(.*)$/i;
 
   if (defined $cmd) {
     $irc->_send_event( ( $self->{event} || 'irc_bot_addressed' ) => $who => [ $channel ] => $cmd );

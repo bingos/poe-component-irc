@@ -14,6 +14,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Logger.pm: Omit date from timestamp if sorting log files by date (Hinrik)
 		- Logger.pm: Always use present tense (Hinrik)
     - NickReclaim.pm: Small fix for an edge case (Hinrik)
+		- BotAddressed.pm: Check for '$nick~ $text' as well (Hinrik)
 
 5.56  Thu Jan 31 12:30:25 GMT 2008
     - AutoJoin.pm: Silence some warnings (Hinrik)
