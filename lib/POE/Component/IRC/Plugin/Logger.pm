@@ -297,7 +297,6 @@ sub _log_entry {
     my $line = "$time " . $self->{Format}->{$type}->(@args);
     $line = "$date $line" unless $self->{SortByDate};
     print $log_file "$line\n";
-
 }
 
 sub _open_log {

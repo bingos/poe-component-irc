@@ -172,7 +172,7 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Plugin::Console - a lightweight debugging and control console for L<POE::Component::IRC> bots.
+POE::Component::IRC::Plugin::Console - A PoCo-IRC plugin that provides a lightweight debugging and control console for L<POE::Component::IRC> bots.
 
 =head1 SYNOPSIS
 

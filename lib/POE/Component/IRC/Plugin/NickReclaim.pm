@@ -124,7 +124,7 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Plugin::NickReclaim - a plugin for reclaiming nickname.
+POE::Component::IRC::Plugin::NickReclaim - A PoCo-IRC plugin for reclaiming nickname.
 
 =head1 SYNOPSIS
 

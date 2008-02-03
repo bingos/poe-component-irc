@@ -16,7 +16,7 @@ sub new {
 
 sub PCI_register {
     my ($self, $irc) = @_;
-    $self->{Nickname} = $irc->nick_name() unless $self->{Nickname};
+    $self->{Nickname} = $irc->nick_name() unless defined $self->{Nickname};
     $self->{Nickname} = u_irc $self->{Nickname};
     $irc->plugin_register($self, 'SERVER', qw(001 nick));
     return 1;

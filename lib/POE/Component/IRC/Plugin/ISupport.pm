@@ -157,7 +157,7 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Plugin::ISupport - A POE::Component::IRC plugin that handles server capabilities.
+POE::Component::IRC::Plugin::ISupport - A PoCo-IRC plugin that handles server capabilities.
 
 =head1 DESCRIPTION
 

@@ -274,7 +274,7 @@ sub loaded {
 __END__
 =head1 NAME
 
-POE::Component::IRC::Plugin::PlugMan - a POE::Component::IRC plugin that provides plugin management services. 
+POE::Component::IRC::Plugin::PlugMan - A PoCo-IRC plugin that provides plugin management services. 
 
 =head1 SYNOPSIS
 

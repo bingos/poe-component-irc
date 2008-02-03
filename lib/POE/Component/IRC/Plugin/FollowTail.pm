@@ -82,7 +82,7 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Plugin::FollowTail - a PoCo-IRC to follow the tail of an ever-growing file
+POE::Component::IRC::Plugin::FollowTail - A PoCo-IRC plugin to follow the tail of an ever-growing file
 
 =head1 SYNOPSIS
 

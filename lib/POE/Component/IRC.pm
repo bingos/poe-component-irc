@@ -2417,7 +2417,7 @@ Under normal circumstances irc bots do not normal the msgs and public msgs that 
 
 =item L<POE::Component::IRC::Plugin::BotAddressed>
 
-Generates 'irc_bot_addressed' events whenever someone addresses your bot by name in a channel.
+Generates 'irc_bot_addressed' / 'irc_bot_mentioned' / 'irc_bot_mentioned_action' events whenever your bot's name comes up in channel discussion.
 
 =item L<POE::Component::IRC::Plugin::Console>
 

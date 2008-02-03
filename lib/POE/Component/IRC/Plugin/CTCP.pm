@@ -79,7 +79,7 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Plugin::CTCP - A POE::Component::IRC plugin that auto-responds to CTCP requests.
+POE::Component::IRC::Plugin::CTCP - A PoCo-IRC plugin that auto-responds to CTCP requests.
 
 =head1 SYNOPSIS
 

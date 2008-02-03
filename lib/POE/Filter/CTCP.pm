@@ -215,7 +215,7 @@ __END__
 
 =head1 NAME
 
-POE::Filter::CTCP -- A POE-based parser for the IRC protocol.
+POE::Filter::CTCP -- A POE-based parser for the IRC protocol (CTCP).
 
 =head1 SYNOPSIS
 

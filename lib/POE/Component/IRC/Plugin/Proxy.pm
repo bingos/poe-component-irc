@@ -359,7 +359,7 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Plugin::Proxy - A lightweight IRC proxy/bouncer for L<POE::Component::IRC>.
+POE::Component::IRC::Plugin::Proxy - A PoCo-IRC plugin that provides a lightweight IRC proxy/bouncer for L<POE::Component::IRC>.
 
 =head1 SYNOPSIS
 

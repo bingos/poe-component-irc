@@ -59,7 +59,7 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Plugin::BotAddressed - A POE::Component::IRC plugin that generates an 'irc_bot_addressed', 'irc_bot_mentioned' or 'irc_bot_mentioned_action' event if its name comes up in channel discussion.
+POE::Component::IRC::Plugin::BotAddressed - A PoCo-IRC plugin that generates an 'irc_bot_addressed', 'irc_bot_mentioned' or 'irc_bot_mentioned_action' event if its name comes up in channel discussion.
 
 =head1 SYNOPSIS
 
