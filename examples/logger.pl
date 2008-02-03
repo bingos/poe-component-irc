@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# This is the simplest IRC logger bot script in the history of the universe
+# This is the most succinct IRC logger bot script in the history of the universe
 # Author: Hinrik Örn Sigurðsson, <hinrik.sig@gmail.com>
 
 use strict;
@@ -11,7 +11,7 @@ use POE::Component::IRC::Plugin::AutoJoin;
 use POE::Component::IRC::Plugin::Logger;
 
 my $nick = 'mylogbot';
-my $server = 'irc.freenode.net';
+my $server = 'irc.blahblah.irc';
 my @channels = ('#chan1', '#chan2');
 my $path = "$ENV{HOME}/irclogs";
 
