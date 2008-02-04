@@ -99,7 +99,7 @@ sub PCI_register {
             return $line;
         },
         quit         => sub {
-            my ($nick, $userhost, $chan, $msg) = @_;
+            my ($nick, $userhost, $msg) = @_;
             my $line = "<-- $nick ($userhost) quits";
             $line .= " ($msg)" if $msg ne '';
             return $line;
@@ -256,7 +256,7 @@ sub S_quit {
     my $msg = ${ $_[1] };
     my $channels = @{ $_[2] }[0];
     for my $chan (@{ $channels }) {
-        $self->_log_entry($chan, quit => $quitter, "$user\@$host", $chan, $msg);
+        $self->_log_entry($chan, quit => $quitter, "$user\@$host", $msg);
     }
     return PCI_EAT_NONE;
 }
