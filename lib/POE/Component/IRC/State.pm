@@ -236,7 +236,7 @@ sub S_221 {
 sub S_305 {
   my ($self,$irc) = splice @_, 0, 2;
   my $nick = $irc->nick_name();
-  $self->yield( 'irc_user_away' => $nick => [ $self->nick_channels( $nick ) ] ) if $self->{STATE}->{away};
+  $self->yield( 'irc_user_back' => $nick => [ $self->nick_channels( $nick ) ] ) if $self->{STATE}->{away};
   $self->{STATE}->{away} = 0;
   return PCI_EAT_NONE;
 }
@@ -245,7 +245,7 @@ sub S_305 {
 sub S_306 {
   my ($self,$irc) = splice @_, 0, 2;
   my $nick = $irc->nick_name();
-    $self->yield( 'irc_user_back' => $nick => [ $self->nick_channels( $nick ) ] ) unless $self->{STATE}->{away};
+    $self->yield( 'irc_user_away' => $nick => [ $self->nick_channels( $nick ) ] ) unless $self->{STATE}->{away};
   $self->{STATE}->{away} = 1;
   return PCI_EAT_NONE;
 }
