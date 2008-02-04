@@ -339,7 +339,7 @@ logs public and private messages to disk.
 =head1 DESCRIPTION
 
 POE::Component::IRC::Plugin::Logger is a L<POE::Component::IRC|POE::Component::IRC> plugin.
-It logs messages and CTCP ACTIONs to either #some_channel.log or some_nickname.log in the supplied path.
+It logs messages and CTCP ACTIONs to either C<#some_channel.log> or C<some_nickname.log> in the supplied path.
 It tries to detect UTF-8 encoding of every message or else falls back to
 CP1252, like irssi (and, supposedly, mIRC) does by default. The default log format is similar to xchat's,
 except that it's sane and parsable.
