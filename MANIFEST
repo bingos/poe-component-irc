@@ -11,6 +11,7 @@ examples/dcctest.pl
 examples/dicebot.pl
 examples/eliza.pl
 examples/ircproxy.pl
+examples/logger.pl
 examples/moo.pl
 examples/simpleclient.pl
 examples/tinyurl.pl
