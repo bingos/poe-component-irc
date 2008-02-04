@@ -2,6 +2,8 @@ Revision history for Perl extension POE::Component::IRC.
 
 5.60
     - State.pm: Fix 2 braindead typos in away tracking code (Hinrik)
+		- Logger.pm: Added missing argument preventing quit messages from
+		  being logged (Hinrik)
 
 5.58  Mon Feb  4 07:58:14 GMT 2008
     - State.pm: Workaround for IRC servers (e.g. hybrid, hyperion) which send

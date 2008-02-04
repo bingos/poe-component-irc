@@ -256,7 +256,7 @@ sub S_quit {
     my $msg = ${ $_[1] };
     my $channels = @{ $_[2] }[0];
     for my $chan (@{ $channels }) {
-        $self->_log_entry($chan, quit => $quitter, "$user\@$host", $msg);
+        $self->_log_entry($chan, quit => $quitter, "$user\@$host", $chan, $msg);
     }
     return PCI_EAT_NONE;
 }
