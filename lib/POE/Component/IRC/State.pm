@@ -17,7 +17,7 @@ use POE::Component::IRC::Plugin qw(:ALL);
 use base qw(POE::Component::IRC);
 use vars qw($VERSION);
 
-$VERSION = '2.46';
+$VERSION = '2.48';
 
 # Event handlers for tracking the STATE. $self->{STATE} is used as our namespace.
 # u_irc() is used to create unique keys.
@@ -397,12 +397,12 @@ sub S_352 {
     $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan } = $existing;
     $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick } = $existing;
     $self->{STATE}->{Chans}->{ $uchan }->{Name} = $channel;
-    if ($self->{STATE}->{Chans}->{ $uchan }->{AWAY_SYNCH}) {
+    if ($self->{STATE}->{Chans}->{ $uchan }->{AWAY_SYNCH} && $unick ne u_irc($irc->nick_name(), $mapping)) {
       if ( $status =~ /G/ && !$self->{STATE}->{Nicks}->{ $unick }->{Away} ) {
-        $self->yield( 'irc_user_away' => $nick => [ $self->nick_channels( $nick ) ] ) unless $unick eq uirc $irc->nick_name();
+        $self->yield( 'irc_user_away' => $nick => [ $self->nick_channels( $nick ) ] );
       }
       elsif ($status =~ /H/ && $self->{STATE}->{Nicks}->{ $unick }->{Away} ) {
-        $self->yield( 'irc_user_back' => $nick => [ $self->nick_channels( $nick ) ] ) unless $unick eq uirc $irc->nick_name();;
+        $self->yield( 'irc_user_back' => $nick => [ $self->nick_channels( $nick ) ] );
       }
     }
   }
@@ -609,7 +609,8 @@ sub is_user_mode_set {
 
 sub _away_sync {
   my ($self, $channel) = @_[OBJECT, ARG0];
-  my $uchan = u_irc $channel;
+  my $mapping = $self->isupport('CASEMAPPING');
+  my $uchan = u_irc $channel, $mapping || return 0;
   $self->{STATE}->{Chans}->{ $uchan }->{AWAY_SYNCH} = 1;
   $self->_send_event( 'irc_away_sync_start', $channel );
   $self->yield( 'who' => $channel );

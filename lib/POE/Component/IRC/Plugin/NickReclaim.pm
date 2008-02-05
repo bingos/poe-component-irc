@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use POE::Component::IRC::Plugin qw(:ALL);
 
-my $VERSION = '1.1';
+my $VERSION = '1.2';
 
 sub new {
     my $package = shift;
@@ -15,8 +15,8 @@ sub new {
     
     # the $irc->nick_name() and offending nickname will be...
     #...the same on start, thus won't change
-    $args{_claims} = 0;
     $args{_did_start} = 0;
+    $args{_claims} = {};
     
     return bless \%args, $package;
 }

@@ -11,7 +11,7 @@ use POE::Component::IRC::Plugin::BotTraffic;
 use POE::Component::IRC::Common qw( l_irc parse_user );
 use POSIX qw(strftime);
 
-my $VERSION = '1.2';
+my $VERSION = '1.3';
 
 sub new {
     my ($package, %self) = @_;
@@ -127,7 +127,8 @@ sub S_001 {
 
 sub S_332 {
     my ($self, $irc) = splice @_, 0, 2;
-    my ($chan, $topic) = @{ ${ $_[2] } };
+    my $chan = ${ $_[2] }->[0];
+    my $topic = $self->_to_utf8( ${ $_[2] }->[1] );
     # only log this if we were just joining the channel
     $self->_log_entry($chan, topic_is => $chan, $topic) if !$irc->channel_list($chan);
     return PCI_EAT_NONE;
@@ -146,7 +147,7 @@ sub S_chan_mode {
     my ($self, $irc) = splice @_, 0, 2;
     my $nick = parse_user(${ $_[0] });
     my $chan = ${ $_[1] };
-    my ($mode) = ${ $_[2] };
+    my $mode = ${ $_[2] };
     my $arg = ${ $_[3] };
     $self->_log_entry($chan, $mode => $nick, $arg);
     return PCI_EAT_NONE;
@@ -156,7 +157,7 @@ sub S_ctcp_action {
     my ($self, $irc) = splice @_, 0, 2;
     my $sender = parse_user(${ $_[0] });
     my $recipients = ${ $_[1] };
-    my $msg = ${ $_[2] };
+    my $msg = $self->_to_utf8( ${ $_[2] } );
     for my $recipient (@{ $recipients }) {
         $self->_log_entry($recipient, action => $sender, $msg);
     }
@@ -166,7 +167,7 @@ sub S_ctcp_action {
 sub S_bot_ctcp_action {
     my ($self, $irc) = splice @_, 0, 2;
     my $recipients = ${ $_[0] };
-    my $msg = ${ $_[1] };
+    my $msg = $self->_to_utf8( ${ $_[1] } );
     for my $recipient (@{ $recipients }) {
         $self->_log_entry($recipient, action => $irc->nick_name(), $msg);
     }
@@ -176,7 +177,7 @@ sub S_bot_ctcp_action {
 sub S_bot_msg {
     my ($self, $irc) = splice @_, 0, 2;
     my $recipients = ${ $_[0] };
-    my $msg = ${ $_[1] };
+    my $msg = $self->_to_utf8( ${ $_[1] } );
     for my $recipient (@{ $recipients }) {
         $self->_log_entry($recipient, privmsg => $irc->nick_name(), $msg);
     }
@@ -186,7 +187,7 @@ sub S_bot_msg {
 sub S_bot_public {
     my ($self, $irc) = splice @_, 0, 2;
     my $channels = ${ $_[0] };
-    my $msg = ${ $_[1] };
+    my $msg = $self->_to_utf8( ${ $_[1] } );
     for my $chan (@{ $channels }) {
         $self->_log_entry($chan, privmsg => $irc->nick_name(), $msg);
     }
@@ -206,7 +207,7 @@ sub S_kick {
     my $kicker = parse_user(${ $_[0] });
     my $chan = ${ $_[1] };
     my $victim = ${ $_[2] };
-    my $msg = ${ $_[3] };
+    my $msg = $self->_to_utf8( ${ $_[3] } );
     $self->_log_entry($chan, kick => $kicker, $victim, $chan, $msg);
     return PCI_EAT_NONE;
 }
@@ -214,7 +215,7 @@ sub S_kick {
 sub S_msg {
     my ($self, $irc) = splice @_, 0, 2;
     my $sender = parse_user(${ $_[0] });
-    my $msg = ${ $_[2] };
+    my $msg = $self->_to_utf8( ${ $_[2] } );
     $self->_log_entry($sender, privmsg => $sender, $msg);
     return PCI_EAT_NONE;
 }
@@ -234,7 +235,7 @@ sub S_part {
     my ($self, $irc) = splice @_, 0, 2;
     my ($parter, $user, $host) = parse_user(${ $_[0] });
     my $chan = ${ $_[1] };
-    my $msg = ${ $_[2] };
+    my $msg = $self->_to_utf8( ${ $_[2] } );
     $self->_log_entry($chan, part => $parter, "$user\@$host", $chan, $msg);
     return PCI_EAT_NONE;
 }
@@ -243,7 +244,7 @@ sub S_public {
     my ($self, $irc) = splice @_, 0, 2;
     my $sender = parse_user(${ $_[0] });
     my $channels = ${ $_[1] };
-    my $msg = ${ $_[2] };
+    my $msg = $self->_to_utf8( ${ $_[2] } );
     for my $chan (@{ $channels }) {
         $self->_log_entry($chan, privmsg => $sender, $msg);
     }
@@ -253,7 +254,7 @@ sub S_public {
 sub S_quit {
     my ($self, $irc) = splice @_, 0, 2;
     my ($quitter, $user, $host) = parse_user(${ $_[0] });
-    my $msg = ${ $_[1] };
+    my $msg = $self->_to_utf8( ${ $_[1] } );
     my $channels = @{ $_[2] }[0];
     for my $chan (@{ $channels }) {
         $self->_log_entry($chan, quit => $quitter, "$user\@$host", $msg);
@@ -265,7 +266,7 @@ sub S_topic {
     my ($self, $irc) = splice @_, 0, 2;
     my $changer = parse_user(${ $_[0] });
     my $chan = ${ $_[1] };
-    my $new_topic = ${ $_[2] };
+    my $new_topic = $self->_to_utf8( ${ $_[2] } );
     $self->_log_entry($chan, topic_change => $changer, $new_topic);
     return PCI_EAT_NONE;
 }
@@ -274,7 +275,6 @@ sub _log_entry {
     my ($self, $context, $type, @args) = @_;
     my ($date, $time) = split / /, (strftime '%F %T', localtime);
     $context = l_irc $context, $self->{irc}->isupport('CASEMAPPING');
-    @args = map { $self->_to_utf8($_) } @args;
 
     return unless $context =~ /^[#&+!]/ && $self->{Public} or $context !~ /^[#&+!]/ && $self->{Private};
     return unless defined $self->{Format}->{$type};
@@ -309,13 +309,8 @@ sub _open_log {
 
 sub _to_utf8 {
     my ($self, $line) = @_;
-    my $decoder = guess_encoding($line, 'utf8');
-    if (ref $decoder) {
-        $line = $decoder->decode($line);
-    }
-    else {
-        $line = decode('cp1252', $line);
-    }
+    my $utf8 = guess_encoding($line, 'utf8');
+    $line = decode('cp1252', $line) unless ref $utf8;
     return $line;
 }
 
