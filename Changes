@@ -14,7 +14,8 @@ Revision history for Perl extension POE::Component::IRC.
     - IRC.pm: Add NICKSERV command, mention the new color stuff (Hinrik)
     - NickServID: Made it behave more sensibly considering upcoming
       FreeNode policy changes. Also, use a raw NICKSERV command (Hinrik)
-
+    - Logger.pm: Rename SortByDate to Sort_by_date and add Strip_color,
+      Strip_formatting (Hinrik
 5.58  Mon Feb  4 07:58:14 GMT 2008
     - State.pm: Workaround for IRC servers (e.g. hybrid, hyperion) which send
       user WHO replies starting with the name of a random channel that the
