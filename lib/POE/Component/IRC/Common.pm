@@ -172,7 +172,7 @@ sub has_color {
 
 sub has_formatting {
     my $string = shift;
-    return 1 if $string =~/[\x02\x1f\x16]/;
+    return 1 if $string =~/[\x0f\x02\x1f\x16]/;
     return 0;
 }
 
