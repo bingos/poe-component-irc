@@ -166,13 +166,13 @@ sub parse_user {
 
 sub has_color {
     my $string = shift;
-    return 1 if $string =~ /\x03\d/;
+    return 1 if $string =~ /\x03/;
     return 0;
 }
 
 sub has_formatting {
     my $string = shift;
-    return 1 if $string =~/\x02|\x1f|\x16/;
+    return 1 if $string =~/[\x02\x1f\x16]/;
     return 0;
 }
 
