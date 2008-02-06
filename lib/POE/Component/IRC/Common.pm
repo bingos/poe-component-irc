@@ -391,7 +391,7 @@ Colors:
  DARK_GREY
  LIGHT_GREY
 
- $irc->yield("This is word " . YELLOW . 'yellow' . NO_COLOR . ' while this word is ' . BOLD . 'bold' . NO_FORMAT . '.');
+ $irc->yield("This word is " . YELLOW . 'yellow' . NO_COLOR . ' while this word is ' . BOLD . 'bold' . NO_FORMAT . '.');
 
 =head1 FUNCTIONS
 
