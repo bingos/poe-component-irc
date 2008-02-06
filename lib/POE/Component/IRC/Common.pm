@@ -446,12 +446,12 @@ Takes one parameter, a string representing a user in the form nick!user@hostname
 
 =item has_color
 
-Takes one parameter, a string of IRC text. Returns 0 if it contains any IRC color codes, 0 otherwise. Useful if you
+Takes one parameter, a string of IRC text. Returns 1 if it contains any IRC color codes, 0 otherwise. Useful if you
 want your bot to kick users for (ab)using colors. :)
 
 =item has_formatting
 
-Takes one parameter, a string of IRC text. Returns 0 if it contains any IRC formatting codes, 0 otherwise.
+Takes one parameter, a string of IRC text. Returns 1 if it contains any IRC formatting codes, 0 otherwise.
 
 =item strip_color
 
