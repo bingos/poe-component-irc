@@ -7,10 +7,10 @@ use POE::Filter::IRCD;
 use POE::Filter::CTCP;
 use vars qw($VERSION);
 
-$VERSION = '5.52';
+$VERSION = '5.54';
 
 sub new {
-  return bless { PrivEvent => 'irc_bot_msg', PubEvent => 'irc_bot_public', ActEvent => 'irc_bot_ctcp_action', @_[1..$#_] }, $_[0];
+  return bless { PrivEvent => 'irc_bot_msg', PubEvent => 'irc_bot_public', ActEvent => 'irc_bot_action', @_[1..$#_] }, $_[0];
 }
 
 sub PCI_register {
@@ -57,7 +57,7 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Plugin::BotTraffic - A PoCo-IRC plugin that generates 'irc_bot_public', 'irc_bot_msg', and 'irc_bot_ctcp_action' events whenever your bot sends privmsgs.
+POE::Component::IRC::Plugin::BotTraffic - A PoCo-IRC plugin that generates 'irc_bot_public', 'irc_bot_msg', and 'irc_bot_action' events whenever your bot sends privmsgs.
 
 =head1 SYNOPSIS
 
@@ -103,7 +103,7 @@ ARG0 will be an arrayref of recipients. ARG1 will be the text sent.
 
 ARG0 will be an arrayref of recipients. ARG1 will be the text sent.
 
-=item irc_bot_ctcp_action
+=item irc_bot_action
 
 ARG0 will be an arrayref of recipients. ARG1 will be the text sent.
 

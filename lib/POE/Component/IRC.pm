@@ -33,7 +33,7 @@ use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS);
 # Load the plugin stuff
 use POE::Component::IRC::Plugin qw( :ALL );
 
-$VERSION = '5.58';
+$VERSION = '5.60';
 $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 
 # BINGOS: I have bundled up all the stuff that needs changing for inherited classes
@@ -119,6 +119,7 @@ sub _create {
     'stats'     => [ PRI_HIGH,   'spacesep',      ],
     'links'     => [ PRI_HIGH,   'spacesep',      ],
     'mode'      => [ PRI_HIGH,   'spacesep',      ],
+    'nickserv'  => [ PRI_HIGH,   'spacesep',      ],
     'part'      => [ PRI_HIGH,   'commasep',      ],
     'names'     => [ PRI_HIGH,   'commasep',      ],
     'list'      => [ PRI_HIGH,   'commasep',      ],
@@ -2838,22 +2839,25 @@ by the colour code, your text and a \x03 to switch back.
 
 The colour codes are:
 
+    0 - White
     1 - Black
-    2 - Navy Blue
-    3 - Green
+    2 - Dark Blue
+    3 - Dark Green
     4 - Red
     5 - Brown
     6 - Purple
-    7 - Olive
+    7 - Orange
     8 - Yellow
-    9 - Lime Green
+    9 - Light Green
     10 - Teal
-    11 - Aqua Light
-    12 - Royal Blue
-    13 - Hot Pink
-    14 - Dark Gray
-    15 - Light Gray
-    16 - White 
+    11 - Cyan
+    12 - Light Blue
+    13 - Magenta
+    14 - Dark Grey
+    15 - Light Grey
+
+You can also use color/formatting constants defined in
+L<POE::Component::IRC::Common|POE::Component::IRC::Common>.
 
 =item quit
 

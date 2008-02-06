@@ -6,7 +6,7 @@ use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Common qw( parse_user );
 
-my $VERSION = '1.1';
+my $VERSION = '1.2';
 
 sub new {
     my ($package, %self) = @_;
@@ -40,8 +40,17 @@ sub PCI_unregister {
 
 sub S_001 {
     my ($self, $irc) = splice @_, 0, 2;
-    while (my ($chan, $key) = each %{ $self->{Channels} }) {
-        $irc->yield(join => $chan => $key);
+    
+    # delay this so that the user will be cloaked (if applicable) before joining channels
+    if ( grep { $_->isa('POE::Component::IRC::Plugin::NickServID') } @{ $irc->pipeline->{PIPELINE} } ) {
+        while (my ($chan, $key) = each %{ $self->{Channels} }) {
+            $irc->delay([join => $chan => $key], 5);
+        }
+    }
+    else {
+        while (my ($chan, $key) = each %{ $self->{Channels} }) {
+            $irc->yield(join => $chan => $key);
+        }
     }
     return PCI_EAT_NONE;
 }

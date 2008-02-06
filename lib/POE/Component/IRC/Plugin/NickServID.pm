@@ -4,9 +4,8 @@ use strict;
 use warnings;
 use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
-use POE::Component::IRC::Common qw( u_irc );
 
-my $VERSION = '1.1';
+my $VERSION = '1.2';
 
 sub new {
     my ($package, %self) = @_;
@@ -16,11 +15,7 @@ sub new {
 
 sub PCI_register {
     my ($self, $irc) = @_;
-    if (!defined $self->{Nickname}) {
-        defined $irc->nick_name() ? $self->{Nickname} = $irc->nick_name() : $self->{Nickname} = $irc->{nick};
-    }
-    $self->{Nickname} = u_irc $self->{Nickname};
-    $irc->plugin_register($self, 'SERVER', qw(001 nick));
+    $irc->plugin_register($self, 'SERVER', qw(001));
     return 1;
 }
 
@@ -30,18 +25,7 @@ sub PCI_unregister {
 
 sub S_001 {
     my ($self, $irc) = splice @_, 0, 2;
-    if (u_irc($irc->nick_name()) eq $self->{Nickname}) {
-        $irc->yield(privmsg => nickserv => 'IDENTIFY ' . $self->{Password});
-    }
-    return PCI_EAT_NONE;
-}
-
-sub S_nick {
-    my ($self, $irc) = splice @_, 0, 2;
-    my $new_nick = u_irc ${ $_[1] };
-    if ($new_nick eq u_irc($irc->nick_name()) && $new_nick eq $self->{Nickname}) {
-        $irc->yield(privmsg => nickserv => 'IDENTIFY ' . $self->{Password});
-    }
+    $irc->yield(nickserv => 'IDENTIFY ' . $self->{Password});
     return PCI_EAT_NONE;
 }
 
@@ -71,9 +55,6 @@ the supplied password.
 =item new
 
 Arguments:
-
-'Nickname', the nickname that is associated with the password. Defaults to the nick returned
-by $irc->nick_name() at the time of plugin registration.
 
 'Password', the NickServ password.
 

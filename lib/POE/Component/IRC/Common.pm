@@ -3,15 +3,41 @@ package POE::Component::IRC::Common;
 # We export some stuff
 require Exporter;
 @ISA = qw( Exporter );
-%EXPORT_TAGS = ( 'ALL' => [ qw(u_irc l_irc parse_mode_line parse_ban_mask matches_mask parse_user irc_ip_get_version irc_ip_is_ipv4 irc_ip_is_ipv6) ] );
+%EXPORT_TAGS = ( 'ALL' => [ qw(u_irc l_irc parse_mode_line parse_ban_mask matches_mask parse_user irc_ip_get_version irc_ip_is_ipv4 irc_ip_is_ipv6 has_color has_formatting strip_color strip_formatting NO_FORMAT BOLD UNDERLINE REVERSE NO_COLOR WHITE BLACK DARK_BLUE DARK_GREEN RED BROWN PURPLE ORANGE YELLOW LIGHT_GREEN TEAL CYAN LIGHT_BLUE MAGENTA DARK_GREY LIGHT_GREY) ] );
 Exporter::export_ok_tags( 'ALL' );
 
 use strict;
 use warnings;
 
-my $VERSION = '5.12';
+my $VERSION = '5.14';
 my $ERROR;
 my $ERRNO;
+
+use constant {
+    # formatting
+    NO_FORMAT   => "\x0f",
+    BOLD        => "\x02",
+    UNDERLINE   => "\x1f",
+    REVERSE     => "\x16",
+    # colors
+    NO_COLOR    => "\x03",
+    WHITE       => "\x0300",
+    BLACK       => "\x0301",
+    DARK_BLUE   => "\x0302",
+    DARK_GREEN  => "\x0303",
+    RED         => "\x0304",
+    BROWN       => "\x0305",
+    PURPLE      => "\x0306",
+    ORANGE      => "\x0307",
+    YELLOW      => "\x0308",
+    LIGHT_GREEN => "\x0309",
+    TEAL        => "\x0310",
+    CYAN        => "\x0311",
+    LIGHT_BLUE  => "\x0312",
+    MAGENTA     => "\x0313",
+    DARK_GREY   => "\x0314",
+    LIGHT_GREY  => "\x0315",
+};
 
 sub u_irc {
   my $value = shift || return;
@@ -136,6 +162,30 @@ sub parse_user {
   my ($n,$u,$h) = split /[!@]/, $user;
   return ($n,$u,$h) if wantarray();
   return $n;
+}
+
+sub has_color {
+    my $string = shift;
+    return 1 if $string =~ /\x03\d/;
+    return 0;
+}
+
+sub has_formatting {
+    my $string = shift;
+    return 1 if $string =~/\x02|\x1f|\x16/;
+    return 0;
+}
+
+sub strip_color {
+    my $string = shift;
+    $string =~ s/\x03(?:\d{1,2}(?:,\d{1,2})?)?//g;
+    return $string;
+}
+
+sub strip_formatting {
+    my $string = shift;
+    $string =~ tr/\x0f\x02\x1f\x16//;
+    return $string;
 }
 
 #------------------------------------------------------------------------------
@@ -310,6 +360,39 @@ POE::Component::IRC::Common - provides a set of common functions for the L<POE::
 
 POE::Component::IRC::Common provides a set of common functions for the L<POE::Component::IRC> suite. There are included functions for uppercase and lowercase nicknames/channelnames and for parsing mode lines and ban masks.
 
+=head1 CONSTANTS
+
+Use the following constants to add color and formatting to IRC messages.
+
+Formatting:
+
+ NO_FORMAT
+ BOLD
+ UNDERLINE
+ REVERSE
+
+Colors:
+
+ NO_COLOR
+ WHITE
+ BLACK
+ DARK_BLUE
+ DARK_GREEN
+ RED
+ BROWN
+ PURPLE
+ ORANGE
+ YELLOW
+ LIGHT_GREEN
+ TEAL
+ CYAN 
+ LIGHT_BLUE
+ MAGENTA
+ DARK_GREY
+ LIGHT_GREY
+
+ $irc->yield("This is word " . YELLOW . 'yellow' . NO_COLOR . ' while this word is ' . BOLD . 'bold' . NO_FORMAT . '.');
+
 =head1 FUNCTIONS
 
 =over
@@ -360,6 +443,23 @@ Takes two array references, the first being a list of strings representing IRC m
 =item parse_user
 
 Takes one parameter, a string representing a user in the form nick!user@hostname. In a scalar context it returns just the nickname. In a list context it returns a list consisting of the nick, user and hostname, respectively.
+
+=item has_color
+
+Takes one parameter, a string of IRC text. Returns 0 if it contains any IRC color codes, 0 otherwise. Useful if you
+want your bot to kick users for (ab)using colors. :)
+
+=item has_formatting
+
+Takes one parameter, a string of IRC text. Returns 0 if it contains any IRC formatting codes, 0 otherwise.
+
+=item strip_color
+
+Takes one paramter, a string of IRC text. Returns the string stripped of all IRC color codes.
+
+=item strip_formatting
+
+Takes one paramter, a string of IRC text. Returns the string stripped of all IRC formatting codes.
 
 =item irc_ip_get_version
 

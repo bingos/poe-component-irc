@@ -1,4 +1,4 @@
-use Test::More tests => 25;
+use Test::More tests => 29;
 BEGIN { use_ok('POE::Component::IRC::Common', qw(:ALL)) }
 ok( 'SIMPLE' eq u_irc( 'simple' ), "Upper simple test" );
 ok( 'simple' eq l_irc( 'SIMPLE' ), "Lower simple test" );
@@ -27,6 +27,12 @@ ok( $nick eq 'BinGOs', "Parse User Test 1" );
 ok( $nick eq $args[0], "Parse User Test 2" );
 ok( $args[1] eq 'null', "Parse User Test 3" );
 ok( $args[2] eq 'fubar.com', "Parse User Test 4" );
+my $colored = "\x0304,05Hi, I'm a color junkie\x03";
+ok ( has_color($colored), "Has Color Test");
+ok ( strip_color($colored) eq "Hi, I'm a color junkie", "Strip Color Test" );
+my $formatted = "This is \x02bold\x0f and this is \x1funderlined\0f";
+ok ( has_formatting($formatted), "Has Formatting Test" );
+ok ( strip_formatting($formatted) eq "This is bold and this is underlined", "Strip Formatting Test" );
 ok( irc_ip_get_version('100.0.0.1') == 4, "IPv4" );
 ok( irc_ip_get_version('2001:0db8:0000:0000:0000:0000:1428:57ab') == 6, "IPv6" );
 ok( !irc_ip_get_version('blah'), "Not an IP" );
