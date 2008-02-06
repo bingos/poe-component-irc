@@ -184,7 +184,7 @@ sub strip_color {
 
 sub strip_formatting {
     my $string = shift;
-    $string =~ tr/\x0f\x02\x1f\x16//;
+    $string =~ s/[\x0f\x02\x1f\x16]//g;
     return $string;
 }
 
