@@ -2811,6 +2811,10 @@ the details anyhow.
 Allows you to change your nickname. Takes exactly one argument: the
 new username that you'd like to be known as.
 
+=item nickserv
+
+Talks to FreeNode's NickServ. Takes any number of arguments.
+
 =item notice
 
 Sends a NOTICE message to the nick(s) or channel(s) which you

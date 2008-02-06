@@ -350,6 +350,10 @@ POE::Component::IRC::Common - provides a set of common functions for the L<POE::
   if ( matches_mask( $full_banmask, 'stalin!joe@kremlin.ru' ) ) {
 	print "EEK!";
   }
+  
+  if ( has_color($message) ) {
+    print 'COLOR CODE ALERT!";
+  }
 
   my $results_hashref = matches_mask_array( \@masks, \@items_to_match_against );
 
