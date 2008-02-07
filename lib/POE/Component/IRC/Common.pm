@@ -19,7 +19,9 @@ use constant {
     BOLD        => "\x02",
     UNDERLINE   => "\x1f",
     REVERSE     => "\x16",
-    # colors
+    ITALIC      => "\x1d",
+    FIXED       => "\x11",
+    # mIRC colors
     NO_COLOR    => "\x03",
     WHITE       => "\x0300",
     BLACK       => "\x0301",
@@ -166,25 +168,28 @@ sub parse_user {
 
 sub has_color {
     my $string = shift;
-    return 1 if $string =~ /\x03/;
+    return 1 if $string =~ /[\x03\x04]/;
     return 0;
 }
 
 sub has_formatting {
     my $string = shift;
-    return 1 if $string =~/[\x0f\x02\x1f\x16]/;
+    return 1 if $string =~/[\x0f\x02\x1f\x16\x1d\x11]/;
     return 0;
 }
 
 sub strip_color {
     my $string = shift;
+    # mIRC colors
     $string =~ s/\x03(?:\d{1,2}(?:,\d{1,2})?)?//g;
+    # RGB colors supported by some clients
+    $msg =~ s/\x04[0-9a-f]{0,6}//ig;
     return $string;
 }
 
 sub strip_formatting {
     my $string = shift;
-    $string =~ s/[\x0f\x02\x1f\x16]//g;
+    $string =~ s/[\x0f\x02\x1f\x16\x1d\x11]//g;
     return $string;
 }
 
