@@ -8,8 +8,9 @@ Exporter::export_ok_tags( 'ALL' );
 
 use strict;
 use warnings;
+use vars qw($VERSION);
 
-my $VERSION = '5.14';
+$VERSION = '5.14';
 my $ERROR;
 my $ERRNO;
 
