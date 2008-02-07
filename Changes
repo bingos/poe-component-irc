@@ -1,11 +1,12 @@
 Revision history for Perl extension POE::Component::IRC.
 
-5.62
+5.62  Thu Feb  7 16:31:03 GMT 2008
     - IRC.pm: Document the nickserv command (Hinrik)
     - Common.pm: Show some example usage of has_color() (Hinrik)
     - CycleEmpty.pm: New plugin to cycle empty channels in order to
       gain channel operator status (Hinrik)
     - Common.pm: Add more color/formatting codes (Hinrik)
+    - Added plugin test for CycleEmpty (BinGOs)
 
 5.60  Wed Feb  6 13:38:50 GMT 2008
     - State.pm: Improved the away tracking code (Hinrik)

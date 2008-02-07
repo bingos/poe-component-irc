@@ -184,7 +184,7 @@ sub strip_color {
     # mIRC colors
     $string =~ s/\x03(?:\d{1,2}(?:,\d{1,2})?)?//g;
     # RGB colors supported by some clients
-    $msg =~ s/\x04[0-9a-f]{0,6}//ig;
+    $string =~ s/\x04[0-9a-f]{0,6}//ig;
     return $string;
 }
 
