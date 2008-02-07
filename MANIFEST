@@ -34,6 +34,7 @@ lib/POE/Component/IRC/Plugin/BotTraffic.pm
 lib/POE/Component/IRC/Plugin/Connector.pm
 lib/POE/Component/IRC/Plugin/Console.pm
 lib/POE/Component/IRC/Plugin/CTCP.pm
+lib/POE/Component/IRC/Plugin/CycleEmpty.pm
 lib/POE/Component/IRC/Plugin/FollowTail.pm
 lib/POE/Component/IRC/Plugin/ISupport.pm
 lib/POE/Component/IRC/Plugin/Logger.pm

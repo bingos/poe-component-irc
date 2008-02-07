@@ -24,6 +24,7 @@ use_ok("POE::Component::IRC::Plugin::FollowTail");
 use_ok("POE::Component::IRC::Plugin::Console");
 use_ok("POE::Component::IRC::Plugin::Connector");
 use_ok("POE::Component::IRC::Plugin::CTCP");
+use_ok("POE::Component::IRC::Plugin::CycleEmpty");
 use_ok("POE::Component::IRC::Plugin::BotTraffic");
 use_ok("POE::Component::IRC::Plugin::BotAddressed");
 use_ok("POE::Component::IRC::Plugin::AutoJoin");
