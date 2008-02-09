@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
+use POE::Component::IRC::Common qw( u_irc );
 use vars qw($VERSION);
 
 $VERSION = '1.2';
@@ -16,7 +17,8 @@ sub new {
 
 sub PCI_register {
     my ($self, $irc) = @_;
-    $irc->plugin_register($self, 'SERVER', qw(001));
+    $self->{nick} = $irc->{nick};
+    $irc->plugin_register($self, 'SERVER', qw(001 nick));
     return 1;
 }
 
@@ -28,6 +30,16 @@ sub S_001 {
     my ($self, $irc) = splice @_, 0, 2;
     $irc->yield(nickserv => 'IDENTIFY ' . $self->{Password});
     return PCI_EAT_NONE;
+}
+
+sub S_nick {
+    my ($self, $irc) = splice @_, 0, 2;
+    my $mapping = $irc->isupport('CASEMAPPING');
+    my $new_nick = u_irc( ${ $_[1] }, $mapping );
+    if ( $new_nick eq u_irc($self->{nick}, $mapping) ) {
+        $irc->yield(nickserv => 'IDENTIFY ' . $self->{Password});
+        return PCI_EAT_NONE;
+    }
 }
 
 1;
