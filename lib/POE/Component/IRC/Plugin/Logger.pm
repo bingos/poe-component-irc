@@ -305,7 +305,7 @@ sub _open_log {
 sub _normalize {
     my ($self, $line) = @_;
     my $utf8 = guess_encoding($line, 'utf8');
-    $line = decode('cp1252', $line) unless ref $utf8;
+    $line = ref $utf8 ? decode('utf8', $line) : decode('cp1252', $line);
     $line = strip_color($line) if $self->{Strip_color};
     $line = strip_formatting($line) if $self->{Strip_formatting};
     return $line;
