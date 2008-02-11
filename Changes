@@ -4,7 +4,6 @@ Revision history for Perl extension POE::Component::IRC.
     - Logger.pm: Fix regression regarding utf8 detection (Hinrik)
     - Logger.pm: Don't log channel modes which have different meanings
       depending on the IRC network we're on. (Hinrik)
-    - State.pm: Add irc_chan_mode_* events for individual chan modes (Hinrik)
     - NickServID: Tweak it a little (Hinrik)
 
 5.62  Thu Feb  7 16:31:03 GMT 2008

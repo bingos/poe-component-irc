@@ -275,8 +275,6 @@ sub S_mode {
         $arg = shift ( @{ $parsed_mode->{args} } ) if ( $mode =~ /^(.[$alwaysarg]|\+[$chanmodes->[2]])/ );
 
         $self->_send_event( 'irc_chan_mode', $who, $channel, $mode, $arg );
-        my $positive = $mode =~ /^\+/ ? 1 : 0;
-        $self->_send_event( 'irc_chan_mode_' . substr($mode, -1), $who, $channel, $positive, $arg );
 
         SWITCH: {
           if ( $mode =~ /\+([$statmodes])/ ) {
@@ -1244,11 +1242,6 @@ ARG0 is the user's nickname and ARG1 the channel they have joined.
 
 This is almost identical to irc_mode, except that it's sent once for each individual mode with it's respective
 argument if it has one (ie. the banmask if it's +b or -b). However, this event is only sent for channel modes.
-
-=item irc_chan_mode_*
-
-Like irc_chan_mode, except ARG2 will be 1 if it's a positive mode change (e.g. +o, which would trigger irc_chan_mode_o)
-or zero if it's a negative one.
 
 =item irc_user_mode
 
