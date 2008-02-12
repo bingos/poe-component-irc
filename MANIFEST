@@ -66,6 +66,7 @@ t/2_State.t
 t/3_connect.t
 t/3_connect_ipv6.t
 t/4_testharness.t
+t/5_perl_critic.t
 t/5_pod.t
 t/5_pod_coverage.t
 t/5_test_kwalitee.t
