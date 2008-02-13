@@ -7,6 +7,7 @@ Revision history for Perl extension POE::Component::IRC.
     - NickServID: Tweak it a little (Hinrik)
     - Add optional Test::Perl::Critic test to detect risky code.
       Currently 466 violations in about 16k lines of code, whee! (Hinrik)
+		- ISupport.pm: Fix bug in CHANLIMIT handling (Hinrik)
 
 5.62  Thu Feb  7 16:31:03 GMT 2008
     - IRC.pm: Document the nickserv command (Hinrik)

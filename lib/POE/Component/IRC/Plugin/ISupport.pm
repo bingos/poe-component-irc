@@ -61,7 +61,7 @@ sub S_005 {
         #}
       }
       elsif ($key eq 'CHANLIMIT') {
-        while ($key =~ /([^:]+):(\d+),?/g) {
+        while ($val =~ /([^:]+):(\d+),?/g) {
           my ($k, $v) = ($1, $2);
           @{ $support->{$key} }{ split //, $k } = ($v) x length $k;
         }
