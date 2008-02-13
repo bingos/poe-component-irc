@@ -73,6 +73,7 @@ t/5_test_kwalitee.t
 t/6_common.t
 t/7_parent.t
 t/8_registration.t
+t/perlcriticrc
 t/plugins/00_plugman.t
 t/plugins/01_connector.t
 t/plugins/02_botaddressed.t
