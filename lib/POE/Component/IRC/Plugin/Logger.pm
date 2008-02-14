@@ -118,6 +118,7 @@ sub PCI_unregister {
 sub S_001 {
     my ($self, $irc) = splice @_, 0, 2;
     $self->{logging} = { };
+		return PCI_EAT_NONE;
 }
 
 sub S_332 {
