@@ -14,7 +14,7 @@ use Carp;
 use File::Basename ();
 use vars qw($VERSION);
 
-$VERSION = '5.00';
+$VERSION = '5.1';
 
 # Create a new, empty POE::Filter::CTCP object.
 sub new {
