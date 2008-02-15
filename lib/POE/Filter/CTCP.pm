@@ -63,7 +63,6 @@ sub get {
 						      addr => $3,
 						      port => $4,
 						    }, $basename, $5 ],
-			 raw_line => $line,
 		       };
 
       } else {

@@ -98,6 +98,7 @@ sub get_one {
       SWITCH:{
         if ( $record->{raw_line} and $record->{raw_line} =~ tr/\001// ) {
            $event = shift( @{ $self->{_ctcp}->get( [$record->{raw_line}] ) } );
+           $event->{raw_line} = $record->{raw_line};
            last SWITCH;
         }
         $event->{name} = lc $record->{command};
