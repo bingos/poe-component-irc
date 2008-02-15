@@ -213,7 +213,7 @@ POE::Filter::CTCP -- A POE-based parser for the IRC protocol (CTCP).
 
 =head1 SYNOPSIS
 
-  my $filter = POE::Filter::IRC->new();
+  my $filter = POE::Filter::CTCP->new();
   my @events = @{$filter->get( [ @lines ] )};
   my @msgs = @{$filter->put( [ @messages ] )};
 
