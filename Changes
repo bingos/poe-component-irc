@@ -10,6 +10,7 @@ Revision history for Perl extension POE::Component::IRC.
     - ISupport.pm: Fix bug in CHANLIMIT handling (Hinrik)
     - Logger.pm: Missing S_001 return value (Hinrik)
     - Compat.pm: Fix missing raw_line (Hinrik)
+		- Filter/CTCP.pm: Stop using POE::Filter::IRC (Hinrik)
 
 5.62  Thu Feb  7 16:31:03 GMT 2008
     - IRC.pm: Document the nickserv command (Hinrik)
