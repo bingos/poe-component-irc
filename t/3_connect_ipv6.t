@@ -99,8 +99,6 @@ sub test_start {
 
   diag("Okay connecting to port " . $heap->{bindport} . "\n") if $debug;
 
-  $heap->{filter} = POE::Filter::IRC->new();
-
   $self->yield( 'register' => 'all' );
   $self->yield( 'connect' => { Nick => 'testbot',
 			       Server => '::1',

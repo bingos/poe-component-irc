@@ -58,8 +58,6 @@ sub test_start {
 
   ($heap->{bindport}, undef) = unpack_sockaddr_in( $heap->{sockfactory}->getsockname );
 
-  $heap->{filter} = POE::Filter::IRC->new();
-
   $self->yield( 'register' => 'all' );
   $self->yield( 'connect' => { Nick => 'testbot',
 			       Server => '127.0.0.1',
