@@ -6,61 +6,50 @@
 #
 package POE::Component::IRC::Test::Harness;
 
+# this code needs to be cleaned up
+## no critic
+
 use strict;
 use warnings;
+use Carp;
+use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Line
+           Filter::IRCD Filter::Stackable);
+use POE::Component::IRC::Common qw(:ALL);
 use POSIX;
 use Socket;
-use Carp;
-use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Line Filter::IRCD Filter::Stackable);
-use POE::Component::IRC::Common qw(:ALL);
 
 use vars qw($VERSION);
 
-$VERSION = '0.5';
+$VERSION = '0.6';
 
 use constant PCSI_REFCOUNT_TAG => "P::C::S::I registered";
 
 my @valid_commands = qw(PASS NICK USER SERVER OPER QUIT SQUIT JOIN PART MODE TOPIC NAMES LIST INVITE KICK VERSION STATS LINKS TIME CONNECT TRACE ADMIN INFO WHO WHOIS WHOWAS KILL PING PONG ERROR AWAY REHASH RESTART SUMMON USERS WALLOPS USERHOST ISON MOTD LUSERS DIE);
-
 my @client_commands = qw(PASS NICK USER QUIT JOIN NAMES PART MODE TOPIC KICK OPER SUMMON USERS WHO AWAY MOTD LUSERS VERSION INVITE USERHOST PING PONG WHOIS LIST ISON ADMIN INFO WHOWAS TIME WALLOPS STATS KILL);
-
 my @server_commands = qw(WALLOPS);
-
 my @connection_commands = qw(PASS NICK USER SERVER QUIT);
-
 my @reserved_channels = qw(&CONNECTIONS &STATE);
-
 my @cmd_server = map { 'cmd_server_' . $_ } qw (kick kill mode);
 my %cmd_server = map { ( 'server_' . $_ => 'cmd_input' ) } qw (kick kill mode);
 
-my $GOT_IDENT;
-my $GOT_DNS;
-my $GOT_ZLIB;
+my ($GOT_IDENT, $GOT_DNS, $GOT_ZLIB);
 
 BEGIN: {
-	$GOT_IDENT = 0;
-	eval {
-	   require POE::Component::Client::Ident;
-	   $GOT_IDENT = 1;
-	};
-}
+    eval {
+       require POE::Component::Client::Ident;
+       $GOT_IDENT = 1;
+    };
 
-BEGIN: {
-	$GOT_DNS = 0;
-	eval {
-	   require POE::Component::Client::DNS;
-	   if ( $POE::Component::Client::DNS::VERSION >= 0.99 ) {
-	     $GOT_DNS = 1;
-	   }
-	};
-}
-
-BEGIN: {
-	$GOT_ZLIB = 0;
-	eval {
-	   require POE::Filter::Zlib::Stream;
-	   $GOT_ZLIB = 1;
-	};
+    eval {
+       require POE::Component::Client::DNS;
+       if ( $POE::Component::Client::DNS::VERSION >= 0.99 ) {
+         $GOT_DNS = 1;
+       }
+    };
+    eval {
+       require POE::Filter::Zlib::Stream;
+       $GOT_ZLIB = 1;
+    };
 }
 
 sub spawn {
@@ -176,8 +165,10 @@ sub ircd_start {
 
   $self->{ircd_filter} = POE::Filter::IRCD->new( DEBUG => $self->{Debug} );
 
-  $self->{filter} = POE::Filter::Stackable->new( Filters => 
-	[ POE::Filter::Line->new( InputRegexp => '\015?\012', OutputLiteral => "\015\012" ),	      $self->{ircd_filter} ]	);
+  $self->{filter} = POE::Filter::Stackable->new( Filters => [
+    POE::Filter::Line->new( InputRegexp => '\015?\012', OutputLiteral => "\015\012" ),
+    $self->{ircd_filter},
+  ]);
 
   $self->{Ident_Client} = 'poco_' . $self->{Alias} . '_ident';
   $self->{Resolver} = 'poco_' . $self->{Alias} . '_resolver';
@@ -191,10 +182,12 @@ sub ircd_start {
 
   $kernel->call ( $self->{Alias} => 'configure' );
   $kernel->delay ( 'poll_connections' => $self->lowest_ping_frequency() );
+  return;
 }
 
 sub ircd_stop {
   # Probably need some cleanup code here.
+  return;
 }
 
 sub ircd_shutdown {
@@ -212,7 +205,7 @@ sub ircd_shutdown {
 
   #$kernel->delay ( 'poll_connections' => undef );
   $kernel->alarm_remove_all();
-  undef;
+  return;
 }
 
 sub register {
@@ -222,7 +215,7 @@ sub register {
   unless ($self->{sessions}->{$sender}->{refcnt}++ or $session == $sender) {
       $kernel->refcount_increment($sender->ID(), PCSI_REFCOUNT_TAG);
   }
-  undef;
+  return;
 }
 
 sub unregister {
@@ -234,7 +227,7 @@ sub unregister {
         $kernel->refcount_decrement($sender->ID(), PCSI_REFCOUNT_TAG);
       }
   }
-  undef;
+  return;
 }
 
 sub poll_connections {
@@ -265,7 +258,7 @@ sub poll_connections {
   #foreach my $server ( keys %{ $self->{Servers} } ) {
   #}
   $kernel->delay ( 'poll_connections' => $self->lowest_ping_frequency() );
-  undef;
+  return;
 }
 
 sub configure {
@@ -347,7 +340,7 @@ sub set_motd {
   } else {
 	delete ( $self->{Config}->{MOTD} );
   }
-  undef;
+  return;
 }
 
 sub add_listener {
@@ -388,7 +381,7 @@ sub add_listener {
   if ( defined ( $params->{SuccessEvent} ) ) {
 	$kernel->post( $sender => $params->{SuccessEvent} => $params->{Port} );
   }
-  undef;
+  return;
 }
 
 sub add_operator {
@@ -406,7 +399,7 @@ sub add_operator {
   }
 
   $self->{Operators}->{ $params->{UserName} } = $params;
-  undef;
+  return;
 }
 
 sub add_i_line {
@@ -423,7 +416,7 @@ sub add_i_line {
     $params->{ $param } = '*' unless ( defined ( $params->{ $param } ) and $params->{ $param } ne '' );
   }
   push ( @{ $self->{I_Lines} }, $params );
-  undef;
+  return;
 }
 
 sub accept_failed {
@@ -433,7 +426,7 @@ sub accept_failed {
 
   delete $self->{Listener_Wheels}->{$wheel_id};
   delete $self->{Listeners}->{$port};
-  undef;
+  return;
 }
 
 sub accept_new_connection {
@@ -468,11 +461,11 @@ sub accept_new_connection {
   if ( defined ( $self->{Listeners}->{ $self->{Listener_Wheels}->{ $wheel_id } }->{PingFreq} ) ) {
 	$self->{Connections}->{ $wheel->ID() }->{PingFreq} = $self->{Listeners}->{ $self->{Listener_Wheels}->{ $wheel_id} }->{PingFreq};
   }
-  if ( !$self->{CANT_AUTH} and $self->{Config}->{Auth} ) {
+  if ( !$self->{CANT_AUTH} && $self->{Config}->{Auth} ) {
 	$kernel->post ( $self->{Alias} => 'auth_client' => $wheel->ID() );
   }
   $self->send_output_to_channel( '&CONNECTIONS', { command => 'NOTICE', prefix => $self->server_name(), params => [ '&CONNECTIONS', "Connection from $peeraddr to " . $self->{Listener_Wheels}->{ $wheel_id } ] } );
-  undef;
+  return;
 }
 
 sub connection_error {
@@ -492,7 +485,7 @@ sub connection_error {
     }
     delete $self->{Connections}->{ $wheel_id };
   }
-  undef;
+  return;
 }
 
 sub connection_input {
@@ -550,7 +543,7 @@ sub connection_input {
 	$self->send_output_to_client( $wheel_id, '421', $input->{command} );
     }
   }
-  undef;
+  return;
 }
 
 sub client_dispatcher {
@@ -565,7 +558,7 @@ sub client_dispatcher {
 	$kernel->post( $self->{Alias} => 'ircd_client_' . lc ( $input->{command} ) => $input => $wheel_id );
     }
   }
-  undef;
+  return;
 }
 
 sub client_ping {
@@ -584,7 +577,7 @@ sub client_ping {
     $self->{Clients}->{ $wheel_id }->{Wheel}->put( { command => 'PING', params => [ $self->{Config}->{ServerName} ] } );
     $self->{Clients}->{ $wheel_id }->{PING} = $kernel->delay_set ( 'client_ping' => $self->lowest_ping_frequency() => $wheel_id );
   }
-  undef;
+  return;
 }
 
 sub connection_flushed {
@@ -608,7 +601,7 @@ sub connection_flushed {
 	last SWITCH;
     }
   }
-  undef;
+  return;
 }
 
 sub auth_client {
@@ -634,7 +627,7 @@ sub auth_client {
   
   $kernel->post ( $self->{Ident_Client} => query => PeerAddr => $peeraddress, PeerPort => $peerport, SockAddr => $sockaddress, SockPort => $sockport, BuggyIdentd => 1, TimeOut => 10 );
   $self->{Ident_Lookups}->{ join(':',($peeraddress,$peerport,$sockaddress,$sockport)) } = $wheel_id;
-  undef;
+  return;
 }
 
 sub ircd_connection_nick {
@@ -672,7 +665,7 @@ sub ircd_connection_nick {
     $self->{Connections}->{ $wheel_id }->{NickName} = u_irc ( $nickname );
     $self->{Connections}->{ $wheel_id }->{ProperNick} = $nickname;
   }
-  undef;
+  return;
 }
 
 sub ircd_connection_user {
@@ -698,7 +691,7 @@ sub ircd_connection_user {
 	$kernel->post ( $self->{Alias} => 'auth_done' => $wheel_id );
     }
   }
-  undef;
+  return;
 }
 
 sub ircd_connection_quit {
@@ -711,7 +704,7 @@ sub ircd_connection_quit {
     $self->{Connections}->{ $wheel_id }->{INVALID_PASSWORD} = 1;
     $self->{Connections}->{ $wheel_id }->{Wheel}->put( { command => 'ERROR', params => [ 'Closing Link: ' . $self->{Connections}->{ $wheel_id }->{ProperNick} . '[' . $self->{Connections}->{ $wheel_id }->{UserName} . '@' . $self->{Connections}->{ $wheel_id }->{PeerAddr} . '] (Quit: ' . $input->{params}->[0] . ')' ] } );
   }
-  undef;
+  return;
 }
 
 sub ircd_connection_pass {
@@ -727,11 +720,11 @@ sub ircd_connection_pass {
     }
     $self->{Connections}->{ $wheel_id }->{GotPwd} = $input->{params}->[0];
   }
-  undef;
+  return;
 }
 
 sub ircd_connection_server {
-  undef;
+  return;
 }
 
 sub auth_done {
@@ -751,7 +744,7 @@ sub auth_done {
 	last SWITCH;
     }
   }
-  undef;
+  return;
 }
 
 sub got_hostname_response {
@@ -791,7 +784,7 @@ sub got_hostname_response {
 	$kernel->post ( $self->{Alias} => 'auth_done' => $wheel_id );
     }
     }
-  undef;
+  return;
 }
 
 sub got_ip_response {
@@ -836,7 +829,7 @@ sub got_ip_response {
 	$kernel->post ( $self->{Alias} => 'auth_done' => $wheel_id );
     }
     }
-  undef;
+  return;
 }
 
 sub ident_client_reply {
@@ -856,7 +849,7 @@ sub ident_client_reply {
       $kernel->post ( $self->{Alias} => 'auth_done' => $wheel_id );
     }
   }
-  undef;
+  return;
 }
 
 sub ident_client_error {
@@ -872,7 +865,7 @@ sub ident_client_error {
       $kernel->post ( $self->{Alias} => 'auth_done' => $wheel_id );
     }
   }
-  undef;
+  return;
 }
 
 sub ircd_client_oper {
@@ -900,7 +893,7 @@ sub ircd_client_oper {
         $self->send_output_to_client( $wheel_id, { command => 'MODE', prefix => $self->server_name(), params => [ $self->client_nickname($wheel_id), $reply ] } );
     }
   }
-  undef;
+  return;
 }
 
 sub ircd_client_nick {
@@ -921,7 +914,7 @@ sub ircd_client_nick {
 	}
     }
   }
-  undef;
+  return;
 }
 
 sub ircd_client_user {
@@ -933,7 +926,7 @@ sub ircd_client_user {
     }
     $self->send_output_to_client($wheel_id,'462');
   }
-  undef;
+  return;
 }
 
 sub ircd_client_pass {
@@ -945,7 +938,7 @@ sub ircd_client_pass {
     }
     $self->send_output_to_client($wheel_id,'462');
   }
-  undef;
+  return;
 }
 
 sub ircd_client_part {
@@ -973,7 +966,7 @@ sub ircd_client_part {
       $self->state_channel_part($channel,$nickname);
     }
   }
-  undef;
+  return;
 }
 
 sub ircd_client_quit {
@@ -1000,7 +993,7 @@ sub ircd_client_quit {
   } else {
     delete ( $self->{Connections}->{ $wheel_id } );
   }
-  undef;
+  return;
 }
 
 sub ircd_client_join {
@@ -1070,7 +1063,7 @@ sub ircd_client_join {
 	}
     }
   }
-  undef;
+  return;
 }
 
 sub ircd_client_invite {
@@ -1116,7 +1109,7 @@ sub ircd_client_invite {
 	# TODO: forward INVITE to appropriate server.
     }
   }
-  undef;
+  return;
 }
 
 sub ircd_client_kick {
@@ -1173,7 +1166,7 @@ sub ircd_client_kick {
 	}
     }
   }
-  undef;
+  return;
 }
 
 sub ircd_client_names {
@@ -1219,7 +1212,7 @@ sub ircd_client_names {
 	  $self->send_output_to_client( $wheel_id, { command => '366', prefix => $self->server_name(), params => [ $nickname, $channel, 'End of NAMES list' ] } );
     }
   }
-  undef;
+  return;
 }
 
 sub ircd_client_mode {
@@ -1333,7 +1326,7 @@ sub ircd_client_mode {
       $self->send_output_to_channel( $input->{params}->[0], { command => 'MODE', prefix => $self->nick_long_form($self->client_nickname($wheel_id)), params => [ $self->channel_name( $input->{params}->[0] ), unparse_mode_line ( $reply ) ] } ) if ( defined ( $reply ) );
     }
   }
-  undef;
+  return;
 }
 
 sub ircd_client_topic {
@@ -1370,7 +1363,7 @@ sub ircd_client_topic {
     $self->state_topic_set_by( $input->{params}->[0], $self->client_nickname($wheel_id) );
     $self->send_output_to_channel( $input->{params}->[0], { command => 'TOPIC', prefix => $self->nick_long_form($nickname), params => [ $self->channel_name( $input->{params}->[0] ), ( $input->{params}->[1] ? $input->{params}->[1] : ':' ) ] } );
   }
-  undef;
+  return;
 }
 
 sub ircd_client_o_cmds {
@@ -1394,7 +1387,7 @@ sub ircd_client_o_cmds {
 	$self->send_output_to_client( $wheel_id, { command => '382', prefix => $self->server_name(), params => [ $self->client_nickname($wheel_id), 'ircd.conf :Rehashing' ] } );
     }
   }
-  undef;
+  return;
 }
 
 sub sig_hup_rehash {
@@ -1404,6 +1397,7 @@ sub sig_hup_rehash {
 	$kernel->post ( $session => 'ircd_cmd_rehash' => { command => 'REHASH', prefix => $self->server_name() } );
     }
     $kernel->sig_handled();
+    return;
 }
 
 sub ircd_client_kill {
@@ -1447,7 +1441,7 @@ sub ircd_client_kill {
     }
     # Send KILL message to each connected server
   }
-  undef;
+  return;
 }
 
 sub ircd_client_wallops {
@@ -1475,7 +1469,7 @@ sub ircd_client_wallops {
     }
     # TODO: Send WALLOPS to all connected servers.
   }
-  undef;
+  return;
 }
 
 sub ircd_client_message {
@@ -1531,7 +1525,7 @@ sub ircd_client_message {
       }
     }
   }
-  undef;
+  return;
 }
 
 sub ircd_client_summon {
@@ -1543,7 +1537,7 @@ sub ircd_client_summon {
     }
     $self->send_output_to_client($wheel_id,'445');
   }
-  undef;
+  return;
 }
 
 sub ircd_client_users {
@@ -1555,7 +1549,7 @@ sub ircd_client_users {
     }
     $self->send_output_to_client($wheel_id,'446');
   }
-  undef;
+  return;
 }
 
 sub ircd_client_who {
@@ -1607,7 +1601,7 @@ sub ircd_client_who {
     #RPL_ENDOFWHO
     $self->send_output_to_client( $wheel_id, { command => '315', prefix => $self->server_name(), params => [ $self->client_nickname($wheel_id), $input->{params}->[0], 'End of WHO list' ] } );
   }
-  undef;
+  return;
 }
 
 sub ircd_client_whois {
@@ -1680,7 +1674,7 @@ sub ircd_client_whois {
     #RPL_ENDOFWHOIS
     $self->send_output_to_client( $wheel_id, { command => '318', prefix => $self->server_name(), params => [ $self->client_nickname($wheel_id), $endofwhois, 'End of WHOIS list' ] } );
   }
-  undef;
+  return;
 }
 
 sub ircd_client_whowas {
@@ -1712,7 +1706,7 @@ sub ircd_client_whowas {
     #RPL_ENDOFWHOWAS
     $self->send_output_to_client( $wheel_id, { command => '369', prefix => $self->server_name(), params => [ $self->client_nickname($wheel_id), $input->{params}->[0], 'End of WHOWAS' ] } );
   }
-  undef;
+  return;
 }
 
 sub ircd_client_away {
@@ -1742,7 +1736,7 @@ sub ircd_client_away {
     }
     $self->{State}->{by_nickname}->{ $nickname }->{Away} = $input->{params}->[0];
   }
-  undef;
+  return;
 }
 
 sub ircd_client_motd {
@@ -1776,7 +1770,7 @@ sub ircd_client_motd {
     }
     # TODO: Pass MOTD request to target server to deal with.
   }
-  undef;
+  return;
 }
 
 sub ircd_client_lusers {
@@ -1805,7 +1799,7 @@ sub ircd_client_lusers {
     my ($rpl_luserme) = 'I have ' . scalar ( keys %{ $self->{Clients} } ) . ' clients and ' . scalar ( keys %{ $self->{Servers} } ) . ' servers';
     $self->send_output_to_client( $wheel_id, { command => '255', prefix => $self->server_name(), params => [ $self->client_nickname($wheel_id), $rpl_luserme ] } );
   }
-  undef;
+  return;
 }
 
 sub ircd_client_version {
@@ -1828,7 +1822,7 @@ sub ircd_client_version {
     }
     # TODO: Send VERSION request to the appropriate server
   }
-  undef;
+  return;
 }
 
 sub ircd_client_time {
@@ -1851,7 +1845,7 @@ sub ircd_client_time {
     #RPL_TIME
     $self->send_output_to_client( $wheel_id, { command => '391', prefix => $self->server_name(), params => [ $self->client_nickname($wheel_id), $self->server_name(), $self->current_time() ] } );
   }
-  undef;
+  return;
 }
 
 sub ircd_client_userhost {
@@ -1875,7 +1869,7 @@ sub ircd_client_userhost {
     }
     $self->send_output_to_client( $wheel_id, { command => '302', prefix => $self->server_name(), params => [ $self->client_nickname($wheel_id), ( scalar ( @reply ) > 0 ? join(' ',@reply) : ':' ) ] } );
   }
-  undef;
+  return;
 }
 
 sub ircd_client_ping {
@@ -1901,7 +1895,7 @@ sub ircd_client_ping {
     }
     $self->send_output_to_client( $wheel_id, { command => 'PONG', params => [ ( defined ( $input->{params}->[1] ) ? $input->{params}->[1] : $self->server_name() ), ':' . $input->{params}->[0] ] } );
   }
-  undef;
+  return;
 }
 
 sub ircd_client_pong {
@@ -1927,7 +1921,7 @@ sub ircd_client_pong {
     }
     # TBH: We have already dealt with updating {SeenTraffic} in connection_input so nothing to do here.
   }
-  undef;
+  return;
 }
 
 sub ircd_client_list {
@@ -1962,7 +1956,7 @@ sub ircd_client_list {
     #RPL_ENDOFLIST
     $self->send_output_to_client( $wheel_id, { command => '323', prefix => $self->server_name(), params => [ $self->client_nickname($wheel_id), 'End of LIST' ] } );
   }
-  undef;
+  return;
 }
 
 sub ircd_client_admin {
@@ -1995,7 +1989,7 @@ sub ircd_client_admin {
     #RPL_ADMINEMAIL
     $self->send_output_to_client( $wheel_id, { command => '259', prefix => $self->server_name(), params => [ $self->client_nickname($wheel_id), $self->{Config}->{Admin}->[2] ] } );
   }
-  undef;
+  return;
 }
 
 sub ircd_client_stats {
@@ -2033,7 +2027,7 @@ sub ircd_client_stats {
     }
     $self->send_output_to_client( $wheel_id, { command => '219', prefix => $self->server_name(), params => [ $self->client_nickname($wheel_id), $query, 'End of STATS report' ] } );
   }
-  undef;
+  return;
 }
 
 sub ircd_client_info {
@@ -2060,7 +2054,7 @@ sub ircd_client_info {
     #RPL_ENDOFINFO
     $self->send_output_to_client( $wheel_id, { command => '374', prefix => $self->server_name(), params => [ $self->client_nickname($wheel_id), 'End of INFO list' ] } );
   }
-  undef;
+  return;
 }
 
 sub ircd_client_ison {
@@ -2084,7 +2078,7 @@ sub ircd_client_ison {
     }
     $self->send_output_to_client( $wheel_id, { command => '303', prefix => $self->server_name(), params => [ $self->client_nickname($wheel_id), ( scalar ( @reply ) > 0 ? join(' ',@reply) : ':' ) ] } );
   }
-  undef;
+  return;
 }
 
 sub client_registered {
@@ -2125,12 +2119,12 @@ sub client_registered {
       # TODO: Announce new client to other servers.
     }
   }
-  undef;
+  return;
 }
 
 sub server_registered {
   my ($kernel,$self,$wheel_id) = @_[KERNEL,OBJECT,ARG0];
-  undef;
+  return;
 }
 
 sub ircd_server_wallops {
@@ -2144,23 +2138,23 @@ sub ircd_server_wallops {
     }
     # TODO: Send WALLOPS to all connected servers.
   }
-  undef;
+  return;
 }
 
 # Our API with other sessions. So they can create nicks and interact with channels and stuff.
 
 sub validate_sender {
   my $self = shift;
-  my $sender = shift || return 0;
-  my $nickname = u_irc ( shift ) || return 0;
+  my $sender = shift || return;
+  my $nickname = u_irc ( shift ) || return;
 
   if ( not defined ( $self->{Sessions}->{ $sender } ) ) {
-	return 0;
+	return;
   }
   if ( defined ( $self->{Sessions}->{ $sender }->{ $nickname } ) ) {
 	return 1;
   }
-  return 0;
+  return;
 }
 
 sub cmd_input {
@@ -2182,7 +2176,7 @@ sub cmd_input {
 	last SWITCH;
     }
   }
-  undef;
+  return;
 }
 
 sub cmd_server_mode {
@@ -2320,7 +2314,7 @@ sub cmd_server_mode {
     $reply .= ' ' . join(' ',@reply_args) if ( scalar ( @reply_args ) > 0 );
     $self->send_output_to_channel( $input->{params}->[0], { command => 'MODE', prefix => $self->server_name(), params => [ $self->channel_name( $input->{params}->[0] ), unparse_mode_line ( $reply ) ] } ) if ( defined ( $reply ) );
   }
-  undef;
+  return;
 }
 
 sub cmd_server_kill {
@@ -2347,57 +2341,48 @@ sub cmd_server_kill {
     }
     # Send KILL message for client to each server connection we have defined.
   }
-  undef;
+  return;
 }
 
 sub cmd_server_kick {
-  my ($kernel,$self,$sender,$inputarg) = @_[KERNEL,OBJECT,ARG0,ARG1];
+  my ($kernel, $self, $sender, $inputarg) = @_[KERNEL, OBJECT, ARG0, ARG1];
 
   my ($input) = shift(@$inputarg);
-  SWITCH: {
-    if ( not defined ( $input->{params}->[0] ) or $input->{params}->[0] eq "" ) {
-	last SWITCH;
+  for my $param ($input->{params}->[0, 1]) {
+    return if !defined $param || $param eq '';
+  }
+  my @channels = split (/,/, $input->{params}->[0]);
+  my @nicknames = split (/,/, $input->{params}->[1]);
+  if ( scalar ( @channels ) != scalar ( @nicknames ) and scalar ( @channels ) != 1 ) {
+    return;
+  }
+
+  my ($comment) = ( defined ( $input->{params}->[2] ) and $input->{params}->[2] ne '' ? $input->{params}->[2] : $self->server_name() );
+  for ( my $i = 0; $i <= $#channels; $i++ ) {
+    last if !validate_channelname( $channels[$i] );
+    last if !$self->channel_exists($channels[$i]);
+
+    my ($victims);
+    if ( scalar ( @channels ) == 1 and scalar ( @nicknames ) > 1 ) {
+      $victims = \@nicknames;
     }
-    my @channels = split (/,/,$input->{params}->[0]) if ( defined ( $input->{params}->[0] ) );
-    my @nicknames = split (/,/,$input->{params}->[1]) if ( defined ( $input->{params}->[1] ) );
-    if ( scalar ( @channels ) != scalar ( @nicknames ) and scalar ( @channels ) != 1 ) {
-	last SWITCH;
+    else {
+      $victims = [ $nicknames[$i] ];
     }
-    my ($comment) = ( defined ( $input->{params}->[2] ) and $input->{params}->[2] ne "" ? $input->{params}->[2] : $self->server_name() );
-    for ( my $i = 0; $i <= $#channels; $i++ ) {
-	SWITCH2: {
-	  if ( not validate_channelname ( $channels[$i] ) ) {
-		last SWITCH2;
-	  }
-	  if ( not $self->channel_exists($channels[$i]) ) {
-		last SWITCH2;
-	  }
-	  my ($victims);
-	  if ( scalar ( @channels ) == 1 and scalar ( @nicknames ) > 1 ) {
-	    $victims = \@nicknames;
-	  } else {
-	    $victims = [ $nicknames[$i] ];
-	  }
-	  foreach my $victim ( @{ $victims } ) {
-	    SWITCH22: {
-	      if ( not $self->is_nick_on_channel($victim,$channels[$i]) ) {
-		last SWITCH22;
-	      }
-	      # KICK message to all channel members
-	      $self->send_output_to_channel( $channels[$i], { command => 'KICK', prefix => $self->server_name(), params => [ $self->channel_name( $channels[$i] ), $self->proper_nickname( $victim ), $comment ] } );
-	      $self->state_channel_part($channels[$i],$victim);
-	    }
-	  }
-	}
+    foreach my $victim ( @{ $victims } ) {
+      last if !$self->is_nick_on_channel($victim, $channels[$i]);
+      # KICK message to all channel members
+      $self->send_output_to_channel( $channels[$i], { command => 'KICK', prefix => $self->server_name(), params => [ $self->channel_name( $channels[$i] ), $self->proper_nickname( $victim ), $comment ] } );
+      $self->state_channel_part($channels[$i], $victim);
     }
   }
-  undef;
+  return;
 }
 
 # Miscellaneous Subroutines
 
 sub unparse_mode_line {
-  my ($line) = $_[0] || return undef;
+  my ($line) = $_[0] || return;
 
   my ($action); my ($return);
   foreach my $mode ( split(//,$line) ) {
@@ -2412,7 +2397,7 @@ sub unparse_mode_line {
 }
 
 sub validate_command {
-  my ($command) = uc ( $_[0] )  || return 0;
+  my ($command) = uc ( $_[0] )  || return;
 
   if ( scalar grep { $_ eq $command } @valid_commands ) {
 	return 1;
@@ -2420,29 +2405,29 @@ sub validate_command {
   if ( $command eq 'PRIVMSG' or $command eq 'NOTICE' ) {
 	return 1;
   }
-  return 0;
+  return;
 }
 
 sub validate_nickname {
-  my ($nickname) = shift || return 0;
+  my ($nickname) = shift || return;
 
   if ( $nickname =~ /^[A-Za-z_0-9`\-^\|\\\{}\[\]]+$/ ) {
 	return 1;
   }
-  return 0;
+  return;
 }
 
 sub validate_channelname {
-  my ($channel) = shift || return 0;
+  my ($channel) = shift || return;
 
   if ( $channel =~ /^(\x23|\x26|\x2B)/ and $channel !~ /(\x20|\x07|\x00|\x0D|\x0A|\x2C)+/ ) {
 	return 1;
   }
-  return 0;
+  return;
 }
 
 sub timestring {
-      my ($timeval) = shift || return 0;
+      my ($timeval) = shift || return;
       my $uptime = time() - $timeval;
   
       my $days = int $uptime / 86400;
@@ -2497,7 +2482,7 @@ sub dectobase64 {
 
 # Convert from Base64 to decimal
 sub base64todec {
-  my ($numeric) = shift || return undef;
+  my ($numeric) = shift || return;
 
   my ($b64chars) = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789[]";
   my (@d2b64) = split(//,$b64chars);
@@ -2517,7 +2502,7 @@ sub base64todec {
 
 # Convoluted method to convert from IP quad to Base64 /me *sighs*
 sub inttobase64 {
-  my ($quad) = shift || return undef;
+  my ($quad) = shift || return;
 
   return dectobase64(hex(int2hex(dotq2int($quad))));
 }
@@ -2533,30 +2518,31 @@ sub dotq2int {
     my($mask) = (@dotq > 1) ? unpack("N", pack("C4", @dotq)) :
         $dotq[0] ? ~((1 << (32-$dotq[0]))-1) : 0;
 
-    ($ip, $mask);
+    return ($ip, $mask);
 }
 
 sub int2hex {
-    sprintf("%08X", $_[0]);
+    return sprintf("%08X", $_[0]);
 }
 
 # Dispatch output to registered sessions
 
 sub dispatch_to_sessions {
   my ($self) = shift;
-  my ($output) = shift || return 0;
+  my ($output) = shift || return;
 
   foreach my $session ( keys %{ $self->{sessions} } ) {
-	$poe_kernel->post( $session => 'ircd_' . lc ( $output->{command} ) => $output->{prefix} => @{ $output->{params} } );
+    $poe_kernel->post( $session => 'ircd_' . lc ( $output->{command} ) => $output->{prefix} => @{ $output->{params} } );
   }
+  return;
 }
 
 # Dispatch output to client
 
 sub send_output_to_client {
   my ($self) = shift;
-  my ($wheel_id) = shift || return 0;
-  my ($err) = shift || return 0;
+  my ($wheel_id) = shift || return;
+  my ($err) = shift || return;
 
   SWITCH: {
     if ( not $self->client_exists( $wheel_id ) ) {
@@ -2588,8 +2574,8 @@ sub send_output_to_client {
 
 sub send_output_to_channel {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return 0;
-  my ($output) = $_[1] || return 0;
+  my ($channel) = u_irc ( $_[0] ) || return;
+  my ($output) = $_[1] || return;
 
   SWITCH: {
     if ( not $self->channel_exists($channel) ) {
@@ -2608,14 +2594,14 @@ sub send_output_to_channel {
     $self->dispatch_to_sessions( $output );
     return 1;
   }
-  return 0;
+  return;
 }
 
 sub send_channel_message {
   my ($self) = shift;
-  my ($wheel_id) = shift || return 0;
-  my ($channel) = u_irc ( $_[0] ) || return 0;
-  my ($output) = $_[1] || return 0;
+  my ($wheel_id) = shift || return;
+  my ($channel) = u_irc ( $_[0] ) || return;
+  my ($output) = $_[1] || return;
   my ($nickname) = u_irc ( $self->client_nickname($wheel_id) );
 
   SWITCH: {
@@ -2634,17 +2620,18 @@ sub send_channel_message {
     }
     return 1;
   }
+  return;
 }
 
 # for QUIT and NICK messages
 
 sub send_output_to_common {
   my ($self) = shift;
-  my ($wheel_id) = shift || return 0;
-  my ($output) = $_[0] || return 0;
+  my ($wheel_id) = shift || return;
+  my ($output) = $_[0] || return;
 
   if ( ( not $self->client_exists( $wheel_id ) ) or ref $output ne 'HASH' ) {
-	return 0;
+	return;
   }
   my (%common);
   if ( defined ( $output->{command} ) and uc ( $output->{command} ) ne 'QUIT' ) {
@@ -2665,10 +2652,10 @@ sub send_output_to_common {
 
 sub state_client_registered {
   my ($self) = shift;
-  my ($wheel_id) = $_[0] || return 0;
+  my ($wheel_id) = $_[0] || return;
 
   if ( not defined ( $self->{Connections}->{ $wheel_id } ) ) {
-	return 0;
+	return;
   }
   delete ( $self->{Clients}->{ $wheel_id } );
   foreach my $value ( keys %{ $self->{Connections}->{ $wheel_id } } ) {
@@ -2698,21 +2685,22 @@ sub state_client_registered {
 
 sub state_user_quit {
   my ($self) = shift;
-  my ($wheel_id) = $_[0] || return 0;
+  my ($wheel_id) = $_[0] || return;
 
   if ( not $self->client_exists($wheel_id) ) {
-	return 0;
+	return;
   }
   my ($nickname) = u_irc ( $self->client_nickname($wheel_id) );
   foreach my $channel ( $self->nick_channel_list($nickname) ) {
 	$self->state_channel_part($channel,$nickname);
   }
   delete ( $self->{State}->{by_nickname}->{ $nickname } );
+  return;
 }
 
 sub state_nick_change {
   my ($self) = shift;
-  my ($oldnick) = u_irc ( $_[0] ) || return undef;
+  my ($oldnick) = u_irc ( $_[0] ) || return;
   my ($nickname) = $_[1] || return '431';
 
   if ( not $nickname ) {
@@ -2725,30 +2713,30 @@ sub state_nick_change {
 	return '433';
   }
   if ( $self->proper_nickname($oldnick) eq $nickname ) {
-	return undef;
+	return;
   }
   if ( $oldnick eq u_irc ( $nickname ) ) {
 	$self->{State}->{by_nickname}->{ $oldnick }->{NickName} = $nickname;
 	return 1;
   }
   $self->{Clients}->{ $self->is_my_client($oldnick) }->{NickName} = u_irc ( $nickname );
-  my $record = delete ( $self->{State}->{by_nickname}->{ $oldnick } );
-  $record->{NickName} = $nickname;
-  $record->{TimeStamp} = time();
-  foreach my $channel ( keys %{ $record->{Channels} } ) {
+  my $user = delete ( $self->{State}->{by_nickname}->{ $oldnick } );
+  $user->{NickName} = $nickname;
+  $user->{TimeStamp} = time();
+  foreach my $channel ( keys %{ $user->{Channels} } ) {
 	$self->{State}->{Channels}->{ $channel }->{Members}->{ u_irc ( $nickname ) } = delete ( $self->{State}->{Channels}->{ $channel }->{Members}->{ $oldnick } );
   }
-  $self->{State}->{by_nickname}->{ u_irc ( $nickname ) } = $record;
+  $self->{State}->{by_nickname}->{ u_irc ( $nickname ) } = $user;
   return 1;
 }
 
 sub state_topic_set {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return 0;
-  my ($topic) = $_[1] || return 0;
+  my ($channel) = u_irc ( $_[0] ) || return;
+  my ($topic) = $_[1] || return;
 
   if ( not $self->channel_exists($channel) ) {
-	return 0;
+	return;
   }
   if ( $topic eq "" ) {
     delete ( $self->{State}->{Channels}->{ $channel }->{Topic} );
@@ -2763,11 +2751,11 @@ sub state_topic_set {
 
 sub state_topic_set_by {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return 0;
-  my ($nickname) = u_irc ( $_[1] ) || return 0;
+  my ($channel) = u_irc ( $_[0] ) || return;
+  my ($nickname) = u_irc ( $_[1] ) || return;
 
   if ( ( not $self->channel_exists($channel) ) or ( not $self->nick_exists($nickname) ) ) {
-	return 0;
+	return;
   }
   $self->{State}->{Channels}->{ $channel }->{TopicBy} = $self->nick_long_form($nickname);
   $self->{State}->{Channels}->{ $channel }->{TopicWhen} = time();
@@ -2776,14 +2764,14 @@ sub state_topic_set_by {
 
 sub state_channel_join {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return 0;
-  my ($nickname) = u_irc ( $_[1] ) || return 0;
+  my ($channel) = u_irc ( $_[0] ) || return;
+  my ($nickname) = u_irc ( $_[1] ) || return;
 
   if ( not $self->nick_exists($nickname) ) {
-	return 0;
+	return;
   }
   if ( $self->channel_exists($channel) and $self->is_channel_member($channel,$nickname) ) {
-	return 0;
+	return;
   }
   my ($mode) = '';
   if ( ( not $self->channel_exists($channel) ) and ( not $self->is_reserved_channel($channel) ) and $channel !~ /^\x2B/ ) {
@@ -2808,11 +2796,11 @@ sub state_channel_join {
 
 sub state_channel_part {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return 0;
-  my ($nickname) = u_irc ( $_[1] ) || return 0;
+  my ($channel) = u_irc ( $_[0] ) || return;
+  my ($nickname) = u_irc ( $_[1] ) || return;
 
   if ( ( not $self->channel_exists($channel) ) or ( not $self->nick_exists($nickname) ) ) {
-	return 0;
+	return;
   }
   delete ( $self->{State}->{Channels}->{ u_irc ( $channel ) }->{Members}->{$nickname} );
   delete ( $self->{State}->{by_nickname}->{ $nickname }->{Channels}->{ u_irc ( $channel ) } );
@@ -2824,13 +2812,13 @@ sub state_channel_part {
 
 sub state_channel_mode {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return undef;
-  my ($mode) = $_[1] || return undef;
+  my ($channel) = u_irc ( $_[0] ) || return;
+  my ($mode) = $_[1] || return;
   my ($arg) = $_[2];
   my (@reply);
 
   if ( not $self->channel_exists($channel) ) {
-	return undef;
+	return;
   }
   my ($current) = $self->channel_mode( $channel );
   SWITCH33: {
@@ -2935,12 +2923,12 @@ sub state_channel_mode {
 
 sub state_channel_member {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return undef;
-  my ($mode) = $_[1] || return undef;
-  my ($arg) = $_[2] || return undef;
+  my ($channel) = u_irc ( $_[0] ) || return;
+  my ($mode) = $_[1] || return;
+  my ($arg) = $_[2] || return;
 
   if ( ( not $self->channel_exists($channel) ) or ( not $self->nick_exists($arg) ) or ( not $self->is_channel_member($channel,$arg) ) ) {
-	return undef;
+	return;
   }
   if ( $mode =~ /^(\+|-)([ov])/ ) {
 	my ($flag) = $1; my ($char) = $2;
@@ -2956,11 +2944,11 @@ sub state_channel_member {
 
 sub state_channel_key {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return 0;
+  my ($channel) = u_irc ( $_[0] ) || return;
   my ($chankey) = $_[1];
 
   if ( not $self->channel_exists($channel) ) {
-	return 0;
+	return;
   }
   if ( ( not defined ( $chankey ) ) or $chankey eq '' ) {
 	delete ( $self->{State}->{Channels}->{ $channel }->{ChanKey} );
@@ -2972,11 +2960,11 @@ sub state_channel_key {
 
 sub state_channel_limit {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return 0;
+  my ($channel) = u_irc ( $_[0] ) || return;
   my ($chanlimit) = $_[1];
 
   if ( not $self->channel_exists($channel) ) {
-	return 0;
+	return;
   }
   if ( ( not defined ( $chanlimit ) ) or $chanlimit eq '' ) {
 	delete ( $self->{State}->{Channels}->{ $channel }->{ChanLimit} );
@@ -2988,11 +2976,11 @@ sub state_channel_limit {
 
 sub state_add_invite {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return 0;
-  my ($nickname) = u_irc ( $_[1] ) || return 0;
+  my ($channel) = u_irc ( $_[0] ) || return;
+  my ($nickname) = u_irc ( $_[1] ) || return;
 
   if ( ( not $self->channel_exists($channel) ) or ( not $self->nick_exists($nickname) ) ) {
-	return 0;
+	return;
   }
   $self->{State}->{by_nickname}->{ $nickname }->{Invites}->{ $channel } = 1;
   return 1;
@@ -3000,11 +2988,11 @@ sub state_add_invite {
 
 sub state_del_invite {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return 0;
-  my ($nickname) = u_irc ( $_[1] ) || return 0;
+  my ($channel) = u_irc ( $_[0] ) || return;
+  my ($nickname) = u_irc ( $_[1] ) || return;
 
   if ( ( not $self->channel_exists($channel) ) or ( not $self->nick_exists($nickname) ) ) {
-	return 0;
+	return;
   }
   delete ( $self->{State}->{by_nickname}->{ $nickname }->{Invites}->{ $channel } );
   return 1;
@@ -3012,10 +3000,10 @@ sub state_del_invite {
 
 sub state_user_oper {
   my ($self) = shift;
-  my ($nickname) = u_irc ( $_[0] ) || return undef;
+  my ($nickname) = u_irc ( $_[0] ) || return;
 
   if ( not $self->nick_exists($nickname) ) {
-	return undef;
+	return;
   }
   my ($reply) = '+o';
   $self->{State}->{by_nickname}->{ $nickname }->{UMode} .= 'o';
@@ -3029,10 +3017,10 @@ sub state_user_oper {
 
 sub state_user_mode {
   my ($self) = shift;
-  my ($nickname) = u_irc ( $_[0] ) || return undef;
+  my ($nickname) = u_irc ( $_[0] ) || return;
 
   if ( not $self->nick_exists($nickname) ) {
-	return undef;
+	return;
   }
   my ($parsed_mode) = parse_mode_line( @_[1 .. $#_] );
   my ($reply); my ($errply);
@@ -3073,54 +3061,54 @@ sub state_user_mode {
 
 sub channel_exists {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return 0;
+  my ($channel) = u_irc ( $_[0] ) || return;
 
   if ( defined ( $self->{State}->{Channels}->{ $channel } ) ) {
 	return 1;
   }
-  return 0;
+  return;
 }
 
 sub channel_name {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return undef;
+  my ($channel) = u_irc ( $_[0] ) || return;
 
   if ( not $self->channel_exists($channel) ) {
-	return undef;
+	return;
   }
   return $self->{State}->{Channels}->{ $channel }->{ChannelName};
 }
 
 sub channel_created {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return undef;
+  my ($channel) = u_irc ( $_[0] ) || return;
 
   if ( not $self->channel_exists($channel) ) {
-	return undef;
+	return;
   }
   return $self->{State}->{Channels}->{ $channel }->{TimeStamp};
 }
 
 sub is_channel_empty {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return 0;
+  my ($channel) = u_irc ( $_[0] ) || return;
 
   if ( not $self->channel_exists($channel) ) {
-	return 0;
+	return;
   }
   if ( scalar ( keys %{ $self->{State}->{Channels}->{ $channel }->{Members} } ) == 0 ) {
 	return 1;
   }
-  return 0;
+  return;
 }
 
 sub channel_members {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return undef;
+  my ($channel) = u_irc ( $_[0] ) || return;
   my (@values);
   
   if ( not $self->channel_exists($channel) ) {
-	return 0;
+	return;
   }
   foreach ( keys %{ $self->{State}->{Channels}->{ $channel }->{Members} } ) {
 	my ($nick) = $self->{State}->{by_nickname}->{ $_ }->{NickName};
@@ -3137,76 +3125,76 @@ sub channel_members {
 
 sub channel_list {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return undef;
+  my ($channel) = u_irc ( $_[0] ) || return;
   
   if ( not $self->channel_exists($channel) ) {
-	return undef;
+	return;
   }
   return keys %{ $self->{State}->{Channels}->{ $channel }->{Members} };
 }
 
 sub channel_bans {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return undef;
+  my ($channel) = u_irc ( $_[0] ) || return;
   
   if ( not $self->channel_exists($channel) ) {
-	return undef;
+	return;
   }
   return keys %{ $self->{State}->{Channels}->{ $channel }->{Bans} };
 }
 
 sub is_channel_operator {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return 0;
-  my ($nickname) = u_irc ( $_[1] ) || return 0;
+  my ($channel) = u_irc ( $_[0] ) || return;
+  my ($nickname) = u_irc ( $_[1] ) || return;
 
   if ( not $self->channel_exists($channel) ) {
-	return 0;
+	return;
   }
   if ( $self->{State}->{Channels}->{ $channel }->{Members}->{ $nickname } =~ /o/ ) {
 	return 1;
   }
-  return 0;
+  return;
 }
 
 sub has_channel_voice {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return 0;
-  my ($nickname) = u_irc ( $_[1] ) || return 0;
+  my ($channel) = u_irc ( $_[0] ) || return;
+  my ($nickname) = u_irc ( $_[1] ) || return;
 
   if ( not $self->channel_exists($channel) ) {
-	return 0;
+	return;
   }
   if ( $self->{State}->{Channels}->{ $channel }->{Members}->{ $nickname } =~ /v/ ) {
 	return 1;
   }
-  return 0;
+  return;
 }
 
 sub channel_topic {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return undef;
+  my ($channel) = u_irc ( $_[0] ) || return;
 
   if ( not $self->channel_exists($channel) ) {
-	return undef;
+	return;
   }
   if ( not defined ( $self->{State}->{Channels}->{ $channel }->{Topic} ) ) {
-	return undef;
+	return;
   }
   return [ $self->{State}->{Channels}->{ $channel }->{Topic}, $self->{State}->{Channels}->{ $channel }->{TopicBy}, $self->{State}->{Channels}->{ $channel }->{TopicWhen} ];
 }
 
 sub is_operator {
   my ($self) = shift;
-  my ($nickname) = u_irc ( $_[0] ) || return 0;
+  my ($nickname) = u_irc ( $_[0] ) || return;
 
   if ( not $self->nick_exists($nickname) ) {
-	return 0;
+	return;
   }
   if ( defined ( $self->{State}->{by_nickname}->{ $nickname }->{UMode} ) and $self->{State}->{by_nickname}->{ $nickname }->{UMode}  =~ /o/ ) {
 	return 1;
   }
-  return 0;
+  return;
 }
 
 sub list_channels {
@@ -3221,77 +3209,77 @@ sub list_channels {
 
 sub is_channel_member {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return 0;
-  my ($nickname) = u_irc ( $_[1] ) || return 0;
+  my ($channel) = u_irc ( $_[0] ) || return;
+  my ($nickname) = u_irc ( $_[1] ) || return;
 
   if ( ( not $self->channel_exists($channel) ) or ( not $self->nick_exists($nickname) ) ) {
-	return 0;
+	return;
   }
   if ( defined ( $self->{State}->{Channels}->{ $channel }->{Members}->{ $nickname } ) ) {
 	return 1;
   }
-  return 0;
+  return;
 }
 
 sub is_channel_mode_set {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return 0;
-  my ($mode) = $_[1] || return 0;
+  my ($channel) = u_irc ( $_[0] ) || return;
+  my ($mode) = $_[1] || return;
 
   unless ( length ($mode) == 1 ) {
-	return 0;
+	return;
   }
 
   if ( not $self->channel_exists($channel) ) {
-	return 0;
+	return;
   }
   if ( defined ( $self->{State}->{Channels}->{ $channel }->{Mode} ) and $self->{State}->{Channels}->{ $channel }->{Mode} =~ /$mode/ ) {
 	return 1;
   }
-  return 0;
+  return;
 }
 
 sub channel_mode {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return undef;
+  my ($channel) = u_irc ( $_[0] ) || return;
 
   if ( not $self->channel_exists($channel) ) {
-	return undef;
+	return;
   }
   return $self->{State}->{Channels}->{ $channel }->{Mode};
 }
 
 sub channel_limit {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return undef;
+  my ($channel) = u_irc ( $_[0] ) || return;
 
   if ( not $self->channel_exists($channel) ) {
-	return undef;
+	return;
   }
   return $self->{State}->{Channels}->{ $channel }->{ChanLimit};
 }
 
 sub channel_key {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return undef;
+  my ($channel) = u_irc ( $_[0] ) || return;
 
   if ( not $self->channel_exists($channel) ) {
-	return undef;
+	return;
   }
   return $self->{State}->{Channels}->{ $channel }->{ChanKey};
 }
 
 sub is_user_banned_from_channel {
   my ($self) = shift;
-  my ($nickname) = u_irc ( $_[0] ) || return 0;
-  my ($channel) = u_irc ( $_[1] ) || return 0;
+  my ($nickname) = u_irc ( $_[0] ) || return;
+  my ($channel) = u_irc ( $_[1] ) || return;
   my ($fulluser) = u_irc ( $self->nick_long_form($nickname) );
 
   if ( not $self->channel_exists($channel) ) {
-	return 0;
+	return;
   }
   if ( ( not defined ( $self->{State}->{Channels}->{ $channel }->{Bans} ) ) or scalar ( keys %{ $self->{State}->{Channels}->{ $channel }->{Bans} } ) == 0 ) {
-	return 0;
+	return;
   }
   foreach my $ban ( keys %{ $self->{State}->{Channels}->{ $channel }->{Bans} } ) {
     # From RFC ? == [\x01-\xFF]{1,1} * == [\x01-\xFF]* @ would be \x2A
@@ -3303,16 +3291,16 @@ sub is_user_banned_from_channel {
 	return 1;
     }
   }
-  return 0;
+  return;
 }
 
 sub is_channel_visible_to_nickname {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return 0;
-  my ($nickname) = u_irc ( $_[1] ) || return 0;
+  my ($channel) = u_irc ( $_[0] ) || return;
+  my ($nickname) = u_irc ( $_[1] ) || return;
 
   if ( not $self->channel_exists($channel) ) {
-	return 0;
+	return;
   }
   if ( $self->is_channel_member($channel,$nickname) ) {
 	return 1;
@@ -3320,20 +3308,20 @@ sub is_channel_visible_to_nickname {
   if ( ( not $self->is_channel_mode_set($channel,'s') ) and ( not $self->is_channel_mode_set($channel,'p') ) and ( not $self->is_channel_mode_set($channel,'a') ) ) {
 	return 1;
   }
-  return 0;
+  return;
 }
 
 sub is_nickname_visible {
   my ($self) = shift;
-  my ($nickname) = u_irc ( $_[0] ) || return 0;
+  my ($nickname) = u_irc ( $_[0] ) || return;
 
   if ( not $self->nick_exists($nickname) ) {
-	return 0;
+	return;
   }
   if ( ( not defined ( $self->{State}->{by_nickname}->{ $nickname }->{UMode} ) ) or $self->{State}->{by_nickname}->{ $nickname }->{UMode} !~ /i/ ) {
 	return 1;
   }
-  return 0;
+  return;
 }
 
 sub users_not_on_channels {
@@ -3350,91 +3338,91 @@ sub users_not_on_channels {
 
 sub nick_exists {
   my ($self) = shift;
-  my ($nickname) = u_irc ( $_[0] ) || return 0;
+  my ($nickname) = u_irc ( $_[0] ) || return;
 
   if ( defined ( $self->{State}->{by_nickname}->{ $nickname } ) ) {
 	return 1;
   }
-  return 0;
+  return;
 }
 
 sub nick_channel_list {
   my ($self) = shift;
-  my ($nickname) = u_irc ( $_[0] ) || return undef;
+  my ($nickname) = u_irc ( $_[0] ) || return;
 
   if ( not $self->nick_exists($nickname) ) {
-	return undef;
+	return;
   }
   return keys %{ $self->{State}->{by_nickname}->{ $nickname }->{Channels} };
 }
 
 sub is_user_away {
   my ($self) = shift;
-  my ($nickname) = u_irc ( $_[0] ) || return 0;
+  my ($nickname) = u_irc ( $_[0] ) || return;
 
   if ( not $self->nick_exists($nickname) ) {
-	return 0;
+	return;
   }
   if ( defined ( $self->{State}->{by_nickname}->{ $nickname }->{UMode} ) and $self->{State}->{by_nickname}->{ $nickname }->{UMode} =~ /a/ ) {
 	return 1;
   }
-  return 0;
+  return;
 }
 
 sub has_wallops {
   my ($self) = shift;
-  my ($nickname) = u_irc ( $_[0] ) || return 0;
+  my ($nickname) = u_irc ( $_[0] ) || return;
 
   if ( not $self->nick_exists($nickname) ) {
-	return 0;
+	return;
   }
   if ( defined ( $self->{State}->{by_nickname}->{ $nickname }->{UMode} ) and $self->{State}->{by_nickname}->{ $nickname }->{UMode} =~ /w/ ) {
 	return 1;
   }
-  return 0;
+  return;
 }
 
 sub is_nick_on_channel {
   my ($self) = shift;
-  my ($nickname) = u_irc ( $_[0] ) || return 0;
-  my ($channel) = u_irc ( $_[1] ) || return 0;
+  my ($nickname) = u_irc ( $_[0] ) || return;
+  my ($channel) = u_irc ( $_[1] ) || return;
   
   if ( ( not $self->channel_exists($channel) ) or ( not $self->nick_exists($nickname) ) ) {
-	return 0;
+	return;
   }
   if ( defined ( $self->{State}->{Channels}->{ $channel }->{Members}->{ $nickname } ) ) {
 	return 1;
   }
-  return 0;
+  return;
 }
 
 sub nick_long_form {
   my ($self) = shift;
-  my ($nickname) = u_irc ( $_[0] ) || return undef;
+  my ($nickname) = u_irc ( $_[0] ) || return;
 
   if ( not $self->nick_exists($nickname) ) {
-	return 0;
+	return;
   }
   return $self->{State}->{by_nickname}->{ $nickname }->{NickName} . '!' . $self->{State}->{by_nickname}->{ $nickname }->{UserName} . '@' . $self->{State}->{by_nickname}->{ $nickname }->{HostName};
 }
 
 sub user_invited_to_channel {
   my ($self) = shift;
-  my ($channel) = u_irc ( $_[0] ) || return 0;
-  my ($nickname) = u_irc ( $_[1] ) || return 0;
+  my ($channel) = u_irc ( $_[0] ) || return;
+  my ($nickname) = u_irc ( $_[1] ) || return;
 
   if ( ( not $self->nick_exists($nickname) ) ) {
-	return 0;
+	return;
   }
   if ( defined ( $self->{State}->{by_nickname}->{ $nickname }->{Invites}->{ $channel } ) ) {
 	return 1;
   }
-  return 0;
+  return;
 }
 
 sub server_exists {
   my ($self) = shift;
-  my ($server) = u_irc ( $_[0] ) || return 0;
+  my ($server) = u_irc ( $_[0] ) || return;
 
   if ( defined ( $self->{State}->{Servers}->{ $server } ) ) {
 	return 1;
@@ -3446,21 +3434,21 @@ sub server_exists {
 		return 1;
 	}
   }
-  return 0;
+  return;
 }
 
 sub is_server_me {
   my $self = shift;
-  my $server = u_irc ( $_[0] ) || return 0;
-  my $client = $_[1] || return 0;
+  my $server = u_irc ( $_[0] ) || return;
+  my $client = $_[1] || return;
 
   if ( not $self->client_exists( $client ) ) {
-	return 0;
+	return;
   }
   if ( $server eq u_irc ( $self->{Config}->{ServerName} ) or $server eq $self->{Clients}->{ $client }->{SockAddr} ) {
 	return 1;
   }
-  return 0;
+  return;
 }
 
 sub server_created {
@@ -3497,17 +3485,17 @@ sub lowest_ping_frequency {
 
 sub contains_wildcard {
   my ($self) = shift;
-  my ($input) = $_[0] || return 0;
+  my ($input) = $_[0] || return;
 
   if ( $input =~ /(\x2A|\x3F)/ ) {
 	return 1;
   }
-  return 0;
+  return;
 }
 
 sub nicks_match_wildcard {
   my ($self) = shift;
-  my ($input) = u_irc ( $_[0] ) || return undef;
+  my ($input) = u_irc ( $_[0] ) || return;
   my (@returns);
   
   if ( $input ne "" ) {
@@ -3526,15 +3514,15 @@ sub nicks_match_wildcard {
 
 sub is_my_client {
   my ($self) = shift;
-  my ($nickname) = u_irc ( $_[0] ) || return undef;
+  my ($nickname) = u_irc ( $_[0] ) || return;
 
   if ( not $self->nick_exists($nickname) ) {
-	return 0;
+	return;
   }
   if ( defined ( $self->{State}->{by_nickname}->{ $nickname }->{Wheel} ) and defined ( $self->{Clients}->{ $self->{State}->{by_nickname}->{ $nickname }->{Wheel} } ) ) {
   	return $self->{State}->{by_nickname}->{ $nickname }->{Wheel};
   }
-  return undef;
+  return;
 }
 
 sub server_name {
@@ -3573,27 +3561,27 @@ sub irc_network {
 
 sub connection_exists {
   my ($self) = shift;
-  my ($wheel_id) = shift || return 0;
+  my ($wheel_id) = shift || return;
 
   if ( defined ( $self->{Connections}->{ $wheel_id } ) ) {
 	return 1;
   }
-  return 0;
+  return;
 }
 
 sub client_exists {
   my ($self) = shift;
-  my ($wheel_id) = shift || return 0;
+  my ($wheel_id) = shift || return;
 
   if ( defined ( $self->{Clients}->{ $wheel_id } ) ) {
 	return 1;
   }
-  return 0;
+  return;
 }
 
 sub client_nickname {
   my ($self) = shift;
-  my ($wheel_id) = $_[0] || return undef;
+  my ($wheel_id) = $_[0] || return;
 
   if ( $self->connection_exists($wheel_id) ) {
 	return $self->{Connections}->{ $wheel_id }->{ProperNick};
@@ -3601,27 +3589,27 @@ sub client_nickname {
   if ( $self->client_exists($wheel_id) ) {
 	return $self->{State}->{by_nickname}->{ $self->{Clients}->{ $wheel_id }->{NickName} }->{NickName};
   }
-  return undef;
+  return;
 }
 
 sub proper_nickname {
   my ($self) = shift;
-  my ($nickname) = u_irc ( $_[0] ) || return undef;
+  my ($nickname) = u_irc ( $_[0] ) || return;
 
   if ( not $self->nick_exists($nickname) ) {
-	return undef;
+	return;
   }
   if ( defined ( $self->{State}->{by_nickname}->{ $nickname } ) ) {
 	return $self->{State}->{by_nickname}->{ $nickname }->{NickName};
   }
-  return undef;
+  return;
 }
 
 sub client_matches_i_line {
   my ($self) = shift;
-  my ($wheel_id) = $_[0] || return 0;
+  my ($wheel_id) = $_[0] || return;
 
-  return 0 if ( not defined ( $self->{Connections}->{ $wheel_id } ) );
+  return if ( not defined ( $self->{Connections}->{ $wheel_id } ) );
   my ($peeraddress) = $self->{Connections}->{ $wheel_id }->{PeerAddr};
   my ($sockport) = $self->{Connections}->{ $wheel_id }->{SockPort};
   my ($password) = $self->{Connections}->{ $wheel_id }->{GotPwd};
@@ -3648,13 +3636,13 @@ sub client_matches_i_line {
 	  return 1;
     }
   }
-  return 0;
+  return;
 }
 
 sub client_matches_o_line {
   my ($self) = shift;
-  my ($wheel_id) = $_[0] || return 0;
-  my ($username) = $_[1] || return 0;
+  my ($wheel_id) = $_[0] || return;
+  my ($username) = $_[1] || return;
 
   my ($peeraddress) = $self->{Clients}->{ $wheel_id }->{PeerAddr};
   my ($ipmask) = $self->{Operators}->{ $username }->{IPMask};
@@ -3663,87 +3651,88 @@ sub client_matches_o_line {
 	return 1;
   }
   if ( not defined ( $ipmask ) ) {
-	return 0;
+	return;
   }
   $ipmask =~ s/\*/[\x01-\xFF]{0,}/g;
   $ipmask =~ s/\?/[\x01-\xFF]{1,1}/g;
   if ( $peeraddress =~ /^$ipmask$/ ) {
 	return 1;
   }
-  return 0;
+  return;
 }
 
 sub is_reserved_channel {
   my ($self) = shift;
-  my ($channelname) = u_irc ( $_[0] ) || return undef;
+  my ($channelname) = u_irc ( $_[0] ) || return;
 
   foreach my $chan ( @reserved_channels ) {
 	if ( $channelname eq $chan ) {
 		return $chan;
 	}
   }
-  return undef;
+  return;
 }
 
 sub generate_client_numeric {
   my ($self) = shift;
-
-  1;
+  return 1;
 }
 
 sub list_ports_used {
   my ($self) = shift;
-
   return keys %{ $self->{Listeners} };
 }
 
 1;
+__END__
 
 =head1 NAME
 
-POE::Component::IRC::Test::Harness - a fully event-driven IRC server daemon module.
+POE::Component::IRC::Test::Harness - a fully event-driven IRC server daemon
+module.
 
 =head1 SYNOPSIS
 
-  use POE;
-  use POE::Component::IRC::Test::Harness;
+ use POE;
+ use POE::Component::IRC::Test::Harness;
 
-  my ($pocosi) = POE::Component::IRC::Test::Harness->spawn( Alias => 'ircd' );
+ my $pocosi = POE::Component::IRC::Test::Harness->spawn( Alias => 'ircd' );
 
-  POE::Session->create (
-        inline_states => { _start => \&test_start,
-                           _stop  => \&test_stop, },
+ POE::Session->create (
+     inline_states => { _start => \&test_start,
+                        _stop  => \&test_stop,
+     },
+     heap => { Obj  => $pocosi },
+ );
 
-        heap => { Obj  => $pocosi },
-  );
+ $poe_kernel->run();
 
-  $poe_kernel->run();
-  exit 0;
+ sub test_start {
+     my ($kernel, $heap) = @_[KERNEL, HEAP];
 
-  sub test_start {
-    my ($kernel,$heap) = @_[KERNEL,HEAP];
+     $kernel->post ( 'ircd' => 'register' );
+     $kernel->post ( 'ircd' => 'add_i_line' => { IPMask => '*', Port => 6667 } );
+     $kernel->post ( 'ircd' => 'add_operator' => { UserName => 'Flibble', Password => 'letmein' } );
+     $kernel->post ( 'ircd' => 'add_listener' => { Port => 6667 } );
+     $kernel->post ( 'ircd' => 'set_motd' => [ 'This is an experimental server', 'Testing POE::Component::Server::IRC', 'Enjoy!' ] );
+ }
 
-    $kernel->post ( 'ircd' => 'register' );
-    $kernel->post ( 'ircd' => 'add_i_line' => { IPMask => '*', Port => 6667 } );
-    $kernel->post ( 'ircd' => 'add_operator' => { UserName => 'Flibble', Password => 'letmein' } );
-    $kernel->post ( 'ircd' => 'add_listener' => { Port => 6667 } );
-    $kernel->post ( 'ircd' => 'set_motd' => [ 'This is an experimental server', 'Testing POE::Component::Server::IRC', 'Enjoy!' ] );
-  }
-
-  sub test_stop {
-	print "Server stopped\n";
-  }
+ sub test_stop {
+     print "Server stopped\n";
+ }
 
 =head1 DESCRIPTION
 
-POE::Component::IRC::Test::Harness is a POE component which implements an RFC compliant Internet Relay Chat
-server ( IRCd ). It will eventually end up as the foundation for the new improved[tm] L<POE::Component::IRC|POE::Component::IRC> test suite.
+POE::Component::IRC::Test::Harness is a POE component which implements an RFC
+compliant Internet Relay Chat server ( IRCd ). It will eventually end up as
+the foundation for the new improved[tm] L<POE::Component::IRC|POE::Component::IRC>
+test suite.
 
 =head1 METHODS
 
 =over
 
-=item spawn
+=item C<spawn>
 
 One mandatory argument, Alias, the kernel alias you want to call the component.
 
@@ -3765,7 +3754,7 @@ Please use L<http://rt.cpan.org/> for reporting bugs with this component.
 
 =head1 AUTHOR
 
-Chris Williams, E<lt>chris@bingosnet.co.ukE<gt>
+Chris Williams, <chris@bingosnet.co.uk>
 
 =head1 SEE ALSO
 
@@ -3775,4 +3764,3 @@ RFC 2812 L<http://www.faqs.org/rfcs/rfc2812.html>
 RFC 2813 L<http://www.faqs.org/rfcs/rfc2813.html>
 
 =cut
-

@@ -2,6 +2,7 @@ package POE::Component::IRC::Plugin::PlugMan;
 
 use strict;
 use warnings;
+use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Common qw( :ALL );
 
@@ -16,10 +17,9 @@ BEGIN {
 }
 
 sub new {
-  my $package = shift;
-  my %parms = @_;
-  $parms{ lc $_ } = delete $parms{ $_ } for keys %parms;
-  return bless \%parms, $package;
+    my ($package, %args) = shift;
+    $args{ lc $_ } = delete $args{ $_ } for keys %args;
+    return bless \%args, $package;
 }
 
 ##########################
@@ -27,145 +27,88 @@ sub new {
 ##########################
 
 sub PCI_register {
-  my ($self,$irc) = @_;
+    my ($self, $irc) = @_;
 
-  if ( $self->{botowner} and !$irc->isa('POE::Component::IRC::State') ) {
-     warn "This plugin must be loaded into POE::Component::IRC::State or subclasses\n";
-     return 0;
-  }
+    if ( !$irc->isa('POE::Component::IRC::State') ) {
+        croak __PACKAGE__ . ' requires PoCo::IRC::State or a subclass thereof';
+    }
 
-  $self->{irc} = $irc;
+    $self->{irc} = $irc;
+    $irc->plugin_register( $self, 'SERVER', qw(public msg) );
+    
+    $self->{commands} = {
+        PLUGIN_ADD => sub {
+            my ($self, @cmd, $method, $recipient) = @_;
+            my $msg = $self->load(@cmd) ? 'Done.' : 'Nope';
+            $self->{irc}->yield($method => $recipient => $msg);
+        },
+        PLUGIN_DEL => sub {
+            my ($self, @cmd, $method, $recipient) = @_;
+            my $msg = $self->unload(@cmd) ? 'Done.' : 'Nope';
+            $self->{irc}->yield($method => $recipient => $msg);
+        },
+        PLUGIN_LIST => sub {
+            my ($self, @cmd, $method, $recipient) = @_;
+            my @aliases = keys %{ $self->{irc}->plugin_list() };
+            my $msg = scalar @aliases
+                ? 'Plugins [ ' . join(', ', @aliases ) . ' ]'
+                : 'No plugins loaded.';
+            $self->{irc}->yield($method => $recipient => $msg);
+        },
+        PLUGIN_RELOAD => sub {
+            my ($self, @cmd, $method, $recipient) = @_;
+            my @aliases = $self->loaded();
+            my $msg = scalar @aliases
+                ? 'Managed Plugins [ ' . join(', ', @aliases ) . ' ]'
+                : 'No managed plugins loaded.';
+            $self->{irc}->yield($method => $recipient => $msg);
+        },
+    };
 
-  $irc->plugin_register( $self, 'SERVER', qw(public msg) );
-
-  return 1;
+    return 1;
 }
 
 sub PCI_unregister {
-  my ($self,$irc) = @_;
-  delete $self->{irc};
-  return 1;
+    my ($self, $irc) = @_;
+    delete $self->{irc};
+    return 1;
 }
 
 sub S_public {
-  my ($self,$irc) = splice @_, 0 , 2;
-  my ($nick,$userhost) = ( split /!/, ${ $_[0] } )[0..1];
-  return PCI_EAT_NONE unless $self->_bot_owner( $nick );
-  my $channel = ${ $_[1] }->[0];
-  my $what = ${ $_[2] };
-  
-  my $mynick = $irc->nick_name();
-  my ($command) = $what =~ m/^\s*\Q$mynick\E[\:\,\;\.]?\s*(.*)$/i;
-  return PCI_EAT_NONE unless $command;
+    my ($self, $irc) = splice @_, 0 , 2;
+    my $nick = parse_user( ${ $_[0] } );
+    my $channel = ${ $_[1] }->[0];
+    my $what = ${ $_[2] };
+    my $me = $irc->nick_name();
 
-
-  my (@cmd) = split(/ +/,$command);
-
-  SWITCH: {
-	my $cmd = uc ( shift @cmd );
-	if ( $cmd eq 'PLUGIN_ADD' ) {
-	  if ( $self->load( @cmd ) ) {
-		$irc->yield( privmsg => $channel => 'Done.' );
-	  } else {
-		$irc->yield( privmsg => $channel => 'Nope.' );
-	  }
-	  last SWITCH;
-	}
-	if ( $cmd eq 'PLUGIN_DEL' ) {
-	  if ( $self->unload( @cmd ) ) {
-		$irc->yield( privmsg => $channel => 'Done.' );
-	  } else {
-		$irc->yield( privmsg => $channel => 'Nope.' );
-	  }
-	  last SWITCH;
-	}
-	if ( $cmd eq 'PLUGIN_LIST' ) {
-          my @aliases = keys %{ $irc->plugin_list() };
-          if ( @aliases ) {
-                $irc->yield( privmsg => $channel => 'Plugins [ ' . join(', ', @aliases ) . ' ]' );
-          } else {
-                $irc->yield( privmsg => $channel => 'No plugins loaded.' );
-          }
-	  last SWITCH;
-	}
-	if ( $cmd eq 'PLUGIN_RELOAD' ) {
-	  if ( $self->reload( @cmd ) ) {
-		$irc->yield( privmsg => $channel => 'Done.' );
-	  } else {
-		$irc->yield( privmsg => $channel => 'Nope.' );
-	  }
-	  last SWITCH;
-	}
-	if ( $cmd eq 'PLUGIN_LOADED' ) {
-          my @aliases = $self->loaded();
-          if ( @aliases ) {
-                $irc->yield( privmsg => $channel => 'Managed Plugins [ ' . join(', ', @aliases ) . ' ]' );
-          } else {
-                $irc->yield( privmsg => $channel => 'No managed plugins loaded.' );
-          }
-	  last SWITCH;
-	}
-  }
-
-  return PCI_EAT_NONE;
+    my ($command) = $what =~ m/^\s*\Q$me\E[\:\,\;\.]?\s*(.*)$/i;
+    my (@cmd) = split(/ +/, $command);
+    my $cmd = uc (shift @cmd);
+    
+    return PCI_EAT_NONE if !$command || !$self->_bot_owner($nick);
+    
+    if (defined $self->{commands}->{$cmd}) {
+        $self->{command}->{$cmd}->($self, @cmd, 'privmsg', $channel);
+    }
+    
+    return PCI_EAT_NONE;
 }
 
 sub S_msg {
-  my ($self,$irc) = splice @_, 0 , 2;
-  my $who = ${ $_[0] };
-  my ($nick,$userhost) = ( split /!/, ${ $_[0] } )[0..1];
-  return PCI_EAT_NONE unless $self->_bot_owner( $who );
-  my $channel = ${ $_[1] }->[0];
-  my $command = ${ $_[2] };
-  
-  my (@cmd) = split(/ +/,$command);
-  SWITCH: {
-	my $cmd = uc ( shift @cmd );
-	if ( $cmd eq 'PLUGIN_ADD' ) {
-	  if ( $self->load( @cmd ) ) {
-		$irc->yield( notice => $nick => 'Done.' );
-	  } else {
-		$irc->yield( notice => $nick => 'Nope.' );
-	  }
-	  last SWITCH;
-	}
-	if ( $cmd eq 'PLUGIN_DEL' ) {
-	  if ( $self->unload( @cmd ) ) {
-		$irc->yield( notice => $nick => 'Done.' );
-	  } else {
-		$irc->yield( notice => $nick => 'Nope.' );
-	  }
-	  last SWITCH;
-	}
-	if ( $cmd eq 'PLUGIN_LIST' ) {
-          my @aliases = keys %{ $irc->plugin_list() };
-          if ( @aliases ) {
-                $irc->yield( notice => $nick => 'Plugins [ ' . join(', ', @aliases ) . ' ]' );
-          } else {
-                $irc->yield( notice => $nick => 'No plugins loaded.' );
-          }
-	  last SWITCH;
-	}
-	if ( $cmd eq 'PLUGIN_RELOAD' ) {
-	  if ( $self->reload( @cmd ) ) {
-		$irc->yield( notice => $nick => 'Done.' );
-	  } else {
-		$irc->yield( notice => $nick => 'Nope.' );
-	  }
-	  last SWITCH;
-	}
-	if ( $cmd eq 'PLUGIN_LOADED' ) {
-          my @aliases = $self->loaded();
-          if ( @aliases ) {
-                $irc->yield( notice => $nick => 'Managed Plugins [ ' . join(', ', @aliases ) . ' ]' );
-          } else {
-                $irc->yield( notice => $nick => 'No managed plugins loaded.' );
-          }
-	  last SWITCH;
-	}
-  }
+    my ($self, $irc) = splice @_, 0 , 2;
+    my $nick = parse_user( ${ $_[0] } );
+    my $channel = ${ $_[1] }->[0];
+    my $command = ${ $_[2] };
+    my (@cmd) = split(/ +/,$command);
+    my $cmd = uc (shift @cmd);
+    
+    return PCI_EAT_NONE if !$self->_bot_owner($nick);
+    
+    if (defined $self->{commands}->{$cmd}) {
+        $self->{command}->{$cmd}->($self, @cmd, 'notice', $nick);
+    }
 
-  return PCI_EAT_NONE;
+    return PCI_EAT_NONE;
 }
 
 #########################
@@ -173,12 +116,10 @@ sub S_msg {
 #########################
 
 sub _bot_owner {
-  my $self = shift;
-  return unless $self->{botowner};
-  my $who = $_[0] || return 0;
-  $who = $self->{irc}->nick_long_form($who) unless $who =~ /!/;
-  return 1 if matches_mask( $self->{botowner}, $who );
-  return 0;
+    my ($self, $nick) = @_;
+    $nick = $self->{irc}->nick_long_form($nick) if $nick !~ /!/;
+    return 1 if matches_mask( $self->{botowner}, $nick );
+    return;
 }
 
 ###############################
@@ -186,65 +127,60 @@ sub _bot_owner {
 ###############################
 
 sub load {
-  my ($self,$desc,$plugin) = splice @_, 0, 3;
-  return unless $desc and $plugin;
+    my ($self, $desc, $plugin) = splice @_, 0, 3;
+    return if !$desc || !$plugin;
 
-  my $module = $plugin;
+    my $module = $plugin;
+    $module .= '.pm' if $module !~ /\.pm$/;
+    $module =~ s/::/\//g;
 
-  $module .= '.pm' unless $module =~ /\.pm$/;
-  $module =~ s/::/\//g;
+    eval "require $plugin";
+    if ($@) {
+        delete $INC{$module};
+        $self->_unload_subs($plugin);
+        croak "$@";
+    }
 
-  eval "require $plugin;";
-  if ( $@ ) {
-     delete $INC{$module};
-     $self->_unload_subs($plugin);
-     warn "$@\n";
-     return 0;
-  }
+    my $object = $plugin->new( @_ );
+    return if !$object;
+    my $args = [ @_ ];
+    $self->{plugins}->{ $desc }->{module} = $module;
+    $self->{plugins}->{ $desc }->{plugin} = $plugin;
 
-  my $object = $plugin->new( @_ );
-
-  return 0 unless $object;
-  
-  my $args = [ @_ ];
-
-  $self->{plugins}->{ $desc }->{module} = $module;
-  $self->{plugins}->{ $desc }->{plugin} = $plugin;
-
-  my $return = $self->{irc}->plugin_add( $desc, $object );
-  if ( $return ) {
-	# Stash away arguments for use later by _reload.
-	$self->{plugins}->{ $desc }->{args} = $args;
-  } else {
-	# Cleanup
-	delete $self->{plugins}->{ $desc };
-  }
-  return $return;
+    my $return = $self->{irc}->plugin_add( $desc, $object );
+    if ( $return ) {
+        # Stash away arguments for use later by _reload.
+        $self->{plugins}->{ $desc }->{args} = $args;
+    }
+    else {
+        # Cleanup
+        delete $self->{plugins}->{ $desc };
+    }
+    
+    return $return;
 }
 
 sub unload {
-  my ($self,$desc) = splice @_, 0, 2;
-  return unless $desc;
+    my ($self, $desc) = splice @_, 0, 2;
+    return if !$desc;
 
-  my $plugin = $self->{irc}->plugin_del( $desc );
-  return 0 unless $plugin;
-  my $module = $self->{plugins}->{ $desc }->{module};
-  my $file = $self->{plugins}->{ $desc }->{plugin};
-  delete $INC{$module};
-  delete $self->{plugins}->{ $desc };
-  $self->_unload_subs($file);
-  return 1;
+    my $plugin = $self->{irc}->plugin_del( $desc );
+    return if !$plugin;
+    my $module = $self->{plugins}->{ $desc }->{module};
+    my $file = $self->{plugins}->{ $desc }->{plugin};
+    delete $INC{$module};
+    delete $self->{plugins}->{ $desc };
+    $self->_unload_subs($file);
+    return 1;
 }
 
 sub _unload_subs {
     my $self = shift;
     my $file = shift;
 
-    foreach my $sym (
-        grep { index( $_, "$file:" ) == 0 } keys %DB::sub
-    ) {
+    for my $sym ( grep { index( $_, "$file:" ) == 0 } keys %DB::sub ) {
         eval { undef &$sym };
-        warn "$sym: $@" if $@;
+        carp "$sym: $@" if $@;
         delete $DB::sub{$sym};
     }
 
@@ -252,84 +188,90 @@ sub _unload_subs {
 }
 
 sub reload {
-  my ($self,$desc) = splice @_, 0, 2;
-  return unless $desc;
+    my ($self, $desc) = splice @_, 0, 2;
+    return if !defined $desc;
 
-  my $plugin_state = $self->{plugins}->{ $desc };
-  return 0 unless $plugin_state;
-  print STDERR "Unloading plugin $desc\n" if $self->{debug};
-  return 0 unless $self->unload( $desc );
+    my $plugin_state = $self->{plugins}->{ $desc };
+    return if !$plugin_state;
+    carp "Unloading plugin $desc" if $self->{debug};
+    return if !$self->unload( $desc );
 
-  print STDERR "Loading plugin $desc " . $plugin_state->{plugin} . " [ " . join(', ',@{ $plugin_state->{args} }) . " ]\n" if $self->{debug};
-  return 0 unless $self->load( $desc, $plugin_state->{plugin}, @{ $plugin_state->{args} } );
-  return 1;
+    carp "Loading plugin $desc " . $plugin_state->{plugin} . ' [ ' . join(', ',@{ $plugin_state->{args} }) . " ]" if $self->{debug};
+    return if !$self->load( $desc, $plugin_state->{plugin}, @{ $plugin_state->{args} } );
+    return 1;
 }
 
 sub loaded {
-  my $self = shift;
-  return keys %{ $self->{plugins} };
+    my $self = shift;
+    return keys %{ $self->{plugins} };
 }
 
 1;
 __END__
+
 =head1 NAME
 
-POE::Component::IRC::Plugin::PlugMan - A PoCo-IRC plugin that provides plugin management services. 
+POE::Component::IRC::Plugin::PlugMan - A PoCo-IRC plugin that provides plugin
+management services. 
 
 =head1 SYNOPSIS
 
-   use strict;
-   use warnings;
-   use POE qw(Component::IRC::State);
-   use POE::Component::IRC::Plugin::PlugMan;
+ use strict;
+ use warnings;
+ use POE qw(Component::IRC::State);
+ use POE::Component::IRC::Plugin::PlugMan;
 
-   my $botowner = 'somebody!*@somehost.com';
-   my $irc = POE::Component::IRC::State->spawn();
+ my $botowner = 'somebody!*@somehost.com';
+ my $irc = POE::Component::IRC::State->spawn();
 
-   POE::Session->create( 
-        package_states => [ 
-                'main' => [ qw(_start irc_plugin_add) ],
-        ],
-   );
+ POE::Session->create( 
+     package_states => [ 
+         main => [ qw(_start irc_plugin_add) ],
+     ],
+ );
 
-   sub _start {
+ sub _start {
      $irc->yield( register => 'all' );
      $irc->plugin_add( 'PlugMan' => POE::Component::IRC::Plugin::PlugMan->new( botowner => $botowner ) );
-     undef;
-   }
+     return;
+ }
 
-   sub irc_plugin_add {
-     my ( $desc, $plugin ) = @_[ARG0,ARG1];
+ sub irc_plugin_add {
+     my ($desc, $plugin) = @_[ARG0, ARG1];
      
-     if ( $desc eq 'PlugMan' ) {
-	$plugin->load( 'Connector', 'POE::Component::IRC::Plugin::Connector' );
+     if ($desc eq 'PlugMan') {
+         $plugin->load( 'Connector', 'POE::Component::IRC::Plugin::Connector' );
      }
-     undef;
-   }
+     return;
+ }
 
 =head1 DESCRIPTION
 
-POE::Component::IRC::Plugin::PlugMan is a POE::Component::IRC plugin management plugin. It provides support for
-'on-the-fly' loading, reloading and unloading of plugin modules, via object methods that you can incorporate into
-your own code and a handy IRC interface.
+POE::Component::IRC::Plugin::PlugMan is a POE::Component::IRC plugin management
+plugin. It provides support for 'on-the-fly' loading, reloading and unloading
+of plugin modules, via object methods that you can incorporate into your own
+code and a handy IRC interface.
 
 =head1 CONSTRUCTOR
 
 =over
 
-=item new
+=item C<new>
 
 Takes two optional arguments:
 
-   "botowner", an IRC mask to match against for people issuing commands via the IRC interface;
-   "debug", set to a true value to see when stuff goes wrong;
+'botowner', an IRC mask to match against for people issuing commands via the
+IRC interface;
+ 
+'debug', set to a true value to see when stuff goes wrong;
 
-Not setting a "botowner" effectively disables the IRC interface. 
+Not setting a 'botowner' effectively disables the IRC interface. 
 
-If "botowner" is specified the plugin checks that it is being loaded into a
+If 'botowner' is specified the plugin checks that it is being loaded into a
 L<POE::Component::IRC::State> or sub-class and will fail to load otherwise.
 
-Returns a plugin object suitable for feeding to L<POE::Component::IRC>'s plugin_add() method.
+Returns a plugin object suitable for feeding to
+L<POE::Component::IRC|POE::Component::IRC>'s plugin_add() method.
 
 =back
 
@@ -337,44 +279,40 @@ Returns a plugin object suitable for feeding to L<POE::Component::IRC>'s plugin_
 
 =over
 
-=item load
+=item C<load>
 
 Loads a managed plugin.
 
-Takes two mandatory arguments, a plugin descriptor and a plugin package name. Any other arguments are used as
-options to the loaded plugin constructor.
+Takes two mandatory arguments, a plugin descriptor and a plugin package name.
+Any other arguments are used as options to the loaded plugin constructor.
 
-   $plugin->load( 'Connector', 'POE::Component::IRC::Plugin::Connector', delay, 120 );
+ $plugin->load( 'Connector', 'POE::Component::IRC::Plugin::Connector', delay, 120 );
 
 Returns true or false depending on whether the load was successfully or not.
 
-You may check $@ for error messages.
-
-=item unload
+=item C<unload>
 
 Unloads a managed plugin.
 
 Takes one mandatory argument, a plugin descriptor.
 
-   $plugin->unload( 'Connector' );
+ $plugin->unload( 'Connector' );
 
 Returns true or false depending on whether the unload was successfully or not.
 
-=item reload
+=item C<reload>
 
 Unloads and loads a managed plugin, with applicable plugin options.
 
 Takes one mandatory argument, a plugin descriptor.
 
-   $plugin->reload( 'Connector' );
+ $plugin->reload( 'Connector' );
 
-You may check $@ for error messages.
-
-=item loaded
+=item C<loaded>
 
 Takes no arguments.
 
-   $plugin->loaded();
+ $plugin->loaded();
 
 Returns a list of descriptors of managed plugins.
 
@@ -382,31 +320,33 @@ Returns a list of descriptors of managed plugins.
 
 =head1 IRC INTERFACE
 
-The IRC interface is enabled by specifying a "botowner" mask to new(). Commands may be either invoked via
-a PRIVMSG directly to your bot or in a channel by prefixing the command with the nickname of your bot. One
-caveat, the parsing of the irc command is very rudimentary ( it merely splits the line on \s+ ). 
+The IRC interface is enabled by specifying a "botowner" mask to new(). Commands
+may be either invoked via a PRIVMSG directly to your bot or in a channel by
+prefixing the command with the nickname of your bot. One caveat, the parsing
+of the irc command is very rudimentary ( it merely splits the line on \s+ ). 
 
 =over
 
-=item plugin_add
+=item C<plugin_add>
 
 Takes the same arguments as load().
 
-=item plugin_del
+=item C<plugin_del>
 
 Takes the same arguments as unload().
 
-=item plugin_reload
+=item C<plugin_reload>
 
 Takes the same arguments as reload().
 
-=item plugin_loaded
+=item C<plugin_loaded>
 
 Returns a list of descriptors of managed plugins.
 
-=item plugin_list
+=item C<plugin_list>
 
-Returns a list of descriptors of *all* plugins loaded into the current PoCo-IRC component.
+Returns a list of descriptors of *all* plugins loaded into the current PoCo-IRC
+component.
 
 =back
 
@@ -416,6 +356,8 @@ Chris 'BinGOs' Williams
 
 =head1 SEE ALSO
 
-L<POE::Component::IRC::State>
+L<POE::Component::IRC::State|POE::Component::IRC::State>
 
-L<POE::Component::IRC::Plugin>
+L<POE::Component::IRC::Plugin|POE::Component::IRC::Plugin>
+
+=cut

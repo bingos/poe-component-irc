@@ -96,6 +96,7 @@ sub S_part {
 }
 
 1;
+__END__
 
 =head1 NAME
 
@@ -117,7 +118,7 @@ keeps you on your favorite channels throughout reconnects and even kicks.
  
  POE::Session->create(
      package_states => [
-         'main' => [ qw(_start irc_join) ],
+         main => [ qw(_start irc_join) ],
      ],
  );
 
@@ -142,11 +143,11 @@ keeps you on your favorite channels throughout reconnects and even kicks.
 
 =head1 DESCRIPTION
 
-POE::Component::IRC::Plugin::AutoJoin is a L<POE::Component::IRC|POE::Component::IRC> plugin.
-If you get disconnected, the plugin will join all the channels you were on the next time
-it gets connected to the IRC server. It can also rejoin a channel if the IRC component gets
-kicked from it. It keeps track of channel keys so it will be able to rejoin keyed channels
-in case of reconnects/kicks.
+POE::Component::IRC::Plugin::AutoJoin is a L<POE::Component::IRC|POE::Component::IRC>
+plugin. If you get disconnected, the plugin will join all the channels you were
+on the next time it gets connected to the IRC server. It can also rejoin a
+channel if the IRC component gets kicked from it. It keeps track of channel
+keys so it will be able to rejoin keyed channels in case of reconnects/kicks.
 
 This plugin requires the IRC component L<POE::Component::IRC::State|POE::Component::IRC::State>
 or a subclass thereof.
@@ -155,15 +156,16 @@ or a subclass thereof.
 
 =over
 
-=item new
+=item C<new>
 
 Two optional arguments:
 
-'Channels', either an array reference of channel names, or a hash reference keyed on channel name,
-containing the password for each channel. By default it uses the channels the component is already on, if any.
+'Channels', either an array reference of channel names, or a hash reference
+keyed on channel name, containing the password for each channel. By default it
+uses the channels the component is already on, if any.
 
-'RejoinOnKick', set this to 1 if you want the plugin to try to rejoin a channel (once) if you get kicked
-from it. Default is 0.
+'RejoinOnKick', set this to 1 if you want the plugin to try to rejoin a channel
+(once) if you get kicked from it. Default is 0.
  
 
 Returns a plugin object suitable for feeding to L<POE::Component::IRC|POE::Component::IRC>'s
@@ -175,3 +177,4 @@ plugin_add() method.
 
 Hinrik E<Ouml>rn SigurE<eth>sson, hinrik.sig@gmail.com
 
+=cut

@@ -6,7 +6,7 @@ use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Common qw( parse_user u_irc );
 
-our $VERSION = '1.0';
+our $VERSION = '1.1';
 
 sub new {
     my ($package, %self) = @_;
@@ -78,14 +78,17 @@ sub _cycle {
             $irc->yield(mode => $chan => '+k ' . $irc->channel_key($chan)) if defined $irc->channel_key($chan);
         }
     }
+    return;
 }
 
 sub cycling {
     my ($self, $value) = @_;
-    $self->{cycling}->{ u_irc($value) } ? return 1 : return 0;
+    return 1 if $self->{cycling}->{ u_irc($value) };
+    return;
 }
 
 1;
+__END__
 
 =head1 NAME
 
@@ -108,19 +111,19 @@ a channel operator. If there was a topic or a key set on the channel, they
 will be restored upon rejoining. This can be useful on small channels if the
 IRC network does not have ChanServ or IRCNet's +R channel mode.
 
-This plugin requires the IRC component to be L<POE::Component::IRC::State|POE::Component::IRC::State>
-or a subclass thereof.
+This plugin requires the IRC component to be
+L<POE::Component::IRC::State|POE::Component::IRC::State> or a subclass thereof.
 
 =head1 METHODS
 
 =over
 
-=item new
+=item C<new>
 
-Returns a plugin object suitable for feeding to L<POE::Component::IRC|POE::Component::IRC>'s
-plugin_add() method.
+Returns a plugin object suitable for feeding to
+L<POE::Component::IRC|POE::Component::IRC>'s plugin_add() method.
 
-=item cycling
+=item C<cycling>
 
 One argument:
 

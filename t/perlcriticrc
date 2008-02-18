@@ -1,5 +1,7 @@
-verbose  = 3
 # level 3 is a nice compromise
 severity = 3
-# these policies either inhibit backwards-compatability or are just too anal
-exclude  = RegularExpressions::RequireExtendedFormatting ValuesAndExpressions::ProhibitConstantPragma Variables::ProhibitPackageVars
+verbose  = 3
+
+# these policies are either too anal, demand additional dependencies,
+# or inhibit backwards-compatability
+exclude = RegularExpressions::RequireExtendedFormatting ValuesAndExpressions::ProhibitConstantPragma Variables::ProhibitPackageVars BuiltinFunctions::ProhibitStringyEval ValuesAndExpressions::ProhibitCommaSeparatedStatements Subroutines::ProhibitBuiltinHomonyms

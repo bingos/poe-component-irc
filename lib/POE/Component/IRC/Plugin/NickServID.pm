@@ -43,6 +43,7 @@ sub S_nick {
 }
 
 1;
+__END__
 
 =head1 NAME
 
@@ -53,26 +54,28 @@ which identifies with FreeNode's NickServ when needed.
 
  use POE::Component::IRC::Plugin::NickServID;
 
- $irc->plugin_add( 'NickServID', POE::Component::IRC::Plugin::NickServID->new( Password => 'opensesame' ));
+ $irc->plugin_add( 'NickServID', POE::Component::IRC::Plugin::NickServID->new(
+     Password => 'opensesame'
+ ));
 
 =head1 DESCRIPTION
 
-POE::Component::IRC::Plugin::NickServID is a L<POE::Component::IRC|POE::Component::IRC> plugin.
-It identifies with NickServ on connect and when you change your nick, if your nickname matches
-the supplied password.
+POE::Component::IRC::Plugin::NickServID is a L<POE::Component::IRC|POE::Component::IRC>
+plugin. It identifies with NickServ on connect and when you change your nick,
+if your nickname matches the supplied password.
 
 =head1 METHODS
 
 =over
 
-=item new
+=item C<new>
 
 Arguments:
 
 'Password', the NickServ password.
 
-Returns a plugin object suitable for feeding to L<POE::Component::IRC|POE::Component::IRC>'s
-plugin_add() method.
+Returns a plugin object suitable for feeding to
+L<POE::Component::IRC|POE::Component::IRC>'s plugin_add() method.
 
 =back
 
@@ -80,3 +83,4 @@ plugin_add() method.
 
 Hinrik E<Ouml>rn SigurE<eth>sson, hinrik.sig@gmail.com
 
+=cut

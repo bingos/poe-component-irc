@@ -2,312 +2,315 @@ package POE::Component::IRC::Pipeline;
 
 use strict;
 use warnings;
+use Carp;
 use vars qw($VERSION);
 
-$VERSION = '0.04';
+$VERSION = '0.05';
 
 sub new {
-  my ($class, $irc) = @_;
+    my ($package, $irc) = @_;
 
-  return bless {
-    PLUGS => {},
-    PIPELINE => [],
-    HANDLES => {},
-    IRC => $irc,
-    DEBUG => $irc->{plugin_debug},
-  }, $class;
+    return bless {
+        PLUGS    => {},
+        PIPELINE => [],
+        HANDLES  => {},
+        IRC      => $irc,
+        DEBUG    => $irc->{plugin_debug},
+    }, $package;
 }
 
-
 sub push {
-  my ($self, $alias, $plug) = @_;
-  $@ = "Plugin named '$alias' already exists ($self->{PLUGS}{$alias})", return
-    if $self->{PLUGS}{$alias};
+    my ($self, $alias, $plug) = @_;
+    
+    if ($self->{PLUGS}{$alias}) {
+        carp "Plugin named '$alias' already exists ($self->{PLUGS}{$alias})";
+        return;
+    }
 
-  my $return;
+    if (!eval { $plug->PCI_register($self->{IRC}) } ) {
+        carp $@;
+        return;
+    }
 
-  eval { $return = $plug->PCI_register($self->{IRC}) };
-  warn "$@\n" if $@;
-
-  if ($return) {
     push @{ $self->{PIPELINE} }, $plug;
     $self->{PLUGS}{$alias} = $plug;
     $self->{PLUGS}{$plug} = $alias;
     $self->{IRC}->yield(__send_event => irc_plugin_add => $alias => $plug);
+    
     return scalar @{ $self->{PIPELINE} };
-  }
-  else { return }
 }
-
 
 sub pop {
-  my ($self) = @_;
+    my ($self) = @_;
 
-  return unless @{ $self->{PIPELINE} };
+    return if !scalar @{ $self->{PIPELINE} };
 
-  my $plug = pop @{ $self->{PIPELINE} };
-  my $alias = delete $self->{PLUGS}{$plug};
-  delete $self->{PLUGS}{$alias};
-  delete $self->{HANDLES}{$plug};
+    my $plug = pop @{ $self->{PIPELINE} };
+    my $alias = delete $self->{PLUGS}{$plug};
+    delete $self->{PLUGS}{$alias};
+    delete $self->{HANDLES}{$plug};
 
-  eval { $plug->PCI_unregister($self->{IRC}) };
-  warn "$@\n" if $@;
-  $self->{IRC}->yield(__send_event => irc_plugin_del => $alias, $plug);
+    eval { $plug->PCI_unregister($self->{IRC}) };
+    carp $@ if $@;
+    $self->{IRC}->yield(__send_event => irc_plugin_del => $alias, $plug);
 
-  return wantarray() ? ($plug, $alias) : $plug;
+    return wantarray() ? ($plug, $alias) : $plug;
 }
 
-
 sub unshift {
-  my ($self, $alias, $plug) = @_;
-  $@ = "Plugin named '$alias' already exists ($self->{PLUGS}{$alias}", return
-    if $self->{PLUGS}{$alias};
-
-  my $return;
-
-  eval { $return = $plug->PCI_register($self->{IRC}) };
-  warn "$@\n" if $@;
-
-  if ($return) {
+    my ($self, $alias, $plug) = @_;
+  
+    if ($self->{PLUGS}{$alias}) {
+        $@ = "Plugin named '$alias' already exists ($self->{PLUGS}{$alias}";
+        return;
+    }
+    
+    if (!eval { $plug->PCI_register($self->{IRC}) } ) {
+        carp "$@";
+        return;
+    }
+    
     unshift @{ $self->{PIPELINE} }, $plug;
     $self->{PLUGS}{$alias} = $plug;
     $self->{PLUGS}{$plug} = $alias;
     $self->{IRC}->yield(__send_event => irc_plugin_add => $alias => $plug);
-    return scalar @{ $self->{PIPELINE} };
-  }
-  else { return }
 
-  return scalar @{ $self->{PIPELINE} };
+    return scalar @{ $self->{PIPELINE} };
 }
 
-
 sub shift {
-  my ($self) = @_;
+    my ($self) = @_;
 
-  return unless @{ $self->{PIPELINE} };
+    return if !@{ $self->{PIPELINE} };
 
-  my $plug = shift @{ $self->{PIPELINE} };
-  my $alias = delete $self->{PLUGS}{$plug};
-  delete $self->{PLUGS}{$alias};
-  delete $self->{HANDLES}{$plug};
+    my $plug = shift @{ $self->{PIPELINE} };
+    my $alias = delete $self->{PLUGS}{$plug};
+    delete $self->{PLUGS}{$alias};
+    delete $self->{HANDLES}{$plug};
 
-  eval { $plug->PCI_unregister($self->{IRC}) };
-  warn "$@\n" if $@;
-  $self->{IRC}->yield(__send_event => irc_plugin_del => $alias, $plug);
-
-  return wantarray() ? ($plug, $alias) : $plug;
+    eval { $plug->PCI_unregister($self->{IRC}) };
+    carp "$@" if $@;
+    
+    $self->{IRC}->yield(__send_event => irc_plugin_del => $alias, $plug);
+    return wantarray() ? ($plug, $alias) : $plug;
 }
 
 
 sub replace {
-  my ($self, $old, $new_a, $new_p) = @_;
-  my ($old_a, $old_p) = ref($old) ?
-    ($self->{PLUGS}{$old}, $old) :
-    ($old, $self->{PLUGS}{$old});
+    my ($self, $old, $new_a, $new_p) = @_;
+    
+    my ($old_a, $old_p) = ref $old
+        ? ($self->{PLUGS}{$old}, $old)
+        : ($old, $self->{PLUGS}{$old});
 
-  $@ = "Plugin '$old_a' does not exist", return
-    unless $old_p;
+    if (!$old_p) {
+        carp "Plugin '$old_a' does not exist";
+        return;
+    }
 
-  delete $self->{PLUGS}{$old_p};
-  delete $self->{PLUGS}{$old_a};
-  delete $self->{HANDLES}{$old_p};
-  eval { $old_p->PCI_unregister($self->{IRC}) };
-  warn "$@\n" if $@;
-  $self->{IRC}->yield(__send_event => irc_plugin_del => $old_a, $old_p);
+    delete $self->{PLUGS}{$old_p};
+    delete $self->{PLUGS}{$old_a};
+    delete $self->{HANDLES}{$old_p};
+    eval { $old_p->PCI_unregister($self->{IRC}) };
+    carp "$@" if $@;
+    $self->{IRC}->yield(__send_event => irc_plugin_del => $old_a, $old_p);
 
-  $@ = "Plugin named '$new_a' already exists ($self->{PLUGS}{$new_a}", return
-    if $self->{PLUGS}{$new_a};
+    if ($self->{PLUGS}{$new_a}) {
+        carp "Plugin named '$new_a' already exists ($self->{PLUGS}{$new_a}";
+        return;
+    }
+    
+    if (!eval { $new_p->PCI_register($self->{IRC}) } ) {
+        carp "$@";
+        return;
+    }
 
-  my $return;
-
-  eval { $return = $new_p->PCI_register($self->{IRC}) };
-  warn "$@\n" if $@;
-
-  if ($return) {
     $self->{PLUGS}{$new_p} = $new_a;
     $self->{PLUGS}{$new_a} = $new_p;
 
-    for (@{ $self->{PIPELINE} }) {
-      $_ = $new_p, last if $_ == $old_p;
+    for my $plugin (@{ $self->{PIPELINE} }) {
+      $plugin = $new_p;
+      last if $plugin == $old_p;
     }
 
     $self->{IRC}->yield(__send_event => irc_plugin_add => $new_a => $new_p);
     return 1;
-  }
-  else { return }
 }
 
 
 sub remove {
-  my ($self, $old) = @_;
-  my ($old_a, $old_p) = ref($old) ?
-    ($self->{PLUGS}{$old}, $old) :
-    ($old, $self->{PLUGS}{$old});
+    my ($self, $old) = @_;
+  
+    my ($old_a, $old_p) = ref $old
+        ? ($self->{PLUGS}{$old}, $old)
+        : ($old, $self->{PLUGS}{$old});
 
-  $@ = "Plugin '$old_a' does not exist", return
-    unless $old_p;
+    if (!defined $old_p) {
+        carp "Plugin '$old_a' does not exist";
+        return;
+    }
 
-  delete $self->{PLUGS}{$old_p};
-  delete $self->{PLUGS}{$old_a};
-  delete $self->{HANDLES}{$old_p};
+    delete $self->{PLUGS}{$old_p};
+    delete $self->{PLUGS}{$old_a};
+    delete $self->{HANDLES}{$old_p};
 
-  my $i = 0;
-  for (@{ $self->{PIPELINE} }) {
-    splice(@{ $self->{PIPELINE} }, $i, 1), last
-      if $_ == $old_p;
-    ++$i;
-  }
+    for (my $i = 0; $i <= $#{ $self->{PIPELINE} }; $i++) {
+        if ($self->{PIPELINE}->[$i] == $old_p) {
+            splice @{ $self->{PIPELINE} }, $i, 1;
+            last;
+        }
+    }
 
-  eval { $old_p->PCI_unregister($self->{IRC}) };
-  warn "$@\n" if $@;
-  $self->{IRC}->yield(__send_event => irc_plugin_del => $old_a, $old_p);
+    eval { $old_p->PCI_unregister($self->{IRC}) };
+    carp "$@" if $@;
+    $self->{IRC}->yield(__send_event => irc_plugin_del => $old_a, $old_p);
 
-  return wantarray ? ($old_p, $old_a) : $old_p;
+    return wantarray ? ($old_p, $old_a) : $old_p;
 }
 
 
 sub get {
-  my ($self, $old) = @_;
-  my ($old_a, $old_p) = ref($old) ?
-    ($self->{PLUGS}{$old}, $old) :
-    ($old, $self->{PLUGS}{$old});
+    my ($self, $old) = @_;
 
-  $@ = "Plugin '$old_a' does not exist", return
-    unless $old_p;
+    my ($old_a, $old_p) = ref $old
+        ? ($self->{PLUGS}{$old}, $old)
+        : ($old, $self->{PLUGS}{$old});
 
-  return wantarray ? ($old_p, $old_a) : $old_p;
+    if (!defined $old_p) {
+       carp "Plugin '$old_a' does not exist";
+       return;
+    }
+
+    return wantarray ? ($old_p, $old_a) : $old_p;
 }
 
 
 sub get_index {
-  my ($self, $old) = @_;
-  my ($old_a, $old_p) = ref($old) ?
-    ($self->{PLUGS}{$old}, $old) :
-    ($old, $self->{PLUGS}{$old});
+    my ($self, $old) = @_;
+    
+    my ($old_a, $old_p) = ref $old
+        ? ($self->{PLUGS}{$old}, $old)
+        : ($old, $self->{PLUGS}{$old});
 
-  $@ = "Plugin '$old_a' does not exist", return -1
-    unless $old_p;
+    if (!defined $old_p) {
+        carp "Plugin '$old_a' does not exist";
+        return -1;
+    }
 
-  my $i = 0;
-  for (@{ $self->{PIPELINE} }) {
-    return $i if $_ == $old_p;
-    ++$i;
-  }
+    for (my $i = 0; $i <= $#{ $self->{PIPELINE} }; $i++) {
+        return $i if $self->{PIPELINE}->[$i] == $old_p;
+    }
+    
+    return -1;
 }
 
 
 sub insert_before {
-  my ($self, $old, $new_a, $new_p) = @_;
-  my ($old_a, $old_p) = ref($old) ?
-    ($self->{PLUGS}{$old}, $old) :
-    ($old, $self->{PLUGS}{$old});
+    my ($self, $old, $new_a, $new_p) = @_;
+  
+    my ($old_a, $old_p) = ref $old
+        ? ($self->{PLUGS}{$old}, $old)
+        : ($old, $self->{PLUGS}{$old});
 
-  $@ = "Plugin '$old_a' does not exist", return
-    unless $old_p;
+    if (!defined $old_p) {
+        carp "Plugin '$old_a' does not exist";
+        return;
+    }
 
-  $@ = "Plugin named '$new_a' already exists ($self->{PLUGS}{$new_a}", return
-    if $self->{PLUGS}{$new_a};
+    if ($self->{PLUGS}{$new_a}) {
+        carp "Plugin named '$new_a' already exists ($self->{PLUGS}{$new_a}";
+        return;
+    }
 
-  my $return;
+    if (!eval { $new_p->PCI_register($self->{IRC}) } ) {
+        carp "$@";
+        return;
+    }
 
-  eval { $return = $new_p->PCI_register($self->{IRC}) };
-  warn "$@\n" if $@;
-
-  if ($return) {
     $self->{PLUGS}{$new_p} = $new_a;
     $self->{PLUGS}{$new_a} = $new_p;
 
-    my $i = 0;
-    for (@{ $self->{PIPELINE} }) {
-      splice(@{ $self->{PIPELINE} }, $i, 0, $new_p), last
-        if $_ == $old_p;
-      ++$i;
+    for (my $i = 0; $i <= $#{ $self->{PIPELINE} }; $i++) {
+      splice(@{ $self->{PIPELINE} }, $i, 0, $new_p);
+      last if $self->{PIPELINE}->[$i] == $old_p;
     }
 
     $self->{IRC}->yield(__send_event => irc_plugin_add => $new_a => $new_p);
     return 1;
-  }
-  else { return }
 }
 
 
 sub insert_after {
-  my ($self, $old, $new_a, $new_p) = @_;
-  my ($old_a, $old_p) = ref($old) ?
-    ($self->{PLUGS}{$old}, $old) :
-    ($old, $self->{PLUGS}{$old});
+    my ($self, $old, $new_a, $new_p) = @_;
+  
+    my ($old_a, $old_p) = ref $old
+        ? ($self->{PLUGS}{$old}, $old)
+        : ($old, $self->{PLUGS}{$old});
 
-  $@ = "Plugin '$old_a' does not exist", return
-    unless $old_p;
+    if (!defined $old_p) {
+        carp "Plugin '$old_a' does not exist";
+        return;
+    }
 
-  $@ = "Plugin named '$new_a' already exists ($self->{PLUGS}{$new_a}", return
-    if $self->{PLUGS}{$new_a};
+    if ($self->{PLUGS}{$new_a}) {
+        carp "Plugin named '$new_a' already exists ($self->{PLUGS}{$new_a}";
+        return;
+    }
+    
+    if (!eval { $new_p->PCI_register($self->{IRC}) } ) {
+        carp $@;
+        return;
+    }
 
-  my $return;
-
-  eval { $return = $new_p->PCI_register($self->{IRC}) };
-  warn "$@\n" if $@;
-
-  if ($return) {
     $self->{PLUGS}{$new_p} = $new_a;
     $self->{PLUGS}{$new_a} = $new_p;
 
-    my $i = 0;
-    for (@{ $self->{PIPELINE} }) {
-      splice(@{ $self->{PIPELINE} }, $i+1, 0, $new_p), last
-        if $_ == $old_p;
-      ++$i;
+    for (my $i = 0; $i <= $#{ $self->{PIPELINE} }; $i++) {
+      splice(@{ $self->{PIPELINE} }, $i+1, 0, $new_p);
+      last if $self->{PIPELINE}->[$i] == $old_p;
     }
 
     $self->{IRC}->yield(__send_event => irc_plugin_add => $new_a => $new_p);
     return 1;
-  }
-  else { return }
 }
 
 
 sub bump_up {
-  my ($self, $old, $diff) = @_;
-  my $idx = $self->get_index($old);
+    my ($self, $old, $diff) = @_;
+    my $idx = $self->get_index($old);
 
-  return -1 if $idx < 0;
+    return -1 if $idx < 0;
 
-  my $pipeline = $self->{PIPELINE};
-  $diff ||= 1;
+    my $pipeline = $self->{PIPELINE};
+    $diff ||= 1;
+    my $pos = $idx - $diff;
+    if ($pos < 0) {
+        carp "$idx - $diff is negative, moving to head of the pipeline";
+    }
 
-  my $pos = $idx - $diff;
-
-  warn "$idx - $diff is negative, moving to head of the pipeline"
-    if $pos < 0;
-
-  splice(@$pipeline, $pos, 0, splice(@$pipeline, $idx, 1));
-
-  return $pos;
+    splice(@$pipeline, $pos, 0, splice(@$pipeline, $idx, 1));
+    return $pos;
 }
 
 
 sub bump_down {
-  my ($self, $old, $diff) = @_;
-  my $idx = $self->get_index($old);
+    my ($self, $old, $diff) = @_;
+    my $idx = $self->get_index($old);
 
-  return -1 if $idx < 0;
+    return -1 if $idx < 0;
 
-  my $pipeline = $self->{PIPELINE};
-  $diff ||= 1;
+    my $pipeline = $self->{PIPELINE};
+    $diff ||= 1;
+    my $pos = $idx + $diff;
+    if ($pos >= @$pipeline) {
+        carp "$idx + $diff is too high, moving to back of the pipeline";
+    }
 
-  my $pos = $idx + $diff;
-
-  warn "$idx + $diff is too high, moving to back of the pipeline"
-    if $pos >= @$pipeline;
-
-  splice(@$pipeline, $pos, 0, splice(@$pipeline, $idx, 1));
-
-  return $pos;
+    splice(@$pipeline, $pos, 0, splice(@$pipeline, $idx, 1));
+    return $pos;
 }
 
-
 1;
-
 __END__
 
 =head1 NAME
@@ -316,201 +319,195 @@ POE::Component::IRC::Pipeline - the plugin pipeline for POE::Component::IRC.
 
 =head1 SYNOPSIS
 
-  use POE qw( Component::IRC );
-  use POE::Component::IRC::Pipeline;
-  use My::Plugin;
+ use POE qw( Component::IRC );
+ use POE::Component::IRC::Pipeline;
+ use My::Plugin;
 
-  my $irc = POE::Component::IRC->spawn;
+ my $irc = POE::Component::IRC->spawn;
 
-  # the following operations are presented in pairs
-  # the first is the general procedure, the second is
-  # the specific way using the pipeline directly
+ # the following operations are presented in pairs
+ # the first is the general procedure, the second is
+ # the specific way using the pipeline directly
 
-  # to install a plugin
-  $irc->plugin_add(mine => My::Plugin->new);
-  $irc->pipeline->push(mine => My::Plugin->new);  
+ # to install a plugin
+ $irc->plugin_add(mine => My::Plugin->new);
+ $irc->pipeline->push(mine => My::Plugin->new);  
 
-  # to remove a plugin
-  $irc->plugin_del('mine');        # or the object
-  $irc->pipeline->remove('mine');  # or the object
+ # to remove a plugin
+ $irc->plugin_del('mine');        # or the object
+ $irc->pipeline->remove('mine');  # or the object
 
-  # to get a plugin
-  my $plug = $irc->plugin_get('mine');
-  my $plug = $irc->pipeline->get('mine');
+ # to get a plugin
+ my $plug = $irc->plugin_get('mine');
+ my $plug = $irc->pipeline->get('mine');
 
-  # there are other very specific operations that
-  # the pipeline offers, demonstrated here:
+ # there are other very specific operations that
+ # the pipeline offers, demonstrated here:
 
-  # to get the pipeline object itself
-  my $pipe = $irc->pipeline;
+ # to get the pipeline object itself
+ my $pipe = $irc->pipeline;
 
-  # to install a plugin at the front of the pipeline
-  $pipe->unshift(mine => My::Plugin->new);
+ # to install a plugin at the front of the pipeline
+ $pipe->unshift(mine => My::Plugin->new);
 
-  # to remove the plugin at the end of the pipeline
-  my $plug = $pipe->pop;
+ # to remove the plugin at the end of the pipeline
+ my $plug = $pipe->pop;
 
-  # to remove the plugin at the front of the pipeline
-  my $plug = $pipe->shift;
+ # to remove the plugin at the front of the pipeline
+ my $plug = $pipe->shift;
 
-  # to replace a plugin with another
-  $pipe->replace(mine => newmine => My::Plugin->new);
+ # to replace a plugin with another
+ $pipe->replace(mine => newmine => My::Plugin->new);
 
-  # to insert a plugin before another
-  $pipe->insert_before(mine => newmine => My::Plugin->new);
+ # to insert a plugin before another
+ $pipe->insert_before(mine => newmine => My::Plugin->new);
 
-  # to insert a plugin after another
-  $pipe->insert_after(mine => newmine => My::Plugin->new);
+ # to insert a plugin after another
+ $pipe->insert_after(mine => newmine => My::Plugin->new);
 
-  # to get the location in the pipeline of a plugin
-  my $index = $pipe->get_index('mine');
+ # to get the location in the pipeline of a plugin
+ my $index = $pipe->get_index('mine');
 
-  # to move a plugin closer to the front of the pipeline
-  $pipe->bump_up('mine');
+ # to move a plugin closer to the front of the pipeline
+ $pipe->bump_up('mine');
 
-  # to move a plugin closer to the end of the pipeline
-  $pipe->bump_down('mine');
+ # to move a plugin closer to the end of the pipeline
+ $pipe->bump_down('mine');
 
 =head1 DESCRIPTION
 
-POE::Component::IRC::Pipeline defines the Plugin pipeline system for POE::Component::IRC
-instances.  
+POE::Component::IRC::Pipeline defines the Plugin pipeline system for
+POE::Component::IRC instances.  
 
 =head1 METHODS
 
 =over
 
-=item new
+=item C<new>
 
 Takes one argument, the POE::Component::IRC object to attach to.
 
-=item push
+=item C<push>
 
-Take two arguments, an alias for a plugin and the plugin object itself.  If a plugin with
-that alias already exists, $@ will be set and undef will be returned.  Otherwise, it adds
-the plugin to the end of the pipeline and registers it.  This will yield an 'irc_plugin_add'
-event.  If successful, it returns the size of the pipeline.
+Take two arguments, an alias for a plugin and the plugin object itself.
+Adds the plugin to the end of the pipeline and registers it. If successful,
+it returns the size of the pipeline.
 
-  my $new_size = $pipe->push($name, $plug);
+ my $new_size = $pipe->push($name, $plug);
 
-=item unshift
+=item C<unshift>
 
-Take two arguments, an alias for a plugin and the plugin object itself.  If a plugin with
-that alias already exists, $@ will be set and undef will be returned.  Otherwise, it adds
-the plugin to the beginning of the pipeline and registers it.  This will yield an 'irc_plugin_add'
-event.  If successful, it returns the size of the pipeline.
+Take two arguments, an alias for a plugin and the plugin object itself.
+Adds the plugin to the beginning of the pipeline and registers it.
+This will yield an 'irc_plugin_add' event.  If successful, it returns the
+size of the pipeline.
 
-  my $new_size = $pipe->push($name, $plug);
+ my $new_size = $pipe->push($name, $plug);
 
-=item replace
+=item C<replace>
 
-Take three arguments, the old plugin or its alias, an alias for the new plugin and the new
-plugin object itself.  If the old plugin doesn't exist, or if there is already a plugin with
-the new alias (besides the old plugin), $@ will be set and undef will be returned.  Otherwise,
-it removes the old plugin (yielding an 'irc_plugin_del' event) and replaces it with the new
-plugin.  This will yield an 'irc_plugin_add' event.  If successful, it returns 1.
+Take three arguments, the old plugin or its alias, an alias for the new plugin
+and the new plugin object itself. Removes the old plugin (yielding an
+'irc_plugin_del' event) and replaces it with the new plugin.This will yield an
+'irc_plugin_add' event. If successful, it returns a true value.
 
-  my $success = $pipe->replace($name, $new_name, $new_plug);
-  my $success = $pipe->replace($plug, $new_name, $new_plug);
+ my $success = $pipe->replace($name, $new_name, $new_plug);
+ my $success = $pipe->replace($plug, $new_name, $new_plug);
 
-=item insert_before
+=item C<insert_before>
 
-Takes three arguments, the plugin that is relative to the operation, an alias for the new
-plugin and the new plugin object itself.  If the first plugin doesn't exist, or if there is
-already a plugin with the new alias, $@ will be set and undef will be returned.  Otherwise,
-the new plugin is placed just prior to the other plugin in the pipeline.  If successful, it
-returns 1.
+Takes three arguments, the plugin that is relative to the operation, an alias
+for the new plugin and the new plugin object itself. The new plugin is placed
+just prior to the other plugin in the pipeline. If successful, it returns a
+true value.
 
-  my $success = $pipe->insert_before($name, $new_name, $new_plug);
-  my $success = $pipe->insert_before($plug, $new_name, $new_plug);
+ my $success = $pipe->insert_before($name, $new_name, $new_plug);
+ my $success = $pipe->insert_before($plug, $new_name, $new_plug);
 
-=item insert_after
+=item C<insert_after>
 
-Takes three arguments, the plugin that is relative to the operation, an alias for the new
-plugin and the new plugin object itself.  If the first plugin doesn't exist, or if there is
-already a plugin with the new alias, $@ will be set and undef will be returned.  Otherwise,
-the new plugin is placed just after to the other plugin in the pipeline.  If successful, it
-returns 1.
+Takes three arguments, the plugin that is relative to the operation, an alias
+for the new plugin and the new plugin object itself. The new plugin is placed
+just after to the other plugin in the pipeline. If successful, it returns
+a true value.
 
-  my $success = $pipe->insert_after($name, $new_name, $new_plug);
-  my $success = $pipe->insert_after($plug, $new_name, $new_plug);
+ my $success = $pipe->insert_after($name, $new_name, $new_plug);
+ my $success = $pipe->insert_after($plug, $new_name, $new_plug);
 
-=item bump_up
+=item C<bump_up>
 
-Takes one or two arguments, the plugin or its alias, and the distance to bump the plugin.
-The distance defaults to 1.  If the plugin doesn't exist, $@ will be set and B<-1 will be
-returned, not undef>.  Otherwise, the plugin will be moved the given distance closer to the
-front of the pipeline.  A warning is issued alerting you if it would have been moved past the
-beginning of the pipeline, and the plugin is placed at the beginning.  If successful, the new
-index of the plugin in the pipeline is returned.
+Takes one or two arguments, the plugin or its alias, and the distance to bump
+the plugin. The distance defaults to 1. The plugin will be moved the given
+distance closer to the front of the pipeline. A warning is issued alerting you
+if it would have been moved past the beginning of the pipeline, and the plugin
+is placed at the beginning.  If successful, the new index of the plugin in
+the pipeline is returned.
 
-  my $pos = $pipe->bump_up($name);
-  my $pos = $pipe->bump_up($plug);
-  my $pos = $pipe->bump_up($name, $delta);
-  my $pos = $pipe->bump_up($plug, $delta);
+ my $pos = $pipe->bump_up($name);
+ my $pos = $pipe->bump_up($plug);
+ my $pos = $pipe->bump_up($name, $delta);
+ my $pos = $pipe->bump_up($plug, $delta);
 
-=item bump_down
+=item C<bump_down>
 
-Takes one or two arguments, the plugin or its alias, and the distance to bump the plugin.
-The distance defaults to 1.  If the plugin doesn't exist, $@ will be set and B<-1 will be
-returned, not undef>.  Otherwise, the plugin will be moved the given distance closer to the
-end of the pipeline.  A warning is issued alerting you if it would have been moved past the
-end of the pipeline, and the plugin is placed at the end.  If successful, the new index of
-the plugin in the pipeline is returned.
+Takes one or two arguments, the plugin or its alias, and the distance to bump
+the plugin. The distance defaults to 1. The plugin will be moved the given
+distance closer to the end of the pipeline.  A warning is issued alerting you
+if it would have been moved past the end of the pipeline, and the plugin is
+placed at the end.If successful, the new index of the plugin in the pipeline
+is returned.
 
-  my $pos = $pipe->bump_down($name);
-  my $pos = $pipe->bump_down($plug);
-  my $pos = $pipe->bump_down($name, $delta);
-  my $pos = $pipe->bump_down($plug, $delta);
+ my $pos = $pipe->bump_down($name);
+ my $pos = $pipe->bump_down($plug);
+ my $pos = $pipe->bump_down($name, $delta);
+ my $pos = $pipe->bump_down($plug, $delta);
 
-=item remove
+=item C<remove>
 
-Takes one argument, a plugin or its alias.  If the plugin doesn't exist, $@ will be set and
-undef will be returned.  Otherwise, the plugin is removed from the pipeline.  This will yield
-an 'irc_plugin_del' event.  In list context, it returns the plugin and its alias; in scalar
-context, it returns only the plugin.
+Takes one argument, a plugin or its alias. The plugin is removed from the
+pipeline.  This will yield an 'irc_plugin_del' event. If successful, it returns
+plugin and its alias in list context or just the plugin in scalar context.
 
-  my ($plug, $name) = $pipe->remove($the_name);
-  my ($plug, $name) = $pipe->remove($the_plug);
-  my $plug = $pipe->remove($the_name);
-  my $plug = $pipe->remove($the_plug);
+ my ($plug, $name) = $pipe->remove($the_name);
+ my ($plug, $name) = $pipe->remove($the_plug);
+ my $plug = $pipe->remove($the_name);
+ my $plug = $pipe->remove($the_plug);
 
-=item shift
+=item C<shift>
 
-Takes no arguments.  The first plugin in the pipeline is removed.  This will yield
-an 'irc_plugin_del' event.  In list context, it returns the plugin and its alias; in scalar
-context, it returns only the plugin.  If there were no elements, undef will be returned.
+Takes no arguments. The first plugin in the pipeline is removed. This will
+yield an 'irc_plugin_del' event. If successful, it returns the plugin and its
+alias in list context or just the plugin in scalar context.
 
-  my ($plug, $name) = $pipe->shift;
-  my $plug = $pipe->shift;
+ my ($plug, $name) = $pipe->shift;
+ my $plug = $pipe->shift;
 
-=item pop
+=item C<pop>
 
-Takes no arguments.  The last plugin in the pipeline is removed.  This will yield
-an 'irc_plugin_del' event.  In list context, it returns the plugin and its alias; in scalar
-context, it returns only the plugin.  If there were no elements, undef will be returned.
+Takes no arguments. The last plugin in the pipeline is removed. This will yield
+an 'irc_plugin_del' event. If successful, it returns the plugin and its alias
+in list context or just the plugin in scalar context.
 
-  my ($plug, $name) = $pipe->pop;
-  my $plug = $pipe->pop;
+ my ($plug, $name) = $pipe->pop;
+ my $plug = $pipe->pop;
 
-=item get
+=item C<get>
 
-Takes one argument, a plugin or its alias.  If no such plugin exists, $@ will be set and
-undef will be returned.  In list context, it returns the plugin and its alias; in scalar
-context, it returns only the plugin.
+Takes one argument, a plugin or its alias. If successful, it returns the
+plugin and its alias in list context or just the plugin in scalar context.
 
-  my ($plug, $name) = $pipe->get($the_name);
-  my ($plug, $name) = $pipe->get($the_plug);
-  my $plug = $pipe->get($the_name);
-  my $plug = $pipe->get($the_plug);
+ my ($plug, $name) = $pipe->get($the_name);
+ my ($plug, $name) = $pipe->get($the_plug);
+ my $plug = $pipe->get($the_name);
+ my $plug = $pipe->get($the_plug);
 
-=item get_index
+=item C<get_index>
 
-Takes one argument, a plugin or its alias.  If no such plugin exists, $@ will be set and
-B<-1 will be returned, not undef>.  Otherwise, the index in the pipeline is returned.
+Takes one argument, a plugin or its alias. It returns the index
+in the pipeline if successful, otherwise B<-1 will be returned, not undef>.
 
-  my $pos = $pipe->get_index($name);
-  my $pos = $pipe->get_index($plug);
+ my $pos = $pipe->get_index($name);
+ my $pos = $pipe->get_index($plug);
 
 =back
 
@@ -520,14 +517,15 @@ None known so far.
 
 =head1 SEE ALSO
 
-L<POE::Component::IRC>, 
+L<POE::Component::IRC|POE::Component::IRC>, 
 
-L<POE::Component::IRC::Plugin>.  Also look at
+L<POE::Component::IRC::Plugin|POE::Component::IRC::Plugin>.  Also look at
 
-L<POE::Session::MultiDispatch> which does something similar for session events.
+L<POE::Session::MultiDispatch|POE::Session::MultiDispatch> which does something
+similar for session events.
 
 =head1 AUTHOR
 
-Jeff C<japhy> Pinyan, F<japhy@perlmonk.org>.
+Jeff C<japhy> Pinyan, <japhy@perlmonk.org>.
 
 =cut

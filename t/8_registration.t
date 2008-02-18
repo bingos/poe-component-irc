@@ -24,7 +24,7 @@ sub registered {
   pass('Child registered us');
   isa_ok( $poco, 'POE::Component::IRC' );
   #$kernel->post( $sender, 'shutdown' );
-  $kernel->post( $sender => unregister => 'mode' );
+  $kernel->post( $sender => unregister => 'all' );
   warn "Waiting 5 seconds for 'unregister'\n";
   $heap->{irc}->delay( [ 'shutdown' ], 5 );
   undef;

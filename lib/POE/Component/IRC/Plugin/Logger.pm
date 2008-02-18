@@ -12,7 +12,7 @@ use POE::Component::IRC::Common qw( l_irc parse_user strip_color strip_formattin
 use POSIX qw(strftime);
 use vars qw($VERSION);
 
-$VERSION = '1.4';
+$VERSION = '1.5';
 
 sub new {
     my ($package, %self) = @_;
@@ -118,7 +118,7 @@ sub PCI_unregister {
 sub S_001 {
     my ($self, $irc) = splice @_, 0, 2;
     $self->{logging} = { };
-		return PCI_EAT_NONE;
+    return PCI_EAT_NONE;
 }
 
 sub S_332 {
@@ -272,7 +272,8 @@ sub _log_entry {
     my ($date, $time) = split / /, (strftime '%F %T', localtime);
     $context = l_irc $context, $self->{irc}->isupport('CASEMAPPING');
 
-    return unless $context =~ /^[#&+!]/ && $self->{Public} or $context !~ /^[#&+!]/ && $self->{Private};
+    return unless $context =~ /^[#&+!]/ && $self->{Public}
+      || ( $context !~ /^[#&+!]/ && $self->{Private} );
     return unless defined $self->{Format}->{$type};
     
     my $log_file;
@@ -293,6 +294,7 @@ sub _log_entry {
     my $line = "$time " . $self->{Format}->{$type}->(@args);
     $line = "$date $line" unless $self->{Sort_by_date};
     print $log_file "$line\n";
+    return;
 }
 
 sub _open_log {
@@ -313,6 +315,7 @@ sub _normalize {
 }
 
 1;
+__END__
 
 =head1 NAME
 
@@ -331,21 +334,23 @@ logs public and private messages to disk.
 
 =head1 DESCRIPTION
 
-POE::Component::IRC::Plugin::Logger is a L<POE::Component::IRC|POE::Component::IRC> plugin.
-It logs messages and CTCP ACTIONs to either C<#some_channel.log> or C<some_nickname.log> in the supplied path.
-It tries to detect UTF-8 encoding of every message or else falls back to CP1252, like irssi
-(and, supposedly, mIRC) does by default. Resulting log files will be UTF-8 encoded. The default
-log format is similar to xchat's, except that it's sane and parsable.
+POE::Component::IRC::Plugin::Logger is a L<POE::Component::IRC|POE::Component::IRC>
+plugin. It logs messages and CTCP ACTIONs to either C<#some_channel.log> or
+C<some_nickname.log> in the supplied path. It tries to detect UTF-8 encoding of
+every message or else falls back to CP1252, like irssi (and, supposedly, mIRC)
+does by default. Resulting log files will be UTF-8 encoded. The default log
+format is similar to xchat's, except that it's sane and parsable.
 
 This plugin requires the IRC component to be L<POE::Component::IRC::State|POE::Component::IRC::State>
 or a subclass thereof. It also requires a L<POE::Component::IRC::Plugin::BotTraffic|POE::Component::IRC::Plugin::BotTraffic>
-to be in the plugin pipeline. It will be added automatically if it is not present.
+to be in the plugin pipeline. It will be added automatically if it is not
+present.
 
 =head1 METHODS
 
 =over
 
-=item new
+=item C<new>
 
 Arguments:
 
@@ -355,22 +360,25 @@ Arguments:
 
 'Public', whether or not to log public messages. Defaults to 1.
 
-'Sort_by_date', whether or not to split log files by date, i.e. C<#channel/YYYY-MM-DD.log>
-instead of C<#channel.log>. If enabled, the date will be omitted from the timestamp.
+'Sort_by_date', whether or not to split log files by date, i.e.
+C<#channel/YYYY-MM-DD.log> instead of C<#channel.log>. If enabled, the date
+will be omitted from the timestamp. Defaults to 0.
+
+'Strip_color', whether or not to strip all color codes from messages. Defaults
+to 0.
+
+'Strip_formatting', whether or not to strip all formatting codes from messages.
 Defaults to 0.
 
-'Strip_color', whether or not to strip all color codes from messages. Defaults to 0.
+'Restricted', set this to 1 if you want to all directories/files to be created
+without read permissions for other users (i.e. 700 for dirs and 600 for files).
+Defaults to 0.
 
-'Strip_formatting', whether or not to strip all formatting codes from messages. Defaults to 0.
+'Format', a hash reference representing the log format, if you want to define
+your own. See the source for details.
 
-'Restricted', set this to 1 if you want to all directories/files to be created without
-read permissions for other users (i.e. 700 for dirs and 600 for files). Defaults to 0.
-
-'Format', a hash reference representing the log format, if you want to define your own.
-See the source for details.
-
-Returns a plugin object suitable for feeding to L<POE::Component::IRC|POE::Component::IRC>'s
-plugin_add() method.
+Returns a plugin object suitable for feeding to
+L<POE::Component::IRC|POE::Component::IRC>'s plugin_add() method.
 
 =back
 
@@ -378,3 +386,4 @@ plugin_add() method.
 
 Hinrik E<Ouml>rn SigurE<eth>sson, hinrik.sig@gmail.com
 
+=cut

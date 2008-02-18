@@ -5,14 +5,15 @@ use warnings;
 use POE::Component::IRC::Plugin qw(:ALL);
 use vars qw($VERSION);
 
-$VERSION = '1.2';
+$VERSION = '1.3';
 
 sub new {
-    my $package = shift;
-    my %args = @_;
+    my ($package, %args) = @_;
     $args{ lc $_ } = delete $args{$_} for keys %args;
-    $args{poll} = 30
-        unless defined $args{poll} and $args{poll} =~ /^\d+$/;
+
+    if (!defined $args{poll} || $args{poll} !~ /^\d+$/) {
+        $args{poll} = 30;
+    }
     
     # the $irc->nick_name() and offending nickname will be...
     #...the same on start, thus won't change
@@ -23,7 +24,7 @@ sub new {
 }
 
 sub PCI_register {
-    my ($self,$irc) = @_;
+    my ($self, $irc) = @_;
     $irc->plugin_register( $self, 'SERVER', qw(433 001) );
     $irc->plugin_register( $self, 'USER', qw(nick) );
     
@@ -51,10 +52,9 @@ sub PCI_register {
 ##############
 sub U_nick {
     my $self = shift;
-    my ( $nick ) = ${$_[1]} =~ /^NICK\s+(.+)/i;
+    my ($nick) = $ {$_[1 ]} =~ /^NICK\s+(.+)/i;
     
-    return PCI_EAT_NONE
-        if exists $self->{_claims}{ $nick };
+    return PCI_EAT_NONE if exists $self->{_claims}{ $nick };
 
     # we got a new "real" nick, reset old nicks with underscores...
     #...we don't need those anymore.
@@ -66,7 +66,7 @@ sub U_nick {
 
 
 sub PCI_unregister {
-  return 1;
+    return 1;
 }
 
 ########
@@ -77,9 +77,8 @@ sub PCI_unregister {
 # when $irc->nick_name() returns the nick which we need to reclaim
 ######
 sub S_001 {
-  $_[0]->{_did_start} = 1; 
-  
-  return PCI_EAT_NONE;
+    $_[0]->{_did_start} = 1; 
+    return PCI_EAT_NONE;
 }
 
 
@@ -118,70 +117,73 @@ sub S_433 {
   return PCI_EAT_NONE;
 }
 
-# teh end ;D Zoffix Was here :D
-
 1;
 __END__
 
 =head1 NAME
 
-POE::Component::IRC::Plugin::NickReclaim - A PoCo-IRC plugin for reclaiming nickname.
+POE::Component::IRC::Plugin::NickReclaim - A PoCo-IRC plugin for reclaiming
+nickname.
 
 =head1 SYNOPSIS
 
-  use strict;
-  use warnings;
-  use POE qw(Component::IRC Component::IRC::Plugin::NickReclaim);
+ use strict;
+ use warnings;
+ use POE qw(Component::IRC Component::IRC::Plugin::NickReclaim);
 
-  my $nickname = 'Flibble' . $$;
-  my $ircname = 'Flibble the Sailor Bot';
-  my $ircserver = 'irc.blahblahblah.irc';
-  my $port = 6667;
+ my $nickname = 'Flibble' . $$;
+ my $ircname = 'Flibble the Sailor Bot';
+ my $ircserver = 'irc.blahblahblah.irc';
+ my $port = 6667;
 
-  my ($irc) = POE::Component::IRC->spawn( 
-        nick => $nickname,
-        server => $ircserver,
-        port => $port,
-        ircname => $ircname,
-  ) or die "Oh noooo! $!";
+ my $irc = POE::Component::IRC->spawn( 
+     nick => $nickname,
+     server => $ircserver,
+     port => $port,
+     ircname => $ircname,
+ ) or die "Oh noooo! $!";
 
-  POE::Session->create(
-        package_states => [
-                'main' => [ qw(_start) ],
-        ],
-  );
+ POE::Session->create(
+     package_states => [
+         main => [ qw(_start) ],
+     ],
+ );
 
   $poe_kernel->run();
-  exit 0;
 
-  sub _start {
-    $irc->yield( register => 'all' );
+ sub _start {
+     $irc->yield( register => 'all' );
 
-    # Create and load our NickReclaim plugin, before we connect 
-    $irc->plugin_add( 'NickReclaim' => 
-        POE::Component::IRC::Plugin::NickReclaim->new( poll => 30 ) );
+     # Create and load our NickReclaim plugin, before we connect 
+     $irc->plugin_add( 'NickReclaim' => 
+         POE::Component::IRC::Plugin::NickReclaim->new( poll => 30 ) );
 
-    $irc->yield( connect => { } );
-    undef;
-  }
+     $irc->yield( connect => { } );
+     return;
+ }
 
 =head1 DESCRIPTION
 
-POE::Component::IRC::Plugin::NickReclaim - A L<POE::Component::IRC> plugin automagically deals with your bot's nickname being in use and reclaims it when it becomes available again.
+POE::Component::IRC::Plugin::NickReclaim - A L<POE::Component::IRC> plugin
+automagically deals with your bot's nickname being in use and reclaims it when
+it becomes available again.
 
-It registers and handles 'irc_433' events. On receiving a 433 event it will reset the nickname to the 'nick' specified with spawn() or connect(), appended with an underscore, and then poll to try and change it to the original nickname. 
+It registers and handles 'irc_433' events. On receiving a 433 event it will
+reset the nickname to the 'nick' specified with spawn() or connect(), appended
+with an underscore, and then poll to try and change it to the original nickname. 
 
 =head1 CONSTRUCTOR
 
 =over
 
-=item new
+=item C<new>
 
 Takes one optional argument:
 
-  'poll', the number of seconds between nick change attempts, default is 30;
+'poll', the number of seconds between nick change attempts, default is 30;
 
-Returns a plugin object suitable for feeding to L<POE::Component::IRC>'s plugin_add() method.
+Returns a plugin object suitable for feeding to
+L<POE::Component::IRC|POE::Component::IRC>'s plugin_add() method.
 
 =back
 
@@ -193,4 +195,6 @@ With amendments applied by Zoffix Znet
 
 =head1 SEE ALSO
 
-L<POE::Component::IRC>
+L<POE::Component::IRC|POE::Component::IRC>
+
+=cut

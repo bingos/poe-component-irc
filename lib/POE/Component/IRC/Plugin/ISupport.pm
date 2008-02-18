@@ -5,159 +5,185 @@ use warnings;
 use POE::Component::IRC::Plugin qw(:ALL);
 use vars qw($VERSION);
 
-$VERSION = '0.56';
+$VERSION = '0.57';
 
 sub new {
-  return bless { }, shift;
+    return bless { }, shift;
 }
 
 sub PCI_register {
-  my ($self,$irc) = splice @_, 0, 2;
+    my ($self, $irc) = splice @_, 0, 2;
 
-  $irc->plugin_register( $self => SERVER => qw(all) );
-  $self->{irc} = $irc;
-  return 1;
+    $irc->plugin_register( $self => SERVER => qw(all) );
+    $self->{irc} = $irc;
+    $self->{parser} = {
+        CASEMAPPING => sub {
+            my ($support, $key, $val) = @_;
+            $support->{ $key } = $val;
+        },
+        CHANLIMIT => sub {
+            my ($support, $key, $val) = @_;
+            while ($val =~ /([^:]+):(\d+),?/g) {
+                my ($k, $v) = ($1, $2);
+                @{ $support->{$key} }{ split(//, $k) } = ($v) x length $k;
+            }
+        },
+        CHANMODES => sub {
+            my ($support, $key, $val) = @_;
+            $support->{$key} = [ split(/,/, $val) ];
+        },
+        CHANTYPES => sub {
+            my ($support, $key, $val) = @_;
+            $support->{$key} = [ split(//, $val) ];
+        },
+        ELIST => sub {
+            my ($support, $key, $val) = @_;
+            $support->{$key} = [ split(//, $val) ];
+        },
+        IDCHAN => sub {
+            my ($support, $key, $val) = @_;
+            while ($val =~ /([^:]+):(\d+),?/g) {
+                my ($k, $v) = ($1, $2);
+                @{ $support->{$key} }{ split(//, $k) } = ($v) x length $k;
+            }
+        },
+        MAXLIST => sub {
+            my ($support, $key, $val) = @_;
+            while ($val =~ /([^:]+):(\d+),?/g) {
+                my ($k, $v) = ($1, $2);
+                @{ $support->{$key} }{ split(//, $k) } = ($v) x length $k;
+            }
+        },
+        PREFIX => sub {
+            my ($support, $key, $val) = @_;
+            if ( my ($k, $v) = $val =~ /\(([^)]+)\)(.*)/ ) {
+                @{ $support->{$key} }{ split(//, $k) } = split(//, $v);
+            }
+        },
+        SILENCE => sub {
+            my ($support, $key, $val) = @_;
+            $support->{$key} = length($val) ? $val : 'off';
+        },
+        STATUSMSG => sub {
+            my ($support, $key, $val) = @_;
+            $support->{$key} = [ split(//, $val) ];
+        },
+        TARGMAX => sub {
+            my ($support, $key, $val) = @_;
+            while ($val =~ /([^:]+):(\d*),?/g) {
+            $support->{$key}->{$1} = $2;
+          }
+        },
+        EXCEPTS => sub {
+            my ($support, $flag) = @_;
+            $support->{$flag} = 'e';
+        },
+        INVEX   => sub {
+            my ($support, $flag) = @_;
+            $support->{$flag} = 'I';
+        },
+        MODES   => sub {
+            my ($support, $flag) = @_;
+            $support->{$flag} = '';
+        },
+        SILENCE => sub {
+            my ($support, $flag) = @_;
+            $support->{$flag} = 'off';
+        },
+    };
+
+    return 1;
 }
 
 sub PCI_unregister {
-        my( $self, $irc ) = @_;
-
-	delete $self->{irc};
-        # All done!
-        return 1;
+    my ($self, $irc) = splice @_, 0, 2;
+    delete $self->{irc};
+    return 1;
 }
 
 sub S_001 {
-  my ($self,$irc) = splice @_, 0, 2;
+    my ($self, $irc) = splice @_, 0, 2;
 
-  $self->{server} = { };
-  $self->{done_005} = 0;
-  return PCI_EAT_NONE;
+    $self->{server} = { };
+    $self->{done_005} = 0;
+    return PCI_EAT_NONE;
 }
 
 sub S_005 {
-  my ($self,$irc,@args) = @_;
-  my @vals = @{ ${ $args[2] } };
-  pop @vals;
-  my $support = $self->{server};
-  #(my $spec = ${ $args[1] }) =~ s/:are (?:available|supported).*//;
+    my ($self, $irc, @args) = @_;
+    my @vals = @{ ${ $args[2] } };
+    pop @vals;
+    my $support = $self->{server};
+    #(my $spec = ${ $args[1] }) =~ s/:are (?:available|supported).*//;
 
-  #for (split ' ', $spec) {
-  for (@vals) {
-    if (/=/) {
-      my ($key, $val) = split /=/, $_, 2;
-
-      if ($key eq 'CASEMAPPING') {
-        $support->{$key} = $val;
-        #if ($val eq 'ascii') { }
-        #elsif ($val eq 'rfc1459') {
-        #  $self->{server}->cmp(sub { (my $s = pop) =~ tr/A-Z[]\\^/a-z{}|~/; $s });
-        #}
-        #elsif ($val eq 'strict-rfc1459') {
-        #  $self->{server}->cmp(sub { (my $s = pop) =~ tr/A-Z[]\\/a-z{}|/; $s });
-        #}
-        #else {
-        #  #$irc->_send_event(IRCE_UNKCMAP, 0, [$val]);
-        #}
-      }
-      elsif ($key eq 'CHANLIMIT') {
-        while ($val =~ /([^:]+):(\d+),?/g) {
-          my ($k, $v) = ($1, $2);
-          @{ $support->{$key} }{ split //, $k } = ($v) x length $k;
+    #for (split ' ', $spec) {
+    for my $val (@vals) {
+        if ($val =~ /=/) {
+            my $key;
+            ($key, $val) = split(/=/, $val, 2);
+            if (defined $self->{parser}->{$key}) {
+                $self->{parser}->{$key}->($support, $key, $val);
+            }
+            else {
+                # AWAYLEN CHANNELLEN CHIDLEN EXCEPTS INVEX KICKLEN MAXBANS
+                # MAXCHANNELS MAXTARGETS MODES NETWORK NICKLEN SILENCE STD
+                # TOPICLEN WATCH
+                $support->{$key} = $val;
+            }
         }
-      }
-      elsif ($key eq 'CHANMODES') {
-        $support->{$key} = [ split /,/, $val ];
-      }
-      elsif ($key eq 'CHANTYPES') {
-        $support->{$key} = [ split //, $val ];
-      }
-      elsif ($key eq 'ELIST') {
-        $support->{$key} = [ split //, $val ];
-      }
-      elsif ($key eq 'IDCHAN') {
-        while ($val =~ /([^:]+):(\d+),?/g) {
-          my ($k, $v) = ($1, $2);
-          @{ $support->{$key} }{ split //, $k } = ($v) x length $k;
+        else {
+            if (defined $self->{parser}->{$val}) {
+                $self->{parser}->{$val}->($support, $val);
+            }
+            else {
+                # ACCEPT CALLERID CAPAB CNOTICE CPRIVMSG FNC KNOCK MAXNICKLEN
+                # NOQUIT PENALTY RFC1812 SAFELIST USERIP VCHANS WALLCHOPS 
+                # WALLVOICES WHOX
+                $support->{$val} = 'on';
+            }
         }
-      }
-      elsif ($key eq 'MAXLIST') {
-        while ($val =~ /([^:]+):(\d+),?/g) {
-          my ($k, $v) = ($1, $2);
-          @{ $support->{$key} }{ split //, $k } = ($v) x length $k;
-        }
-      }
-      elsif ($key eq 'PREFIX') {
-        if ( my ($k, $v) = $val =~ /\(([^)]+)\)(.*)/ ) {
-          @{ $support->{$key} }{split //, $k} = split //, $v;
-	}
-      }
-      elsif ($key eq 'SILENCE') {
-        $support->{$key} = length($val) ? $val : 'off';
-      }
-      elsif ($key eq 'STATUSMSG') {
-        $support->{$key} = [ split //, $val ];
-      }
-      elsif ($key eq 'TARGMAX') {
-        while ($val =~ /([^:]+):(\d*),?/g) {
-          $support->{$key}{$1} = $2;
-        }
-      }
-
-      # AWAYLEN CHANNELLEN CHIDLEN EXCEPTS INVEX KICKLEN MAXBANS MAXCHANNELS
-      # MAXTARGETS MODES NETWORK NICKLEN SILENCE STD TOPICLEN WATCH
-      else { $support->{$key} = $val }
     }
-    else {
-      if ($_ eq 'EXCEPTS') { $support->{$_} = 'e' }
-      elsif ($_ eq 'INVEX') { $support->{$_} = 'I' }
-      elsif ($_ eq 'MODES') { $support->{$_} = '' }
-      elsif ($_ eq 'SILENCE') { $support->{$_} = 'off' }
-
-      # ACCEPT CALLERID CAPAB CNOTICE CPRIVMSG FNC KNOCK MAXNICKLEN NOQUIT
-      # PENALTY RFC1812 SAFELIST USERIP VCHANS WALLCHOPS WALLVOICES WHOX
-      else { $support->{$_} = "on" }
-    }
-  }
-  return PCI_EAT_NONE;
+    
+    return PCI_EAT_NONE;
 }
 
 sub _default {
-  my ($self, $irc, $e) = @_;
+    my ($self, $irc, $e) = @_;
 
-  return PCI_EAT_NONE if $self->{done_005};
-  if ($e =~ /^S_0*(\d+)/ and $1 > 5) {
-    $irc->_send_event(irc_isupport => $self);
-    $self->{done_005} = 1;
-  }
+    return PCI_EAT_NONE if $self->{done_005};
+    
+    if ($e =~ /^S_0*(\d+)/ and $1 > 5) {
+        $irc->_send_event(irc_isupport => $self);
+        $self->{done_005} = 1;
+    }
 
-  return PCI_EAT_NONE;
+    return PCI_EAT_NONE;
 }
 
 sub isupport {
-  my $self = shift;
-  my $value = uc ( $_[0] ) || return undef;
-  
-  return $self->{server}->{$value} if defined $self->{server}->{$value};
-  undef;
+    my $self = shift;
+    my $value = uc ( $_[0] ) || return;
+
+    return $self->{server}->{$value} if defined $self->{server}->{$value};
+    return;
 }
 
 sub isupport_dump_keys {
-  my $self = shift;
+    my $self = shift;
 
-  if ( scalar ( keys %{ $self->{server} } ) > 0 ) {
-	return keys %{ $self->{server} };
-  }
-  return undef;
+    if ( scalar ( keys %{ $self->{server} } ) > 0 ) {
+        return keys %{ $self->{server} };
+    }
+    return;
 }
 
 1;
 __END__
 
-
 =head1 NAME
 
-POE::Component::IRC::Plugin::ISupport - A PoCo-IRC plugin that handles server capabilities.
+POE::Component::IRC::Plugin::ISupport - A PoCo-IRC plugin that handles server
+capabilities.
 
 =head1 DESCRIPTION
 
@@ -168,9 +194,12 @@ define the capabilities support by the server.
 
 =over 
 
-=item new 
+=item C<new>
 
 Takes no arguments.
+
+Returns a plugin object suitable for feeding to
+L<POE::Component::IRC|POE::Component::IRC>'s plugin_add() method.
 
 =back
 
@@ -178,13 +207,16 @@ Takes no arguments.
 
 =over
 
-=item isupport
+=item C<isupport>
 
-Takes one argument. the server capability to query. Returns undef on failure or a value representing the applicable capability. A full list of capabilities is available at L<http://www.irc.org/tech_docs/005.html>.
+Takes one argument. the server capability to query. Returns a false value on
+failure or a value representing the applicable capability. A full list of
+capabilities is available at L<http://www.irc.org/tech_docs/005.html>.
 
-=item isupport_dump_keys
+=item C<isupport_dump_keys>
 
-Takes no arguments, returns a list of the available server capabilities, which can be used with isupport().
+Takes no arguments, returns a list of the available server capabilities,
+which can be used with isupport().
 
 =back
 
@@ -198,11 +230,10 @@ This module handles the following PoCo-IRC signals:
 
 Denotes the capabilities of the server.
 
-=item all
+=item C<all>
 
 Once the next signal is received that is I<greater> than C<irc_005>,
 it emits an C<irc_isupport> signal.
-ck
 
 =back
 
@@ -226,10 +257,8 @@ Jeff C<japhy> Pinyan, F<japhy@perlmonk.org>
 
 =head1 SEE ALSO
 
-L<POE::Component::IRC>
+L<POE::Component::IRC|POE::Component::IRC>
 
-L<POE::Component::IRC::Plugin>
+L<POE::Component::IRC::Plugin|POE::Component::IRC::Plugin>
 
 =cut
-
-

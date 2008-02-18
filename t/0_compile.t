@@ -1,6 +1,5 @@
-use Test::More tests => 29;
+use Test::More tests => 28;
 use_ok("POE::Filter::IRC::Compat");
-use_ok("POE::Filter::IRC");
 use_ok("POE::Filter::CTCP");
 use_ok("POE::Component::IRC");
 use_ok("POE::Component::IRC::State");

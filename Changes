@@ -1,5 +1,17 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.66
+    - Removed Filter::IRC in favor of Filter::IRC::Compat (Hinrik)
+    - Filter/CTCP.pm: Support filenames with spaces in DCCs (Hinrik)
+    - IRC.pm: Always doube-quote sent DCC files for safety (Hinrik)
+    - Compat.pm: Propagate debug flag to internal CTCP filter (Hinrik)
+    - Updated t/perlcriticrc to exlude a few more policies (Hinrik)
+    - Cleaned up all code and documentation. The changes include:
+      everything needed to satisfy Perl::Critic, use carp/croak
+      instead of warn/die where appropriate, use 4-column indents,
+      use consistent coding style everywhere, some refactoring here
+      and there... (Hinrik)
+
 5.64  Sat Feb 16 07:55:34 GMT 2008
     - Logger.pm: Fix regression regarding utf8 detection (Hinrik)
     - Logger.pm: Don't log channel modes which have different meanings
