@@ -21,10 +21,13 @@ use vars qw($VERSION);
 $VERSION = '5.1';
 
 sub new {
+  my $package = shift;
+  my %opts = @_;
+  $opts{lc $_} = delete $opts{$_} for keys %opts;
   return POE::Filter::Stackable->new(
 	Filters => [ 
-		POE::Filter::IRCD->new(),
-		POE::Filter::IRC::Compat->new(),
+		POE::Filter::IRCD->new( DEBUG => $opts{debug} ),
+		POE::Filter::IRC::Compat->new( DEBUG => $opts{debug} ),
 	],
   );
 }

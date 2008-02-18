@@ -52,6 +52,8 @@ sub new {
         qr/invite/ => sub {
             my ($self, $event, $line) = @_;
             shift( @{ $line->{params} } );
+            unshift( @{ $line->{params} }, _decolon( $line->{prefix} || '' ) ) if $line->{prefix};
+	    $event->{args} = $line->{params};
         },
     };
   
@@ -130,6 +132,14 @@ sub get_one {
     return $events;
 }
 
+sub clone {
+  my $self = shift;
+  my $nself = { };
+  $nself->{$_} = $self->{$_} for keys %{ $self };
+  $nself->{BUFFER} = [ ];
+  return bless $nself, ref $self;
+}
+
 sub _decolon {
     my ($line) = @_;
 
@@ -188,6 +198,9 @@ Takes an arrayref of possible channel prefix indicators.
 Takes a true/false value which enables/disbles debugging accordingly.
 Returns the debug status.
 
+=item clone
+
+Makes a copy of the filter, and clears the copy's buffer.
 
 =back
 
