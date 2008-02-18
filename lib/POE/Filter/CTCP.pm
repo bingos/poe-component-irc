@@ -54,7 +54,7 @@ sub get {
                     warn "Received malformed DCC request: '$args'\n" if $self->{debug};
                     next LINE;
                 }
-                $file =~ s/(?:^"|"$)//g;
+                $file =~ s/^"|"$//g;
                 $file = File::Basename::fileparse($file);
                 
                 push @$events, {
