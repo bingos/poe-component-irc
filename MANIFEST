@@ -13,6 +13,7 @@ examples/eliza.pl
 examples/ircproxy.pl
 examples/logger.pl
 examples/moo.pl
+examples/rot13_multi.pl
 examples/simpleclient.pl
 examples/tinyurl.pl
 inc/Module/Install.pm

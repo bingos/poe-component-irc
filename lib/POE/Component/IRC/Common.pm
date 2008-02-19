@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use vars qw($VERSION %EXPORT_TAGS);
 
-$VERSION = '5.14';
+$VERSION = '5.16';
 
 # We export some stuff
 require Exporter;
@@ -21,8 +21,9 @@ Exporter::export_ok_tags( 'ALL' );
 my ($ERROR, $ERRNO);
 
 use constant {
+    NORMAL      => "\x0f",
+    
     # formatting
-    NO_FORMAT   => "\x0f",
     BOLD        => "\x02",
     UNDERLINE   => "\x1f",
     REVERSE     => "\x16",
@@ -30,7 +31,6 @@ use constant {
     FIXED       => "\x11",
     
     # mIRC colors
-    NO_COLOR    => "\x03",
     WHITE       => "\x0300",
     BLACK       => "\x0301",
     DARK_BLUE   => "\x0302",
@@ -204,7 +204,7 @@ sub has_color {
 
 sub has_formatting {
     my $string = shift;
-    return 1 if $string =~/[\x0f\x02\x1f\x16\x1d\x11]/;
+    return 1 if $string =~/[\x02\x1f\x16\x1d\x11]/;
     return;
 }
 
@@ -213,6 +213,7 @@ sub strip_color {
     
     # mIRC colors
     $string =~ s/\x03(?:\d{1,2}(?:,\d{1,2})?)?//g;
+    $string =~ s/\x0f//g;
     
     # RGB colors supported by some clients
     $string =~ s/\x04[0-9a-f]{0,6}//ig;
@@ -406,18 +407,23 @@ and ban masks.
 
 =head1 CONSTANTS
 
-Use the following constants to add color and formatting to IRC messages.
+Use the following constants to add formatting and mIRC color codes to IRC
+messages.
+
+Normal text:
+
+ NORMAL
 
 Formatting:
 
- NO_FORMAT
  BOLD
  UNDERLINE
  REVERSE
+ ITALIC
+ FIXED
 
 Colors:
 
- NO_COLOR
  WHITE
  BLACK
  DARK_BLUE
@@ -435,8 +441,18 @@ Colors:
  DARK_GREY
  LIGHT_GREY
 
- $irc->yield('This word is ' . YELLOW . 'yellow' . NO_COLOR
-     . ' while this word is ' . BOLD . 'bold' . NO_FORMAT);
+Individual formatting codes can be cancelled with their corresponding constant,
+but you can also cancel all of them at once with C<NORMAL>. To cancel the effect
+of previous color codes, you must use C<NORMAL>. which of course has the side
+effect of cancelling the effect of all previous formatting codes as well.
+
+ $irc->yield('This word is ' . YELLOW . 'yellow' . NORMAL
+     . ' while this word is ' . BOLD . 'bold' . BOLD);
+
+ $irc->yield(UNDERLINE . BOLD . 'This sentence is both underlined and bold.'
+     . NORMAL);
+
+
 
 =head1 FUNCTIONS
 
@@ -522,12 +538,18 @@ formatting codes, 0 otherwise.
 =item C<strip_color>
 
 Takes one paramter, a string of IRC text. Returns the string stripped of all
-IRC color codes.
+IRC color codes. Due to the fact that both color and formatting codes can
+be cancelled with the same character, this might strip more than you hoped for
+if the string contains both color and formatting codes. Stripping both will
+always do what you expect it to.
 
 =item C<strip_formatting>
 
 Takes one paramter, a string of IRC text. Returns the string stripped of all
-IRC formatting codes.
+IRC formatting codes. Due to the fact that both color and formatting codes can
+be cancelled with the same character, this might strip more than you hoped for
+if the string contains both color and formatting codes. Stripping both will
+always do what you expect it to.
 
 =item C<irc_ip_get_version>
 

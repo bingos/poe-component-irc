@@ -1,5 +1,11 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.68
+    - IRC.pm: Improved the docs a little, fixed an error in the
+      SYNOPSIS and moved half of it to an example file. Should be
+      less daunting now :) (Hinrik)
+    - Common.pm: Improved mIRC color handling code/documentation (Hinrik)
+
 5.66  Mon Feb 18 21:58:48 GMT 2008
     - Removed Filter::IRC in favor of Filter::IRC::Compat (Hinrik)
     - Filter/CTCP.pm: Support filenames with spaces in DCCs (Hinrik)
