@@ -2343,9 +2343,10 @@ and dispatches 'irc_' prefixed events to interested sessions and
 an object that can be used to access additional information using methods.
 
 Sessions register their interest in receiving 'irc_' events by sending
-'register' to the component. One would usually do this in your _start handler.
-Your session will continue to receive events until you 'unregister'. The
-component will continue to stay around until you tell it not to with 'shutdown'.
+C<register> to the component. One would usually do this in your C<_start>
+handler. Your session will continue to receive events until you C<unregister>.
+The component will continue to stay around until you tell it not to with
+C<shutdown>.
 
 The SYNOPSIS demonstrates a fairly basic bot.
 
@@ -2360,12 +2361,12 @@ additional methods and quirks which are documented separately:
 =item L<POE::Component::IRC::State|POE::Component::IRC::State>
 
 POE::Component::IRC::State provides all the functionality of POE::Component::IRC
- but also tracks IRC state entities such as nicks and channels.
+but also tracks IRC state entities such as nicks and channels.
 
 =item L<POE::Component::IRC::Qnet|POE::Component::IRC::Qnet>
 
 POE::Component::IRC::Qnet is POE::Component::IRC tweaked for use on Quakenet IRC
- network.
+network.
 
 =item L<POE::Component::IRC::Qnet::State|POE::Component::IRC::Qnet::State>
 
@@ -2390,7 +2391,7 @@ Keeps you on your favorite channels throughout reconnects and even kicks.
 
 =item L<POE::Component::IRC::Plugin::Connector|POE::Component::IRC::Plugin::Connector>
 
-Glues an irc bot to an IRC network, ie. deals with maintaining ircd connections.
+Glues an irc bot to an IRC network, i.e. deals with maintaining ircd connections.
 
 =item L<POE::Component::IRC::Plugin::BotTraffic|POE::Component::IRC::Plugin::BotTraffic>
 
@@ -2520,8 +2521,8 @@ common side effects of flooding IRC servers, so care should be used
 when enabling this option.
 
 Two new attributes are "Proxy" and "ProxyPort" for sending your
-IRC traffic through a proxy server.  "Proxy"'s value should be the IP
-address or server name of the proxy.  "ProxyPort"'s value should be the
+IRC traffic through a proxy server. "Proxy"'s value should be the IP
+address or server name of the proxy. "ProxyPort"'s value should be the
 port on the proxy to connect to.  C<connect> will default to using the
 I<actual> IRC server's port if you provide a proxy but omit the proxy's
 port. These are for HTTP Proxies. See 'socks_proxy' for SOCKS4 and SOCKS4a
@@ -2769,7 +2770,7 @@ plain text of the message to send (the CTCP quoting will be handled
 for you). The "/me" command in popular IRC clients is actually a CTCP action.
 
  # Doing a /me 
- $poe_kernel->post( $irc_session => ctcp => $channel => 'ACTION dances.' );
+ $irc->yield(ctcp => $channel => 'ACTION dances.');
 
 =item C<dcc>
 
@@ -3284,9 +3285,9 @@ is probably some vague and/or misleading reason for what failed.
 
 Sent when a channel topic is set or unset. ARG0 is the nick!hostmask of the
 sender. ARG1 is the channel affected. ARG2 will be either: a string if the
-topic is being set; or a zero-length string (ie. '') if the topic is being
+topic is being set; or a zero-length string (i.e. '') if the topic is being
 unset. Note: replies to queries about what a channel topic *is*
-(ie. TOPIC #channel) , are returned as numerics, not with this event.
+(i.e. TOPIC #channel) , are returned as numerics, not with this event.
 
 
 =item C<irc_whois>
