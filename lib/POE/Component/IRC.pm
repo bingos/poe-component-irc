@@ -3090,7 +3090,7 @@ server. Takes 2 arguments: your username and your password.
 Opers-only command. This one sends a message to all currently
 logged-on global opers.  This option is specific to EFNet.
 
-=item C<srehash>
+=item C<rehash>
 
 Tells the IRC server you're connected to, to rehash its configuration
 files. Only useful for IRCops. Takes no arguments.
