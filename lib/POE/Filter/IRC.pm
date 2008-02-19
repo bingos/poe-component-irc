@@ -19,7 +19,7 @@ use vars qw($VERSION);
 $VERSION = '5.1';
 
 sub new {
-    my ($package, %opts) = @;
+    my ($package, %opts) = @_;
     $opts{lc $_} = delete $opts{$_} for keys %opts;
     return POE::Filter::Stackable->new(
         Filters => [ 
