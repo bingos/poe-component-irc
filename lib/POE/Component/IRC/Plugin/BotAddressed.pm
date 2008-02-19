@@ -73,26 +73,26 @@ if its name comes up in channel discussion.
 
 =head1 SYNOPSIS
 
-  use POE::Component::IRC::Plugin::BotAddressed;
+ use POE::Component::IRC::Plugin::BotAddressed;
 
-  $irc->plugin_add( 'BotAddressed', POE::Component::IRC::Plugin::BotAddressed->new() );
+ $irc->plugin_add( 'BotAddressed', POE::Component::IRC::Plugin::BotAddressed->new() );
 
-  sub irc_bot_addressed {
-    my ($kernel, $heap) = @_[KERNEL, HEAP];
-    my $nick = ( split /!/, $_[ARG0] )[0];
-    my $channel = $_[ARG1]->[0];
-    my $what = $_[ARG2];
+ sub irc_bot_addressed {
+     my ($kernel, $heap) = @_[KERNEL, HEAP];
+     my $nick = ( split /!/, $_[ARG0] )[0];
+     my $channel = $_[ARG1]->[0];
+     my $what = $_[ARG2];
 
-    print "$nick addressed me in channel $channel with the message '$what'\n";
-  }
+     print "$nick addressed me in channel $channel with the message '$what'\n";
+ }
 
-  sub irc_bot_mentioned {
-    my ($nick) = ( split /!/, $_[ARG0] )[0];
-    my ($channel) = $_[ARG1]->[0];
-    my ($what) = $_[ARG2];
+ sub irc_bot_mentioned {
+     my ($nick) = ( split /!/, $_[ARG0] )[0];
+     my ($channel) = $_[ARG1]->[0];
+     my ($what) = $_[ARG2];
 
-    print "$nick mentioned my name in channel $channel with the message '$what'\n";
-  }
+     print "$nick mentioned my name in channel $channel with the message '$what'\n";
+ }
 
 =head1 DESCRIPTION
 
@@ -102,7 +102,7 @@ plugin. It watches for public channel traffic (i.e. 'irc_public' and
 or 'irc_bot_mentioned_action' event if its name comes up in channel discussion.
 
 It uses L<POE::Component::IRC|POE::Component::IRC>'s nick_name() method to work
-out it's current nickname.
+out its current nickname.
 
 =head1 METHODS
 
