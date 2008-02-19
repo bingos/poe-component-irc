@@ -53,7 +53,7 @@ sub new {
             my ($self, $event, $line) = @_;
             shift( @{ $line->{params} } );
             unshift( @{ $line->{params} }, _decolon( $line->{prefix} || '' ) ) if $line->{prefix};
-	    $event->{args} = $line->{params};
+            $event->{args} = $line->{params};
         },
     };
   
