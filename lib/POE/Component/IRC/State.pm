@@ -17,7 +17,14 @@ use POE::Component::IRC::Plugin qw(:ALL);
 use base qw(POE::Component::IRC);
 use vars qw($VERSION);
 
-$VERSION = '2.49';
+$VERSION = '2.50';
+
+sub _configure {
+    my ($self, @args) = @_;
+    $self->SUPER::_configure(@args);
+    $self->{awaypoll} = 300 if !$self->{awaypoll};
+    return;
+}
 
 # Event handlers for tracking the STATE. $self->{STATE} is used as our namespace.
 # u_irc() is used to create unique keys.
@@ -74,11 +81,13 @@ sub S_join {
         delete $self->{STATE}->{Chans}->{ $uchan };
         $self->{CHANNEL_SYNCH}->{ $uchan } = { MODE => 0, WHO => 0, BAN => 0, _time => time() };
         $self->{STATE}->{Chans}->{ $uchan } = { Name => $channel, Mode => '' };
-        $self->yield ( 'who' => $channel );
-        $self->yield ( 'mode' => $channel );
-        $self->yield ( 'mode' => $channel => 'b');
-        $poe_kernel->state( '_away_sync' => $self );
-        $poe_kernel->delay_add( '_away_sync' => 60 => $channel );
+        $self->yield(who => $channel );
+        $self->yield(mode => $channel );
+        $self->yield(mode => $channel => 'b');
+        if ($self->{awaypoll}) {
+            $poe_kernel->state(_away_sync => $self);
+            $poe_kernel->delay_add(_away_sync => $self->{awaypoll} => $channel);
+        }
 
     }
     else {
@@ -467,7 +476,7 @@ sub S_315 {
         elsif ( $self->{STATE}->{Chans}->{ $uchan }->{AWAY_SYNCH} ) {
             $self->{STATE}->{Chans}->{ $uchan }->{AWAY_SYNCH} = 0;
             $self->_send_event(irc_away_sync_end => $channel );
-            $poe_kernel->delay_add(_away_sync => 60 => $channel );
+            $poe_kernel->delay_add(_away_sync => $self->{awaypoll} => $channel );
         }
     }
     else {
@@ -1126,6 +1135,17 @@ This document covers the extra methods that POE::Component::IRC::State provides.
 The component tracks channels and nicks, so that it always has a current
 snapshot of what channels it is on and who else is on those channels. The
 returned object provides methods to query the collected state.
+
+=head1 CONSTRUCTORS
+
+POE::Component::IRC::State's constructors, and its C<connect> event, all
+take the same arguments as L<POE::Component::IRC|POE::Component::IRC> does, as
+well as an additional one:
+
+'AwayPoll', the interval (in seconds) in which to poll (i.e. C<WHO #channel>)
+the away status of channel members. Defaults to 300. Set to 0 to disable. If
+disabled, you will not receive any C<irc_away_sync_*> / C<irc_user_away> /
+C<irc_user_back> events.
 
 =head1 METHODS
 

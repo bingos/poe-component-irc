@@ -4,6 +4,8 @@ Revision history for Perl extension POE::Component::IRC.
     - IRC.pm: Improved the docs a little, fixed an error in the
       SYNOPSIS and moved half of it to an example file. Should be
       less daunting now :) (Hinrik)
+    - State.pm: Lengthen away status polling time to 5 minutes and
+      make the feature optional. (Hinrik)
     - Common.pm: Improved mIRC color handling code/documentation (Hinrik)
 
 5.66  Mon Feb 18 21:58:48 GMT 2008
