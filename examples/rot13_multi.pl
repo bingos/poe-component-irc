@@ -1,3 +1,5 @@
+#!/usr/bin/perl
+
 # A Multiple Network Rot13 'encryption' bot
 
 use strict;
