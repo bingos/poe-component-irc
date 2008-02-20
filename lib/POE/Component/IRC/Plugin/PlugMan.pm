@@ -82,10 +82,10 @@ sub S_public {
     my $me = $irc->nick_name();
 
     my ($command) = $what =~ m/^\s*\Q$me\E[\:\,\;\.]?\s*(.*)$/i;
+    return PCI_EAT_NONE unless $command and $self->_bot_owner($nick);
+
     my (@cmd) = split(/ +/, $command);
     my $cmd = uc (shift @cmd);
-    
-    return PCI_EAT_NONE if !$command || !$self->_bot_owner($nick);
     
     if (defined $self->{commands}->{$cmd}) {
         $self->{command}->{$cmd}->($self, @cmd, 'privmsg', $channel);
