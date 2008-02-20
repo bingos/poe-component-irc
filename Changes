@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-5.68
+5.68  Wed Feb 20 19:49:58 GMT 2008
     - IRC.pm: Improved the docs a little, fixed an error in the
       SYNOPSIS and moved half of it to an example file. Should be
       less daunting now :) (Hinrik)
