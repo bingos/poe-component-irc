@@ -22,7 +22,7 @@ $VERSION = '2.50';
 sub _configure {
     my ($self, @args) = @_;
     $self->SUPER::_configure(@args);
-    $self->{awaypoll} = 300 if !$self->{awaypoll};
+    $self->{awaypoll} = 300 unless defined $self->{awaypoll};
     return;
 }
 
