@@ -28,3 +28,4 @@ use_ok("POE::Component::IRC::Plugin::CycleEmpty");
 use_ok("POE::Component::IRC::Plugin::BotTraffic");
 use_ok("POE::Component::IRC::Plugin::BotAddressed");
 use_ok("POE::Component::IRC::Plugin::AutoJoin");
+use_ok("POE::Component::IRC::Plugin::BotCommand");
