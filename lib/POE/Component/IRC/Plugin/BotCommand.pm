@@ -105,12 +105,12 @@ to handle commands issued to your bot.
 
  use POE;
  use POE::Component::Client::DNS;
- use POE::Component::IRC::IRC;
+ use POE::Component::IRC;
  use POE::Component::IRC::Plugin::BotCommand;
 
  my @channels = ('#channel1', '#channel2');
  my $dns = POE::Component::Client::DNS->spawn();
- my $irc = POE::Component::IRC::State->spawn(
+ my $irc = POE::Component::IRC->spawn(
      nick   => 'YourBot',
      server => 'some.irc.server',
  );
