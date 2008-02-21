@@ -2,6 +2,7 @@ package POE::Component::IRC::Plugin::BotCommand;
 
 use strict;
 use warnings;
+use POE::Component::IRC::Common qw( parse_user );
 use POE::Component::IRC::Plugin qw( :ALL );
 use vars qw($VERSION);
 
@@ -31,7 +32,7 @@ sub PCI_unregister {
 
 sub S_msg {
     my ($self, $irc) = splice @_, 0, 2;
-    my $who = ${ $_[0] };
+    my $who = parse_user( ${ $_[0] } );
     my $what = ${ $_[2] };
     
     my $cmd;
