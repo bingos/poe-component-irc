@@ -149,7 +149,7 @@ to handle commands issued to your bot.
  sub irc_botcommand_slap {
      my $nick = (split /!/, $_[ARG0])[0];
      my ($channel, $arg) = @_[ARG1, ARG2];
-     $irc->yield(privmsg => $channel, "\x01ACTION slaps $arg\x01");
+     $irc->yield(ctcp => $channel, "ACTION slaps $arg");
      return;
  }
 
