@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.70
+    - BotAddressed.pm: Fixed a small bug (Hinrik)
+
 5.68  Wed Feb 20 19:49:58 GMT 2008
     - IRC.pm: Improved the docs a little, fixed an error in the
       SYNOPSIS and moved half of it to an example file. Should be
@@ -7,7 +10,6 @@ Revision history for Perl extension POE::Component::IRC.
     - State.pm: Lengthen away status polling time to 5 minutes and
       make the feature optional. (Hinrik)
     - Common.pm: Improved mIRC color handling code/documentation (Hinrik)
-    - BotAddressed.pm: Fixed a small bug
 
 5.66  Mon Feb 18 21:58:48 GMT 2008
     - Removed Filter::IRC in favor of Filter::IRC::Compat (Hinrik)
