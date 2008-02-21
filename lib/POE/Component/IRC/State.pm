@@ -264,26 +264,14 @@ sub S_221 {
 
 # RPL_UNAWAY
 sub S_305 {
-    my ($self,$irc) = splice @_, 0, 2;
-    my $nick = $irc->nick_name();
-    
-    if ($self->{STATE}->{away}) {
-        $self->yield(irc_user_back => $nick, [ $self->nick_channels( $nick ) ] );
-    }
-    
+    my ($self, $irc) = splice @_, 0, 2;
     $self->{STATE}->{away} = 0;
     return PCI_EAT_NONE;
 }
 
 # RPL_NOWAWAY
 sub S_306 {
-    my ($self,$irc) = splice @_, 0, 2;
-    my $nick = $irc->nick_name();
-    
-    if (!$self->{STATE}->{away}) {
-        $self->yield(irc_user_away => $nick, [ $self->nick_channels( $nick ) ] );
-    }
-    
+    my ($self, $irc) = splice @_, 0, 2;
     $self->{STATE}->{away} = 1;
     return PCI_EAT_NONE;
 }
