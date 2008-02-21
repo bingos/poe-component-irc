@@ -3142,7 +3142,7 @@ of some.
 
 In your event handlers, $_[SENDER] is the particular component session that
 sent you the event. $_[SENDER]->get_heap() will retrieve the component's 
-object. Useful if you want on-the-fly access to the object and it's methods.
+object. Useful if you want on-the-fly access to the object and its methods.
 
 =head2 Important Events
 
