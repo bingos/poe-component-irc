@@ -29,7 +29,7 @@ sub PCI_unregister {
 
 sub S_msg {
     my ($self, $irc) = splice @_, 0, 2;
-    my $who = parse_user( ${ $_[0] } );
+    my $who = ${ $_[0] };
     my $what = ${ $_[2] };
     
     my $cmd;
@@ -50,7 +50,7 @@ sub S_msg {
 
 sub S_public {
     my ($self, $irc) = splice @_, 0, 2;
-    my $who = parse_user( ${ $_[0] } );
+    my $who = ${ $_[0] };
     my $channel = ${ $_[1] };
     my $what = ${ $_[2] };
     my $me = $irc->nick_name();
@@ -138,14 +138,16 @@ to handle commands issued to your bot.
 
  # the good old slap
  sub irc_botcommand_slap {
-     my ($nick, $channel, $arg) = @_[ARG0 .. ARG2];
+     my $nick = (split /!/, $_[ARG0])[0];
+     my ($channel, $arg) = @_[ARG0 .. ARG2];
      $irc->yield(privmsg => $channel, "\x01ACTION slaps $arg\x01");
      return;
  }
 
  # non-blocking dns lookup
  sub irc_botcommand_lookup {
-     my ($nick, $channel, $arg) = @_[ARG0 .. ARG2];
+     my $nick = (split /!/, $_[ARG0])[0];
+     my ($channel, $arg) = @_[ARG0 .. ARG2];
      my ($type, $host) = $arg =~ /^(?:(\w+) )?(\S+)/;
      
      my $res = $dns->resolve(
