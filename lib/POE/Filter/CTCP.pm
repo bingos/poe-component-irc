@@ -13,6 +13,7 @@ use strict;
 use warnings;
 use Carp;
 use File::Basename ();
+use POE::Filter::IRC;
 use vars qw($VERSION);
 
 $VERSION = '5.2';
@@ -21,6 +22,7 @@ $VERSION = '5.2';
 sub new {
     my ($package, %args) = @_;
     $args{lc $_} = delete $args{$_} for keys %args;
+    $args{irc_filter} = POE::Filter::IRC->new() unless $args{irc_filter};
     return bless \%args, $package;
 }
 
