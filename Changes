@@ -2,6 +2,7 @@ Revision history for Perl extension POE::Component::IRC.
 
 5.70
     - BotAddressed.pm: Fixed a small bug (Hinrik)
+    - BotCommand.pm: A new plugin for handling bot commands (Hinrik)
 
 5.68  Wed Feb 20 19:49:58 GMT 2008
     - IRC.pm: Improved the docs a little, fixed an error in the
