@@ -139,7 +139,7 @@ to handle commands issued to your bot.
  # the good old slap
  sub irc_botcommand_slap {
      my $nick = (split /!/, $_[ARG0])[0];
-     my ($channel, $arg) = @_[ARG0 .. ARG2];
+     my ($channel, $arg) = @_[ARG1, ARG2];
      $irc->yield(privmsg => $channel, "\x01ACTION slaps $arg\x01");
      return;
  }
@@ -147,7 +147,7 @@ to handle commands issued to your bot.
  # non-blocking dns lookup
  sub irc_botcommand_lookup {
      my $nick = (split /!/, $_[ARG0])[0];
-     my ($channel, $arg) = @_[ARG0 .. ARG2];
+     my ($channel, $arg) = @_[ARG1, ARG2];
      my ($type, $host) = $arg =~ /^(?:(\w+) )?(\S+)/;
      
      my $res = $dns->resolve(
