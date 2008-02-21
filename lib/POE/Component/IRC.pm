@@ -2403,6 +2403,10 @@ they generate themselves. This plugin enables you to handle those events.
 Generates C<irc_bot_addressed> / C<irc_bot_mentioned> / C<irc_bot_mentioned_action>
 events whenever your bot's name comes up in channel discussion.
 
+=item L<POE::Component::IRC::Plugin::BotCommand|POE::Component::IRC::Plugin::BotCommand>
+
+Provides an easy way to handle commands issued to your bot.
+
 =item L<POE::Component::IRC::Plugin::Console|POE::Component::IRC::Plugin::Console>
 
 See inside the component. See what events are being sent. Generate irc commands
