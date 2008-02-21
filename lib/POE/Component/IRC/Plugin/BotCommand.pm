@@ -93,6 +93,11 @@ sub remove {
     return 1;
 }
 
+sub list {
+    my ($self) = @_;
+    return { %{ $self->{Commands} } };
+}
+
 1;
 __END__
 
@@ -229,6 +234,11 @@ defined, true otherwise.
 
 Removes a command. Takes one argument, the name of the command. Returns false
 if the command wasn't defined to begin with, true otherwise.
+
+=item C<list>
+
+Takes no arguments. Returns a hash reference of all the defined commands, the 
+keys being the command names and the values being the usage string.
 
 =back
 
