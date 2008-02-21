@@ -105,10 +105,10 @@ to handle commands issued to your bot.
 
  use POE;
  use POE::Component::Client::DNS;
- use POE::Component::IRC::State;
- use POE::Component::IRC::Plugin::AutoJoin;
+ use POE::Component::IRC::IRC;
  use POE::Component::IRC::Plugin::BotCommand;
 
+ my @channels = ('#channel1', '#channel2');
  my $dns = POE::Component::Client::DNS->spawn();
  my $irc = POE::Component::IRC::State->spawn(
      nick   => 'YourBot',
@@ -117,25 +117,27 @@ to handle commands issued to your bot.
 
  POE::Session->create(
      package_states => [
-         main => [ qw(_start irc_botcommand_slap irc_botcommand_lookup dns_response) ],
+         main => [ qw(_start irc_001 irc_botcommand_slap irc_botcommand_lookup dns_response) ],
      ],
  );
 
  $poe_kernel->run();
 
  sub _start {
-     $irc->plugin_add('AutoJoin', POE::Component::IRC::Plugin::AutoJoin->new(
-         Channels => [ '#channel1', '#channel2' ],
-     ));
-
      $irc->plugin_add('BotCommand', POE::Component::IRC::Plugin::BotCommand->new(
          Commands => {
              slap   => 'Takes one argument: a nickname to slap.',
              lookup => 'Takes two arguments: a record type (optional), and a host.',
          }
      ));
-     $irc->yield(register => qw(botcommand_slap botcommand_lookup));
+     $irc->yield(register => qw(001 botcommand_slap botcommand_lookup));
      $irc->yield(connect => { });
+ }
+
+ # join some channels
+ sub irc_001 {
+     $irc->yield(join => $_) for @channels;
+     return;
  }
 
  # the good old slap
