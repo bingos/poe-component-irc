@@ -2,7 +2,6 @@ package POE::Component::IRC::Plugin::BotCommand;
 
 use strict;
 use warnings;
-use POE::Component::IRC::Common qw( :ALL );
 use POE::Component::IRC::Plugin qw( :ALL );
 use vars qw($VERSION);
 
