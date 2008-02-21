@@ -96,7 +96,7 @@ sub remove {
 
 sub list {
     my ($self) = @_;
-    return { %{ $self->{Commands} } };
+    return %{ $self->{Commands} };
 }
 
 1;
@@ -238,8 +238,8 @@ if the command wasn't defined to begin with, true otherwise.
 
 =item C<list>
 
-Takes no arguments. Returns a hash reference of all the defined commands, the 
-keys being the command names and the values being the usage string.
+Takes no arguments. Returns a list of key/value pairs, the keys being the
+command names and the values being the usage strings.
 
 =back
 
