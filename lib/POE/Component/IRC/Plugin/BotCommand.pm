@@ -4,6 +4,9 @@ use strict;
 use warnings;
 use POE::Component::IRC::Common qw( :ALL );
 use POE::Component::IRC::Plugin qw( :ALL );
+use vars qw($VERSION);
+
+$VERSION = '1.0';
 
 sub new {
     my ($package, %args) = @_;
