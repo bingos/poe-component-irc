@@ -236,7 +236,7 @@ if the command wasn't defined to begin with, true otherwise.
 
 You will receive an event like this for every valid command issued. E.g. if
 'slap' were a valid command, you would receive an C<irc_botcommand_slap> event
-every time someone issued that command. ARG0 is the nickname of the user
+every time someone issued that command. ARG0 is the nick!hostmask of the user
 who issued the command. ARG1 is the name of the channel in which the command
 was issued. If the command was followed by any arguments, ARG2 will be a string
 containing them, otherwise ARG2 will be undefined.
