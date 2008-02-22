@@ -195,6 +195,7 @@ sub _configure {
     }
     
     $self->{port} = 6667 if !$self->{port};
+    $self->{msg_length} = 450 if !defined $self->{msg_length};
   
     if ($self->{localaddr} && $self->{localport}) {
         $self->{localaddr} .= ':' . $self->{localport};
@@ -496,7 +497,7 @@ sub _parseline {
 
     return if !$ev->{name};
 
-    $self->_send_event( 'irc_raw' => $ev->{raw_line} ) if $self->{raw};
+    $self->_send_event(irc_raw => $ev->{raw_line} ) if $self->{raw};
 
     # If its 001 event grab the server name and stuff it into {INFO}
     if ( $ev->{name} eq '001' ) {
@@ -1713,7 +1714,11 @@ sub sl_prioritized {
 
     my $now = time();
     $self->{send_time} = $now if $self->{send_time} < $now;
-
+    
+    if (bytes::length($msg) > $self->{msg_length} - bytes::length($self->nick_name())) {
+        $msg = bytes::substr($msg, 0, $self->{msg_length} - bytes::length($self->nick_name()));
+    }
+    
     if (@{ $self->{send_queue} }) {
         my $i = @{ $self->{send_queue} };
         $i-- while ($i && $priority < $self->{send_queue}->[$i-1]->[MSG_PRI]);
@@ -2498,6 +2503,19 @@ below).
 
 'Resolver', provide a L<POE::Component::Client::DNS|POE::Component::Client::DNS>
 object for the component to use.
+
+'msg_length', the maximum length of IRC messages, in bytes. Default is 450.
+The IRC component shortens all messages longer than this value minus the length
+of your current nickname. IRC only allows raw protocol lines messages that are
+512 bytes or shorter, including the trailing "\r\n". This is most relevant to
+long PRIVMSGs. The IRC component can't be sure how long your user@host mask
+will be every time you send a message, considering that most networks mangle
+the 'user' part and some even replace the whole string (think FreeNode cloaks).
+If you have an unusually long user@host mask you might want to decrease this
+value if you're prone to sending long messages. Conversely, if you have an
+unusually short one, you can increase this value if you want to be able to
+send as long a message as possible. Be careful though, increase it too much and
+the IRC server might disconnect you with a "Request too long" message. 
 
 'plugin_debug', set to some true value to print plugin debug info, default 0.
 
