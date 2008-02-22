@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Filter::IRCD;
-use POE::Filter::CTCP;
+use POE::Filter::IRC::Compat;
 use vars qw($VERSION);
 
 $VERSION = '5.56';
@@ -23,7 +23,7 @@ sub PCI_register {
     my ($self, $irc) = splice @_, 0, 2;
 
     $self->{filter} = POE::Filter::IRCD->new();
-    $self->{ctcp} = POE::Filter::CTCP->new();
+    $self->{compat} = POE::Filter::IRC::Compat->new();
     $irc->plugin_register( $self, 'USER', qw(privmsg) );
     return 1;
 }
@@ -40,8 +40,8 @@ sub U_privmsg {
     for my $line ( @{ $lines } ) {
         my $text = $line->{params}->[1];
         if ($text =~ /^\001/) {
-            my $ctcp_event = shift( @{ $self->{ctcp}->get( [':' . $irc->nick_name() . ' ' . $line->{raw_line}] ) } );
-            next if $ctcp_event->{name} ne 'ctcp_action';
+            my $ctcp_event = shift( @{ $self->{compat}->get([$line]) } );
+            next unless $ctcp_event->{name} eq 'ctcp_action';
             my $event = $self->{ActEvent};
             $irc->_send_event( $event => @{ $ctcp_event->{args} }[1..2] );
         }

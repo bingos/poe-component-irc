@@ -18,7 +18,7 @@ use Carp;
 use File::Basename ();
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Driver::SysRW
            Filter::Line Filter::Stream Filter::Stackable);
-use POE::Filter::CTCP;
+#use POE::Filter::CTCP;
 use POE::Filter::IRCD;
 use POE::Filter::IRC::Compat;
 use POE::Component::IRC::Common qw(:ALL);
@@ -177,7 +177,7 @@ sub _configure {
     if ($self->{debug}) {
         $self->{ircd_filter}->debug(1);
         $self->{ircd_compat}->debug(1);
-        $self->{ctcp_filter}->debug(1);
+#        $self->{ctcp_filter}->debug(1);
     }
     
     if ($self->{useipv6} && !$GOT_SOCKET6) {
@@ -323,7 +323,7 @@ sub debug {
     $self->{debug} = $switch;
     $self->{ircd_filter}->debug( $switch );
     $self->{ircd_compat}->debug( $switch );
-    $self->{ctcp_filter}->debug( $switch );
+#    $self->{ctcp_filter}->debug( $switch );
     return;
 }
 
@@ -847,7 +847,7 @@ sub _start {
 
     $self->{ircd_filter} = POE::Filter::IRCD->new(debug => $self->{debug});
     $self->{ircd_compat} = POE::Filter::IRC::Compat->new(debug => $self->{debug});
-    $self->{ctcp_filter} = POE::Filter::CTCP->new(debug => $self->{debug});
+#    $self->{ctcp_filter} = POE::Filter::CTCP->new(debug => $self->{debug});
     
     my $srv_filters = [
         POE::Filter::Line->new(
@@ -1070,7 +1070,7 @@ sub ctcp {
     }
 
     # CTCP-quote the message text.
-    ($message) = @{$self->{ctcp_filter}->put([ $message ])};
+    ($message) = @{$self->{ircd_compat}->put([ $message ])};
 
     # Should we send this as a CTCP request or reply?
     $state = $state eq 'ctcpreply' ? 'notice' : 'privmsg';
