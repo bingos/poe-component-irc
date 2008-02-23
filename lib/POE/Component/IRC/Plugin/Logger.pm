@@ -13,7 +13,7 @@ use POE::Component::IRC::Common qw( l_irc parse_user strip_color strip_formattin
 use POSIX qw(strftime);
 use vars qw($VERSION);
 
-$VERSION = '1.5';
+$VERSION = '1.6';
 
 sub new {
     my ($package, %self) = @_;
