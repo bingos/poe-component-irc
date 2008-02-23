@@ -5,6 +5,7 @@ Revision history for Perl extension POE::Component::IRC.
     - BotCommand.pm: A new plugin for handling bot commands (Hinrik)
     - IRC.pm: Shorten protocol lines that are too long, make the maximum length
       configurable. (Hinrik)
+    - Logger.pm: Use File::Spec for cross-platform file/dir creation. (Hinrik)
 
 5.68  Wed Feb 20 19:49:58 GMT 2008
     - IRC.pm: Improved the docs a little, fixed an error in the

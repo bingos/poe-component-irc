@@ -6,6 +6,7 @@ use Carp;
 use Encode;
 use Encode::Guess;
 use Fcntl;
+use File::Spec;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Plugin::BotTraffic;
 use POE::Component::IRC::Common qw( l_irc parse_user strip_color strip_formatting );
@@ -278,14 +279,18 @@ sub _log_entry {
     
     my $log_file;
     if ($self->{Sort_by_date}) {
-        if (! -d $self->{Path} . "/$context") {
-            mkdir $self->{Path} . "/$context", $self->{dir_perm} or croak "Couldn't create directory " . $self->{Path} . "/$context: $!; aborted";
+        my $log_dir = File::Spec->catdir($self->{Path}, $context);
+        if (! -d $log_dir) {
+            mkdir $log_dir, $self->{dir_perm}
+                or croak "Couldn't create directory $log_dir: $!; aborted";
         }
-        $log_file = $self->_open_log($self->{Path} . "/$context/$date.log");
+        $log_file = File::Spec->catfile($self->{Path}, $context, "$date.log");
     }
     else {
-        $log_file = $self->_open_log($self->{Path} . "/$context.log");
+        $log_file = File::Spec->catfile($self->{Path}, "$context.log");
     }
+    
+    $log_file = $self->_open_log($log_file);
 
     if (!$self->{logging}->{$context}) {
         print $log_file "***\n*** LOGGING BEGINS\n***\n";
