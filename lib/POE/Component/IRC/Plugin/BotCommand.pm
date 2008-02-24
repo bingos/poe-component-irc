@@ -66,7 +66,7 @@ sub S_public {
     }
 
     my ($cmd, $args);
-    if (!(($cmd, $args) = $what =~ /^(\w+)\s+(.+)?$/)) {
+    if (!(($cmd, $args) = $what =~ /^(\w+)(\s+(.+))?$/)) {
         return PCI_EAT_NONE;
     }
     
