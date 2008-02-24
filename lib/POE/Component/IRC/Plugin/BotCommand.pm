@@ -72,7 +72,7 @@ sub S_public {
     
     $cmd = lc $cmd;
     if (exists $self->{Commands}->{$cmd}) {
-        $irc->_send_event("irc_botcommand_$cmd" => $who, $channel, $args);
+        $irc->_send_event("irc_botcmd_$cmd" => $who, $channel, $args);
     }
     
     return $self->{Eat} ? PCI_EAT_PLUGIN : PCI_EAT_NONE;
@@ -123,7 +123,7 @@ to handle commands issued to your bot.
 
  POE::Session->create(
      package_states => [
-         main => [ qw(_start irc_001 irc_botcommand_slap irc_botcommand_lookup dns_response) ],
+         main => [ qw(_start irc_001 irc_botcmd_slap irc_botcmd_lookup dns_response) ],
      ],
  );
 
@@ -136,7 +136,7 @@ to handle commands issued to your bot.
              lookup => 'Takes two arguments: a record type (optional), and a host.',
          }
      ));
-     $irc->yield(register => qw(001 botcommand_slap botcommand_lookup));
+     $irc->yield(register => qw(001 botcmd_slap botcmd_lookup));
      $irc->yield(connect => { });
  }
 
@@ -147,7 +147,7 @@ to handle commands issued to your bot.
  }
 
  # the good old slap
- sub irc_botcommand_slap {
+ sub irc_botcmd_slap {
      my $nick = (split /!/, $_[ARG0])[0];
      my ($channel, $arg) = @_[ARG1, ARG2];
      $irc->yield(ctcp => $channel, "ACTION slaps $arg");
@@ -155,7 +155,7 @@ to handle commands issued to your bot.
  }
 
  # non-blocking dns lookup
- sub irc_botcommand_lookup {
+ sub irc_botcmd_lookup {
      my $nick = (split /!/, $_[ARG0])[0];
      my ($channel, $arg) = @_[ARG1, ARG2];
      my ($type, $host) = $arg =~ /^(?:(\w+) )?(\S+)/;
@@ -247,10 +247,10 @@ command names and the values being the usage strings.
 
 =over
 
-=item C<irc_botcommand_*>
+=item C<irc_botcmd_*>
 
 You will receive an event like this for every valid command issued. E.g. if
-'slap' were a valid command, you would receive an C<irc_botcommand_slap> event
+'slap' were a valid command, you would receive an C<irc_botcmd_slap> event
 every time someone issued that command. ARG0 is the nick!hostmask of the user
 who issued the command. ARG1 is the name of the channel in which the command
 was issued. If the command was followed by any arguments, ARG2 will be a string
