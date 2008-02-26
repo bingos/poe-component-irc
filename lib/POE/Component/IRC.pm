@@ -2274,7 +2274,7 @@ POE::Component::IRC - a fully event-driven IRC client module.
 
      # retrieve our component's object from the heap where we stashed it
      my $irc = $heap->{irc};
-     
+
      $irc->yield( register => 'all' );
      $irc->yield( connect => { } );
      return;
@@ -2376,15 +2376,15 @@ network.
 =item L<POE::Component::IRC::Qnet::State|POE::Component::IRC::Qnet::State>
 
 POE::Component::IRC::Qnet::State is a tweaked version of POE::Component::IRC::State
-for use on Quakenet IRC network. 
+for use on the Quakenet IRC network. 
 
 =back
 
 =head2 The Plugin system
 
 As of 3.7, PoCo-IRC sports a plugin system. The documentation for it can be
-read by looking at L<POE::Component::IRC::Plugin|POE::Component::IRC::Plugin>. That is not a subclass, just
-a placeholder for documentation!
+read by looking at L<POE::Component::IRC::Plugin|POE::Component::IRC::Plugin>.
+That is not a subclass, just a placeholder for documentation!
 
 A number of useful plugins have made their way into the core distribution:
 
@@ -2456,7 +2456,7 @@ to gain ops.
 
 Both CONSTRUCTORS return an object. The object is also available within 'irc_'
 event handlers by using 
-$_[SENDER]->get_heap(). See also C<register> and C<irc_registered>.
+C<< $_[SENDER]->get_heap() >>. See also C<register> and C<irc_registered>.
 
 =over
 
@@ -2534,7 +2534,7 @@ All the above options may be supplied to C<connect> input event as well.
 
 If the component finds that L<POE::Component::Client::DNS|POE::Component::Client::DNS>
 is installed it will use that to resolve the server name passed. Disable this
-behaviour if you like, by passing: NoDNS => 1.
+behaviour if you like, by passing: C<NoDNS => 1>.
 
 Additionally there is a "Flood" parameter.  When true, it disables the
 component's flood protection algorithms, allowing it to send messages
@@ -2552,7 +2552,7 @@ support.
 
 For those people who run bots behind firewalls and/or Network Address
 Translation there are two additional attributes for DCC. "DCCPorts", is an
-arrayref of ports to use when initiating DCC, using dcc(). "NATAddr", is the
+arrayref of ports to use when initiating DCC, using C<dcc()>. "NATAddr", is the
 NAT'ed IP address that your bot is hidden behind, this is sent whenever you
 do DCC.
 
@@ -2624,7 +2624,7 @@ events to the component.
 =item C<session_alias>
 
 Takes no arguments. Returns the session alias that has been set through
-spawn()'s alias argument. 
+C<spawn()>'s alias argument. 
 
 =item C<version>
 
@@ -2660,7 +2660,7 @@ available at L<http://www.irc.org/tech_docs/005.html>.
 =item C<isupport_dump_keys>
 
 Takes no arguments, returns a list of the available server capabilities keys,
-which can be used with isupport().
+which can be used with C<isupport()>.
 
 =item C<yield>
 
@@ -2688,13 +2688,13 @@ wishes to delay the command being posted.
 
  my $alarm_id = $irc->delay( [ mode => $channel => '+o' => $dude ], 60 );
 
-Returns an alarm ID that can be used with delay_remove() to cancel the delayed
+Returns an alarm ID that can be used with C<delay_remove()> to cancel the delayed
 event. This will be undefined if something went wrong.
 
 =item C<delay_remove>
 
 This method removes a previously scheduled delayed event from the component.
-Takes one argument, the alarm_id that was returned by a delay() method call.
+Takes one argument, the C<alarm_id> that was returned by a C<delay()> method call.
 
  my $arrayref = $irc->delay_remove( $alarm_id );
 
@@ -2713,7 +2713,7 @@ object used by the plugin system.
 =item C<send_event>
 
 Sends an event through the components event handling system. These will get
-processed by  plugins then by registered sessions. First argument is the event
+processed by plugins then by registered sessions. First argument is the event
 name, followed by any parameters for that event.
 
 =back
@@ -2722,7 +2722,7 @@ name, followed by any parameters for that event.
 
 How to talk to your new IRC component... here's the events we'll accept.
 These are events that are posted to the component, either via
-$poe_kernel->post() or via the object method yield().
+C<< $poe_kernel->post() >> or via the object method C<yield()>.
 
 So the following would be functionally equivalent:
 
@@ -2912,7 +2912,7 @@ waiting for you to call C<connect> on them again to reconnect.
 to break backwards compatibility at this point.) You can send the IRC
 session a C<shutdown> event manually to make it delete itself.
 
-If you are connected, 'shutdown' will send a quit message to ircd and
+If you are connected, C<shutdown> will send a quit message to ircd and
 disconnect. If you provide an argument that will be used as the QUIT
 message.
 
@@ -3099,7 +3099,7 @@ pings automatically. Don't worry about it.
 =item C<locops>
 
 Opers-only command. This one sends a message to all currently
-logged-on local-opers (+l).  This option is specific to EFNet.
+logged-on local-opers (+l). This option is specific to EFNet.
 
 =item C<oper>
 
@@ -3110,7 +3110,7 @@ server. Takes 2 arguments: your username and your password.
 =item C<operwall>
 
 Opers-only command. This one sends a message to all currently
-logged-on global opers.  This option is specific to EFNet.
+logged-on global opers. This option is specific to EFNet.
 
 =item C<rehash>
 
@@ -3162,8 +3162,8 @@ listen for. FIXME: I'd really like to classify these somewhat
 suggestions for ways to make this easier on the user, if you can think
 of some.
 
-In your event handlers, $_[SENDER] is the particular component session that
-sent you the event. $_[SENDER]->get_heap() will retrieve the component's 
+In your event handlers, C<$_[SENDER]> is the particular component session that
+sent you the event. C<< $_[SENDER]->get_heap() >> will retrieve the component's 
 object. Useful if you want on-the-fly access to the object and its methods.
 
 =head2 Important Events
@@ -3184,9 +3184,9 @@ anything back to the server.
 =item C<irc_ctcp>
 
 C<irc_ctcp> events are generated upon receipt of CTCP messages, in addition to
-the C<irc_ctcp_*> events mentioned below.  They are identical in every way to
+the C<irc_ctcp_*> events mentioned below. They are identical in every way to
 these, with one difference: instead of the * being in the method name, it
-is prepended to the argument list.  For example, if someone types C</ctcp
+is prepended to the argument list. For example, if someone types C</ctcp
 Flibble foo bar>, an C<irc_ctcp> event will be sent with C<foo> as ARG0,
 and the rest as given below.
 
@@ -3351,19 +3351,19 @@ Similar to the above, except some keys will be missing.
 
 =item C<irc_raw>
 
-Enabled by passing 'Raw' => 1 to C<spawn()> or C<connect>, ARG0 is the raw IRC
+Enabled by passing C<Raw => 1> to C<spawn()> or C<connect>, ARG0 is the raw IRC
 string received by the component from the IRC server, before it has been
 mangled by filters and such like.
 
 =item C<irc_registered>
 
-Sent once to the requesting session on registration ( see register() ). ARG0
+Sent once to the requesting session on registration ( see C<register> ). ARG0
 is a reference tothe component's object.
 
 =item C<irc_shutdown>
 
 Sent to all registered sessions when the component has been asked to
-shutdown(). ARG0 will be the session ID of the requesting session.
+C<shutdown>. ARG0 will be the session ID of the requesting session.
 
 =item C<irc_isupport>
 
@@ -3382,7 +3382,7 @@ parameters are the arguments that were passed to C<delay()>.
 
 Emitted when a delayed command is successfully removed. ARG0 will be the
 alarm_id that was removed. Subsequent parameters are the arguments that were
-passed to delay().
+passed to C<delay()>.
 
 =item C<irc_socks_failed>
 
@@ -3494,7 +3494,7 @@ about it. ARG0 is the text of the server's message.
 
 =item C<dcc_resume>
 
- # bboetts puny try to get dcc resume implemented in this great module:
+ # bboett's puny try to get dcc resume implemented in this great module:
  # ARG0 is the well known 'magic cookie' (as in dcc_send etc.)
  # ARG1 is the (eventually new) name of the file
  # ARG2 is the size from which will be resumed
@@ -3522,7 +3522,7 @@ about it. ARG0 is the text of the server's message.
          $kernel->post( $args->{context}, 'dcc_accept', $magic, $filename);
      }
  }
- 
+
  # you need a counter part in irc_dcc_request():
 
  if ($type eq 'ACCEPT') {
@@ -3540,7 +3540,7 @@ about it. ARG0 is the text of the server's message.
 =head1 SIGNALS
 
 The component will handle a number of custom signals that you may send using 
-L<POE::Kernel|POE::Kernel> signal() method.
+L<POE::Kernel|POE::Kernel> C<signal()> method.
 
 =over
 
@@ -3559,7 +3559,7 @@ C<POCOIRC_REGISTER> to multiple sessions simultaneously, by sending the signal
 to the POE Kernel itself.
 
 Pass the signal your session, session ID or alias, and the IRC events (as
-specified to 'register').
+specified to C<register>).
 
 To register with multiple PoCo-IRCs one can do the following in your session's
 _start handler:
@@ -3577,10 +3577,10 @@ Each poco-irc will send your session an C<irc_registered> event:
 
  sub irc_registered {
      my ($kernel, $sender, $heap, $irc_object) = @_[KERNEL, SENDER, HEAP, ARG0];
-     
+
      # Get the poco-irc session ID 
      my $sender_id = $sender->ID();
-     
+
      # Or it's alias
      my $poco_alias = $irc_object->session_alias();
 
@@ -3633,7 +3633,7 @@ distribution for details.
 =head1 MAD PROPS
 
 The maddest of mad props go out to Rocco "dngor" Caputo
-E<lt>troc@netrus.netE<gt>, for inventing something as mind-bogglingly
+<troc@netrus.net>, for inventing something as mind-bogglingly
 cool as POE, and to Kevin "oznoid" Lenzo E<lt>lenzo@cs.cmu.eduE<gt>,
 for being the attentive parent of our precocious little infobot on
 #perl.
