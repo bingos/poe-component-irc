@@ -6,7 +6,7 @@ use POE::Component::IRC::Plugin qw( :ALL );
 use POSIX;
 use vars qw($VERSION);
 
-$VERSION = '1.2';
+$VERSION = '1.3';
 
 sub new {
     my ($package, %args) = @_;
@@ -19,7 +19,7 @@ sub PCI_register {
     my ($self,$irc) = splice @_, 0, 2;
 
     $self->{irc} = $irc;
-    $irc->plugin_register( $self, 'SERVER', qw(ctcp_version ctcp_userinfo ctcp_time ctcp_ping) );
+    $irc->plugin_register( $self, 'SERVER', qw(ctcp_version ctcp_userinfo ctcp_time ctcp_ping ctcp_source) );
 
     return 1;
 }
@@ -63,6 +63,19 @@ sub S_ctcp_userinfo {
     my $nick = ( split /!/, ${ $_[0] } )[0];
 
     $irc->yield( ctcpreply => $nick => 'USERINFO ' . ( $self->{userinfo} ? $self->{userinfo} : 'm33p' ) );
+    
+    return PCI_EAT_CLIENT if $self->eat();
+    return PCI_EAT_NONE;
+}
+
+sub S_ctcp_userinfo {
+    my ($self, $irc) = splice @_, 0, 2;
+    my $nick = ( split /!/, ${ $_[0] } )[0];
+
+    $irc->yield( ctcpreply => $nick => 'SOURCE ' . ($self->{source}
+        ? $self->{source}
+        : 'http://search.cpan.org/dist/POE-Component-IRC'
+    ));
     
     return PCI_EAT_CLIENT if $self->eat();
     return PCI_EAT_NONE;
@@ -124,8 +137,8 @@ POE::Component::IRC::Plugin::CTCP - A PoCo-IRC plugin that auto-responds to CTCP
 =head1 DESCRIPTION
 
 POE::Component::IRC::Plugin::CTCP is a L<POE::Component::IRC|POE::Component::IRC>
-plugin. It watches for 'irc_ctcp_version', 'irc_ctcp_userinfo', 'irc_ctcp_ping'
-and 'irc_ctcp_time' events and autoresponds on your behalf.
+plugin. It watches for 'irc_ctcp_version', 'irc_ctcp_userinfo', 'irc_ctcp_ping',
+'irc_ctcp_time' and 'irc_ctcp_source' events and autoresponds on your behalf.
 
 =head1 CONSTRUCTOR
 
@@ -140,6 +153,9 @@ PoCo-IRC and version;
 
 'userinfo', a string to send in response to 'irc_ctcp_userinfo'. Default is
 'm33p';
+
+'source', a string to send in response to 'irc_ctcp_userinfo'. Default is
+L<http://search.cpan.org/dist/POE-Component-IRC>.
 
 'eat', by default the plugin uses PCI_EAT_CLIENT, set this to 0 to disable this
 behaviour;
