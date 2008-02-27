@@ -183,7 +183,7 @@ to handle commands issued to your bot.
 
  sub dns_response {
      my $res = $_[ARG0];
-     my @answers = map { $_->rdatastr } $res->{response}->answer();
+     my @answers = map { $_->rdatastr } $res->{response}->answer() if $res->{response};
      
      if (scalar @answers) {
          $irc->yield(
