@@ -154,7 +154,7 @@ PoCo-IRC and version;
 'userinfo', a string to send in response to 'irc_ctcp_userinfo'. Default is
 'm33p';
 
-'source', a string to send in response to 'irc_ctcp_userinfo'. Default is
+'source', a string to send in response to 'irc_ctcp_source'. Default is
 L<http://search.cpan.org/dist/POE-Component-IRC>.
 
 'eat', by default the plugin uses PCI_EAT_CLIENT, set this to 0 to disable this
