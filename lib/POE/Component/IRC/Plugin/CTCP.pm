@@ -68,7 +68,7 @@ sub S_ctcp_userinfo {
     return PCI_EAT_NONE;
 }
 
-sub S_ctcp_userinfo {
+sub S_ctcp_source {
     my ($self, $irc) = splice @_, 0, 2;
     my $nick = ( split /!/, ${ $_[0] } )[0];
 
