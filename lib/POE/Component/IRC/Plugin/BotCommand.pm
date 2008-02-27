@@ -185,20 +185,14 @@ to handle commands issued to your bot.
      my $res = $_[ARG0];
      my @answers = map { $_->rdatastr } $res->{response}->answer() if $res->{response};
      
-     if (scalar @answers) {
-         $irc->yield(
-             'privmsg',
-             $res->{context}->{channel},
-             $res->{context}->{nick} . ": @answers",
-         );
-     }
-     else {
-         $irc->yield(
-             'privmsg',
-             $res->{context}->{channel},
-             $res->{context}->{nick} .': no answers for "' . $res->{host} . '"',
-         );
-     }
+     $irc->yield(
+         'privmsg',
+         $res->{context}->{channel},
+         $res->{context}->{nick} . scalar @answers
+             ? ": @answers"
+             : ': no answers for "' . $res->{host} . '"'
+     );
+
      return;
  }
 
