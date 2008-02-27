@@ -40,13 +40,20 @@ sub S_msg {
         return PCI_EAT_NONE;
     }
     
-    if (defined $cmd && exists $self->{Commands}->{lc $cmd}) {
-        my @help_lines = split /\015?\012/, $self->{Commands}->{lc $cmd};
-        $irc->yield(privmsg => $who => $_) for @help_lines;
+    if (defined $cmd) {
+        if (exists $self->{Commands}->{lc $cmd}) {
+            my @help_lines = split /\015?\012/, $self->{Commands}->{lc $cmd};
+            $irc->yield(privmsg => $who => $_) for @help_lines;
+        }
+        else {
+            $irc->yield(privmsg => $who, "Unknown command: $cmd");
+            $irc->yield(privmsg => $who, 'To get a list of commands, do: /msg '
+                . $irc->nick_name() . ' help');
+        }
     }
     else {
         $irc->yield(privmsg => $who, 'Commands: ' . join ', ', keys %{ $self->{Commands} });
-        $irc->yield(privmsg => $who, 'You can do /msg ' . $irc->nick_name() . ' help <command>');
+        $irc->yield(privmsg => $who, 'You can do: /msg ' . $irc->nick_name() . ' help <command>');
     }
     
     return PCI_EAT_NONE;
