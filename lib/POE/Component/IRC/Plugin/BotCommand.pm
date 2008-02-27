@@ -41,7 +41,8 @@ sub S_msg {
     }
     
     if (defined $cmd && exists $self->{Commands}->{lc $cmd}) {
-        $irc->yield(privmsg => $who => $self->{Commands}->{lc $cmd});
+        my @help_lines = split /\015?\012/, $self->{Commands}->{lc $cmd};
+        $irc->yield(privmsg => $who => $_) for @help_lines;
     }
     else {
         $irc->yield(privmsg => $who, 'Commands: ' . join ', ', keys %{ $self->{Commands} });
@@ -211,7 +212,8 @@ available commands, and information on how to use them.
 Four optional arguments:
 
 'Commands', a hash reference, with your commands as keys, and usage information
-as values.
+as values. If the usage string contains newlines, the component will send one
+message for each line.
 
 'Addressed', requires users to address the bot by name in order
 to issue commands. Default is true.
