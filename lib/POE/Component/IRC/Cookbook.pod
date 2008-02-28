@@ -31,7 +31,7 @@ Have your bot look up dictionary definitions of words.
 
 =item L<Resolver|POE::Component::IRC::Cookbook::Resolver>
 
-Have your boot resolve DNS records for you.
+Have your bot resolve DNS records for you.
 
 =item L<Currency|POE::Component::IRC::Cookbook::Currency>
 
