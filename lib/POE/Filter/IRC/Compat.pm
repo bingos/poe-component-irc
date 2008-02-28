@@ -95,7 +95,7 @@ sub get {
         };
     
         if ( $line->{raw_line} =~ tr/\001// ) {
-            push @$events, @{ $self->_get_ctcp( [ $line->{raw_line} ] ) };
+            push @$events, @{ $self->_get_ctcp( $line->{raw_line} ) };
             next LINE;
         }
             
