@@ -15,7 +15,6 @@ sub new {
     
     $params{lc $_} = delete $params{$_} for keys %params;
     $params{BUFFER} = [ ];
-#    $params{_ctcp} = POE::Filter::CTCP->new( debug => $params{DEBUG} );
     $params{_ircd} = POE::Filter::IRCD->new();
     $params{chantypes} = [ '#', '&' ] if ref $params{chantypes} ne 'ARRAY';
     $params{commands} = {
@@ -96,79 +95,10 @@ sub get {
         };
     
         if ( $line->{raw_line} =~ tr/\001// ) {
-	    # hinrik will probably be along shortly to refactor this >:]
-	    my ($name, $args);
-	    my ($who, $type, $where, $ctcp, $text) = _ctcp_dequote( $line->{raw_line} );
-            for my $string (@$ctcp) {
-	        if (!(($name, $args) = $string =~ /^(\w+)(?: (.*))?/)) {
-                   warn "Received malformed CTCP message: '$_'\n" if $self->{debug};
-           	   next LINE;
-            	}
-            
-                if (lc $name eq 'dcc') {
-                   my ($type, $file, $addr, $port, $size);
-                   if (!(($type, $file, $addr, $port, $size)
-                      = $args =~ /^(\w+) (".+"|\S+) (\d+) (\d+)(?: (\d+))?$/)) {
-                      warn "Received malformed DCC request: '$args'\n" if $self->{debug};
-                      next LINE;
-                   }
-                   $file =~ s/^"|"$//g;
-                   $file = File::Basename::fileparse($file);
-                
-                   push @$events, {
-                    name => 'dcc_request',
-                    args => [
-                        $who,
-                        uc $type,
-                        $port,
-                        {
-                            open => undef,
-                            nick => $who,
-                            type => uc $type,
-                            file => $file,
-                            size => $size,
-                            done => 0,
-                            addr => $addr,
-                            port => $port,
-                        },
-                        $file,
-                        $size,
-                    ],
-                    raw_line => $line->{raw_line},
-                  };
-                }
-                else {
-                  push @$events, {
-                    name => $type . '_' . lc $name,
-                    args => [
-                        $who,
-                        [split /,/, $where],
-                        (defined $args ? $args : ''),
-                    ],
-                    raw_line => $line->{raw_line},
-                  };
-                }
-            }
-
-            if ($text && scalar @$text) {
-              my $what;
-              ($what) = $line =~ /^(:\S+ +\w+ +\S+ +)/
-                or warn "What the heck? '$line'\n" if $self->{debug};
-              $text = (defined $what ? $what : '') . ':' . join '', @$text;
-              $text =~ s/\cP/^P/g;
-              warn "CTCP: $text\n" if $self->{debug};
-              #push @$events, @{$self->{irc_filter}->get( [$text] )};
-	      $line = shift( @{ $self->{_ircd}->get([$text])});
-	      $event = {
-            	name     => lc $line->{command},
-            	raw_line => $line->{raw_line},
-	      };
-            }
-	    else { 
-              next LINE;
-	    }
+            push @$events, @{ $self->_get_ctcp( [ $line->{raw_line} ] ) };
+            next LINE;
         }
-    
+            
         for my $cmd (keys %{ $self->{commands} }) {
             if ($event->{name} =~ $cmd) {
                 $self->{commands}->{$cmd}->($self, $event, $line);
@@ -183,6 +113,77 @@ sub get {
         push @$events, $event;
     }
   
+    return $events;
+}
+
+sub _get_ctcp {
+    my ($self, $line) = @_;
+    my ($who, $type, $where, $ctcp, $text) = _ctcp_dequote( $line );
+
+    my $events = [ ];
+    my ($name, $args);
+    CTCP: for my $string (@$ctcp) {
+        if (!(($name, $args) = $string =~ /^(\w+)(?: (.*))?/)) {
+            warn "Received malformed CTCP message: '$string'\n" if $self->{debug};
+            last CTCP;
+        }
+            
+        if (lc $name eq 'dcc') {
+            my ($type, $file, $addr, $port, $size);
+            
+            if (!(($type, $file, $addr, $port, $size)
+                = $args =~ /^(\w+) (".+"|\S+) (\d+) (\d+)(?: (\d+))?$/)) {
+                warn "Received malformed DCC request: '$args'\n" if $self->{debug};
+                last CTCP;
+            }
+            $file =~ s/^"|"$//g;
+            $file = File::Basename::fileparse($file);
+                
+            push @$events, {
+                name => 'dcc_request',
+                args => [
+                    $who,
+                    uc $type,
+                    $port,
+                    {
+                        open => undef,
+                        nick => $who,
+                        type => uc $type,
+                        file => $file,
+                        size => $size,
+                        done => 0,
+                        addr => $addr,
+                        port => $port,
+                    },
+                    $file,
+                    $size,
+                ],
+                raw_line => $line,
+            };
+        }
+        else {
+            push @$events, {
+                name => $type . '_' . lc $name,
+                args => [
+                    $who,
+                    [split /,/, $where],
+                    (defined $args ? $args : ''),
+                ],
+                raw_line => $line,
+            };
+        }
+    }
+
+    if ($text && scalar @$text) {
+        my $what;
+        ($what) = $line =~ /^(:\S+ +\w+ +\S+ +)/
+            or warn "What the heck? '$line'\n" if $self->{debug};
+        $text = (defined $what ? $what : '') . ':' . join '', @$text;
+        $text =~ s/\cP/^P/g;
+        warn "CTCP: $text\n" if $self->{debug};
+        push @$events, @{ $self->{_ircd}->get([$text]) };
+    }
+    
     return $events;
 }
 
@@ -204,11 +205,11 @@ sub get_one {
 }
 
 sub clone {
-  my $self = shift;
-  my $nself = { };
-  $nself->{$_} = $self->{$_} for keys %{ $self };
-  $nself->{BUFFER} = [ ];
-  return bless $nself, ref $self;
+    my $self = shift;
+    my $nself = { };
+    $nself->{$_} = $self->{$_} for keys %{ $self };
+    $nself->{BUFFER} = [ ];
+    return bless $nself, ref $self;
 }
 
 sub _decolon {
@@ -225,7 +226,7 @@ sub _low_quote {
     my %enquote = ("\012" => 'n', "\015" => 'r', "\0" => '0', "\cP" => "\cP");
 
     if (!defined $line) {
-        croak 'Not enough arguments to POE::Filter::CTCP->_low_quote';
+        croak 'Not enough arguments to POE::Filter::IRC::Compat->_low_quote';
     }
 
     if ($line =~ tr/[\012\015\0\cP]//) { # quote \n, \r, ^P, and \0.
@@ -242,7 +243,7 @@ sub _low_dequote {
     my %dequote = (n => "\012", r => "\015", 0 => "\0", "\cP" => "\cP");
 
     if (!defined $line) {
-        croak 'Not enough arguments to POE::Filter::CTCP->_low_dequote';
+        croak 'Not enough arguments to POE::Filter::IRC::Compat->_low_dequote';
     }
 
     # dequote \n, \r, ^P, and \0.
@@ -276,7 +277,7 @@ sub _ctcp_dequote {
     # CHUNG! CHUNG! CHUNG!
 
     if (!defined $line) {
-        croak 'Not enough arguments to POE::Filter::CTCP->_ctcp_dequote';
+        croak 'Not enough arguments to POE::Filter::IRC::Compat->_ctcp_dequote';
     }
 
     # Strip out any low-level quoting in the text.
@@ -331,15 +332,15 @@ __END__
 
 =head1 NAME
 
-POE::Filter::IRC::Compat - A filter which converts L<POE::Filter::IRCD>
-output into L<POE::Component::IRC> events.
+POE::Filter::IRC::Compat - A filter which converts L<POE::Filter::IRCD|POE::Filter::IRCD>
+output into L<POE::Component::IRC|POE::Component::IRC> events.
 
 =head1 DESCRIPTION
 
-POE::Filter::IRC::Compat is a L<POE::Filter> that converts
-L<POE::Filter::IRCD> output into the L<POE::Component::IRC>
+POE::Filter::IRC::Compat is a L<POE::Filter|POE::Filter> that converts
+L<POE::Filter::IRCD|POE::Filter::IRCD> output into the L<POE::Component::IRC|POE::Component::IRC>
 compatible event references. Basically a hack, so I could replace
-L<POE::Filter::IRC> with something that was more
+L<POE::Filter::IRC|POE::Filter::IRC> with something that was more
 generic.
 
 =head1 CONSTRUCTOR
@@ -365,7 +366,7 @@ L<POE::Component::IRC|POE::Component::IRC> compatible event hashrefs. Yay.
 
 =item C<get_one>
 
-These perform a similar function as get() but enable the filter to work with
+These perform a similar function as C<get()> but enable the filter to work with
 L<POE::Filter::Stackable|POE::Filter::Stackable>.
 
 =item C<chantypes>
@@ -374,7 +375,7 @@ Takes an arrayref of possible channel prefix indicators.
 
 =item C<debug>
 
-Takes a true/false value which enables/disbles debugging accordingly.
+Takes a true/false value which enables/disables debugging accordingly.
 Returns the debug status.
 
 =item C<clone>
@@ -396,8 +397,10 @@ Chris 'BinGOs' Williams
 
 =head1 SEE ALSO
 
-L<POE::Filter>
+L<POE::Filter::IRCD|POE::Filter::IRCD>
 
-L<POE::Filter::Stackable>
+L<POE::Filter|POE::Filter>
+
+L<POE::Filter::Stackable|POE::Filter::Stackable>
 
 =cut
