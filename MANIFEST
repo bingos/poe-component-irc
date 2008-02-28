@@ -27,6 +27,8 @@ inc/Module/Install/WriteAll.pm
 lib/POE/Component/IRC.pm
 lib/POE/Component/IRC/Common.pm
 lib/POE/Component/IRC/Constants.pm
+lib/POE/Component/IRC/Cookbook.pod
+lib/POE/Component/IRC/Cookbook/BasicBot.pod
 lib/POE/Component/IRC/Pipeline.pm
 lib/POE/Component/IRC/Plugin.pm
 lib/POE/Component/IRC/Plugin/AutoJoin.pm
