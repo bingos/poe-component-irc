@@ -9,6 +9,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Logger.pm: Use File::Spec for cross-platform file/dir creation. (Hinrik)
     - Make CTCP plugin respond to SOURCE requests (Hinrik)
     - Added a Cookbook (Hinrik)
+    - State.pm: Save user hop count from WHO replies (Hinrik)
 
 5.68  Wed Feb 20 19:49:58 GMT 2008
     - IRC.pm: Improved the docs a little, fixed an error in the

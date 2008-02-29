@@ -397,13 +397,15 @@ sub S_352 {
 
     my $mapping = $irc->isupport('CASEMAPPING');
     my ($channel,$user,$host,$server,$nick,$status,$rest) = @{ ${ $_[2] } };
-    my $real = substr($rest, index($rest, ' ') + 1);
+    $rest =~ s/^://;
+    my ($hops, $real) = split /\s/, $rest, 2;
     my $unick = u_irc $nick, $mapping;
     my $uchan = u_irc $channel, $mapping;
 
     $self->{STATE}->{Nicks}->{ $unick }->{Nick} = $nick;
     $self->{STATE}->{Nicks}->{ $unick }->{User} = $user;
     $self->{STATE}->{Nicks}->{ $unick }->{Host} = $host;
+    $self->{STATE}->{Nicks}->{ $unick }->{Hops} = $hops;
     $self->{STATE}->{Nicks}->{ $unick }->{Real} = $real;
     $self->{STATE}->{Nicks}->{ $unick }->{Server} = $server;
     
