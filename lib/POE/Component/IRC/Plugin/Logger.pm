@@ -2,11 +2,11 @@ package POE::Component::IRC::Plugin::Logger;
 
 use strict;
 use warnings;
-use Carp;
-use Encode;
-use Encode::Guess;
-use Fcntl;
-use File::Spec;
+use Carp qw(croak);
+use Encode qw(decode);
+use Encode::Guess qw(guess_encoding);
+use Fcntl qw(O_WRONLY O_APPEND O_CREAT);
+use File::Spec qw(catdir catfile);
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Plugin::BotTraffic;
 use POE::Component::IRC::Common qw( l_irc parse_user strip_color strip_formatting );
@@ -279,15 +279,15 @@ sub _log_entry {
     
     my $log_file;
     if ($self->{Sort_by_date}) {
-        my $log_dir = File::Spec->catdir($self->{Path}, $context);
+        my $log_dir = catdir($self->{Path}, $context);
         if (! -d $log_dir) {
             mkdir $log_dir, $self->{dir_perm}
                 or croak "Couldn't create directory $log_dir: $!; aborted";
         }
-        $log_file = File::Spec->catfile($self->{Path}, $context, "$date.log");
+        $log_file = catfile($self->{Path}, $context, "$date.log");
     }
     else {
-        $log_file = File::Spec->catfile($self->{Path}, "$context.log");
+        $log_file = catfile($self->{Path}, "$context.log");
     }
     
     $log_file = $self->_open_log($log_file);
@@ -297,7 +297,7 @@ sub _log_entry {
         $self->{logging}->{$context} = 1;
     }
     my $line = "$time " . $self->{Format}->{$type}->(@args);
-    $line = "$date $line" unless $self->{Sort_by_date};
+    $line = "$date $line" if !$self->{Sort_by_date};
     print $log_file "$line\n";
     return;
 }
@@ -366,7 +366,7 @@ Arguments:
 'Public', whether or not to log public messages. Defaults to 1.
 
 'Sort_by_date', whether or not to split log files by date, i.e.
-C<#channel/YYYY-MM-DD.log> instead of C<#channel.log>. If enabled, the date
+F<#channel/YYYY-MM-DD.log> instead of F<#channel.log>. If enabled, the date
 will be omitted from the timestamp. Defaults to 0.
 
 'Strip_color', whether or not to strip all color codes from messages. Defaults
