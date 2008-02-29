@@ -1259,7 +1259,8 @@ Expects a nickname. Returns a hashref containing similar information to that
 returned by WHOIS. Returns a false value if the nickname doesn't exist in the
 state. The hashref contains the following keys:
 
-'Nick', 'User', 'Host', 'Userhost', 'Real', 'Server' and, if applicable, 'IRCop'.
+'Nick', 'User', 'Host', 'Userhost', 'Hops', 'Real', 'Server' and, if
+applicable, 'IRCop'.
 
 =item C<ban_mask>
 
