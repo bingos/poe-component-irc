@@ -39,11 +39,12 @@ to handle the translate command.
      my $irc = POE::Component::IRC::State->spawn(
          Nick   => 'translator_bot',
          Server => 'irc.freenode.net',
+         debug => 1
      );
      $heap->{irc} = $irc;
 
      $irc->plugin_add('AutoJoin', POE::Component::IRC::Plugin::AutoJoin->new(
-         Channels => [ '#test_channel1', '#test_channel2'  ]
+         Channels => [ '#avar' ]
      ));
      
      $irc->plugin_add('BotCommand', POE::Component::IRC::Plugin::BotCommand->new(
@@ -71,6 +72,11 @@ to handle the translate command.
                  src       => $from,
                  dest      => $to,
              );
+         };
+         
+         if ($@) {
+             $irc->yield(privmsg => $channel, "$nick: There was an error: $@");
+             return;
          }
      }
 
@@ -81,6 +87,7 @@ to handle the translate command.
              nick    => $nick,
          }
      );
+     return;
  }
 
  # Some IRC users use CP1252, some use UTF-8. Let's decode it properly.
@@ -92,15 +99,22 @@ to handle the translate command.
  
  sub translated {
      my $irc = $_[HEAP]->{irc};
-     my ($text, $context) = @_[ARG0, ARG1]; 
-     
-     if (defined $text) {
+     my ($text, $context, $error) = @_[ARG0, ARG1, ARG2]; 
+
+     if ($error) {
          $irc->yield(
              'privmsg',
              $context->{channel},
-             $context->{nick} . ": $text",
+             $context->{nick} . ": There was an error: $error",
          );
+         return;
      }
+     
+     $irc->yield(
+         'privmsg',
+         $context->{channel},
+         $context->{nick} . ': ' . $text,
+     );
      return;
  }
 
