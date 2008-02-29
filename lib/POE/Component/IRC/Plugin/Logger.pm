@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Carp qw(croak);
 use Encode qw(decode);
-use Encode::Guess qw(guess_encoding);
+use Encode::Guess;
 use Fcntl qw(O_WRONLY O_APPEND O_CREAT);
 use File::Spec qw(catdir catfile);
 use POE::Component::IRC::Plugin qw( :ALL );
