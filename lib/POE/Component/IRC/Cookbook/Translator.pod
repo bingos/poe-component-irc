@@ -55,6 +55,7 @@ to handle the translate command.
 
      $irc->yield(register => 'botcmd_trans');
      $irc->yield(connect => );
+     return;
  }
 
  sub irc_botcmd_trans {
