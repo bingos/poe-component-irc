@@ -29,6 +29,7 @@ lib/POE/Component/IRC/Common.pm
 lib/POE/Component/IRC/Constants.pm
 lib/POE/Component/IRC/Cookbook.pod
 lib/POE/Component/IRC/Cookbook/BasicBot.pod
+lib/POE/Component/IRC/Cookbook/Translator.pod
 lib/POE/Component/IRC/Pipeline.pm
 lib/POE/Component/IRC/Plugin.pm
 lib/POE/Component/IRC/Plugin/AutoJoin.pm
