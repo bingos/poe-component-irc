@@ -2355,6 +2355,9 @@ C<shutdown>.
 
 The SYNOPSIS demonstrates a fairly basic bot.
 
+See L<POE::Component::IRC::Cookbook|POE::Component::IRC::Cookbook> for more
+examples.
+
 =head2 Useful subclasses
 
 Included with POE::Component::IRC are a number of useful subclasses. As they
