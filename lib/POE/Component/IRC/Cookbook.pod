@@ -39,7 +39,7 @@ This will show you how to make your bot convert between currencies.
 
 =item L<Seen|POE::Component::IRC::Cookbook::Seen>
 
-Implement the "seen" feature found in many bots, which tell you when your bot
+Implement the "seen" feature found in many bots, which tells you when your bot
 last saw a particular user, and what they were doing/saying.
 
 =item L<MegaHal|POE::Component::IRC::Cookbook::MegaHal>
