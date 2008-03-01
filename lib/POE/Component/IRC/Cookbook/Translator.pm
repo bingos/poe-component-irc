@@ -1,3 +1,11 @@
+package POE::Component::IRC::Cookbook::Translator;
+
+use strict;
+use warnings;
+
+1;
+__END__
+
 =head1 NAME
 
 POE::Component::IRC::Cookbook::Translator - A bot that can translate text

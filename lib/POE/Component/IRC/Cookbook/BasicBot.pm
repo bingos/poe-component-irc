@@ -1,3 +1,11 @@
+package POE::Component::IRC::Cookbook::BasicBot;
+
+use strict;
+use warnings;
+
+1;
+__END__
+
 =head1 NAME
 
 POE::Component::IRC::Cookbook::BasicBot - A basic IRC bot

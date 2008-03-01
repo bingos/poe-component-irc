@@ -1,3 +1,11 @@
+package POE::Component::IRC::Cookbook::Resolver;
+
+use strict;
+use warnings;
+
+1;
+__END__
+
 =head1 NAME
 
 POE::Component::IRC::Cookbook::Translator - A bot that can resolve DNS records
