@@ -51,7 +51,7 @@ server.
      ));
 
      $irc->yield(register => 'join');
-     $irc->yield(connect => );
+     $irc->yield(connect => { });
  }
 
 Now comes our C<irc_join> event handler. We send a message to the channel
