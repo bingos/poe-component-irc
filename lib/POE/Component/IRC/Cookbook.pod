@@ -13,6 +13,16 @@ the capabilities of POE::Component::IRC.
 
 =head1 RECIPES
 
+=head2 GENERAL
+
+=over
+
+=item L<Disconnecting|POE::Component::IRC::Cookbook::Disconnecting>
+
+Shows you how to disconnect gracefully.
+
+=back
+
 =head2 BOTS
 
 =over
