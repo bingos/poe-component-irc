@@ -39,7 +39,6 @@ to handle the translate command.
      my $irc = POE::Component::IRC::State->spawn(
          Nick   => 'translator_bot',
          Server => 'irc.freenode.net',
-         debug => 1
      );
      $heap->{irc} = $irc;
 
