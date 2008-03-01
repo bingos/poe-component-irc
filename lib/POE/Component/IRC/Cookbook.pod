@@ -44,7 +44,7 @@ Use your bot as an RSS/Atom feed aggregator.
 
 =item L<Reminder|POE::Component::IRC::Cookbook::Reminder>
 
-Have your bot remind your about something at an arbitrary date/time.
+Have your bot remind you about something at a later time.
 
 =item L<Messenger|POE::Component::IRC::Cookbook::Messenger>
 
