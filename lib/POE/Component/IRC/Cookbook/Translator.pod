@@ -43,7 +43,7 @@ to handle the translate command.
      $heap->{irc} = $irc;
 
      $irc->plugin_add('AutoJoin', POE::Component::IRC::Plugin::AutoJoin->new(
-         Channels => [ '#avar' ]
+         Channels => [ '#test_channel1', '#test_channel2' ]
      ));
      
      $irc->plugin_add('BotCommand', POE::Component::IRC::Plugin::BotCommand->new(
