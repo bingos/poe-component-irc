@@ -42,7 +42,7 @@ to DNS records for channel members.
      
      $irc->plugin_add('BotCommand', POE::Component::IRC::Plugin::BotCommand->new(
          Commands => {
-            resolve => 'Usage: resolve [record type] <host>'
+            resolve => 'Usage: resolve <host>'
          }
      ));
 
@@ -56,13 +56,11 @@ to DNS records for channel members.
  sub irc_botcmd_resolve {
      my $dns = $_[HEAP]->{dns};
      my $nick = parse_user( $_[ARG0] );
-     my ($channel, $arg) = @_[ARG1, ARG2];
-     my ($type, $host) = $arg =~ /^(?:(\w+) )?(\S+)/;
+     my ($channel, $host) = @_[ARG1, ARG2];
     
      my $res = $dns->resolve(
          event => 'dns_response',
          host => $host,
-         type => $type,
          context => {
              channel => $channel,
              nick    => $nick,
