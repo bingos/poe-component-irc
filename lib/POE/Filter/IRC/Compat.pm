@@ -8,7 +8,7 @@ use File::Basename ();
 use base qw(POE::Filter);
 use vars qw($VERSION);
 
-$VERSION = '1.3';
+$VERSION = '1.4';
 
 sub new {
     my ($package, %params) = @_;
@@ -62,6 +62,14 @@ sub new {
     return bless \%params, $package;
 }
 
+sub clone {
+    my $self = shift;
+    my $nself = { };
+    $nself->{$_} = $self->{$_} for keys %{ $self };
+    $nself->{BUFFER} = [ ];
+    return bless $nself, ref $self;
+}
+
 # Set/clear the 'debug' flag.
 sub debug {
     my ($self, $flag) = @_;
@@ -79,41 +87,119 @@ sub chantypes {
     return 1;
 }
 
-sub get {
-    my ($self, $raw_lines) = @_;
-    my $events = [ ];
+sub get_one {
+    my ($self) = @_;
+    my $line = shift @{ $self->{BUFFER} };
 
-    LINE: for my $line (@$raw_lines) {
-        if (ref $line ne 'HASH' || !$line->{command} || !$line->{params}) {
-            warn "Received line '$line' that is not IRC protocol\n" if $self->{debug};
-            next LINE;
-        }
-    
-        my $event = {
-            name     => lc $line->{command},
-            raw_line => $line->{raw_line},
-        };
-    
-        if ( $line->{raw_line} =~ tr/\001// ) {
-            push @$events, @{ $self->_get_ctcp( $line->{raw_line} ) };
-            next LINE;
-        }
-            
-        for my $cmd (keys %{ $self->{commands} }) {
-            if ($event->{name} =~ $cmd) {
-                $self->{commands}->{$cmd}->($self, $event, $line);
-                push @$events, $event;
-                next LINE;
-            }
-        }
-    
-        # default
-        unshift( @{ $line->{params} }, _decolon( $line->{prefix} || '' ) ) if $line->{prefix};
-        $event->{args} = $line->{params};
-        push @$events, $event;
+    if (ref $line ne 'HASH' || !$line->{command} || !$line->{params}) {
+        warn "Received line '$line' that is not IRC protocol\n" if $self->{debug};
+        return [ ];
     }
-  
-    return $events;
+    
+    if ($line->{raw_line} =~ tr/\001//) {
+        return $self->_get_ctcp( $line->{raw_line} );
+    }
+    
+    my $event = {
+        name     => lc $line->{command},
+        raw_line => $line->{raw_line},
+    };
+
+    for my $cmd (keys %{ $self->{commands} }) {
+        if ($event->{name} =~ $cmd) {
+            $self->{commands}->{$cmd}->($self, $event, $line);
+            return [ $event ];
+        }
+    }
+    
+    # default
+    unshift( @{ $line->{params} }, _decolon( $line->{prefix} || '' ) ) if $line->{prefix};
+    $event->{args} = $line->{params};
+    return [ $event ];
+}
+
+sub get_one_start {
+    my ($self, $lines) = @_;
+    push @{ $self->{BUFFER} }, @$lines;
+    return;
+}
+
+sub put {
+    my ($self, $lineref) = @_;
+    my $quoted = [ ];
+    push @$quoted, _ctcp_quote($_) for @$lineref;
+    return $quoted;
+}
+
+# Properly CTCP-quotes a message. Whoop.
+sub _ctcp_quote {
+    my ($line) = @_;
+
+    $line = _low_quote( $line );
+    #$line =~ s/\\/\\\\/g;
+    $line =~ s/\001/\\a/g;
+
+    return "\001$line\001";
+}
+
+# Splits a message into CTCP and text chunks. This is gross. Most of
+# this is also stolen from Net::IRC, but I (fimm) wrote that too, so it's
+# used with permission. ;-)
+sub _ctcp_dequote {
+    my ($line) = @_;
+    my (@chunks, $ctcp, $text, $who, $type, $where, $msg);
+
+    # CHUNG! CHUNG! CHUNG!
+
+    if (!defined $line) {
+        croak 'Not enough arguments to POE::Filter::IRC::Compat->_ctcp_dequote';
+    }
+
+    # Strip out any low-level quoting in the text.
+    $line = _low_dequote( $line );
+
+    # Filter misplaced \001s before processing... (Thanks, tchrist!)
+    substr($line, rindex($line, "\001"), 1, '\\a')
+        if ($line =~ tr/\001//) % 2 != 0;
+
+    return if $line !~ tr/\001//;
+
+    ($who, $type, $where, $msg) = ($line =~ /^:(\S+) +(\w+) +(\S+) +:?(.*)$/)
+        or return;
+    
+    @chunks = split /\001/, $msg;
+    shift @chunks if !length $chunks[0]; # FIXME: Is this safe?
+
+    for (@chunks) {
+        # Dequote unnecessarily quoted chars, and convert escaped \'s and ^A's.
+        s/\\([^\\a])/$1/g;
+        s/\\\\/\\/g;
+        s/\\a/\001/g;
+    }
+
+    # If the line begins with a control-A, the first chunk is a CTCP
+    # message. Otherwise, it starts with text and alternates with CTCP
+    # messages. Really stupid protocol.
+    if ($msg =~ /^\001/) {
+        push @$ctcp, shift @chunks;
+    }
+
+    while (@chunks) {
+        push @$text, shift @chunks;
+        push @$ctcp, shift @chunks if @chunks;
+    }
+
+    # Is this a CTCP request or reply?
+    $type = $type eq 'PRIVMSG' ? 'ctcp' : 'ctcpreply';
+
+    return ($who, $type, $where, $ctcp, $text);
+}
+
+sub _decolon {
+    my ($line) = @_;
+
+    $line =~ s/^://;
+    return $line;
 }
 
 sub _get_ctcp {
@@ -187,38 +273,6 @@ sub _get_ctcp {
     return $events;
 }
 
-sub get_one_start {
-    my ($self, $raw_lines) = @_;
-
-    for my $line (@$raw_lines) {
-        push ( @{ $self->{BUFFER} }, $line );
-    }
-    return;
-}
-
-sub get_one {
-    my ($self) = @_;
-
-    my $events = $self->get($self->{BUFFER});
-    $self->{BUFFER} = [ ];
-    return $events;
-}
-
-sub clone {
-    my $self = shift;
-    my $nself = { };
-    $nself->{$_} = $self->{$_} for keys %{ $self };
-    $nself->{BUFFER} = [ ];
-    return bless $nself, ref $self;
-}
-
-sub _decolon {
-    my ($line) = @_;
-
-    $line =~ s/^://;
-    return $line;
-}
-
 # Quotes a string in a low-level, protocol-safe, utterly brain-dead
 # fashion. Returns the quoted string.
 sub _low_quote {
@@ -253,78 +307,6 @@ sub _low_dequote {
     }
 
     return $line;
-}
-
-
-# Properly CTCP-quotes a message. Whoop.
-sub _ctcp_quote {
-    my ($line) = @_;
-
-    $line = _low_quote( $line );
-    #$line =~ s/\\/\\\\/g;
-    $line =~ s/\001/\\a/g;
-
-    return "\001$line\001";
-}
-
-# Splits a message into CTCP and text chunks. This is gross. Most of
-# this is also stolen from Net::IRC, but I (fimm) wrote that too, so it's
-# used with permission. ;-)
-sub _ctcp_dequote {
-    my ($line) = @_;
-    my (@chunks, $ctcp, $text, $who, $type, $where, $msg);
-
-    # CHUNG! CHUNG! CHUNG!
-
-    if (!defined $line) {
-        croak 'Not enough arguments to POE::Filter::IRC::Compat->_ctcp_dequote';
-    }
-
-    # Strip out any low-level quoting in the text.
-    $line = _low_dequote( $line );
-
-    # Filter misplaced \001s before processing... (Thanks, tchrist!)
-    substr($line, rindex($line, "\001"), 1, '\\a')
-        if ($line =~ tr/\001//) % 2 != 0;
-
-    return if $line !~ tr/\001//;
-
-    ($who, $type, $where, $msg) = ($line =~ /^:(\S+) +(\w+) +(\S+) +:?(.*)$/)
-        or return;
-    
-    @chunks = split /\001/, $msg;
-    shift @chunks if !length $chunks[0]; # FIXME: Is this safe?
-
-    for (@chunks) {
-        # Dequote unnecessarily quoted chars, and convert escaped \'s and ^A's.
-        s/\\([^\\a])/$1/g;
-        s/\\\\/\\/g;
-        s/\\a/\001/g;
-    }
-
-    # If the line begins with a control-A, the first chunk is a CTCP
-    # message. Otherwise, it starts with text and alternates with CTCP
-    # messages. Really stupid protocol.
-    if ($msg =~ /^\001/) {
-        push @$ctcp, shift @chunks;
-    }
-
-    while (@chunks) {
-        push @$text, shift @chunks;
-        push @$ctcp, shift @chunks if @chunks;
-    }
-
-    # Is this a CTCP request or reply?
-    $type = $type eq 'PRIVMSG' ? 'ctcp' : 'ctcpreply';
-
-    return ($who, $type, $where, $ctcp, $text);
-}
-
-sub put {
-    my ($self, $lineref) = @_;
-    my $quoted = [ ];
-    push @$quoted, _ctcp_quote($_) for @$lineref;
-    return $quoted;
 }
 
 1;
