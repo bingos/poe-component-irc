@@ -5,6 +5,9 @@ use warnings;
 use POE;
 use POE::Component::IRC;
 use POE::Component::IRC::Plugin qw( :ALL );
+use vars qw($VERSION);
+
+$VERSION = '1.1';
 
 sub new {
     my ($package, %args) = @_;
@@ -138,8 +141,14 @@ sub _shutdown {
 sub _reconnect {
     my ($kernel, $self, $session, $sender) = @_[KERNEL, OBJECT, SESSION, SENDER];
 
+    my %args = ();
+    if (ref $self->{servers} eq 'ARRAY' && scalar @{ $self->{servers} }) {
+        @args{qw(Server Port)} = @{ $self->{servers}->[0] };
+        push @{ $self->{servers} }, shift @{ $self->{servers} };
+    }
+
     if ($sender eq $session) {
-        $self->{irc}->yield( 'connect' );
+        $self->{irc}->yield('connect' => %args);
     }
     else {
         $kernel->delay( '_reconnect' => 60 );
@@ -216,11 +225,17 @@ L<http://poe.perl.org/?POE_Cookbook/IRC_Bot_Reconnecting>.
 
 =item C<new>
 
-Takes one argument, 'delay', which the frequency that the plugin will ping it's
-server. Returns a plugin object suitable for use in
-L<POE::Component::IRC|POE::Component::IRC>'s 'plugin_add'.
+Takes two optional arguments:
 
- $irc->plugin_add( 'Connector' => POE::Component::IRC::Plugin::Connector->new( delay => 120 ) );
+'delay', the frequency, in seconds, at which the plugin will ping the IRC
+server. Defaults to 300.
+
+'servers', an array reference of IRC servers to consider. Each element should
+be an array reference containing a server host and (optionally) a port number.
+The plugin will cycle through this list of servers whenever it reconnects.
+
+Returns a plugin object suitable for use in
+L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
 
 =item C<lag>
 
