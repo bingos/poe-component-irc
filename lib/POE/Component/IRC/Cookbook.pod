@@ -25,17 +25,9 @@ A basic bot demonstrating the basics of PoCo-IRC.
 
 Add translating capabilities to your bot.
 
-=item L<Lookup|POE::Component::IRC::Cookbook::Lookup>
-
-Have your bot look up dictionary definitions of words.
-
 =item L<Resolver|POE::Component::IRC::Cookbook::Resolver>
 
 Have your bot resolve DNS records for you.
-
-=item L<Currency|POE::Component::IRC::Cookbook::Currency>
-
-This will show you how to make your bot convert between currencies.
 
 =item L<Seen|POE::Component::IRC::Cookbook::Seen>
 
