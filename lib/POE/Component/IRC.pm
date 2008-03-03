@@ -2340,7 +2340,7 @@ get started. Keep the list of server numeric codes handy while you
 program. Needless to say, you'll also need a good working knowledge of
 POE, or this document will be of very little use to you.]
 
-The POE::Component::IRC distribution has a docs/ folder with a collection of
+The POE::Component::IRC distribution has a F<docs/> folder with a collection of
 salient documentation including the pertinent RFCs.
 
 POE::Component::IRC consists of a POE::Session that manages the IRC connection
@@ -2797,45 +2797,6 @@ for you). The "/me" command in popular IRC clients is actually a CTCP action.
  # Doing a /me 
  $irc->yield(ctcp => $channel => 'ACTION dances.');
 
-=item C<dcc>
-
-Send a DCC SEND or CHAT request to another person. Takes at least two
-arguments: the nickname of the person to send the request to and the
-type of DCC request (SEND or CHAT). For SEND requests, be sure to add
-a third argument for the filename you want to send. Optionally, you
-can add a fourth argument for the DCC transfer blocksize, but the
-default of 1024 should usually be fine.
-
-Incidentally, you can send other weird nonstandard kinds of DCCs too;
-just put something besides 'SEND' or 'CHAT' (say, 'FOO') in the type
-field, and you'll get back C<irc_dcc_foo> events when activity happens
-on its DCC connection.
-
-If you are behind a firewall or Network Address Translation, you may want to
-consult C<connect> for some parameters that are useful with this command.
-
-=item C<dcc_accept>
-
-Accepts an incoming DCC connection from another host. First argument:
-the magic cookie from an C<irc_dcc_request> event. In the case of a DCC
-GET, the second argument can optionally specify a new name for the
-destination file of the DCC transfer, instead of using the sender's name
-for it. (See the C<irc_dcc_request> section below for more details.)
-
-=item C<dcc_chat>
-
-Sends lines of data to the person on the other side of a DCC CHAT
-connection. Takes any number of arguments: the magic cookie from an
-C<irc_dcc_start> event, followed by the data you wish to send. (It'll be
-chunked into lines by a L<POE::Filter::Line|POE::Filter::Line> for you,
-don't worry.)
-
-=item C<dcc_close>
-
-Terminates a DCC SEND or GET connection prematurely, and causes DCC CHAT
-connections to close gracefully. Takes one argument: the magic cookie
-from an C<irc_dcc_start> or C<irc_dcc_request> event.
-
 =item C<join>
 
 Tells your IRC client to join a single channel of your choice. Takes
@@ -2922,6 +2883,14 @@ message.
 Terminating multiple components can be tricky. Check the 'SIGNALS' section of
 this documentation for an alternative method of shutting down multiple poco-ircs.
 
+=item C<topic>
+
+Retrieves or sets the topic for particular channel. If called with just
+the channel name as an argument, it will ask the server to return the
+current topic. If called with the channel name and a string, it will
+set the channel topic to that string. Supply an empty string to unset a
+channel topic.
+
 =item C<unregister>
 
 Takes N arguments: a list of event names which you I<don't> want to
@@ -2959,6 +2928,51 @@ server will note that you're now away from your machine or otherwise
 preoccupied, and pass your message along to anyone who tries to
 communicate with you. When sent without arguments, it tells the server
 that you're back and paying attention.
+
+=item C<dcc>
+
+Send a DCC SEND or CHAT request to another person. Takes at least two
+arguments: the nickname of the person to send the request to and the
+type of DCC request (SEND or CHAT). For SEND requests, be sure to add
+a third argument for the filename you want to send. Optionally, you
+can add a fourth argument for the DCC transfer blocksize, but the
+default of 1024 should usually be fine.
+
+Incidentally, you can send other weird nonstandard kinds of DCCs too;
+just put something besides 'SEND' or 'CHAT' (say, 'FOO') in the type
+field, and you'll get back C<irc_dcc_foo> events when activity happens
+on its DCC connection.
+
+If you are behind a firewall or Network Address Translation, you may want to
+consult C<connect> for some parameters that are useful with this command.
+
+=item C<dcc_accept>
+
+Accepts an incoming DCC connection from another host. First argument:
+the magic cookie from an C<irc_dcc_request> event. In the case of a DCC
+GET, the second argument can optionally specify a new name for the
+destination file of the DCC transfer, instead of using the sender's name
+for it. (See the C<irc_dcc_request> section below for more details.)
+
+=item C<dcc_resume>
+
+Resumes a DCC SEND file transfer. First argument: the magic cookie from an
+C<irc_dcc_request> event. The second argument is the name of the file to which
+you want to write. The third argument is the size from which will be resumed.
+
+=item C<dcc_chat>
+
+Sends lines of data to the person on the other side of a DCC CHAT
+connection. Takes any number of arguments: the magic cookie from an
+C<irc_dcc_start> event, followed by the data you wish to send. (It'll be
+chunked into lines by a L<POE::Filter::Line|POE::Filter::Line> for you,
+don't worry.)
+
+=item C<dcc_close>
+
+Terminates a DCC SEND or GET connection prematurely, and causes DCC CHAT
+connections to close gracefully. Takes one argument: the magic cookie
+from an C<irc_dcc_start> or C<irc_dcc_request> event.
 
 =item C<info>
 
@@ -3029,14 +3043,6 @@ curious. Takes as many arguments as you please.
 Asks the server what time it thinks it is, which it will return in a
 human-readable form. Takes one optional argument: a server name to
 query. If not supplied, defaults to current server.
-
-=item C<topic>
-
-Retrieves or sets the topic for particular channel. If called with just
-the channel name as an argument, it will ask the server to return the
-current topic. If called with the channel name and a string, it will
-set the channel topic to that string. Supply an empty string to unset a
-channel topic.
 
 =item C<trace>
 
@@ -3494,49 +3500,6 @@ and ARG5 will be the file size.
 
 A weird, non-RFC-compliant message from an IRC server. Don't worry
 about it. ARG0 is the text of the server's message.
-
-=item C<dcc_resume>
-
- # bboett's puny try to get dcc resume implemented in this great module:
- # ARG0 is the well known 'magic cookie' (as in dcc_send etc.)
- # ARG1 is the (eventually new) name of the file
- # ARG2 is the size from which will be resumed
- # usage and example:
-
- sub irc_dcc_request {
-     my ($kernel, $nick, $type, $port, $magic, $filename, $size) =
-         @_[KERNEL, ARG0 .. ARG5];
-
-     print "DCC $type request from $nick on port $port\n";
-     if ($args->{type} =~ /SEND/i) {
-         $nick = ($nick =~ /^([^!]+)/);
-         $nick =~ s/\W//;
-         if (my $filesize = -s "$1.$filename") {
-             $kernel->post('test', 'dcc_resume', $magic, "$1.$filename", "$filesize" );
-             # don't forget to save the cookie, it holds the address of
-             # the counterpart which won't be in the server response!!
-             $args->{heap}->{cookies}->{$args->{file}} = $args->{magic};
-         }
-         else {
-             $kernel->post( 'test', 'dcc_accept', $magic, "$1.$filename" );
-         }
-     }
-     elsif ($args->{type} =~ /ACCEPT/i) {
-         $kernel->post( $args->{context}, 'dcc_accept', $magic, $filename);
-     }
- }
-
- # you need a counter part in irc_dcc_request():
-
- if ($type eq 'ACCEPT') {
-     # the args are in wrong order and missing shift the args 1 up
-     $magic->{port} = $magic->{addr};
-
-     my $altcookie = $_[OBJECT]->{cookies}->{$filename};
-     $magic->{addr} = $altcookie->{addr};
-     delete $_[OBJECT]->{cookies}->{$filename};
-     # TODO beware a possible memory leak here...
- }
 
 =back
 
