@@ -8,7 +8,7 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Cookbook::Translator - A bot that can resolve DNS records
+POE::Component::IRC::Cookbook::Resolver - A bot that can resolve DNS records
 
 =head1 DESCRIPTION
 
@@ -100,3 +100,5 @@ to DNS records for channel members.
 =head1 AUTHOR
 
 Hinrik E<Ouml>rn SigurE<eth>sson, hinrik.sig@gmail.com
+
+=cut

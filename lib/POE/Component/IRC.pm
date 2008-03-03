@@ -3584,7 +3584,7 @@ maintainer.
 
 Chris C<BinGOs> Williams <chris@bingosnet.co.uk>
 
-Hinrik Örn Sigurðsson <hinrik.sig@gmail.com>
+Hinrik E<Ouml>rn SigurE<eth>sson <hinrik.sig@gmail.com>
 
 =head1 AUTHOR
 
@@ -3592,7 +3592,7 @@ Dennis Taylor.
 
 =head1 LICENCE
 
-Copyright (c) Dennis Taylor and Chris Williams and Hinrik Örn Sigurðsson
+Copyright (c) Dennis Taylor, Chris Williams and Hinrik E<Ouml>rn SigurE<eth>sson
 
 This module may be used, modified, and distributed under the same
 terms as Perl itself. Please see the license that came with your Perl

@@ -129,3 +129,5 @@ to handle the translate command.
 =head1 AUTHOR
 
 Hinrik E<Ouml>rn SigurE<eth>sson, hinrik.sig@gmail.com
+
+=cut

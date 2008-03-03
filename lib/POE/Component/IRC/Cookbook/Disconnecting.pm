@@ -50,4 +50,6 @@ and things shut down.
 
 =head1 AUTHOR
 
-Rocco Caputo (I think). PODified by Hinrik Örn Sigurðsson.
+Rocco Caputo (I think). PODified by Hinrik E<Ouml>rn SigurE<eth>sson.
+
+=cut
