@@ -47,32 +47,32 @@ Add translating capabilities to your bot.
 
 Have your bot resolve DNS records for you.
 
-=item L<Seen|POE::Component::IRC::Cookbook::Seen>
+=item Seen
 
 Implement the "seen" feature found in many bots, which tells you when your bot
 last saw a particular user, and what they were doing/saying.
 
-=item L<MegaHal|POE::Component::IRC::Cookbook::MegaHal>
+=item MegaHal
 
 Allow your bot to talk, using artificial "intelligence".
 
-=item L<Feeds|POE::Component::IRC::Cookbook::Feeds>
+=item Feeds
 
 Use your bot as an RSS/Atom feed aggregator.
 
-=item L<Reminder|POE::Component::IRC::Cookbook::Reminder>
+=item Reminder
 
 Have your bot remind you about something at a later time.
 
-=item L<Messenger|POE::Component::IRC::Cookbook::Messenger>
+=item Messenger
 
 Have your bot deliver messages to users as soon as they become active.
 
-=item L<Eval|POE::Component::IRC::Cookbook::Eval>
+=item Eval
 
 Have your bot evaluate mathematical expressions and code.
 
-=item L<Reload|POE::Component::IRC::Cookbook::Reload>
+=item Reload
 
 Structure your code in such a way that your bot can be reprogrammed at runtime
 without reconnecting to the IRC server.
@@ -83,11 +83,11 @@ without reconnecting to the IRC server.
 
 =over
 
-=item L<Gtk2|POE::Component::IRC::Cookbook::Gtk2Client>
+=item Gtk2
 
 A simple IRC client with a Gtk2 interface.
 
-=item L<ReadLine|POE::Component::IRC::Cookbook::ReadLineClient>
+=item ReadLine
 
 A simple IRC client with a ReadLine interface.
 
