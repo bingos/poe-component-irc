@@ -1126,9 +1126,8 @@ take the same arguments as L<POE::Component::IRC|POE::Component::IRC> does, as
 well as an additional one:
 
 'AwayPoll', the interval (in seconds) in which to poll (i.e. C<WHO #channel>)
-the away status of channel members. Defaults to to 0 (disabled). If enabled,
-you will receive C<irc_away_sync_*> / C<irc_user_away> / C<irc_user_back>
-events.
+the away status of channel members. Defaults to 0 (disabled). If enabled, you
+will receive C<irc_away_sync_*> / C<irc_user_away> / C<irc_user_back> events.
 
 =head1 METHODS
 
