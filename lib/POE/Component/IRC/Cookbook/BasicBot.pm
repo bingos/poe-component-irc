@@ -44,9 +44,8 @@ start the POE kernel.
  $poe_kernel->run();
 
 Now all we have to do is write the handlers for C<_start> and C<irc_join>.
-In C<_start>, we create our IRC component, keep it in the heap, add an
-C<AutoJoin> plugin, register for the C<irc_join> event, and connect to the IRC
-server.
+In C<_start>, we create our IRC component, add an C<AutoJoin> plugin, register
+for the C<irc_join> event, and connect to the IRC server.
 
  sub _start {
      my $irc = POE::Component::IRC::State->spawn(
