@@ -13,6 +13,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Connector.pm: Added support for multiple servers (Hinrik)
     - IRC.pm: Improved dcc_resume documentation, moved some others things
       around in the docs (Hinrik)
+    - Added Hinrik to the maintainers list in IRC.pm (bingos)
 
 5.68  Wed Feb 20 19:49:58 GMT 2008
     - IRC.pm: Improved the docs a little, fixed an error in the

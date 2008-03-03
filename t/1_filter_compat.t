@@ -8,8 +8,6 @@ use POE::Filter::IRC;
 
 my $long = ':joe!joe@example.com PRIVMSG #quitealongchannelnamereally :This is a really really long message really. Quite long in fact when you look at it. I could go on on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on and on about how long it actually is, but really the IRC server will kick my pimply white ass about it anyways.';
 
-warn length( $long ), "\n";
-
 my %tests = (
 'part' => 
 	{

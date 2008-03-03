@@ -30,7 +30,7 @@ use POE::Component::IRC::Plugin::Whois;
 use Socket;
 use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS $GOT_SOCKET6);
 
-$VERSION = '5.68';
+$VERSION = '5.70';
 $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 
 BEGIN {
@@ -3580,9 +3580,11 @@ A few have turned up in the past and they are sure to again. Please use
 L<http://rt.cpan.org/> to report any. Alternatively, email the current
 maintainer.
 
-=head1 MAINTAINER
+=head1 MAINTAINERS
 
-Chris 'BinGOs' Williams <chris@bingosnet.co.uk>
+Chris C<BinGOs> Williams <chris@bingosnet.co.uk>
+
+Hinrik Örn Sigurðsson <hinrik.sig@gmail.com>
 
 =head1 AUTHOR
 
@@ -3590,7 +3592,7 @@ Dennis Taylor.
 
 =head1 LICENCE
 
-Copyright (c) Dennis Taylor and Chris Williams
+Copyright (c) Dennis Taylor and Chris Williams and Hinrik Örn Sigurðsson
 
 This module may be used, modified, and distributed under the same
 terms as Perl itself. Please see the license that came with your Perl
