@@ -4,4 +4,9 @@ verbose  = 3
 
 # these policies are either too anal, demand additional dependencies,
 # or inhibit backwards-compatability
-exclude = RegularExpressions::RequireExtendedFormatting ValuesAndExpressions::ProhibitConstantPragma Variables::ProhibitPackageVars BuiltinFunctions::ProhibitStringyEval ValuesAndExpressions::ProhibitCommaSeparatedStatements Subroutines::ProhibitBuiltinHomonyms
+[-RegularExpressions::RequireExtendedFormatting]
+[-ValuesAndExpressions::ProhibitConstantPragma]
+[-Variables::ProhibitPackageVars]
+[-BuiltinFunctions::ProhibitStringyEval]
+[-ValuesAndExpressions::ProhibitCommaSeparatedStatements]
+[-Subroutines::ProhibitBuiltinHomonyms]
