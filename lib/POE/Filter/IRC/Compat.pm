@@ -89,7 +89,7 @@ sub chantypes {
 
 sub get_one {
     my ($self) = @_;
-    my $line = shift @{ $self->{BUFFER} };
+    my $line = shift @{ $self->{BUFFER} } or return [ ];
 
     if (ref $line ne 'HASH' || !$line->{command} || !$line->{params}) {
         warn "Received line '$line' that is not IRC protocol\n" if $self->{debug};
