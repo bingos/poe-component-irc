@@ -38,25 +38,30 @@ sub PCI_register {
     
     $self->{commands} = {
         PLUGIN_ADD => sub {
-            my ($self, @cmd, $method, $recipient) = @_;
+            my ($self, $method, $recipient, @cmd) = @_;
             my $msg = $self->load(@cmd) ? 'Done.' : 'Nope';
             $self->{irc}->yield($method => $recipient => $msg);
         },
         PLUGIN_DEL => sub {
-            my ($self, @cmd, $method, $recipient) = @_;
+            my ($self, $method, $recipient, @cmd) = @_;
             my $msg = $self->unload(@cmd) ? 'Done.' : 'Nope';
             $self->{irc}->yield($method => $recipient => $msg);
         },
+	PLUGIN_RELOAD => sub {
+            my ($self, $method, $recipient, @cmd) = @_;
+            my $msg = $self->reload(@cmd) ? 'Done.' : 'Nope';
+            $self->{irc}->yield($method => $recipient => $msg);
+        },
         PLUGIN_LIST => sub {
-            my ($self, @cmd, $method, $recipient) = @_;
+            my ($self, $method, $recipient, @cmd) = @_;
             my @aliases = keys %{ $self->{irc}->plugin_list() };
             my $msg = scalar @aliases
                 ? 'Plugins [ ' . join(', ', @aliases ) . ' ]'
                 : 'No plugins loaded.';
             $self->{irc}->yield($method => $recipient => $msg);
         },
-        PLUGIN_RELOAD => sub {
-            my ($self, @cmd, $method, $recipient) = @_;
+        PLUGIN_LOADED => sub {
+            my ($self, $method, $recipient, @cmd) = @_;
             my @aliases = $self->loaded();
             my $msg = scalar @aliases
                 ? 'Managed Plugins [ ' . join(', ', @aliases ) . ' ]'
@@ -88,7 +93,7 @@ sub S_public {
     my $cmd = uc (shift @cmd);
     
     if (defined $self->{commands}->{$cmd}) {
-        $self->{command}->{$cmd}->($self, @cmd, 'privmsg', $channel);
+        $self->{command}->{$cmd}->($self, 'privmsg', $channel, @cmd);
     }
     
     return PCI_EAT_NONE;
@@ -105,7 +110,7 @@ sub S_msg {
     return PCI_EAT_NONE if !$self->_bot_owner($nick);
     
     if (defined $self->{commands}->{$cmd}) {
-        $self->{command}->{$cmd}->($self, @cmd, 'notice', $nick);
+        $self->{command}->{$cmd}->($self, 'notice', $nick, @cmd);
     }
 
     return PCI_EAT_NONE;
