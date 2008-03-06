@@ -84,7 +84,9 @@ sub S_join {
 
     }
     else {
-        $self->yield ( 'who' => $nick );
+        if ( !exists $self->{whojoiners} || $self->{whojoiners} ) {
+            $self->yield ( 'who' => $nick );
+        }
         $self->{STATE}->{Nicks}->{ $unick }->{Nick} = $nick;
         $self->{STATE}->{Nicks}->{ $unick }->{User} = $user;
         $self->{STATE}->{Nicks}->{ $unick }->{Host} = $host;
@@ -1123,11 +1125,14 @@ returned object provides methods to query the collected state.
 
 POE::Component::IRC::State's constructors, and its C<connect> event, all
 take the same arguments as L<POE::Component::IRC|POE::Component::IRC> does, as
-well as an additional one:
+well as two additional:
 
 'AwayPoll', the interval (in seconds) in which to poll (i.e. C<WHO #channel>)
 the away status of channel members. Defaults to 0 (disabled). If enabled, you
 will receive C<irc_away_sync_*> / C<irc_user_away> / C<irc_user_back> events.
+
+'WhoJoiners', a boolean indicating whether or not to send a C<WHO nick> for
+people just joining the channel.  Defaults to on (the WHO is sent).
 
 =head1 METHODS
 

@@ -2,6 +2,7 @@ Revision history for Perl extension POE::Component::IRC.
 
 5.72
     - Compat.pm: Fixed a bug that caused a warning (Hinrik)
+    - Patch applied from Somni [RT #33850] (bingos)
 
 5.70
     - BotAddressed.pm: Fixed a small bug (Hinrik)
