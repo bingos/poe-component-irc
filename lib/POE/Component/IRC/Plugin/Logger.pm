@@ -6,7 +6,7 @@ use Carp qw(croak);
 use Encode qw(decode);
 use Encode::Guess;
 use Fcntl qw(O_WRONLY O_APPEND O_CREAT);
-use File::Spec qw(catdir catfile);
+use File::Spec::Functions qw(catdir catfile);
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Plugin::BotTraffic;
 use POE::Component::IRC::Common qw( l_irc parse_user strip_color strip_formatting );
@@ -273,9 +273,14 @@ sub _log_entry {
     my ($date, $time) = split / /, (strftime '%F %T', localtime);
     $context = l_irc $context, $self->{irc}->isupport('CASEMAPPING');
 
-    return unless $context =~ /^[#&+!]/ && $self->{Public}
-      || ( $context !~ /^[#&+!]/ && $self->{Private} );
-    return unless defined $self->{Format}->{$type};
+    if ($context =~ /^[#&+!]/) {
+        return if !$self->{Public};
+    }
+    else {
+        return if !$self->{Private};
+    }
+
+    return if !defined $self->{Format}->{$type};
     
     my $log_file;
     if ($self->{Sort_by_date}) {
