@@ -74,7 +74,9 @@ sub S_join {
         delete $self->{STATE}->{Chans}->{ $uchan };
         $self->{CHANNEL_SYNCH}->{ $uchan } = { MODE => 0, WHO => 0, BAN => 0, _time => time() };
         $self->{STATE}->{Chans}->{ $uchan } = { Name => $channel, Mode => '' };
-        $self->yield(who => $channel );
+        if ( !exists $self->{whomembers} || $self->{whomembers} ) {
+            $self->yield ( 'who' => $nick );
+        }
         $self->yield(mode => $channel );
         $self->yield(mode => $channel => 'b');
         if ($self->{awaypoll}) {
@@ -84,7 +86,7 @@ sub S_join {
 
     }
     else {
-        if ( !exists $self->{whojoiners} || $self->{whojoiners} ) {
+        if ( !exists $self->{whomembers} || $self->{whomembers} ) {
             $self->yield ( 'who' => $nick );
         }
         $self->{STATE}->{Nicks}->{ $unick }->{Nick} = $nick;
@@ -1129,10 +1131,13 @@ well as two additional:
 
 'AwayPoll', the interval (in seconds) in which to poll (i.e. C<WHO #channel>)
 the away status of channel members. Defaults to 0 (disabled). If enabled, you
-will receive C<irc_away_sync_*> / C<irc_user_away> / C<irc_user_back> events.
+will receive C<irc_away_sync_*> / C<irc_user_away> / C<irc_user_back> events,
+and will be able to use the C<is_away> method.
 
-'WhoJoiners', a boolean indicating whether or not to send a C<WHO nick> for
-people just joining the channel.  Defaults to on (the WHO is sent).
+'WhoMembers', a boolean indicating whether the component should send a
+C<WHO #channel> upon joining a new channel and a C<WHO nick> for every
+subsequent joiner. Defaults to on (the C<WHO> is sent). If you turn this off,
+the C<is_operator> and C<nick_info> will not return useful values.
 
 =head1 METHODS
 
@@ -1177,7 +1182,8 @@ to not be on that channel an empty list will be returned.
 =item C<is_away>
 
 Expects a nick as parameter. Returns a true value if the specified nick is away.
-Returns a false value if the nick is not away or not in the state.
+Returns a false value if the nick is not away or not in the state. This will
+only be accurate if you specified a value for 'AwayPoll' in C<spawn>.
 
 =item C<is_operator>
 
@@ -1317,12 +1323,14 @@ events, there are the following events you can register for:
 =item C<irc_away_sync_start>
 
 Sent whenever the component starts to synchronise the away statuses of channel
-members. It does this every 60 seconds. ARG0 is the channel name.
+members. ARG0 is the channel name. You will only receive this event if you
+specified a value for 'AwayPoll' in C<spawn>.
 
 =item C<irc_away_sync_end>
 
 Sent whenever the component has completed synchronising the away statuses of
-channel members. It does this every 60 seconds. ARG0 is the channel name.
+channel members. ARG0 is the channel name. You will only receive this event if
+you specified a value for 'AwayPoll' in C<spawn>.
 
 =item C<irc_chan_sync>
 
@@ -1363,13 +1371,15 @@ umode that is being set.
 
 Sent when an IRC user sets his/her status to away. ARG0 is the nickname, ARG1
 is an arrayref of channel names that are common to the nickname and the
-component.
+component. You will only receive this event if you specified a value for
+'AwayPoll' in C<spawn>.
 
 =item C<irc_user_back>
 
 Sent when an IRC user unsets his/her away status. ARG0 is the nickname, ARG1
 is an arrayref of channel names that are common to the nickname and the
-component.
+component. You will only receive this event if you specified a value for
+'AwayPoll' in C<spawn>.
 
 =back
 
