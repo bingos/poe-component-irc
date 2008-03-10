@@ -1418,11 +1418,11 @@ want to ignore these.
 
 Currently, whenever the component sees a topic or channel list change, it will
 use C<time()> for the SetAt value and the full address of the user who set it
-for the SetBy value. When an ircd gives us it's record of such changes, it will
-use it's own time (obviously) and may only give us the nickname of the user,
+for the SetBy value. When an ircd gives us its record of such changes, it will
+use its own time (obviously) and may only give us the nickname of the user,
 rather than their full address. Thus, if our C<time()> and the ircd's time do
-not match, or the ircd uses thenickname only, ugly inconsistencies can develop.
-This leaves the SetAt and SetBy values at best, inaccurate, and you should use
+not match, or the ircd uses the nickname only, ugly inconsistencies can develop.
+This leaves the SetAt and SetBy values inaccurate at best, and you should use
 them with this in mind (for now, at least).
 
 =head1 AUTHOR
