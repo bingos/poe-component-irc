@@ -63,9 +63,7 @@ sub S_join {
     my ($self, $irc) = splice @_, 0, 2;
     
     my $mapping = $irc->isupport('CASEMAPPING');
-    my $nick = ( split /!/, ${ $_[0] } )[0];
-    my $userhost = ( split /!/, ${ $_[0] } )[1];
-    my ($user,$host) = split(/\@/,$userhost);
+    my ($nick, $user, $host) = split /[!@]/, ${ $_[0] };
     my $channel = ${ $_[1] };
     my $uchan = u_irc $channel, $mapping;
     my $unick = u_irc $nick, $mapping;
