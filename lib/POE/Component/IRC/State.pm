@@ -1413,9 +1413,8 @@ The component gathers information by registering for 'irc_quit', 'irc_nick',
 When the component is asked to join a channel, when it joins it will issue
 'WHO #channel', 'MODE #channel', and 'MODE #channel b'. These will solicit
 between them the numerics, 'irc_352', 'irc_324' and 'irc_329', respectively.
-'WHO #channel' will then be issued once every minute from then on. When
-someone joins a channel the bot is on, it issues a 'WHO nick'. You may want
-to ignore these. 
+When someone joins a channel the bot is on, it issues a 'WHO nick'. You may
+want to ignore these. 
 
 Currently, whenever the component sees a topic or channel list change, it will
 use time() for the SetAt value and the full address of the user who set it for
