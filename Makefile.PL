@@ -40,7 +40,7 @@ requires 'POE::Filter::IRCD' => 1.7;
 requires 'Encode' => 0;
 requires 'Encode::Guess' => 0;
 tests 't/*.t t/*/*.t';
-recursive_author_tests('xt');
+author_tests 'xt/';
 clean_files 'README.send followtail';
 WriteAll();
 exit 0;

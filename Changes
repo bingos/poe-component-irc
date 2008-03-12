@@ -6,6 +6,8 @@ Revision history for Perl extension POE::Component::IRC.
     - Fixes to two of the tests that were causing intermitent fails (bingos)
     - Logger.pm: Make logging work again :) (Hinrik)
     - State.pm: Document new AwayPoll behavior correctly (Hinrik)
+    - Moved author tests to xt/ Module::Install::AuthorTests is now 
+      required by maintainers. (bingos)
 
 5.70  Mon Mar 03 10:51:01 GMT 2008
     - BotAddressed.pm: Fixed a small bug (Hinrik)
