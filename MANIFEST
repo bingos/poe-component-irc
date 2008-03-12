@@ -17,6 +17,7 @@ examples/rot13_multi.pl
 examples/simpleclient.pl
 examples/tinyurl.pl
 inc/Module/Install.pm
+inc/Module/Install/AuthorTests.pm
 inc/Module/Install/Base.pm
 inc/Module/Install/Can.pm
 inc/Module/Install/Fetch.pm
@@ -30,8 +31,8 @@ lib/POE/Component/IRC/Constants.pm
 lib/POE/Component/IRC/Cookbook.pm
 lib/POE/Component/IRC/Cookbook/BasicBot.pm
 lib/POE/Component/IRC/Cookbook/Disconnecting.pm
-lib/POE/Component/IRC/Cookbook/Translator.pm
 lib/POE/Component/IRC/Cookbook/Resolver.pm
+lib/POE/Component/IRC/Cookbook/Translator.pm
 lib/POE/Component/IRC/Pipeline.pm
 lib/POE/Component/IRC/Plugin.pm
 lib/POE/Component/IRC/Plugin/AutoJoin.pm
@@ -73,10 +74,6 @@ t/2_State.t
 t/3_connect.t
 t/3_connect_ipv6.t
 t/4_testharness.t
-t/5_perl_critic.t
-t/5_pod.t
-t/5_pod_coverage.t
-t/5_test_kwalitee.t
 t/6_common.t
 t/7_parent.t
 t/8_registration.t
@@ -113,3 +110,7 @@ t/testsuite_14_multi_state.t
 t/testsuite_15_signal.t
 t/testsuite_16_multi_signal.t
 t/testsuite_17_ziplink.t
+xt/perl_critic.t
+xt/pod.t
+xt/pod_coverage.t
+xt/test_kwalitee.t
