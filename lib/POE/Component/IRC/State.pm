@@ -72,6 +72,7 @@ sub S_join {
         delete $self->{STATE}->{Chans}->{ $uchan };
         $self->{CHANNEL_SYNCH}->{ $uchan } = { MODE => 0, WHO => 0, BAN => 0, _time => time() };
         $self->{STATE}->{Chans}->{ $uchan } = { Name => $channel, Mode => '' };
+	$self->yield(who => $channel );
         $self->yield(mode => $channel );
         $self->yield(mode => $channel => 'b');
         if ($self->{awaypoll}) {
