@@ -3,11 +3,11 @@ Revision history for Perl extension POE::Component::IRC.
 5.72
     - Compat.pm: Fixed a bug that caused a warning (Hinrik)
     - Patch applied from Somni [RT #33850] (bingos)
-    - Amended aforementioned patch a little (Hinrik)
+    - Fixes to two of the tests that were causing intermitent fails (bingos)
     - Logger.pm: Make logging work again :) (Hinrik)
     - State.pm: Document new AwayPoll behavior correctly (Hinrik)
 
-5.70
+5.70  Mon Mar 03 10:51:01 GMT 2008
     - BotAddressed.pm: Fixed a small bug (Hinrik)
     - BotCommand.pm: A new plugin for handling bot commands (Hinrik)
     - IRC.pm: Shorten protocol lines that are too long, make the maximum length

@@ -72,9 +72,6 @@ sub S_join {
         delete $self->{STATE}->{Chans}->{ $uchan };
         $self->{CHANNEL_SYNCH}->{ $uchan } = { MODE => 0, WHO => 0, BAN => 0, _time => time() };
         $self->{STATE}->{Chans}->{ $uchan } = { Name => $channel, Mode => '' };
-        if ( !exists $self->{whomembers} || $self->{whomembers} ) {
-            $self->yield ( 'who' => $nick );
-        }
         $self->yield(mode => $channel );
         $self->yield(mode => $channel => 'b');
         if ($self->{awaypoll}) {
@@ -84,9 +81,13 @@ sub S_join {
 
     }
     else {
-        if ( !exists $self->{whomembers} || $self->{whomembers} ) {
+        if ( !exists $self->{whojoiners} || $self->{whojoiners} ) {
             $self->yield ( 'who' => $nick );
         }
+	else {
+	    # Fake 'irc_nick_sync
+	    $self->_send_event(irc_nick_sync => $nick, $channel);
+	}
         $self->{STATE}->{Nicks}->{ $unick }->{Nick} = $nick;
         $self->{STATE}->{Nicks}->{ $unick }->{User} = $user;
         $self->{STATE}->{Nicks}->{ $unick }->{Host} = $host;
@@ -1132,10 +1133,12 @@ the away status of channel members. Defaults to 0 (disabled). If enabled, you
 will receive C<irc_away_sync_*> / C<irc_user_away> / C<irc_user_back> events,
 and will be able to use the C<is_away> method.
 
-'WhoMembers', a boolean indicating whether the component should send a
-C<WHO #channel> upon joining a new channel and a C<WHO nick> for every
-subsequent joiner. Defaults to on (the C<WHO> is sent). If you turn this off,
+'WhoJoiners', a boolean indicating whether the component should send a
+C<WHO nick> for every person which joins a channel.
+Defaults to on (the C<WHO> is sent). If you turn this off,
 the C<is_operator> and C<nick_info> will not return useful values.
+The only information that can be relied upon to be stored in C<nick_info> is
+the C<'Nick'>, C<'User'> and C<'Host'>
 
 =head1 METHODS
 
