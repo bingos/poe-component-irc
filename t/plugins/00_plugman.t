@@ -1,4 +1,4 @@
-use Test::More tests => 9;
+use Test::More tests => 11;
 BEGIN { use_ok('POE::Component::IRC::State') };
 BEGIN { use_ok('POE::Component::IRC::Plugin::PlugMan') };
 
@@ -36,6 +36,28 @@ sub test_start {
   undef;
 }
 
+{
+    package MyPlugin;
+    use POE::Component::IRC::Plugin qw( :ALL );
+    sub new {
+        return bless { @_[1..$#_] }, $_[0];
+    }
+
+    sub PCI_register {
+        $_[1]->plugin_register( $_[0], 'SERVER', qw(all) );
+        return 1;
+    }
+
+    sub PCI_unregister {
+        return 1;
+    }
+
+    sub _default {
+        return PCI_EAT_NONE;
+    }
+    
+}
+
 sub irc_plugin_add {
   my ($kernel,$heap,$desc,$plugin) = @_[KERNEL,HEAP,ARG0,ARG1];
   return unless $desc eq "TestPlugin";
@@ -45,6 +67,9 @@ sub irc_plugin_add {
   ok( $plugin->load( 'Test1', 'POE::Component::IRC::Test::Plugin' ), "PlugMan_load" );
   ok( $plugin->reload( 'Test1' ), "PlugMan_reload" );
   ok( $plugin->unload( 'Test1' ), "PlugMan_unload" );
+  
+  ok( $plugin->load( 'Test2', MyPlugin->new() ), "Test2_load" );
+  ok( $plugin->unload( 'Test2' ), "Test2_unload" );
   
   unless ( $self->plugin_del( 'TestPlugin' ) ) {
   	fail( 'plugin_del' );

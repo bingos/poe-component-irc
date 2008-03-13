@@ -134,20 +134,27 @@ sub _bot_owner {
 sub load {
     my ($self, $desc, $plugin) = splice @_, 0, 3;
     return if !$desc || !$plugin;
+    
+    my $object;
+    my $module = ref $plugin || $plugin;
+    if (! ref $plugin){        
+        $module .= '.pm' if $module !~ /\.pm$/;
+        $module =~ s/::/\//g;
 
-    my $module = $plugin;
-    $module .= '.pm' if $module !~ /\.pm$/;
-    $module =~ s/::/\//g;
+        eval "require $plugin";
+        if ($@) {
+            delete $INC{$module};
+            $self->_unload_subs($plugin);
+            croak "$@";
+        }
 
-    eval "require $plugin";
-    if ($@) {
-        delete $INC{$module};
-        $self->_unload_subs($plugin);
-        croak "$@";
+        $object = $plugin->new( @_ );
+        return if !$object;
+    } else {
+        $object = $plugin;
+        $plugin = ref $object;
     }
-
-    my $object = $plugin->new( @_ );
-    return if !$object;
+    
     my $args = [ @_ ];
     $self->{plugins}->{ $desc }->{module} = $module;
     $self->{plugins}->{ $desc }->{plugin} = $plugin;
