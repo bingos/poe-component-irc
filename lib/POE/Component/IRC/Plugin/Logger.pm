@@ -84,7 +84,7 @@ sub PCI_register {
         nick_change  => sub { my ($old_nick, $new_nick) = @_;    "--- $old_nick is now known as $new_nick" },
         topic_is     => sub { my ($chan, $topic) = @_;           "--- Topic for $chan is: $topic" },
         topic_set_by => sub { my ($chan, $nick, $date) = @_;     "--- Topic for $chan was set by $nick at $date" },
-        topic_change => sub { my ($nick, $topic)= @_;            "--- $topic changes the topic to: $topic" },
+        topic_change => sub { my ($nick, $topic)= @_;            "--- $nick changes the topic to: $topic" },
         privmsg      => sub { my ($nick, $msg) = @_;             "<$nick> $msg" },
         action       => sub { my ($nick, $action) = @_;          "* $nick $action" },
         join         => sub { my ($nick, $userhost, $chan) = @_; "--> $nick ($userhost) joins $chan" },
