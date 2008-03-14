@@ -77,7 +77,6 @@ t/4_testharness.t
 t/6_common.t
 t/7_parent.t
 t/8_registration.t
-t/perlcriticrc
 t/plugins/00_plugman.t
 t/plugins/01_connector.t
 t/plugins/02_botaddressed.t
@@ -111,6 +110,7 @@ t/testsuite_15_signal.t
 t/testsuite_16_multi_signal.t
 t/testsuite_17_ziplink.t
 xt/perl_critic.t
+xt/perlcriticrc
 xt/pod.t
 xt/pod_coverage.t
 xt/test_kwalitee.t
