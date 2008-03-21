@@ -1,3 +1,4 @@
+use strict;
 use inc::Module::Install;
 
 my $GOT_DNS;
@@ -35,7 +36,14 @@ version_from 'lib/POE/Component/IRC.pm';
 abstract_from 'lib/POE/Component/IRC.pm';
 build_requires 'Test::More' => '0.47';
 perl_version '5.006';
+requires 'Socket' => 0;
 requires 'POE'    => 0.3202;
+requires 'POE::Wheel::SocketFactory' => 0;
+requires 'POE::Wheel::ReadWrite' => 0;
+requires 'POE::Driver::SysRW' => 0;
+requires 'POE::Filter::Line' => 0;
+requires 'POE::Filter::Stream' => 0;
+requires 'POE::Filter::Stackable' => 0;
 requires 'POE::Filter::IRCD' => 1.7;
 requires 'Encode' => 0;
 requires 'Encode::Guess' => 0;
