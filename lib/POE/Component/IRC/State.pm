@@ -72,7 +72,7 @@ sub S_join {
         delete $self->{STATE}->{Chans}->{ $uchan };
         $self->{CHANNEL_SYNCH}->{ $uchan } = { MODE => 0, WHO => 0, BAN => 0, _time => time() };
         $self->{STATE}->{Chans}->{ $uchan } = { Name => $channel, Mode => '' };
-	$self->yield(who => $channel );
+        $self->yield(who => $channel );
         $self->yield(mode => $channel );
         $self->yield(mode => $channel => 'b');
         if ($self->{awaypoll}) {
@@ -85,10 +85,11 @@ sub S_join {
         if ( !exists $self->{whojoiners} || $self->{whojoiners} ) {
             $self->yield ( 'who' => $nick );
         }
-	else {
-	    # Fake 'irc_nick_sync
-	    $self->_send_event(irc_nick_sync => $nick, $channel);
-	}
+        else {
+            # Fake 'irc_nick_sync
+            $self->_send_event(irc_nick_sync => $nick, $channel);
+        }
+        
         $self->{STATE}->{Nicks}->{ $unick }->{Nick} = $nick;
         $self->{STATE}->{Nicks}->{ $unick }->{User} = $user;
         $self->{STATE}->{Nicks}->{ $unick }->{Host} = $host;
@@ -402,9 +403,17 @@ sub S_352 {
     $self->{STATE}->{Nicks}->{ $unick }->{Nick} = $nick;
     $self->{STATE}->{Nicks}->{ $unick }->{User} = $user;
     $self->{STATE}->{Nicks}->{ $unick }->{Host} = $host;
-    $self->{STATE}->{Nicks}->{ $unick }->{Hops} = $hops;
-    $self->{STATE}->{Nicks}->{ $unick }->{Real} = $real;
-    $self->{STATE}->{Nicks}->{ $unick }->{Server} = $server;
+    
+    if ( !exists $self->{whojoiners} || $self->{whojoiners} ) {
+        $self->{STATE}->{Nicks}->{ $unick }->{Hops} = $hops;
+        $self->{STATE}->{Nicks}->{ $unick }->{Real} = $real;
+        $self->{STATE}->{Nicks}->{ $unick }->{Server} = $server;
+        $self->{STATE}->{Nicks}->{ $unick }->{IRCop} = 1 if $status =~ /\*/;
+    }
+    
+    if ($self->{awaypoll}) {
+        $self->{STATE}->{Nicks}->{ $unick }->{Away} = $status =~ /G/ ? 1 : 0;
+    }
     
     if ( exists $self->{STATE}->{Chans}->{ $uchan } ) {
         my $whatever = '';
@@ -430,17 +439,6 @@ sub S_352 {
                 $self->yield(irc_user_back => $nick, [ $self->nick_channels( $nick ) ] );
             }
         }
-    }
-    
-    if ( $status =~ /\*/ ) {
-        $self->{STATE}->{Nicks}->{ $unick }->{IRCop} = 1;
-    }
-    
-    if ( $status =~ /G/ ) {
-        $self->{STATE}->{Nicks}->{ $unick }->{Away} = 1;
-    }
-    else {
-        $self->{STATE}->{Nicks}->{ $unick }->{Away} = 0;
     }
     
     return PCI_EAT_NONE;
@@ -1127,19 +1125,18 @@ returned object provides methods to query the collected state.
 
 POE::Component::IRC::State's constructors, and its C<connect> event, all
 take the same arguments as L<POE::Component::IRC|POE::Component::IRC> does, as
-well as two additional:
+well as two additional ones:
 
 'AwayPoll', the interval (in seconds) in which to poll (i.e. C<WHO #channel>)
 the away status of channel members. Defaults to 0 (disabled). If enabled, you
 will receive C<irc_away_sync_*> / C<irc_user_away> / C<irc_user_back> events,
-and will be able to use the C<is_away> method.
+and will be able to use the C<is_away> method for users other than yourself.
 
 'WhoJoiners', a boolean indicating whether the component should send a
-C<WHO nick> for every person which joins a channel.
-Defaults to on (the C<WHO> is sent). If you turn this off,
-the C<is_operator> and C<nick_info> will not return useful values.
-The only information that can be relied upon to be stored in C<nick_info> is
-the C<'Nick'>, C<'User'> and C<'Host'>
+C<WHO nick> for every person which joins a channel. Defaults to on
+(the C<WHO> is sent). If you turn this off, C<is_operator> will not work
+and C<nick_info> will only return the keys C<'Nick'>, C<'User'>, C<'Host'>
+and C<'Userhost'>.
 
 =head1 METHODS
 
@@ -1185,7 +1182,8 @@ to not be on that channel an empty list will be returned.
 
 Expects a nick as parameter. Returns a true value if the specified nick is away.
 Returns a false value if the nick is not away or not in the state. This will
-only be accurate if you specified a value for 'AwayPoll' in C<spawn>.
+only work for your IRC user unless you specified a value for 'AwayPoll' in
+C<spawn>.
 
 =item C<is_operator>
 
