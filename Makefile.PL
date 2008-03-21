@@ -36,6 +36,8 @@ version_from 'lib/POE/Component/IRC.pm';
 abstract_from 'lib/POE/Component/IRC.pm';
 build_requires 'Test::More' => '0.47';
 perl_version '5.006';
+requires 'Carp' => 0;
+requires 'File::Basename' => 0;
 requires 'Socket' => 0;
 requires 'POE'    => 0.3202;
 requires 'POE::Wheel::SocketFactory' => 0;
