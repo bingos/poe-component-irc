@@ -3633,4 +3633,6 @@ devoted to IRC programming L<http://poe.perl.org/?POE_Cookbook>.
 
 The examples/ folder of this distribution.
 
+The C<#poe> channel on irc.freenode.org.
+
 =cut
