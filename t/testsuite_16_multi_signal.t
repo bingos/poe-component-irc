@@ -111,7 +111,6 @@ sub irc_join {
   } else {
      $object->yield( 'mode' => $where => '+o' => $nick );
      $object->yield( 'privmsg' => $where => 'HELLO' );
-     $object->yield( 'mode' => $where => '+o' => $nick );
      $object->yield( 'quit' );
   }
   undef;
