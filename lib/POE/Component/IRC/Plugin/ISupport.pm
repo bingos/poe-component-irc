@@ -137,7 +137,7 @@ sub S_005 {
             }
             else {
                 # ACCEPT CALLERID CAPAB CNOTICE CPRIVMSG FNC KNOCK MAXNICKLEN
-                # NOQUIT PENALTY RFC1812 SAFELIST USERIP VCHANS WALLCHOPS 
+                # NOQUIT PENALTY RFC2812 SAFELIST USERIP VCHANS WALLCHOPS 
                 # WALLVOICES WHOX
                 $support->{$val} = 'on';
             }
