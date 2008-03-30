@@ -13,7 +13,7 @@ use POE::Component::IRC::Common qw( l_irc parse_user strip_color strip_formattin
 use POSIX qw(strftime);
 use vars qw($VERSION);
 
-$VERSION = '1.6';
+$VERSION = '1.7';
 
 sub new {
     my ($package, %self) = @_;
@@ -83,8 +83,7 @@ sub PCI_register {
         '-t'         => sub { my ($nick) = @_;                   "--- $nick disables topic protection" },
         nick_change  => sub { my ($old_nick, $new_nick) = @_;    "--- $old_nick is now known as $new_nick" },
         topic_is     => sub { my ($chan, $topic) = @_;           "--- Topic for $chan is: $topic" },
-        topic_set_by => sub { my ($chan, $nick, $date) = @_;     "--- Topic for $chan was set by $nick at $date" },
-        topic_change => sub { my ($nick, $topic)= @_;            "--- $nick changes the topic to: $topic" },
+        topic_change => sub { my ($nick, $topic) = @_;           "--- $nick changes the topic to: $topic" },
         privmsg      => sub { my ($nick, $msg) = @_;             "<$nick> $msg" },
         action       => sub { my ($nick, $action) = @_;          "* $nick $action" },
         join         => sub { my ($nick, $userhost, $chan) = @_; "--> $nick ($userhost) joins $chan" },
@@ -106,6 +105,11 @@ sub PCI_register {
             $line .= " ($msg)" if $msg ne '';
             return $line;
         },
+        topic_set_by => sub {
+            my ($chan, $nick, $time) = @_;
+            my $date = localtime $time;
+            "--- Topic for $chan was set by $nick at $date";
+        },
     } unless defined $self->{Format};
 
     $irc->plugin_register($self, 'SERVER', qw(001 332 333 chan_mode ctcp_action bot_ctcp_action bot_msg bot_public join kick msg nick part public quit topic));
@@ -125,7 +129,7 @@ sub S_001 {
 sub S_332 {
     my ($self, $irc) = splice @_, 0, 2;
     my $chan = ${ $_[2] }->[0];
-    my $topic = $self->_normalize( ${ $_[2] }->[1] );
+    my $topic = ${ $_[2] }->[1];
     # only log this if we were just joining the channel
     $self->_log_entry($chan, topic_is => $chan, $topic) if !$irc->channel_list($chan);
     return PCI_EAT_NONE;
@@ -134,9 +138,8 @@ sub S_332 {
 sub S_333 {
     my ($self, $irc) = splice @_, 0, 2;
     my ($chan, $nick, $time) = @{ ${ $_[2] } };
-    my $date = localtime $time;
     # only log this if we were just joining the channel
-    $self->_log_entry($chan, topic_set_by => $chan, $nick, $date) if !$irc->channel_list($chan);
+    $self->_log_entry($chan, topic_set_by => $chan, $nick, $time) if !$irc->channel_list($chan);
     return PCI_EAT_NONE;
 }
 
@@ -154,7 +157,7 @@ sub S_ctcp_action {
     my ($self, $irc) = splice @_, 0, 2;
     my $sender = parse_user(${ $_[0] });
     my $recipients = ${ $_[1] };
-    my $msg = $self->_normalize( ${ $_[2] } );
+    my $msg = ${ $_[2] };
     for my $recipient (@{ $recipients }) {
         $self->_log_entry($recipient, action => $sender, $msg);
     }
@@ -164,7 +167,7 @@ sub S_ctcp_action {
 sub S_bot_ctcp_action {
     my ($self, $irc) = splice @_, 0, 2;
     my $recipients = ${ $_[0] };
-    my $msg = $self->_normalize( ${ $_[1] } );
+    my $msg = ${ $_[1] };
     for my $recipient (@{ $recipients }) {
         $self->_log_entry($recipient, action => $irc->nick_name(), $msg);
     }
@@ -174,7 +177,7 @@ sub S_bot_ctcp_action {
 sub S_bot_msg {
     my ($self, $irc) = splice @_, 0, 2;
     my $recipients = ${ $_[0] };
-    my $msg = $self->_normalize( ${ $_[1] } );
+    my $msg = ${ $_[1] };
     for my $recipient (@{ $recipients }) {
         $self->_log_entry($recipient, privmsg => $irc->nick_name(), $msg);
     }
@@ -184,7 +187,7 @@ sub S_bot_msg {
 sub S_bot_public {
     my ($self, $irc) = splice @_, 0, 2;
     my $channels = ${ $_[0] };
-    my $msg = $self->_normalize( ${ $_[1] } );
+    my $msg = ${ $_[1] };
     for my $chan (@{ $channels }) {
         $self->_log_entry($chan, privmsg => $irc->nick_name(), $msg);
     }
@@ -204,7 +207,7 @@ sub S_kick {
     my $kicker = parse_user(${ $_[0] });
     my $chan = ${ $_[1] };
     my $victim = ${ $_[2] };
-    my $msg = $self->_normalize( ${ $_[3] } );
+    my $msg = ${ $_[3] };
     $self->_log_entry($chan, kick => $kicker, $victim, $chan, $msg);
     return PCI_EAT_NONE;
 }
@@ -212,7 +215,7 @@ sub S_kick {
 sub S_msg {
     my ($self, $irc) = splice @_, 0, 2;
     my $sender = parse_user(${ $_[0] });
-    my $msg = $self->_normalize( ${ $_[2] } );
+    my $msg = ${ $_[2] };
     $self->_log_entry($sender, privmsg => $sender, $msg);
     return PCI_EAT_NONE;
 }
@@ -232,7 +235,7 @@ sub S_part {
     my ($self, $irc) = splice @_, 0, 2;
     my ($parter, $user, $host) = parse_user(${ $_[0] });
     my $chan = ${ $_[1] };
-    my $msg = $self->_normalize( ${ $_[2] } );
+    my $msg = ${ $_[2] };
     $self->_log_entry($chan, part => $parter, "$user\@$host", $chan, $msg);
     return PCI_EAT_NONE;
 }
@@ -241,7 +244,7 @@ sub S_public {
     my ($self, $irc) = splice @_, 0, 2;
     my $sender = parse_user(${ $_[0] });
     my $channels = ${ $_[1] };
-    my $msg = $self->_normalize( ${ $_[2] } );
+    my $msg = ${ $_[2] };
     for my $chan (@{ $channels }) {
         $self->_log_entry($chan, privmsg => $sender, $msg);
     }
@@ -251,7 +254,7 @@ sub S_public {
 sub S_quit {
     my ($self, $irc) = splice @_, 0, 2;
     my ($quitter, $user, $host) = parse_user(${ $_[0] });
-    my $msg = $self->_normalize( ${ $_[1] } );
+    my $msg = ${ $_[1] };
     my $channels = @{ $_[2] }[0];
     for my $chan (@{ $channels }) {
         $self->_log_entry($chan, quit => $quitter, "$user\@$host", $msg);
@@ -263,7 +266,7 @@ sub S_topic {
     my ($self, $irc) = splice @_, 0, 2;
     my $changer = parse_user(${ $_[0] });
     my $chan = ${ $_[1] };
-    my $new_topic = $self->_normalize( ${ $_[2] } );
+    my $new_topic = ${ $_[2] };
     $self->_log_entry($chan, topic_change => $changer, $new_topic);
     return PCI_EAT_NONE;
 }
@@ -303,13 +306,14 @@ sub _log_entry {
     }
     my $line = "$time " . $self->{Format}->{$type}->(@args);
     $line = "$date $line" if !$self->{Sort_by_date};
-    print $log_file "$line\n";
+    print $log_file normalize($line) . "\n";
     return;
 }
 
 sub _open_log {
     my ($self, $file_name) = @_;
-    sysopen(my $log, $file_name, O_WRONLY|O_APPEND|O_CREAT, $self->{file_perm}) or croak "Couldn't create file $file_name: $!; aborted";
+    sysopen(my $log, $file_name, O_WRONLY|O_APPEND|O_CREAT, $self->{file_perm})
+        or croak "Couldn't create file $file_name: $!; aborted";
     binmode($log, ':utf8');
     $log->autoflush(1);
     return $log;
