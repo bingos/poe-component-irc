@@ -108,7 +108,7 @@ sub PCI_register {
         topic_set_by => sub {
             my ($chan, $nick, $time) = @_;
             my $date = localtime $time;
-            "--- Topic for $chan was set by $nick at $date";
+            return "--- Topic for $chan was set by $nick at $date";
         },
     } unless defined $self->{Format};
 
