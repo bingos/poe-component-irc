@@ -1,6 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
-5.74
+5.76
+    - Logger.pm: Fixed serious typo in function name. Grr. (Hinrik)
+
+5.74 Thu Apr 03 15:14:04 GMT 2008 
     - Logger.pm: Do charset conversion on everything, not just messages. This
       should handle non-ASCII channel names and nicknames on servers that
       support such things (Hinrik)

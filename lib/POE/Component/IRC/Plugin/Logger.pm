@@ -306,7 +306,7 @@ sub _log_entry {
     }
     my $line = "$time " . $self->{Format}->{$type}->(@args);
     $line = "$date $line" if !$self->{Sort_by_date};
-    print $log_file normalize($line) . "\n";
+    print $log_file _normalize($line) . "\n";
     return;
 }
 
