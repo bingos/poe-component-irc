@@ -2,6 +2,7 @@ Revision history for Perl extension POE::Component::IRC.
 
 5.76
     - Logger.pm: Fixed serious typo in function name. Grr. (Hinrik)
+    - State.pm: Only WHO users once even if they join many chans (Hinrik)
 
 5.74 Thu Apr 03 15:14:04 GMT 2008 
     - Logger.pm: Do charset conversion on everything, not just messages. This

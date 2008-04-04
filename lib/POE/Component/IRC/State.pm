@@ -82,11 +82,13 @@ sub S_join {
 
     }
     else {
-        if ( !exists $self->{whojoiners} || $self->{whojoiners} ) {
-            $self->yield ( 'who' => $nick );
+        if ( (!exists $self->{whojoiners} || $self->{whojoiners})
+            && !exists $self->{STATE}->{Nicks}->{ $unick }->{Real}) {
+                $self->yield (who => $nick);
+                push @{ $self->{NICK_SYNCH}->{ $unick } }, $channel;
         }
         else {
-            # Fake 'irc_nick_sync
+            # Fake 'irc_nick_sync'
             $self->_send_event(irc_nick_sync => $nick, $channel);
         }
         
@@ -95,7 +97,6 @@ sub S_join {
         $self->{STATE}->{Nicks}->{ $unick }->{Host} = $host;
         $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan } = '';
         $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick } = '';
-        push @{ $self->{NICK_SYNCH}->{ $unick } }, $channel;
     }
     
     return PCI_EAT_NONE;
