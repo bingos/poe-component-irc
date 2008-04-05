@@ -897,6 +897,8 @@ sub channel_modes {
     my %modes;
     if ( defined $self->{STATE}->{Chans}->{ $uchan }->{Mode} ) {
         %modes = map { ($_ => '') } split(//, $self->{STATE}->{Chans}->{ $uchan }->{Mode});
+    }
+    if ( defined $self->{STATE}->{Chans}->{ $uchan }->{ModeArgs} ) {
         my %args = %{ $self->{STATE}->{Chans}->{ $uchan }->{ModeArgs} };
         @modes{keys %args} = values %args;
     }
