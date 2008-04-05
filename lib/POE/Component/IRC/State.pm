@@ -894,11 +894,14 @@ sub channel_modes {
     my $uchan = u_irc $channel, $mapping;
     return if !$self->_channel_exists($channel);
 
+    my %modes;
     if ( defined $self->{STATE}->{Chans}->{ $uchan }->{Mode} ) {
-        return $self->{STATE}->{Chans}->{ $uchan }->{Mode};
+        %modes = map { ($_ => '') } split(//, $self->{STATE}->{Chans}->{ $uchan }->{Mode});
+        my %args = %{ $self->{STATE}->{Chans}->{ $uchan }->{ModeArgs} };
+        @modes{keys %args} = values %args;
     }
     
-    return;
+    return \%modes;
 }
 
 sub is_channel_member {
@@ -1226,7 +1229,9 @@ Expects a channel as parameter. Returns channel creation time or a false value.
 
 =item C<channel_modes>
 
-Expects a channel as parameter. Returns channel modes or a false value.
+Expects a channel as parameter. Returns a hash ref keyed on channel mode, with
+the mode argument (if any) as the value. Returns a false value instead if the
+channel is not in the state.
 
 =item C<channel_limit>
 
