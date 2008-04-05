@@ -474,6 +474,15 @@ sub S_315 {
     return PCI_EAT_NONE;
 }
 
+# RPL_CREATIONTIME
+sub S_329 {
+    my ($self, $irc) = splice @_, 0, 2;
+    my $time = ${ $_[2] }->[0];
+    
+    $self->{STATE}->{Chans}->{ $uchan }->{CreationTime} = $time;
+    return PCI_EAT_NONE;
+}
+
 # RPL_BANLIST
 sub S_367 {
     my ($self, $irc) = splice @_, 0, 2;
@@ -836,6 +845,17 @@ sub is_channel_mode_set {
     return;
 }
 
+sub channel_creation_time {
+    my ($self, $channel) = @_;
+    my $mapping = $self->isupport('CASEMAPPING');
+    my $uchan = u_irc $channel, $mapping;
+
+    return if !$self->_channel_exists($channel);
+    return if !exists $self->{STATE}->{Chans}->{ $uchan }->{CreationTime};
+    
+    return $self->{STATE}->{Chans}->{ $uchan }->{CreationTime};
+}
+
 sub channel_limit {
     my ($self, $channel) = @_;
     my $mapping = $self->isupport('CASEMAPPING');
@@ -1196,6 +1216,10 @@ or is not in the state.
 
 Expects a channel and a single mode flag [A-Za-z]. Returns a true value
 if that mode is set on the channel.
+
+=item C<channel_creation_time>
+
+Expects a channel as parameter. Returns channel creation time or a false value.
 
 =item C<channel_modes>
 
