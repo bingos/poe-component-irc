@@ -477,7 +477,10 @@ sub S_315 {
 # RPL_CREATIONTIME
 sub S_329 {
     my ($self, $irc) = splice @_, 0, 2;
-    my $time = ${ $_[2] }->[0];
+    my $mapping = $irc->isupport('CASEMAPPING');
+    my $channel = ${ $_[2] }->[0];
+    my $time = ${ $_[2] }->[1];
+    my $uchan = u_irc $channel, $mapping;
     
     $self->{STATE}->{Chans}->{ $uchan }->{CreationTime} = $time;
     return PCI_EAT_NONE;
