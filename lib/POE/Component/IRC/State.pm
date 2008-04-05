@@ -254,10 +254,10 @@ sub S_chan_mode {
 
 # RPL_UMODEIS
 sub S_221 {
-    my ($self,$irc) = splice @_, 0, 2;
+    my ($self, $irc) = splice @_, 0, 2;
     my $mode = ${ $_[1] };
     $mode =~ s/^\+//;
-    ($self->{STATE}->{usermode} = $mode ) =~ s/^\+//;
+    $self->{STATE}->{usermode} = $mode;
     return PCI_EAT_NONE;
 }
 
