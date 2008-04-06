@@ -235,7 +235,7 @@ sub S_part {
     my ($self, $irc) = splice @_, 0, 2;
     my ($parter, $user, $host) = parse_user(${ $_[0] });
     my $chan = ${ $_[1] };
-    my $msg = ${ $_[2] };
+    my $msg = defined $_[2] ? ${ $_[2] } : '';
     $self->_log_entry($chan, part => $parter, "$user\@$host", $chan, $msg);
     return PCI_EAT_NONE;
 }

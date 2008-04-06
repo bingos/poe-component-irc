@@ -2,6 +2,7 @@ Revision history for Perl extension POE::Component::IRC.
 
 5.76
     - Logger.pm: Fixed serious typo in function name. Grr. (Hinrik)
+    - Logger.pm: Handle PARTs correctly when there's no colon (Hinrik)
     - State.pm: Only WHO users once even if they join many chans (Hinrik)
     - State.pm: Added channel_creation_time() method (Hinrik)
     - State.pm: Made channel_modes() return mode arguments as well (Hinrik)
