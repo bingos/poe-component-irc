@@ -5,6 +5,7 @@ Revision history for Perl extension POE::Component::IRC.
     - State.pm: Only WHO users once even if they join many chans (Hinrik)
     - State.pm: Added channel_creation_time() method (Hinrik)
     - State.pm: Made channel_modes() return mode arguments as well (Hinrik)
+    - State.pm: Add is_channel_synced() (Hinrik)
 
 5.74 Thu Apr 03 15:14:04 GMT 2008 
     - Logger.pm: Do charset conversion on everything, not just messages. This

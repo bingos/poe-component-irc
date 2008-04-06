@@ -75,29 +75,29 @@ sub S_join {
         $self->yield(who => $channel );
         $self->yield(mode => $channel );
         $self->yield(mode => $channel => 'b');
+        
         if ($self->{awaypoll}) {
             $poe_kernel->state(_away_sync => $self);
             $poe_kernel->delay_add(_away_sync => $self->{awaypoll} => $channel);
         }
-
     }
     else {
         if ( (!exists $self->{whojoiners} || $self->{whojoiners})
             && !exists $self->{STATE}->{Nicks}->{ $unick }->{Real}) {
-                $self->yield (who => $nick);
+                $self->yield(who => $nick);
                 push @{ $self->{NICK_SYNCH}->{ $unick } }, $channel;
         }
         else {
             # Fake 'irc_nick_sync'
             $self->_send_event(irc_nick_sync => $nick, $channel);
         }
-        
-        $self->{STATE}->{Nicks}->{ $unick }->{Nick} = $nick;
-        $self->{STATE}->{Nicks}->{ $unick }->{User} = $user;
-        $self->{STATE}->{Nicks}->{ $unick }->{Host} = $host;
-        $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan } = '';
-        $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick } = '';
     }
+
+    $self->{STATE}->{Nicks}->{ $unick }->{Nick} = $nick;
+    $self->{STATE}->{Nicks}->{ $unick }->{User} = $user;
+    $self->{STATE}->{Nicks}->{ $unick }->{Host} = $host;
+    $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan } = '';
+    $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick } = '';
     
     return PCI_EAT_NONE;
 }
@@ -848,6 +848,11 @@ sub is_channel_mode_set {
     return;
 }
 
+sub is_channel_synced {
+    my ($self, $channel) = @_;
+    return $self->_channel_sync($channel);
+}
+
 sub channel_creation_time {
     my ($self, $channel) = @_;
     my $mapping = $self->isupport('CASEMAPPING');
@@ -1273,6 +1278,11 @@ Expects a channel and a nickname as parameters. Returns a true value if
 the nick is a half-operator on the specified channel. Returns false if the nick
 is not a half-operator on the channel or if the nick/channel does not exist in
 the state.
+
+=item C<is_channel_synced>
+
+Expects a channel as a parameter. Returns true if the channel has been synced.
+Returns false if it has not been synced or if the channel is not in the state.
 
 =item C<has_channel_voice>
 
