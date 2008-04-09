@@ -7,6 +7,7 @@ Revision history for Perl extension POE::Component::IRC.
     - State.pm: Added channel_creation_time() method (Hinrik)
     - State.pm: Made channel_modes() return mode arguments as well (Hinrik)
     - State.pm: Add is_channel_synced() (Hinrik)
+    - PlugMan.pm - bug in new() spotted by plu (bingos)
 
 5.74 Thu Apr 03 15:14:04 GMT 2008 
     - Logger.pm: Do charset conversion on everything, not just messages. This

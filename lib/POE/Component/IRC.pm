@@ -29,7 +29,7 @@ use POE::Component::IRC::Plugin::Whois;
 use Socket;
 use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS $GOT_SOCKET6);
 
-$VERSION = '5.74';
+$VERSION = '5.76';
 $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 
 BEGIN {

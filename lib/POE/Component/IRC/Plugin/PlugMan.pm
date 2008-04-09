@@ -5,6 +5,9 @@ use warnings;
 use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Common qw( :ALL );
+use vars qw($VERSION);
+
+$VERSION = '5.76';
 
 BEGIN { 
     # Turn on the debugger's symbol source tracing
@@ -17,7 +20,7 @@ BEGIN {
 }
 
 sub new {
-    my ($package, %args) = shift;
+    my ($package, %args) = @_;
     $args{ lc $_ } = delete $args{ $_ } for keys %args;
     return bless \%args, $package;
 }
