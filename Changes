@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-5.76
+5.76  Thu Apr 24 15:05:05 GMT 2008
     - Logger.pm: Fixed serious typo in function name. Grr. (Hinrik)
     - Logger.pm: Handle PARTs correctly when there's no colon (Hinrik)
     - State.pm: Only WHO users once even if they join many chans (Hinrik)
@@ -9,7 +9,7 @@ Revision history for Perl extension POE::Component::IRC.
     - State.pm: Add is_channel_synced() (Hinrik)
     - PlugMan.pm - bug in new() spotted by plu (bingos)
 
-5.74 Thu Apr 03 15:14:04 GMT 2008 
+5.74  Thu Apr 03 15:14:04 GMT 2008 
     - Logger.pm: Do charset conversion on everything, not just messages. This
       should handle non-ASCII channel names and nicknames on servers that
       support such things (Hinrik)
