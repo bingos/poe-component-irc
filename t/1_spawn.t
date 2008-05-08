@@ -4,7 +4,7 @@ diag( "Testing POE::Component::IRC $POE::Component::IRC::VERSION $POE::Component
 
 my $GOT_DNS;
 
-BEGIN: {
+BEGIN {
   $GOT_DNS = 0;
   eval {
 	require POE::Component::Client::DNS;

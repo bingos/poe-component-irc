@@ -5,7 +5,7 @@ use Data::Dumper;
 
 my $GOT_ZLIB;
 
-BEGIN: {
+BEGIN {
   $GOT_DNS = 0;
   eval {
         require POE::Filter::Zlib::Stream;

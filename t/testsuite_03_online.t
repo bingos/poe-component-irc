@@ -2,7 +2,7 @@ use Test::More tests => 7;
 
 my $dns;
 
-BEGIN: {
+BEGIN {
    eval {
 	require POE::Component::Client::DNS;
 	$dns = POE::Component::Client::DNS->spawn( Alias => 'foo' ) if $POE::Component::Client::DNS::VERSION >= 0.99;

@@ -3,7 +3,7 @@ use Test::More;
 
 my $GOT_DNS;
 
-BEGIN: {
+BEGIN {
   $GOT_DNS = 0;
   eval { 
 	require POE::Component::Client::DNS;
