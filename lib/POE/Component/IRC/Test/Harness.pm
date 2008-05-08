@@ -34,7 +34,7 @@ my %cmd_server = map { ( 'server_' . $_ => 'cmd_input' ) } qw (kick kill mode);
 
 my ($GOT_IDENT, $GOT_DNS, $GOT_ZLIB);
 
-BEGIN: {
+BEGIN {
     eval {
        require POE::Component::Client::Ident;
        $GOT_IDENT = 1;
