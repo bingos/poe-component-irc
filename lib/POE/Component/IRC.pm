@@ -900,7 +900,6 @@ sub _stop {
     return;
 }
 
-
 # The handler for commands which have N arguments, separated by commas.
 sub commasep {
     my ($kernel, $self, $state, @args) = @_[KERNEL, OBJECT, STATE, ARG0 .. $#_];
@@ -930,7 +929,6 @@ sub commasep {
     
     return;
 }
-
 
 # Get variables in order for openning a connection
 sub connect {
@@ -1774,7 +1772,6 @@ sub spacesep {
     $kernel->yield(sl_prioritized => $pri, $state );
     return;
 }
-
 
 # Set or query the current topic on a channel.
 sub topic {

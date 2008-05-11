@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.78
+    - Logger.pm: Fix the PART thing properly (Hinrik)
+
 5.76  Thu Apr 24 15:05:05 GMT 2008
     - Logger.pm: Fixed serious typo in function name. Grr. (Hinrik)
     - Logger.pm: Handle PARTs correctly when there's no colon (Hinrik)
