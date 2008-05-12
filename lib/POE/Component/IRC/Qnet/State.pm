@@ -15,10 +15,9 @@ use Carp;
 use POE;
 use POE::Component::IRC::Common qw(:ALL);
 use POE::Component::IRC::Plugin qw(:ALL);
-use vars qw($VERSION);
 use base qw(POE::Component::IRC::State POE::Component::IRC::Qnet);
 
-$VERSION = '1.9';
+our $VERSION = '1.9';
 
 sub _create {
     my $self = shift;
@@ -213,7 +212,7 @@ sub S_315 {
     }
     else {
         my $chan = shift @{ $self->{NICK_SYNCH}->{ $uchan } };
-        delete $self->{NICK_SYNCH}->{ $uchan } unless scalar @{ $self->{NICK_SYNCH}->{ $uchan } };
+        delete $self->{NICK_SYNCH}->{ $uchan } if !@{ $self->{NICK_SYNCH}->{ $uchan } };
         $self->_send_event( 'irc_nick_sync', $channel, $chan );
     }
 
@@ -294,7 +293,7 @@ sub S_part {
         delete $self->{STATE}->{Chans}->{ $channel }->{Nicks}->{ $nick };
         for my $member ( keys %{ $self->{STATE}->{Chans}->{ $channel }->{Nicks} } ) {
            delete $self->{STATE}->{Nicks}->{ $member }->{CHANS}->{ $channel };
-           if ( scalar keys %{ $self->{STATE}->{Nicks}->{ $member }->{CHANS} } <= 0 ) {
+           if ( keys %{ $self->{STATE}->{Nicks}->{ $member }->{CHANS} } <= 0 ) {
                 delete $self->{STATE}->{Nicks}->{ $member };
            }
         }
@@ -303,7 +302,7 @@ sub S_part {
     else {
         delete $self->{STATE}->{Nicks}->{ $nick }->{CHANS}->{ $channel };
         delete $self->{STATE}->{Chans}->{ $channel }->{Nicks}->{ $nick };
-        if ( scalar keys %{ $self->{STATE}->{Nicks}->{ $nick }->{CHANS} } <= 0 ) {
+        if ( keys %{ $self->{STATE}->{Nicks}->{ $nick }->{CHANS} } <= 0 ) {
                 delete $self->{STATE}->{Nicks}->{ $nick };
         }
     }
@@ -359,7 +358,7 @@ sub S_kick {
         delete $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick };
         for my $member ( keys %{ $self->{STATE}->{Chans}->{ $uchan }->{Nicks} } ) {
            delete $self->{STATE}->{Nicks}->{ $member }->{CHANS}->{ $uchan };
-           if ( scalar keys %{ $self->{STATE}->{Nicks}->{ $member }->{CHANS} } <= 0 ) {
+           if ( keys %{ $self->{STATE}->{Nicks}->{ $member }->{CHANS} } <= 0 ) {
                 delete $self->{STATE}->{Nicks}->{ $member };
            }
         }
@@ -368,7 +367,7 @@ sub S_kick {
     else {
         delete $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan };
         delete $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick };
-        if ( scalar keys %{ $self->{STATE}->{Nicks}->{ $unick }->{CHANS} } <= 0 ) {
+        if ( keys %{ $self->{STATE}->{Nicks}->{ $unick }->{CHANS} } <= 0 ) {
             delete $self->{STATE}->{Nicks}->{ $unick };
         }
     }
@@ -519,7 +518,7 @@ L<POE::Component::IRC::State|POE::Component::IRC::State>.
 
      if ( my ($rot13) = $what =~ /^rot13 (.+)/ ) {
          # Only operators can issue a rot13 command to us.
-         return unless $poco_object->is_channel_operator( $channel, $nick );
+         return if !$poco_object->is_channel_operator( $channel, $nick );
 
          $rot13 =~ tr[a-zA-Z][n-za-mN-ZA-M];
          $kernel->post( $sender => privmsg => $channel => "$nick: $rot13" );

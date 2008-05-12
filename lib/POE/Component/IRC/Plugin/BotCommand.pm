@@ -4,9 +4,8 @@ use strict;
 use warnings;
 use POE::Component::IRC::Common qw( parse_user );
 use POE::Component::IRC::Plugin qw( :ALL );
-use vars qw($VERSION);
 
-$VERSION = '1.0';
+our $VERSION = '1.0';
 
 sub new {
     my ($package, %args) = @_;
@@ -188,9 +187,9 @@ to handle commands issued to your bot.
      $irc->yield(
          'privmsg',
          $res->{context}->{channel},
-         $res->{context}->{nick} . scalar @answers
+         $res->{context}->{nick} . (@answers
              ? ": @answers"
-             : ': no answers for "' . $res->{host} . '"'
+             : ': no answers for "' . $res->{host} . '"')
      );
 
      return;

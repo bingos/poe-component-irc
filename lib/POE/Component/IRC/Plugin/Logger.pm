@@ -11,9 +11,8 @@ use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Plugin::BotTraffic;
 use POE::Component::IRC::Common qw( l_irc parse_user strip_color strip_formatting );
 use POSIX qw(strftime);
-use vars qw($VERSION);
 
-$VERSION = '1.8';
+our $VERSION = '1.8';
 
 sub new {
     my ($package, %self) = @_;
@@ -50,8 +49,8 @@ sub PCI_register {
     
     $self->{irc} = $irc;
     $self->{logging} = { };
-    $self->{Private} = 1 unless defined $self->{Private};
-    $self->{Public} = 1 unless defined $self->{Public};
+    $self->{Private} = 1 if !defined $self->{Private};
+    $self->{Public} = 1 if !defined $self->{Public};
     $self->{Format} = {
         '+b'         => sub { my ($nick, $mask) = @_;            "--- $nick sets ban on $mask" },
         '-b'         => sub { my ($nick, $mask) = @_;            "--- $nick removes ban on $mask" },
@@ -110,7 +109,7 @@ sub PCI_register {
             my $date = localtime $time;
             return "--- Topic for $chan was set by $nick at $date";
         },
-    } unless defined $self->{Format};
+    } if !defined $self->{Format};
 
     $irc->plugin_register($self, 'SERVER', qw(001 332 333 chan_mode ctcp_action bot_ctcp_action bot_msg bot_public join kick msg nick part public quit topic));
     return 1;

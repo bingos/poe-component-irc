@@ -2,14 +2,12 @@ package POE::Component::IRC::Common;
 
 use strict;
 use warnings;
-use vars qw($VERSION %EXPORT_TAGS);
 
-$VERSION = '5.16';
+our $VERSION = '5.16';
 
-# We export some stuff
 require Exporter;
 use base qw( Exporter );
-%EXPORT_TAGS = ( 'ALL' => [ qw(
+our %EXPORT_TAGS = ( 'ALL' => [ qw(
     u_irc l_irc parse_mode_line parse_ban_mask matches_mask parse_user
     irc_ip_get_version irc_ip_is_ipv4 irc_ip_is_ipv6 has_color has_formatting
     strip_color strip_formatting NORMAL BOLD UNDERLINE REVERSE

@@ -38,9 +38,8 @@ available at https://www.bingosnet.net/svn/pocoirc/
 3. PREREQUISITES
 ----------------
 
-POE. (Duh. :-)  Specifically, version 0.17 or better. It also
-requires Carp and Socket, but if you find yourself lacking either of
-those, you're in more trouble than we can help with anyways...
+POE. (Duh. :-)  Specifically, version 0.3202 or better.
+Perl 5.6.0 or later is required.
 
 If the module finds POE::Component::Client::DNS installed it
 will use it to resolve the IP address of the servername given to connect.
@@ -88,15 +87,15 @@ that sort of thing will happen often.
 The copyright for POE::Component::IRC belongs to Dennis Taylor,
 the poor bastard who wrote this thing up in the first place. It's
 distributed under the same terms as Perl itself (that is, either the
-Artistic License or GPL as you prefer). Please see the license that
-came with your Perl distribution for details.
+Artistic License or GPL as you prefer). See the LICENSE file that
+came with this distribution for the details.
 
 
 8. DEVELOPER INFORMATION
 ------------------------
 
-Current maintainer Chris "BinGOs" Williams
-		   <chris@bingosnet.co.uk>
+Current maintainers are Chris "BinGOs" Williams <chris@bingosnet.co.uk>
+and Hinrik Örn Sigurðsson <hinrik.sig@gmail.com>
 
 POE::Component::IRC was conceived and written by Dennis "fimmtiu"
 Taylor, with piles of ideas and advice donated by Rocco "dngor"

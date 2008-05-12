@@ -5,9 +5,8 @@ use warnings;
 use Carp;
 use POE qw(Wheel::FollowTail);
 use POE::Component::IRC::Plugin qw( :ALL );
-use vars qw($VERSION);
 
-$VERSION = '0.02';
+our $VERSION = '0.02';
 
 sub new {
     my ($package, %args) = @_;

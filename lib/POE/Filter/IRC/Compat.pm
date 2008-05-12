@@ -6,9 +6,8 @@ use Carp;
 use POE::Filter::IRCD;
 use File::Basename ();
 use base qw(POE::Filter);
-use vars qw($VERSION);
 
-$VERSION = '1.4';
+our $VERSION = '1.4';
 
 sub new {
     my ($package, %params) = @_;
@@ -82,7 +81,7 @@ sub debug {
 
 sub chantypes {
     my ($self, $ref) = @_;
-    return if ref $ref ne 'ARRAY' || !scalar @{ $ref };
+    return if ref $ref ne 'ARRAY' || !@{ $ref };
     $self->{chantypes} = $ref;
     return 1;
 }
@@ -260,7 +259,7 @@ sub _get_ctcp {
         }
     }
 
-    if ($text && scalar @$text) {
+    if ($text && @$text) {
         my $what;
         ($what) = $line =~ /^(:\S+ +\w+ +\S+ +)/
             or warn "What the heck? '$line'\n" if $self->{debug};

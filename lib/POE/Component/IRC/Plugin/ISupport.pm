@@ -3,9 +3,8 @@ package POE::Component::IRC::Plugin::ISupport;
 use strict;
 use warnings;
 use POE::Component::IRC::Plugin qw(:ALL);
-use vars qw($VERSION);
 
-$VERSION = '0.57';
+our $VERSION = '0.57';
 
 sub new {
     return bless { }, shift;
@@ -171,7 +170,7 @@ sub isupport {
 sub isupport_dump_keys {
     my $self = shift;
 
-    if ( scalar ( keys %{ $self->{server} } ) > 0 ) {
+    if ( keys %{ $self->{server} } > 0 ) {
         return keys %{ $self->{server} };
     }
     return;

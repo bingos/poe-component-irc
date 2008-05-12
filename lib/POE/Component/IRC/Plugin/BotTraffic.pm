@@ -5,9 +5,8 @@ use warnings;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Filter::IRCD;
 use POE::Filter::IRC::Compat;
-use vars qw($VERSION);
 
-$VERSION = '5.56';
+our $VERSION = '5.56';
 
 sub new {
     my ($package) = @_;
@@ -41,7 +40,7 @@ sub U_privmsg {
         my $text = $line->{params}->[1];
         if ($text =~ /^\001/) {
             my $ctcp_event = shift( @{ $self->{compat}->get([$line]) } );
-            next unless $ctcp_event->{name} eq 'ctcp_action';
+            next if $ctcp_event->{name} ne 'ctcp_action';
             my $event = $self->{ActEvent};
             $irc->_send_event( $event => @{ $ctcp_event->{args} }[1..2] );
         }

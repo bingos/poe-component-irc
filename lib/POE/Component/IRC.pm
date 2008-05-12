@@ -27,10 +27,10 @@ use POE::Component::IRC::Plugin qw(:ALL);
 use POE::Component::IRC::Plugin::ISupport;
 use POE::Component::IRC::Plugin::Whois;
 use Socket;
-use vars qw($VERSION $REVISION $GOT_SSL $GOT_CLIENT_DNS $GOT_SOCKET6);
 
-$VERSION = '5.76';
-$REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
+our $VERSION = '5.76';
+our $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
+our ($GOT_SSL, $GOT_CLIENT_DNS, $GOT_SOCKET6);
 
 BEGIN {
     eval {
@@ -168,7 +168,7 @@ sub _configure {
     my ($self, $args) = @_;
     my $spawned = 0;
     
-    if (ref $args eq 'HASH' && scalar keys %{ $args }) {
+    if (ref $args eq 'HASH' && keys %{ $args }) {
         $spawned = delete $args->{spawned};
         @{ $self }{ keys %{ $args } } = values %{ $args };
     }
@@ -562,7 +562,7 @@ sub _send_event  {
         \@extra_args
     ) == PCI_EAT_ALL;
 
-    push @args, @extra_args if scalar @extra_args;
+    push @args, @extra_args if @extra_args;
 
     # BINGOS:
     # We have a hack here, because the component used to send 'irc_connected'
@@ -754,7 +754,7 @@ sub _socks_proxy_response {
     }
     
     my @resp = unpack 'CCnN', $input;
-    if (scalar @resp != 4 || $resp[0] ne '0' || $resp[1] !~ /^(90|91|92|93)$/) {
+    if (@resp != 4 || $resp[0] ne '0' || $resp[1] !~ /^(90|91|92|93)$/) {
         $self->_send_event(
             'irc_socks_failed',
             'Mangled response from SOCKS proxy',
@@ -905,11 +905,11 @@ sub commasep {
     my ($kernel, $self, $state, @args) = @_[KERNEL, OBJECT, STATE, ARG0 .. $#_];
     my $args;
 
-    if ($state eq 'whois' and scalar @args > 1 ) {
+    if ($state eq 'whois' and @args > 1 ) {
         $args = shift @args;
         $args .= ' ' . join ',', @args;
     }
-    elsif ( $state eq 'part' and scalar @args > 1 ) {
+    elsif ( $state eq 'part' and @args > 1 ) {
         my $chantypes = join('', @{ $self->isupport('CHANTYPES') }) || '#&';
         my $message;
         if ($args[-1] =~ /\s+/ || $args[-1] !~ /^[$chantypes]/) {
@@ -944,7 +944,7 @@ sub connect {
     }
 
     if ( $self->{resolver} && $self->{res_addresses}
-        && scalar @{ $self->{res_addresses} } ) {
+        && @{ $self->{res_addresses} } ) {
         push @{ $self->{res_addresses} }, $self->{server};
         $self->{server} = shift @{ $self->{res_addresses} };
     }
@@ -1036,12 +1036,12 @@ sub _got_dns_response {
         push @{ $self->{res_addresses} }, $net_dns_answer->rdatastr;
     }
 
-    if ( !scalar @{ $self->{res_addresses} } && $type eq 'AAAA') {
+    if ( !@{ $self->{res_addresses} } && $type eq 'AAAA') {
         $kernel->yield(_resolve_addresses => $self->{server}, 'A');
         return;
     }
 
-    if ( !scalar @{ $self->{res_addresses} } ) {
+    if ( !@{ $self->{res_addresses} } ) {
         $self->_send_event(irc_socketerr => 'Unable to resolve ' . $self->{server});
         return;
       }
@@ -1339,7 +1339,7 @@ sub ison {
     my ($kernel, @nicks) = @_[KERNEL, ARG0 .. $#_];
     my $tmp = 'ISON';
 
-    if (!scalar @nicks) {
+    if (!@nicks) {
         carp "No nicknames passed to POE::Component::IRC::ison";
         return;
     }
@@ -1583,7 +1583,7 @@ sub _poco_irc_sig_register {
         return;
     }
   
-    if (!scalar @events) {
+    if (!@events) {
         carp "Signal POCOIRC: Not enough arguments";
         return;
     }
@@ -1608,7 +1608,7 @@ sub register {
     my ($kernel, $self, $session, $sender, @events)
         = @_[KERNEL, OBJECT, SESSION, SENDER, ARG0 .. $#_];
 
-    if (!scalar @events) {
+    if (!@events) {
         carp 'register: Not enough arguments';
         return;
     }
@@ -1640,7 +1640,7 @@ sub register {
 sub shutdown {
     my ($kernel, $self, $sender, $session) = @_[KERNEL, OBJECT, SENDER, SESSION];
     my $args = '';
-    $args = join '', @_[ARG0..$#_] if scalar @_[ARG0..$#_];
+    $args = join '', @_[ARG0..$#_] if @_[ARG0..$#_];
     $args = ":$args" if $args =~ /\s/;
     
     my $cmd = join ' ', 'QUIT', $args;
@@ -1754,7 +1754,7 @@ sub sl_delayed {
         $self->{socket}->put($arg);
     }
 
-    if (scalar @{ $self->{send_queue} }) {
+    if (@{ $self->{send_queue} }) {
         $kernel->delay( sl_delayed => $self->{send_time} - $now - 10 );
     }
     
@@ -1777,7 +1777,7 @@ sub spacesep {
 sub topic {
     my ($kernel,$chan,@args) = @_[KERNEL,ARG0,ARG1..$#_];
     my $topic; 
-    $topic = join '', @args if scalar @args;
+    $topic = join '', @args if @args;
 
     if (defined $topic) {
         $chan .= " :";
@@ -1793,7 +1793,7 @@ sub unregister {
     my ($kernel, $self, $session, $sender, @events)
         = @_[KERNEL, OBJECT, SESSION, SENDER, ARG0 .. $#_];
 
-    if (!scalar @events) {
+    if (!@events) {
         carp 'unregister: Not enough arguments';
         return;
     }
@@ -1843,7 +1843,7 @@ sub _unregister_sessions {
 sub userhost {
     my ($kernel, @nicks) = @_[KERNEL, ARG0 .. $#_];
 
-    if (!scalar @nicks) {
+    if (!@nicks) {
         carp 'No nicknames passed to POE::Component::IRC::userhost';
         return;
     }
@@ -1933,7 +1933,7 @@ sub delay_remove {
 sub _delayed_cmd {
     my ($kernel, $self, $arrayref, $time) = @_[KERNEL, OBJECT, ARG0, ARG1];
     
-    return if !scalar @{ $arrayref };
+    return if !@{ $arrayref };
     return if !defined $time;
     my $event = shift @{ $arrayref };
     my $alarm_id = $kernel->delay_set( $event => $time => @{ $arrayref } );
@@ -2130,7 +2130,7 @@ sub plugin_register {
         return;
     }
 
-    if (!scalar @events) {
+    if (!@events) {
         carp 'Please supply at least one event to register!';
         return;
     }
@@ -2162,7 +2162,7 @@ sub plugin_unregister {
         return;
     }
 
-    if (!scalar @events) {
+    if (!@events) {
         carp 'Please supply at least one event to unregister!';
         return;
     }

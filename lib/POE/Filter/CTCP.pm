@@ -14,15 +14,14 @@ use warnings;
 use Carp;
 use File::Basename ();
 use POE::Filter::IRC;
-use vars qw($VERSION);
 
-$VERSION = '5.2';
+our $VERSION = '5.2';
 
 # Create a new, empty POE::Filter::CTCP object.
 sub new {
     my ($package, %args) = @_;
     $args{lc $_} = delete $args{$_} for keys %args;
-    $args{irc_filter} = POE::Filter::IRC->new() unless $args{irc_filter};
+    $args{irc_filter} = POE::Filter::IRC->new() if !$args{irc_filter};
     return bless \%args, $package;
 }
 
@@ -94,7 +93,7 @@ sub get {
             }
         }
 
-        if ($text && scalar @$text) {
+        if ($text && @$text) {
             my $what;
             ($what) = $line =~ /^(:\S+ +\w+ +\S+ +)/
                 or warn "What the heck? '$line'\n" if $self->{debug};

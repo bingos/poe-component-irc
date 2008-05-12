@@ -5,9 +5,8 @@ use warnings;
 use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Common qw( parse_user );
-use vars qw($VERSION);
 
-$VERSION = '1.2';
+our $VERSION = '1.2';
 
 sub new {
     my ($package, %self) = @_;

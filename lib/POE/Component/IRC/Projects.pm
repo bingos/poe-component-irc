@@ -2,9 +2,8 @@ package POE::Component::IRC::Projects;
 
 use strict;
 use warnings;
-use vars qw($VERSION);
 
-$VERSION = '0.02';
+our $VERSION = '0.02';
 
 1;
 __END__

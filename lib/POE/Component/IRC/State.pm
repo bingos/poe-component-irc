@@ -15,9 +15,8 @@ use POE;
 use POE::Component::IRC::Common qw(:ALL);
 use POE::Component::IRC::Plugin qw(:ALL);
 use base qw(POE::Component::IRC);
-use vars qw($VERSION);
 
-$VERSION = '2.52';
+our $VERSION = '2.52';
 
 # Event handlers for tracking the STATE. $self->{STATE} is used as our namespace.
 # u_irc() is used to create unique keys.
@@ -115,7 +114,7 @@ sub S_part {
         
         for my $member ( keys %{ $self->{STATE}->{Chans}->{ $uchan }->{Nicks} } ) {
             delete $self->{STATE}->{Nicks}->{ $member }->{CHANS}->{ $uchan };
-            if ( scalar keys %{ $self->{STATE}->{Nicks}->{ $member }->{CHANS} } <= 0 ) {
+            if ( keys %{ $self->{STATE}->{Nicks}->{ $member }->{CHANS} } <= 0 ) {
                 delete $self->{STATE}->{Nicks}->{ $member };
             }
         }
@@ -125,7 +124,7 @@ sub S_part {
     else {
         delete $self->{STATE}->{Nicks}->{ $nick }->{CHANS}->{ $uchan };
         delete $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $nick };
-        if ( scalar keys %{ $self->{STATE}->{Nicks}->{ $nick }->{CHANS} } <= 0 ) {
+        if ( keys %{ $self->{STATE}->{Nicks}->{ $nick }->{CHANS} } <= 0 ) {
             delete $self->{STATE}->{Nicks}->{ $nick };
         }
     }
@@ -182,7 +181,7 @@ sub S_kick {
         
         for my $member ( keys %{ $self->{STATE}->{Chans}->{ $uchan }->{Nicks} } ) {
             delete $self->{STATE}->{Nicks}->{ $member }->{CHANS}->{ $uchan };
-            if ( scalar keys %{ $self->{STATE}->{Nicks}->{ $member }->{CHANS} } <= 0 ) {
+            if ( keys %{ $self->{STATE}->{Nicks}->{ $member }->{CHANS} } <= 0 ) {
                 delete $self->{STATE}->{Nicks}->{ $member };
             }
         }
@@ -192,7 +191,7 @@ sub S_kick {
     else {
         delete $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan };
         delete $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick };
-        if ( scalar keys %{ $self->{STATE}->{Nicks}->{ $unick }->{CHANS} } <= 0 ) {
+        if ( keys %{ $self->{STATE}->{Nicks}->{ $unick }->{CHANS} } <= 0 ) {
             delete $self->{STATE}->{Nicks}->{ $unick };
         }
     }
@@ -427,7 +426,7 @@ sub S_352 {
             }
         }
 
-        $existing .= $whatever unless $existing and $existing =~ /$whatever/;
+        $existing .= $whatever if !$existing || $existing !~ /$whatever/;
         $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan } = $existing;
         $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick } = $existing;
         $self->{STATE}->{Chans}->{ $uchan }->{Name} = $channel;
@@ -467,7 +466,7 @@ sub S_315 {
     }
     else {
         my $chan = shift @{ $self->{NICK_SYNCH}->{ $uchan } };
-        delete $self->{NICK_SYNCH}->{ $uchan } unless scalar @{ $self->{NICK_SYNCH}->{ $uchan } };
+        delete $self->{NICK_SYNCH}->{ $uchan } if !@{ $self->{NICK_SYNCH}->{ $uchan } };
         $self->_send_event(irc_nick_sync => $channel, $chan );
     }
 
@@ -607,7 +606,7 @@ sub S_324 {
         }
         
         if ( $self->{STATE}->{Chans}->{ $uchan }->{Mode} ) {
-            $self->{STATE}->{Chans}->{ $uchan }->{Mode} .= $mode unless $self->{STATE}->{Chans}->{ $uchan }->{Mode} =~ /$mode/;
+            $self->{STATE}->{Chans}->{ $uchan }->{Mode} .= $mode if $self->{STATE}->{Chans}->{ $uchan }->{Mode} !~ /$mode/;
         }
         else {
             $self->{STATE}->{Chans}->{ $uchan }->{Mode} = $mode;

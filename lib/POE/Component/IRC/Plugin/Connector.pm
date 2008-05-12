@@ -4,9 +4,8 @@ use strict;
 use warnings;
 use POE;
 use POE::Component::IRC::Plugin qw( :ALL );
-use vars qw($VERSION);
 
-$VERSION = '1.1';
+our $VERSION = '1.1';
 
 sub new {
     my ($package, %args) = @_;
@@ -75,7 +74,7 @@ sub S_socketerr {
 sub S_pong {
     my ($self, $irc) = splice @_, 0, 2;
     my $ping = shift @{ $self->{pings} };
-    return PCI_EAT_NONE unless $ping;
+    return PCI_EAT_NONE if !$ping;
     $self->{lag} = time() - $ping;
     $self->{seen_traffic} = 1;
     return PCI_EAT_NONE;
@@ -141,7 +140,7 @@ sub _reconnect {
     my ($kernel, $self, $session, $sender) = @_[KERNEL, OBJECT, SESSION, SENDER];
 
     my %args = ();
-    if (ref $self->{servers} eq 'ARRAY' && scalar @{ $self->{servers} }) {
+    if (ref $self->{servers} eq 'ARRAY' && @{ $self->{servers} }) {
         @args{qw(Server Port)} = @{ $self->{servers}->[0] };
         push @{ $self->{servers} }, shift @{ $self->{servers} };
     }

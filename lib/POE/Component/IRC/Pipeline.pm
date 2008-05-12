@@ -3,9 +3,8 @@ package POE::Component::IRC::Pipeline;
 use strict;
 use warnings;
 use Carp;
-use vars qw($VERSION);
 
-$VERSION = '0.05';
+our $VERSION = '0.05';
 
 sub new {
     my ($package, $irc) = @_;
@@ -43,7 +42,7 @@ sub push {
 sub pop {
     my ($self) = @_;
 
-    return if !scalar @{ $self->{PIPELINE} };
+    return if !@{ $self->{PIPELINE} };
 
     my $plug = pop @{ $self->{PIPELINE} };
     my $alias = delete $self->{PLUGS}{$plug};

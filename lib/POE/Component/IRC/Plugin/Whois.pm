@@ -6,9 +6,8 @@ use warnings;
 use POE;
 use POE::Component::IRC::Plugin qw( PCI_EAT_NONE );
 use POE::Component::IRC::Common qw(:ALL);
-use vars qw($VERSION);
 
-$VERSION = '0.04';
+our $VERSION = '0.04';
 
 sub new {
     return bless { }, shift;

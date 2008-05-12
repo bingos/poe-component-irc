@@ -5,9 +5,8 @@ use warnings;
 use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Common qw( :ALL );
-use vars qw($VERSION);
 
-$VERSION = '5.76';
+our $VERSION = '5.76';
 
 BEGIN { 
     # Turn on the debugger's symbol source tracing
@@ -58,7 +57,7 @@ sub PCI_register {
         PLUGIN_LIST => sub {
             my ($self, $method, $recipient, @cmd) = @_;
             my @aliases = keys %{ $self->{irc}->plugin_list() };
-            my $msg = scalar @aliases
+            my $msg = @aliases
                 ? 'Plugins [ ' . join(', ', @aliases ) . ' ]'
                 : 'No plugins loaded.';
             $self->{irc}->yield($method => $recipient => $msg);
@@ -66,7 +65,7 @@ sub PCI_register {
         PLUGIN_LOADED => sub {
             my ($self, $method, $recipient, @cmd) = @_;
             my @aliases = $self->loaded();
-            my $msg = scalar @aliases
+            my $msg = @aliases
                 ? 'Managed Plugins [ ' . join(', ', @aliases ) . ' ]'
                 : 'No managed plugins loaded.';
             $self->{irc}->yield($method => $recipient => $msg);
@@ -90,7 +89,7 @@ sub S_public {
     my $me = $irc->nick_name();
 
     my ($command) = $what =~ m/^\s*\Q$me\E[\:\,\;\.]?\s*(.*)$/i;
-    return PCI_EAT_NONE unless $command and $self->_bot_owner($nick);
+    return PCI_EAT_NONE if !$command || !$self->_bot_owner($nick);
 
     my (@cmd) = split(/ +/, $command);
     my $cmd = uc (shift @cmd);

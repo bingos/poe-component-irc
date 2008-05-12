@@ -89,7 +89,7 @@ to DNS records for channel members.
      $irc->yield(
          'privmsg',
          $res->{context}->{channel},
-         $res->{context}->{nick} . (scalar @answers
+         $res->{context}->{nick} . (@answers
              ? ": @answers"
              : ': no answers for "' . $res->{host} . '"')
      );

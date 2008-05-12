@@ -14,10 +14,9 @@ use warnings;
 use Carp;
 use POE;
 use POE::Component::IRC::Constants qw(:ALL);
-use vars qw($VERSION);
 use base qw(POE::Component::IRC);
 
-$VERSION = '1.4';
+our $VERSION = '1.4';
 
 sub _create {
     my $self = shift;

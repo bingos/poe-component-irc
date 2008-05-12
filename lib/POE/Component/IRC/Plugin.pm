@@ -3,14 +3,12 @@ package POE::Component::IRC::Plugin;
 
 use strict;
 use warnings;
-use vars qw($VERSION %EXPORT_TAGS);
 
-$VERSION = '0.10';
+our $VERSION = '0.10';
 
-# We export some stuff
 require Exporter;
 use base qw( Exporter );
-%EXPORT_TAGS = ( 'ALL' => [ qw( PCI_EAT_NONE PCI_EAT_CLIENT PCI_EAT_PLUGIN PCI_EAT_ALL ) ] );
+our %EXPORT_TAGS = ( 'ALL' => [ qw( PCI_EAT_NONE PCI_EAT_CLIENT PCI_EAT_PLUGIN PCI_EAT_ALL ) ] );
 Exporter::export_ok_tags( 'ALL' );
 
 use constant {

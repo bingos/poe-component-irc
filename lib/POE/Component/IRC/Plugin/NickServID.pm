@@ -5,13 +5,12 @@ use warnings;
 use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Common qw( u_irc );
-use vars qw($VERSION);
 
-$VERSION = '1.2';
+our $VERSION = '1.2';
 
 sub new {
     my ($package, %self) = @_;
-    croak "$package requires a Password" unless defined $self{Password};
+    croak "$package requires a Password" if !defined $self{Password};
     return bless \%self, $package;
 }
 

@@ -13,9 +13,8 @@ use warnings;
 use POE::Filter::Stackable;
 use POE::Filter::IRCD;
 use POE::Filter::IRC::Compat;
-use vars qw($VERSION);
 
-$VERSION = '5.1';
+our $VERSION = '5.1';
 
 sub new {
     my ($package, %opts) = @_;

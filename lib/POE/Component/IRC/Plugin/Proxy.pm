@@ -282,7 +282,7 @@ sub _client_input {
         if ( ( not $self->{wheels}->{ $wheel_id }->{reg} ) and $self->{wheels}->{ $wheel_id }->{register} >= 2 ) {
             my $password = delete $self->{wheels}->{ $wheel_id }->{pass};
             $self->{wheels}->{ $wheel_id }->{reg} = 1;
-            unless ( $password and $password eq $self->{password} ) {
+            if ( !$password || $password ne $self->{password} ) {
                 $self->_send_to_client( $wheel_id => 'ERROR :Closing Link: * [' . ( $self->{wheels}->{ $wheel_id }->{user} || "unknown" ) . '@' . $self->{wheels}->{ $wheel_id }->{peer} . '] (Unauthorised connection)' );
                 $self->{wheels}->{ $wheel_id }->{quiting}++;
                 last SWITCH;
@@ -292,10 +292,10 @@ sub _client_input {
             if ( $nickname ne $self->{wheels}->{ $wheel_id }->{nick} ) {
                 $self->_send_to_client( $wheel_id, $self->{wheels}->{ $wheel_id }->{nick} . " NICK :$nickname" );
             }
-            foreach my $line ( @{ $self->{stash} } ) {
+            for my $line ( @{ $self->{stash} } ) {
                 $self->_send_to_client( $wheel_id, $line );
             }
-            foreach my $channel ( $self->current_channels() ) {
+            for my $channel ( $self->current_channels() ) {
                 $self->_send_to_client( $wheel_id, ":$fullnick JOIN $channel" );
                 $self->{irc}->yield( 'names' => $channel );
                 $self->{irc}->yield( 'topic' => $channel );
@@ -304,7 +304,7 @@ sub _client_input {
             last SWITCH;
         }
     
-        unless ( $self->{wheels}->{ $wheel_id }->{reg} ) {
+        if ( !$self->{wheels}->{ $wheel_id }->{reg} ) {
             last SWITCH;
         }
         if ( $input->{command} eq 'NICK' or $input->{command} eq 'USER' or $input->{command} eq 'PASS' ) {
@@ -363,13 +363,13 @@ sub list_wheels {
 sub wheel_info {
     my ($self, $wheel_id) = @_;
     return if !defined $self->{wheels}->{ $wheel_id };
-    return $self->{wheels}->{ $wheel_id }->{start} unless wantarray();
+    return $self->{wheels}->{ $wheel_id }->{start} if !wantarray();
     return map { $self->{wheels}->{ $wheel_id }->{$_} } qw(peer port start lag);
 }
 
 sub current_channels {
     my ($self) = @_;
-    return if !defined ( $self->{current_channels} ) && scalar keys %{ $self->{current_channels} } > 0;
+    return if !defined ( $self->{current_channels} ) && keys %{ $self->{current_channels} } > 0;
     return ( map { $self->{current_channels}->{ $_ } } keys %{ $self->{current_channels} } );
 }
 
