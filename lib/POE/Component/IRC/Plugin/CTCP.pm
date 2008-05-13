@@ -32,7 +32,10 @@ sub S_ctcp_version {
     my ($self, $irc) = splice @_, 0, 2;
     my $nick = ( split /!/, ${ $_[0] } )[0];
 
-    $irc->yield( ctcpreply => $nick => 'VERSION ' . ( $self->{version} ? $self->{version} : "POE::Component::IRC-" . $POE::Component::IRC::VERSION ) );
+    $irc->yield( ctcpreply => $nick => 'VERSION ' . ( defined $self->{version}
+            ? $self->{version}
+            : "POE::Component::IRC-$POE::Component::IRC::VERSION"
+    ));
     return PCI_EAT_CLIENT if $self->eat();
     return PCI_EAT_NONE;
 }
