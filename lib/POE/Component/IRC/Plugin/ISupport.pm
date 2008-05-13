@@ -147,11 +147,11 @@ sub S_005 {
 }
 
 sub _default {
-    my ($self, $irc, $e) = @_;
+    my ($self, $irc, $event) = @_;
 
     return PCI_EAT_NONE if $self->{done_005};
     
-    if ($e =~ /^S_0*(\d+)/ and $1 > 5) {
+    if ($event =~ /^S_0*(\d+)/ and $1 > 5) {
         $irc->_send_event(irc_isupport => $self);
         $self->{done_005} = 1;
     }
