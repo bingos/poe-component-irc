@@ -8,6 +8,8 @@ use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::IRCD
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Common qw( :ALL );
 
+our $VERSION = '5.78';
+
 sub new {
     my ($package, %args) = @_;
     $args{ lc $_ } = delete $args{ $_ } for keys %args;
