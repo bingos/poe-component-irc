@@ -13,7 +13,7 @@ sub new {
     $args{lc $_} = delete $args{$_} for keys %args;
     
     if (!$args{filename} || ! -e $args{filename}) {
-        croak "$package requires a valid 'filename' attribute\n"
+        croak "$package requires a valid 'filename' attribute";
     }
     
     return bless \%args, $package;
