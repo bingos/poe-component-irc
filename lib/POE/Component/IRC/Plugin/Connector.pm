@@ -139,7 +139,7 @@ sub _shutdown {
 sub _reconnect {
     my ($kernel, $self, $session, $sender) = @_[KERNEL, OBJECT, SESSION, SENDER];
 
-    my %args = ();
+    my %args;
     if (ref $self->{servers} eq 'ARRAY' && @{ $self->{servers} }) {
         @args{qw(Server Port)} = @{ $self->{servers}->[0] };
         push @{ $self->{servers} }, shift @{ $self->{servers} };
