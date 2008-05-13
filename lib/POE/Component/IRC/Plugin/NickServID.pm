@@ -27,7 +27,7 @@ sub PCI_unregister {
 
 sub S_001 {
     my ($self, $irc) = splice @_, 0, 2;
-    $irc->yield(nickserv => 'IDENTIFY ' . $self->{Password});
+    $irc->yield(nickserv => "IDENTIFY $self->{Password}");
     return PCI_EAT_NONE;
 }
 
@@ -36,7 +36,7 @@ sub S_nick {
     my $mapping = $irc->isupport('CASEMAPPING');
     my $new_nick = u_irc( ${ $_[1] }, $mapping );
     if ( $new_nick eq u_irc($self->{nick}, $mapping) ) {
-        $irc->yield(nickserv => 'IDENTIFY ' . $self->{Password});
+        $irc->yield(nickserv => "IDENTIFY $self->{Password}");
         return PCI_EAT_NONE;
     }
 }
