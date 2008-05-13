@@ -369,7 +369,7 @@ sub wheel_info {
 
 sub current_channels {
     my ($self) = @_;
-    return if !defined ( $self->{current_channels} ) && keys %{ $self->{current_channels} } > 0;
+    return if !defined $self->{current_channels} || !keys %{ $self->{current_channels} };
     return ( map { $self->{current_channels}->{ $_ } } keys %{ $self->{current_channels} } );
 }
 
