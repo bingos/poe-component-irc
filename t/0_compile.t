@@ -1,31 +1,40 @@
-use Test::More tests => 30;
-use_ok("POE::Filter::IRC");
-use_ok("POE::Filter::IRC::Compat");
-use_ok("POE::Filter::CTCP");
-use_ok("POE::Component::IRC");
-use_ok("POE::Component::IRC::State");
-use_ok("POE::Component::IRC::Qnet");
-use_ok("POE::Component::IRC::Qnet::State");
-use_ok("POE::Component::IRC::Pipeline");
-use_ok("POE::Component::IRC::Constants");
-use_ok("POE::Component::IRC::Common");
-use_ok("POE::Component::IRC::Test::Plugin");
-use_ok("POE::Component::IRC::Test::Harness");
-use_ok("POE::Component::IRC::Projects");
-use_ok("POE::Component::IRC::Plugin");
-use_ok("POE::Component::IRC::Plugin::Whois");
-use_ok("POE::Component::IRC::Plugin::Proxy");
-use_ok("POE::Component::IRC::Plugin::PlugMan");
-use_ok("POE::Component::IRC::Plugin::NickServID");
-use_ok("POE::Component::IRC::Plugin::NickReclaim");
-use_ok("POE::Component::IRC::Plugin::Logger");
-use_ok("POE::Component::IRC::Plugin::ISupport");
-use_ok("POE::Component::IRC::Plugin::FollowTail");
-use_ok("POE::Component::IRC::Plugin::Console");
-use_ok("POE::Component::IRC::Plugin::Connector");
-use_ok("POE::Component::IRC::Plugin::CTCP");
-use_ok("POE::Component::IRC::Plugin::CycleEmpty");
-use_ok("POE::Component::IRC::Plugin::BotTraffic");
-use_ok("POE::Component::IRC::Plugin::BotAddressed");
-use_ok("POE::Component::IRC::Plugin::AutoJoin");
-use_ok("POE::Component::IRC::Plugin::BotCommand");
+use strict;
+use warnings;
+use Test::More;
+
+my @modules = qw(
+    POE::Filter::IRC
+    POE::Filter::IRC::Compat
+    POE::Filter::CTCP
+    POE::Component::IRC
+    POE::Component::IRC::State
+    POE::Component::IRC::Qnet
+    POE::Component::IRC::Qnet::State
+    POE::Component::IRC::Pipeline
+    POE::Component::IRC::Constants
+    POE::Component::IRC::Common
+    POE::Component::IRC::Test::Plugin
+    POE::Component::IRC::Test::Harness
+    POE::Component::IRC::Projects
+    POE::Component::IRC::Plugin
+    POE::Component::IRC::Plugin::Whois
+    POE::Component::IRC::Plugin::Proxy
+    POE::Component::IRC::Plugin::PlugMan
+    POE::Component::IRC::Plugin::NickServID
+    POE::Component::IRC::Plugin::NickReclaim
+    POE::Component::IRC::Plugin::Logger
+    POE::Component::IRC::Plugin::ISupport
+    POE::Component::IRC::Plugin::FollowTail
+    POE::Component::IRC::Plugin::Console
+    POE::Component::IRC::Plugin::Connector
+    POE::Component::IRC::Plugin::CTCP
+    POE::Component::IRC::Plugin::CycleEmpty
+    POE::Component::IRC::Plugin::BotTraffic
+    POE::Component::IRC::Plugin::BotAddressed
+    POE::Component::IRC::Plugin::AutoJoin
+    POE::Component::IRC::Plugin::BotCommand
+);
+
+plan tests => scalar @modules;
+use_ok($_) for @modules;
+
