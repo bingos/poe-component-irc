@@ -883,6 +883,7 @@ sub _start {
         $self->{sessions}->{$sender_id}->{refcnt}++;
         $kernel->refcount_increment($sender_id, PCI_REFCOUNT_TAG);
         $kernel->post($sender => irc_registered => $self);
+	$kernel->detach_myself();
     }
 
     return 1;
