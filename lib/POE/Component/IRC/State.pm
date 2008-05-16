@@ -124,7 +124,7 @@ sub S_part {
     else {
         delete $self->{STATE}->{Nicks}->{ $nick }->{CHANS}->{ $uchan };
         delete $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $nick };
-        if ( keys %{ $self->{STATE}->{Nicks}->{ $nick }->{CHANS} } <= 0 ) {
+        if ( !keys %{ $self->{STATE}->{Nicks}->{ $nick }->{CHANS} } ) {
             delete $self->{STATE}->{Nicks}->{ $nick };
         }
     }
