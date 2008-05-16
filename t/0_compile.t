@@ -38,3 +38,5 @@ my @modules = qw(
 plan tests => scalar @modules;
 use_ok($_) for @modules;
 
+no warnings;
+diag("Testing POE-Component-IRC $POE::Component::IRC::VERSION (svn r$POE::Component::IRC::REVISION) with POE $POE::VERSION and Perl $^V ($^X)");
