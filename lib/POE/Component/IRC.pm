@@ -2902,9 +2902,10 @@ events such as 'mode', etc. will not work. This is a 'feature'.
 =item C<debug>
 
 Takes one argument: 0 to turn debugging off or 1 to turn debugging on.
-This flips the debugging flag in L<POE::Filter::IRC::Compat|POE::Filter::IRC::Compat>,
-L<POE::Filter::CTCP|POE::Filter::CTCP>,and POE::Component::IRC. This has the
-same effect as setting Debug in C<spawn()> or C<connect>.
+This flips the debugging flag in L<POE::Filter::IRCD|POE::Filter::IRCD>,
+L<POE::Filter::IRC::Compat|POE::Filter::IRC::Compat>, and
+POE::Component::IRC. This has the same effect as setting Debug in
+C<spawn()> or C<connect>.
 
 =back
 
