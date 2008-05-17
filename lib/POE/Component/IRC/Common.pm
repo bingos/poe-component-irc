@@ -512,8 +512,8 @@ casemapping ( see u_irc() ), as this function uses u_irc() internally.
 
 Takes two array references, the first being a list of strings representing
 IRC mask, the second a list of somethings to test against the masks. Returns
-an empty hashref if there are no matches. Matches are returned are arrayrefs
-keyed on the mask that they matched.
+an empty hashref if there are no matches. Otherwise, the keys will be the
+masks matched, each value being an arrayref of the strings that matched it.
 
 =item C<parse_user>
 
