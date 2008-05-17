@@ -3,14 +3,14 @@ package POE::Component::IRC::Common;
 use strict;
 use warnings;
 
-our $VERSION = '5.16';
+our $VERSION = '5.17';
 
 require Exporter;
 use base qw( Exporter );
 our %EXPORT_TAGS = ( 'ALL' => [ qw(
-    u_irc l_irc parse_mode_line parse_ban_mask matches_mask parse_user
-    irc_ip_get_version irc_ip_is_ipv4 irc_ip_is_ipv6 has_color has_formatting
-    strip_color strip_formatting NORMAL BOLD UNDERLINE REVERSE
+    u_irc l_irc parse_mode_line parse_ban_mask matches_mask matches_mask_array
+    parse_user irc_ip_get_version irc_ip_is_ipv4 irc_ip_is_ipv6 has_color
+    has_formatting strip_color strip_formatting NORMAL BOLD UNDERLINE REVERSE
     WHITE BLACK DARK_BLUE DARK_GREEN RED BROWN PURPLE ORANGE YELLOW LIGHT_GREEN
     TEAL CYAN LIGHT_BLUE MAGENTA DARK_GREY LIGHT_GREY
 ) ] );
