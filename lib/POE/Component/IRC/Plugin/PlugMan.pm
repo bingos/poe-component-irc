@@ -49,7 +49,7 @@ sub PCI_register {
             my $msg = $self->unload(@cmd) ? 'Done.' : 'Nope';
             $self->{irc}->yield($method => $recipient => $msg);
         },
-	PLUGIN_RELOAD => sub {
+        PLUGIN_RELOAD => sub {
             my ($self, $method, $recipient, @cmd) = @_;
             my $msg = $self->reload(@cmd) ? 'Done.' : 'Nope';
             $self->{irc}->yield($method => $recipient => $msg);
