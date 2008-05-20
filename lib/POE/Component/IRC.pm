@@ -3358,7 +3358,7 @@ Similar to the above, except some keys will be missing.
 
 =item C<irc_raw>
 
-Enabled by passing C<Raw => 1> to C<spawn()> or C<connect>, ARG0 is the raw IRC
+Enabled by passing C<< Raw => 1 >> to C<spawn()> or C<connect>, ARG0 is the raw IRC
 string received by the component from the IRC server, before it has been
 mangled by filters and such like.
 
