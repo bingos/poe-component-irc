@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Carp;
 use POE::Filter::IRCD;
-use File::Basename ();
+use File::Basename qw(fileparse);
 use base qw(POE::Filter);
 
 our $VERSION = '1.4';
@@ -222,7 +222,7 @@ sub _get_ctcp {
                 last CTCP;
             }
             $file =~ s/^"|"$//g;
-            $file = File::Basename::fileparse($file);
+            $file = fileparse($file);
                 
             push @$events, {
                 name => 'dcc_request',

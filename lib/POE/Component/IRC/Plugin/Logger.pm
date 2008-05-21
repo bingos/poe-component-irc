@@ -105,9 +105,9 @@ sub PCI_register {
             return $line;
         },
         topic_set_by => sub {
-            my ($chan, $nick, $time) = @_;
+            my ($chan, $user, $time) = @_;
             my $date = localtime $time;
-            return "--- Topic for $chan was set by $nick at $date";
+            return "--- Topic for $chan was set by $user at $date";
         },
     } if !defined $self->{Format};
 
@@ -136,9 +136,9 @@ sub S_332 {
 
 sub S_333 {
     my ($self, $irc) = splice @_, 0, 2;
-    my ($chan, $nick, $time) = @{ ${ $_[2] } };
+    my ($chan, $user, $time) = @{ ${ $_[2] } };
     # only log this if we were just joining the channel
-    $self->_log_entry($chan, topic_set_by => $chan, $nick, $time) if !$irc->channel_list($chan);
+    $self->_log_entry($chan, topic_set_by => $chan, $user, $time) if !$irc->channel_list($chan);
     return PCI_EAT_NONE;
 }
 
