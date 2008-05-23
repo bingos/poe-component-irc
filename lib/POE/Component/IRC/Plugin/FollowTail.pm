@@ -2,7 +2,6 @@ package POE::Component::IRC::Plugin::FollowTail;
 
 use strict;
 use warnings;
-use Carp;
 use POE qw(Wheel::FollowTail);
 use POE::Component::IRC::Plugin qw( :ALL );
 
@@ -13,7 +12,7 @@ sub new {
     $args{lc $_} = delete $args{$_} for keys %args;
     
     if (!$args{filename} || ! -e $args{filename}) {
-        croak "$package requires a valid 'filename' attribute";
+        die "$package requires a valid 'filename' attribute";
     }
     
     return bless \%args, $package;

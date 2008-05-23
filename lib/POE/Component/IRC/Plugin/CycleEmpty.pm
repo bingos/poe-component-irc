@@ -2,7 +2,6 @@ package POE::Component::IRC::Plugin::CycleEmpty;
 
 use strict;
 use warnings;
-use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Common qw( parse_user u_irc );
 
@@ -17,7 +16,7 @@ sub PCI_register {
     my ($self, $irc) = @_;
     
     if (!$irc->isa('POE::Component::IRC::State')) {
-        croak __PACKAGE__ . ' requires PoCo::IRC::State or a subclass thereof';
+        die __PACKAGE__ . " requires PoCo::IRC::State or a subclass thereof";
     }
     
     $self->{cycling} = { };

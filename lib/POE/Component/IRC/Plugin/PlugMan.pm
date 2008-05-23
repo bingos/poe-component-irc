@@ -2,7 +2,6 @@ package POE::Component::IRC::Plugin::PlugMan;
 
 use strict;
 use warnings;
-use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Common qw( :ALL );
 
@@ -32,7 +31,7 @@ sub PCI_register {
     my ($self, $irc) = @_;
 
     if ( !$irc->isa('POE::Component::IRC::State') ) {
-        croak __PACKAGE__ . ' requires PoCo::IRC::State or a subclass thereof';
+        die __PACKAGE__ . ' requires PoCo::IRC::State or a subclass thereof';
     }
 
     $self->{irc} = $irc;
@@ -147,7 +146,7 @@ sub load {
         if ($@) {
             delete $INC{$module};
             $self->_unload_subs($plugin);
-            croak "$@";
+            die "$@\n";
         }
 
         $object = $plugin->new( @_ );
@@ -194,7 +193,7 @@ sub _unload_subs {
 
     for my $sym ( grep { index( $_, "$file:" ) == 0 } keys %DB::sub ) {
         eval { undef &$sym };
-        carp "$sym: $@" if $@;
+        warn "$sym: $@\n" if $@;
         delete $DB::sub{$sym};
     }
 
@@ -207,10 +206,10 @@ sub reload {
 
     my $plugin_state = $self->{plugins}->{ $desc };
     return if !$plugin_state;
-    carp "Unloading plugin $desc" if $self->{debug};
+    warn "Unloading plugin $desc\n" if $self->{debug};
     return if !$self->unload( $desc );
 
-    carp "Loading plugin $desc " . $plugin_state->{plugin} . ' [ ' . join(', ',@{ $plugin_state->{args} }) . " ]" if $self->{debug};
+    warn "Loading plugin $desc " . $plugin_state->{plugin} . ' [ ' . join(', ',@{ $plugin_state->{args} }) . " ]\n" if $self->{debug};
     return if !$self->load( $desc, $plugin_state->{plugin}, @{ $plugin_state->{args} } );
     return 1;
 }

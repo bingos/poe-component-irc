@@ -2,7 +2,6 @@ package POE::Component::IRC::Plugin::Logger;
 
 use strict;
 use warnings;
-use Carp qw(croak);
 use Encode qw(decode);
 use Encode::Guess;
 use Fcntl qw(O_WRONLY O_APPEND O_CREAT);
@@ -17,7 +16,7 @@ our $VERSION = '1.8';
 sub new {
     my ($package, %self) = @_;
     if (!$self{Path}) {
-        croak "$package requires a Path";
+        die "$package requires a Path";
     }
     return bless \%self, $package;
 }
@@ -26,7 +25,7 @@ sub PCI_register {
     my ($self, $irc) = @_;
     
     if (!$irc->isa('POE::Component::IRC::State')) {
-        croak __PACKAGE__ . ' requires PoCo::IRC::State or a subclass thereof';
+        die __PACKAGE__ . ' requires PoCo::IRC::State or a subclass thereof';
     }
     
     if ( !grep { $_->isa('POE::Component::IRC::Plugin::BotTraffic') } @{ $irc->pipeline->{PIPELINE} } ) {
@@ -44,7 +43,7 @@ sub PCI_register {
     }
 
     if (! -d $self->{Path}) {
-        mkdir $self->{Path}, $self->{dir_perm} or croak 'Cannot create directory ' . $self->{Path} . ": $!; aborted";
+        mkdir $self->{Path}, $self->{dir_perm} or die 'Cannot create directory ' . $self->{Path} . ": $!; aborted";
     }
     
     $self->{irc} = $irc;
@@ -289,7 +288,7 @@ sub _log_entry {
         my $log_dir = catdir($self->{Path}, $context);
         if (! -d $log_dir) {
             mkdir $log_dir, $self->{dir_perm}
-                or croak "Couldn't create directory $log_dir: $!; aborted";
+                or die "Couldn't create directory $log_dir: $!; aborted";
         }
         $log_file = catfile($self->{Path}, $context, "$date.log");
     }
@@ -312,7 +311,7 @@ sub _log_entry {
 sub _open_log {
     my ($self, $file_name) = @_;
     sysopen(my $log, $file_name, O_WRONLY|O_APPEND|O_CREAT, $self->{file_perm})
-        or croak "Couldn't create file $file_name: $!; aborted";
+        or die "Couldn't create file $file_name: $!; aborted";
     binmode($log, ':utf8');
     $log->autoflush(1);
     return $log;
