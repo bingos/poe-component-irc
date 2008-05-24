@@ -1971,17 +1971,6 @@ sub _delay_remove {
     return;
 }
 
-sub _validate_command {
-    my ($self, $cmd) = @_;
-    $cmd = lc $cmd || return;
-
-    for my $command ( keys %{ $self->{IRC_CMDS} } ) {
-        return 1 if $cmd eq $command
-    }
-    
-    return;
-}
-
 sub connected {
     my ($self) = @_;
     return $self->{connected};
