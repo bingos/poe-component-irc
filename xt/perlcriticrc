@@ -12,4 +12,4 @@ verbose  = 3
 [-ValuesAndExpressions::ProhibitCommaSeparatedStatements]
 [-Subroutines::ProhibitBuiltinHomonyms]
 [-Subroutines::RequireArgUnpacking]
-
+[-ErrorHandling::RequireCarping]
