@@ -2030,8 +2030,8 @@ sub _compress_downlink {
 sub S_ping {
     my ($self, $irc) = splice @_, 0, 2;
     my $arg = ${ $_[0] };
-    $irc->yield(sl_login => "PONG :$arg" );
-    return;
+    $irc->yield(sl_login => "PONG :$arg");
+    return PCI_EAT_NONE;
 }
 
 # NICK messages for the purposes of determining our current nickname
@@ -2040,13 +2040,13 @@ sub S_nick {
     my $nick = ( split /!/, ${ $_[0] } )[0];
     my $new = ${ $_[1] };
     $self->{RealNick} = $new if ( $nick eq $self->{RealNick} );
-    return;
+    return PCI_EAT_NONE;
 }
 
 sub S_isupport {
     my ($self, $irc) = splice @_, 0, 2;
     $self->{ircd_compat}->chantypes( $self->{isupport}->isupport('CHANTYPES') || [ '#', '&' ] );
-    return;
+    return PCI_EAT_NONE;
 }
 
 # accesses the ISupport plugin
