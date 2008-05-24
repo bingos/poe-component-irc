@@ -2,6 +2,7 @@ use Test::More tests => 18;
 
 {
   package SubclassIRC;
+  use POE::Component::IRC::Plugin qw(:ALL);
   use base qw(POE::Component::IRC);
   use Test::More;
   my $VERSION = 1;
@@ -13,7 +14,7 @@ use Test::More tests => 18;
      isa_ok ( $self2, 'POE::Component::IRC' );
      ok( $self1->server_name() eq 'poco.server.irc', "Server Name Test" );
      ok( $self2->nick_name() eq 'TestBot', "Nick Name Test" );
-     return;
+     return PCI_EAT_NONE;
   }
 }
 
