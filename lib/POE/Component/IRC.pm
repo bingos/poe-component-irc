@@ -1152,7 +1152,7 @@ sub dcc {
     $myaddr = unpack 'N', $myaddr;
 
     # Tell the other end that we're waiting for them to connect.
-    my $basename = File::Basename::fileparse($file);
+    my $basename = fileparse($file);
     $basename = qq{"$basename"};
 
     $kernel->yield(
