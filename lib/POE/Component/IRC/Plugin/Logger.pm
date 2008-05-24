@@ -28,7 +28,7 @@ sub PCI_register {
         die __PACKAGE__ . ' requires PoCo::IRC::State or a subclass thereof';
     }
     
-    if ( !grep { $_->isa('POE::Component::IRC::Plugin::BotTraffic') } @{ $irc->pipeline->{PIPELINE} } ) {
+    if ( !grep { $_->isa('POE::Component::IRC::Plugin::BotTraffic') } values %{ $irc->plugin_list() } ) {
         $irc->plugin_add('BotTraffic', POE::Component::IRC::Plugin::BotTraffic->new());
     }
     

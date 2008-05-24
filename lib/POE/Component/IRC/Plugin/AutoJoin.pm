@@ -41,7 +41,7 @@ sub S_001 {
     my ($self, $irc) = splice @_, 0, 2;
     
     # delay this so that the user will be cloaked (if applicable) before joining channels
-    if ( grep { $_->isa('POE::Component::IRC::Plugin::NickServID') } @{ $irc->pipeline->{PIPELINE} } ) {
+    if ( grep { $_->isa('POE::Component::IRC::Plugin::NickServID') } values %{ $irc->plugin_list() } ) {
         while (my ($chan, $key) = each %{ $self->{Channels} }) {
             $irc->delay([join => $chan => $key], 5);
         }
