@@ -7,9 +7,9 @@ use warnings;
 our $VERSION = '0.10';
 
 require Exporter;
-use base qw( Exporter );
-our %EXPORT_TAGS = ( 'ALL' => [ qw( PCI_EAT_NONE PCI_EAT_CLIENT PCI_EAT_PLUGIN PCI_EAT_ALL ) ] );
-Exporter::export_ok_tags( 'ALL' );
+use base qw(Exporter);
+our @EXPORT_OK = qw(PCI_EAT_NONE PCI_EAT_CLIENT PCI_EAT_PLUGIN PCI_EAT_ALL);
+our %EXPORT_TAGS = ( ALL => [@EXPORT_OK] );
 
 use constant {
     PCI_EAT_NONE   => 1,

@@ -6,12 +6,12 @@ use warnings;
 our $VERSION = '0.02';
 
 require Exporter;
-use base qw( Exporter );
-our %EXPORT_TAGS = ( 'ALL' => [ qw(
+use base qw(Exporter);
+our @EXPORT_OK = qw(
     PCI_REFCOUNT_TAG BLOCKSIZE INCOMING_BLOCKSIZE DCC_TIMEOUT PRI_LOGIN
     PRI_HIGH PRI_NORMAL MSG_PRI MSG_TEXT CMD_PRI CMD_SUB
-) ] );
-Exporter::export_ok_tags( 'ALL' );
+);
+our %EXPORT_TAGS = ( ALL => [@EXPORT_OK] );
 
 use constant {
     # The name of the reference count P::C::I keeps in client sessions.
