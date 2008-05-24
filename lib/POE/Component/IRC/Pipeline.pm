@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Carp;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 sub new {
     my ($package, $irc) = @_;
@@ -27,7 +27,7 @@ sub push {
     }
 
     if (!eval { $plug->PCI_register($self->{IRC}) } ) {
-        carp $@;
+        carp "${alias}->PCI_register call failed with '$@'" if $@ && $self->{DEBUG};
         return;
     }
 
@@ -50,7 +50,7 @@ sub pop {
     delete $self->{HANDLES}{$plug};
 
     eval { $plug->PCI_unregister($self->{IRC}) };
-    carp $@ if $@;
+    carp "${alias}->PCI_unregister call failed with '$@'" if $@ && $self->{DEBUG};
     $self->{IRC}->yield(__send_event => irc_plugin_del => $alias, $plug);
 
     return wantarray() ? ($plug, $alias) : $plug;
@@ -60,12 +60,12 @@ sub unshift {
     my ($self, $alias, $plug) = @_;
   
     if ($self->{PLUGS}{$alias}) {
-        $@ = "Plugin named '$alias' already exists ($self->{PLUGS}{$alias}";
+        $@ = "Plugin named '$alias' already exists ($self->{PLUGS}{$alias})";
         return;
     }
     
     if (!eval { $plug->PCI_register($self->{IRC}) } ) {
-        carp "$@";
+        carp "${alias}->PCI_register call failed with '$@'" if $@ && $self->{DEBUG};
         return;
     }
     
@@ -88,7 +88,7 @@ sub shift {
     delete $self->{HANDLES}{$plug};
 
     eval { $plug->PCI_unregister($self->{IRC}) };
-    carp "$@" if $@;
+    carp "${alias}->PCI_unregister call failed with '$@'" if $@ && $self->{DEBUG};
     
     $self->{IRC}->yield(__send_event => irc_plugin_del => $alias, $plug);
     return wantarray() ? ($plug, $alias) : $plug;
@@ -111,16 +111,16 @@ sub replace {
     delete $self->{PLUGS}{$old_a};
     delete $self->{HANDLES}{$old_p};
     eval { $old_p->PCI_unregister($self->{IRC}) };
-    carp "$@" if $@;
+    carp "${old_a}->PCI_unregister call failed with '$@'" if $@ && $self->{DEBUG};
     $self->{IRC}->yield(__send_event => irc_plugin_del => $old_a, $old_p);
 
     if ($self->{PLUGS}{$new_a}) {
-        carp "Plugin named '$new_a' already exists ($self->{PLUGS}{$new_a}";
+        carp "Plugin named '$new_a' already exists ($self->{PLUGS}{$new_a})";
         return;
     }
     
     if (!eval { $new_p->PCI_register($self->{IRC}) } ) {
-        carp "$@";
+        carp "${new_a}->PCI_register call failed with '$@'" if $@ && $self->{DEBUG};
         return;
     }
 
@@ -128,8 +128,8 @@ sub replace {
     $self->{PLUGS}{$new_a} = $new_p;
 
     for my $plugin (@{ $self->{PIPELINE} }) {
-      $plugin = $new_p;
-      last if $plugin == $old_p;
+        $plugin = $new_p;
+        last if $plugin == $old_p;
     }
 
     $self->{IRC}->yield(__send_event => irc_plugin_add => $new_a => $new_p);
@@ -161,7 +161,7 @@ sub remove {
     }
 
     eval { $old_p->PCI_unregister($self->{IRC}) };
-    carp "$@" if $@;
+    carp "${old_a}->PCI_unregister call failed with '$@'" if $@ && $self->{DEBUG};
     $self->{IRC}->yield(__send_event => irc_plugin_del => $old_a, $old_p);
 
     return wantarray ? ($old_p, $old_a) : $old_p;
@@ -217,12 +217,12 @@ sub insert_before {
     }
 
     if ($self->{PLUGS}{$new_a}) {
-        carp "Plugin named '$new_a' already exists ($self->{PLUGS}{$new_a}";
+        carp "Plugin named '$new_a' already exists ($self->{PLUGS}{$new_a})";
         return;
     }
 
     if (!eval { $new_p->PCI_register($self->{IRC}) } ) {
-        carp "$@";
+        carp "${new_a}->PCI_register call failed with '$@'" if $@ && $self->{DEBUG};
         return;
     }
 
@@ -252,12 +252,12 @@ sub insert_after {
     }
 
     if ($self->{PLUGS}{$new_a}) {
-        carp "Plugin named '$new_a' already exists ($self->{PLUGS}{$new_a}";
+        carp "Plugin named '$new_a' already exists ($self->{PLUGS}{$new_a})";
         return;
     }
     
     if (!eval { $new_p->PCI_register($self->{IRC}) } ) {
-        carp $@;
+        carp "${new_a}->PCI_register call failed with '$@'" if $@ && $self->{DEBUG};
         return;
     }
 

@@ -14,10 +14,9 @@ package POE::Component::IRC;
 use strict;
 use warnings;
 use Carp;
-use File::Basename ();
+use File::Basename qw(fileparse);
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Driver::SysRW
            Filter::Line Filter::Stream Filter::Stackable);
-#use POE::Filter::CTCP;
 use POE::Filter::IRCD;
 use POE::Filter::IRC::Compat;
 use POE::Component::IRC::Common qw(:ALL);
@@ -28,7 +27,7 @@ use POE::Component::IRC::Plugin::ISupport;
 use POE::Component::IRC::Plugin::Whois;
 use Socket;
 
-our $VERSION = '5.76';
+our $VERSION = '5.78';
 our $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 our ($GOT_SSL, $GOT_CLIENT_DNS, $GOT_SOCKET6);
 
@@ -107,7 +106,7 @@ sub _create {
         pong      => [ PRI_HIGH,     'oneortwo',      ],
     };
 
-    my @event_map = map {($_ => $self->{IRC_CMDS}->{$_}->[CMD_SUB])}
+    my %event_map = map {($_ => $self->{IRC_CMDS}->{$_}->[CMD_SUB])}
         keys %{ $self->{IRC_CMDS} };
 
     $self->{OBJECT_STATES_ARRAYREF} = [qw(
@@ -153,9 +152,8 @@ sub _create {
     )];
 
     $self->{OBJECT_STATES_HASHREF} = {
-        @event_map,
-        _tryclose => 'dcc_close',
-        quote     => 'sl',
+        %event_map,
+        quote => 'sl',
     };
 
     return;
@@ -176,15 +174,14 @@ sub _configure {
     if ($self->{debug}) {
         $self->{ircd_filter}->debug(1);
         $self->{ircd_compat}->debug(1);
-#        $self->{ctcp_filter}->debug(1);
     }
     
     if ($self->{useipv6} && !$GOT_SOCKET6) {
-        carp "'useipv6' specified, but Socket6 was not found";
+        warn "'useipv6' option specified, but Socket6 was not found\n";
     }
     
     if ($self->{usessl} && !$GOT_SSL) {
-        carp "'usessl' specified, but POE::Component::SSLify was not found";
+        warn "'usessl' opyion specified, but POE::Component::SSLify was not found\n";
     }
 
     if (!$self->{nodns} && $GOT_CLIENT_DNS && !$self->{resolver} ) {
@@ -213,12 +210,12 @@ sub _configure {
     }
 
     if (!defined $self->{ircname}) {
-        $self->{'ircname'} = $ENV{IRCNAME} || eval { (getpwuid $>)[6] }
+        $self->{ircname} = $ENV{IRCNAME} || eval { (getpwuid $>)[6] }
             || 'Just Another Perl Hacker';
     }
     
     if (!defined $self->{server} && !$spawned) {
-        croak 'No IRC server specified' if !$ENV{IRCSERVER};
+        die "No IRC server specified\n" if !$ENV{IRCSERVER};
         $self->{server} = $ENV{IRCSERVER};
     }
   
@@ -234,7 +231,8 @@ sub _dcc_failed {
             $id = $self->{wheelmap}->{$id};
         }
         else {
-            carp "_dcc_failed: Unknown wheel ID: $id";
+            warn "Unknown wheel ID: $id"
+                . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
             return;
         }
     }
@@ -322,7 +320,6 @@ sub debug {
     $self->{debug} = $switch;
     $self->{ircd_filter}->debug( $switch );
     $self->{ircd_compat}->debug( $switch );
-#    $self->{ctcp_filter}->debug( $switch );
     return;
 }
 
@@ -687,7 +684,7 @@ sub _sock_up {
         };
 
         if ($@) {
-            carp "Couldn't use an SSL socket: $@";
+            warn "Couldn't use an SSL socket: $@\n";
             $self->{usessl} = 0;
         }
     }
@@ -846,7 +843,6 @@ sub _start {
 
     $self->{ircd_filter} = POE::Filter::IRCD->new(debug => $self->{debug});
     $self->{ircd_compat} = POE::Filter::IRC::Compat->new(debug => $self->{debug});
-#    $self->{ctcp_filter} = POE::Filter::CTCP->new(debug => $self->{debug});
     
     my $srv_filters = [
         POE::Filter::Line->new(
@@ -996,7 +992,7 @@ sub _do_connect {
     for my $address (qw(socks_proxy proxy server localaddr)) {
         next if !$self->{$address} || !irc_ip_is_ipv6( $self->{$address} );
         if (!$GOT_SOCKET6) {
-            carp "IPv6 address specified for '$address' but Socket6 not found";
+            warn "IPv6 address specified for '$address' but Socket6 not found\n";
             return;
         }
         $domain = AF_INET6;
@@ -1063,7 +1059,8 @@ sub ctcp {
     my $message = join ' ', @_[ARG1 .. $#_];
 
     if (!defined $to || !defined $message) {
-        carp "The POE::Component::IRC event '$state' requires two arguments";
+        warn "The '$state' event requires two arguments"
+            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
         return;
     }
 
@@ -1084,7 +1081,8 @@ sub dcc {
     my ($bindport, $factory, $port, $myaddr, $size);
 
     if (!defined $type) {
-        carp "The POE::Component::IRC event 'dcc' requires at least two arguments";
+        warn "The 'dcc' event requires at least two arguments"
+            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
         return;
     }
 
@@ -1106,8 +1104,8 @@ sub dcc {
     }
     elsif ($type eq 'SEND') {
         if (!defined $file) {
-            carp "The POE::Component::IRC event 'dcc' requires
-                three arguments for a SEND";
+            warn "The 'dcc' event requires three arguments for a SEND"
+                . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
             return;
         }
         $size = (stat $file)[7];
@@ -1132,8 +1130,9 @@ sub dcc {
     if ( $self->{dccports} ) {
         $bindport = shift @{ $self->{dccports} };
         if (!defined $bindport) {
-          carp "dcc: Can't allocate listen port for DCC $type";
-          return;
+            warn "Can't allocate listen port for DCC $type"
+                . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
+            return;
         }
     }
 
@@ -1149,7 +1148,8 @@ sub dcc {
     $myaddr = inet_aton( $self->{nataddr} ) if $self->{nataddr};
   
     if (!defined $myaddr) {
-        carp "dcc: Can't determine our IP address! ($!)";
+        warn "Can't determine our IP address! ($!)"
+            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
         return;
     }
     $myaddr = unpack 'N', $myaddr;
@@ -1269,17 +1269,20 @@ sub dcc_chat {
     my ($kernel, $self, $id, @data) = @_[KERNEL, OBJECT, ARG0, ARG1 .. $#_];
 
     if (!exists $self->{dcc}->{$id}) {
-        carp "dcc_chat: Unknown wheel ID: $id";
+        warn "Unknown wheel ID: $id"
+            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
         return;
     }
     
     if (!exists $self->{dcc}->{$id}->{wheel}) {
-        carp "dcc_chat: No DCC wheel for $id!";
+        warn "No DCC wheel for $id!"
+            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
         return;
     }
   
     if ($self->{dcc}->{$id}->{type} ne 'CHAT') {
-        carp "dcc_chat: $id isn't a DCC CHAT connection!";
+        warn "'$id' isn't a DCC CHAT connection!"
+            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
         return;
     }
 
@@ -1300,7 +1303,7 @@ sub dcc_close {
     my ($kernel, $self, $id) = @_[KERNEL, OBJECT, ARG0];
 
     if ($self->{dcc}->{$id}->{wheel}->get_driver_out_octets()) {
-        $kernel->delay_set( _tryclose => 2 => @_[ARG0..$#_] );
+        $kernel->delay_set( dcc_close => 2 => @_[ARG0..$#_] );
         return;
     }
 
@@ -1341,7 +1344,8 @@ sub ison {
     my $tmp = 'ISON';
 
     if (!@nicks) {
-        carp "No nicknames passed to POE::Component::IRC::ison";
+        warn "The 'ison' event requires one or more nicknames"
+            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
         return;
     }
 
@@ -1367,7 +1371,8 @@ sub kick {
     my $message = join '', @_[ARG2 .. $#_];
 
     if (!defined $chan || !defined $nick) {
-        carp "The POE::Component::IRC event 'kick' requires at least two arguments";
+        warn "The 'kick' event requires at least two arguments"
+            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
         return;
     }
 
@@ -1382,7 +1387,8 @@ sub remove {
     my $message = join '', @_[ARG2 .. $#_];
 
     if (!defined $chan || !defined $nick) {
-        carp "The POE::Component::IRC event 'remove' requires at least two arguments";
+        warn "The 'remove' event requires at least two arguments"
+            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
         return;
     }
 
@@ -1399,8 +1405,7 @@ sub new {
         croak 'Not enough arguments to POE::Component::IRC::new()';
     }
     
-    carp join ' ', "Use of $package->new() is deprecated, please'
-        . ' use spawn(). Called from ", caller();
+    carp "Use of ${package}->new() is deprecated, please use spawn()";
     
     my $self = $package->spawn ( alias => $alias, options => \%options );
     return $self;
@@ -1447,7 +1452,8 @@ sub noargs {
     my $pri = $_[OBJECT]->{IRC_CMDS}->{$state}->[CMD_PRI];
 
     if (defined $arg) {
-        carp "The POE::Component::IRC event '$state' takes no arguments";
+        warn "The '$state' event takes no arguments"
+            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
         return;
     }
     $kernel->yield(sl_prioritized => $pri, $state);
@@ -1494,7 +1500,8 @@ sub oneortwo {
     my $pri = $_[OBJECT]->{IRC_CMDS}->{$state}->[CMD_PRI];
     
     if (!defined $one) {
-        carp "The POE::Component::IRC event '$state' requires at least one argument";
+        warn "The '$state' event requires at least one argument"
+            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
         return;
     }
 
@@ -1511,7 +1518,8 @@ sub onlyonearg {
     my $pri = $_[OBJECT]->{IRC_CMDS}->{$state}->[CMD_PRI];
 
     if (!defined $arg) {
-        carp "The POE::Component::IRC event '$state' requires one argument";
+        warn "The '$state' event requires one argument"
+            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
         return;
     }
 
@@ -1529,7 +1537,8 @@ sub onlytwoargs {
     my $pri = $_[OBJECT]->{IRC_CMDS}->{$state}->[CMD_PRI];
 
     if (!defined $one || !defined $two) {
-        carp "The POE::Component::IRC event '$state' requires two arguments";
+        warn "The '$state' event requires two arguments"
+            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
         return;
     }
 
@@ -1552,7 +1561,8 @@ sub privandnotice {
     $state =~ s/noticehi/notice/;
 
     if (!defined $to || !defined $message) {
-        carp "The POE::Component::IRC event '$state' requires two arguments";
+        warn "The '$state' event requires two arguments"
+            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
         return;
     }
 
@@ -1580,12 +1590,14 @@ sub _poco_irc_sig_register {
         $sender_id = $ref->ID();
     }
     else {
-        carp "Can\'t resolve $sender";
+        warn "Can\'t resolve $sender\n"
+            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
         return;
     }
   
     if (!@events) {
-        carp "Signal POCOIRC: Not enough arguments";
+        warn "Signal POCOIRC: Not enough arguments"
+            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
         return;
     }
 
@@ -1610,7 +1622,8 @@ sub register {
         = @_[KERNEL, OBJECT, SESSION, SENDER, ARG0 .. $#_];
 
     if (!@events) {
-        carp 'register: Not enough arguments';
+        warn "The 'register' event requires more arguments"
+            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n"; 
         return;
     }
 
@@ -1652,7 +1665,7 @@ sub shutdown {
     $self->_unregister_sessions();
     $kernel->alarm_remove_all();
     $kernel->alias_remove( $_ ) for $kernel->alias_list( $session );
-    delete $self->{$_} for qw(sock socketfactory dcc wheelmap);
+    delete $self->{$_} for qw(socket socketfactory dcc wheelmap);
     # Delete all plugins that are loaded.
     $self->plugin_del( $_ ) for keys %{ $self->plugin_list() };
     $self->{resolver}->shutdown() if $self->{resolver};
@@ -1707,7 +1720,8 @@ sub sl_prioritized {
         ) == PCI_EAT_ALL;
     }
     else {
-        carp "Unable to extract the event name from '$msg'";
+        warn "Unable to extract the event name from '$msg'"
+            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
     }
 
     my $now = time();
@@ -1795,7 +1809,8 @@ sub unregister {
         = @_[KERNEL, OBJECT, SESSION, SENDER, ARG0 .. $#_];
 
     if (!@events) {
-        carp 'unregister: Not enough arguments';
+        warn "The 'unregister' event requires more arguments"
+            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
         return;
     }
 
@@ -1811,7 +1826,7 @@ sub _unregister {
         $event = "irc_$event" if $event !~ /^_/;
         my $blah = delete $self->{events}->{$event}->{$sender_id};
         if (!defined $blah) {
-            carp "$sender_id hasn't registered for '$event' events";
+            carp "Sender $sender_id hasn't registered for '$event' events";
             next;
         }
     
@@ -1845,7 +1860,8 @@ sub userhost {
     my ($kernel, @nicks) = @_[KERNEL, ARG0 .. $#_];
 
     if (!@nicks) {
-        carp 'No nicknames passed to POE::Component::IRC::userhost';
+        warn "The 'userhost' event requires at least one nickname"
+            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
         return;
     }
 
@@ -2202,7 +2218,7 @@ sub _plugin_process {
 
     if ( $self->can($sub) ) {
         eval { $self->$sub( $self, @args ) };
-        carp "$@" if $@;
+        warn "$@\n" if $@;
     }
 
     for my $plugin (@{ $pipeline->{PIPELINE} }) {
@@ -2211,14 +2227,15 @@ sub _plugin_process {
             && !$pipeline->{HANDLES}{$plugin}{$type}{all};
         
         my $ret = PCI_EAT_NONE;
+        my $name = ($pipeline->get($plugin))[1];
 
         if ( $plugin->can($sub) ) {
             eval { $ret = $plugin->$sub($self, @args) };
-            carp "$sub call failed with '$@'" if $@ && $self->{plugin_debug};
+            warn "${name}->$sub call failed with '$@'\n" if $@ && $self->{plugin_debug};
         }
         elsif ( $plugin->can('_default') ) {
             eval { $ret = $plugin->_default($self, $sub, @args) };
-            carp "_default call failed with '$@'" if $@ && $self->{plugin_debug};
+            warn "${name}->_default call failed with '$@'\n" if $@ && $self->{plugin_debug};
         }
 
         return $return if $ret == PCI_EAT_PLUGIN;
