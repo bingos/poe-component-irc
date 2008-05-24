@@ -709,8 +709,7 @@ sub _sock_up {
         $self->{connected} = 1;
     }
     else {
-        $self->_send_event(irc_socketerr => "Couldn't create ReadWrite wheel
-            for IRC socket" );
+        $self->_send_event(irc_socketerr => "Couldn't create ReadWrite wheel for IRC socket");
         return;
     }
 
