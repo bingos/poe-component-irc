@@ -114,8 +114,6 @@ sub _create {
         _dcc_read
         _dcc_timeout
         _dcc_up
-        _delayed_cmd
-        _delay_remove
         _parseline
         __send_event
         _sock_down
@@ -1931,37 +1929,26 @@ sub call {
 }
 
 sub delay {
-    my ($self, $arrayref, @args) = @_;
-
+    my ($self, $arrayref, $time) = @_;
+    
     if (!defined $arrayref || ref $arrayref ne 'ARRAY') {
         carp 'First argument to delay() must be an ARRAYREF';
         return;
     }
-
-    return $poe_kernel->call($self->session_id() => _delayed_cmd => $arrayref => @args);
-}
-
-sub delay_remove {
-    my ($self, @args) = @_;
-    return $poe_kernel->call($self->session_id() => _delay_remove => @args);
-}
-
-sub _delayed_cmd {
-    my ($kernel, $self, $arrayref, $time) = @_[KERNEL, OBJECT, ARG0, ARG1];
     
     return if !@{ $arrayref };
     return if !defined $time;
     my $event = shift @{ $arrayref };
-    my $alarm_id = $kernel->delay_set( $event => $time => @{ $arrayref } );
+    my $alarm_id = $poe_kernel->delay_set( $event => $time => @{ $arrayref } );
     $self->send_event(irc_delay_set => $alarm_id, $event, @{ $arrayref } ) if $alarm_id;
     return $alarm_id;
 }
 
-sub _delay_remove {
-    my ($kernel, $self, $alarm_id) = @_[KERNEL, OBJECT, ARG0];
+sub delay_remove {
+    my ($self, $alarm_id) = @_;
     
     return if !defined $alarm_id;
-    my @old_alarm_list = $kernel->alarm_remove( $alarm_id );
+    my @old_alarm_list = $poe_kernel->alarm_remove( $alarm_id );
     if (@old_alarm_list) {
         splice @old_alarm_list, 1, 1;
         $self->send_event(irc_delay_removed => $alarm_id, @old_alarm_list );
