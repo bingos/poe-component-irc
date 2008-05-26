@@ -79,7 +79,7 @@ sub S_public {
     
     $cmd = lc $cmd;
     if (exists $self->{Commands}->{$cmd}) {
-        $irc->_send_event("irc_botcmd_$cmd" => $who, $channel, $args);
+        $irc->send_event("irc_botcmd_$cmd" => $who, $channel, $args);
     }
     
     return $self->{Eat} ? PCI_EAT_PLUGIN : PCI_EAT_NONE;

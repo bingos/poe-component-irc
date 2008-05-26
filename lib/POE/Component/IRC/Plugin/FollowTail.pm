@@ -63,20 +63,20 @@ sub _shutdown {
 
 sub _input {
     my ($kernel, $self, $input) = @_[KERNEL, OBJECT, ARG0];
-    $self->{irc}->_send_event( 'irc_tail_input', $self->{filename}, $input );
+    $self->{irc}->send_event( 'irc_tail_input', $self->{filename}, $input );
     return;
 }
 
 sub _error {
     my ($kernel, $self) = @_[KERNEL, OBJECT];
-    $self->{irc}->_send_event( 'irc_tail_error', $self->{filename}, @_[ARG0..ARG2] );
+    $self->{irc}->send_event( 'irc_tail_error', $self->{filename}, @_[ARG0..ARG2] );
     $kernel->yield('_shutdown','TERM');
     return;
 }
 
 sub _reset {
     my ($kernel, $self) = @_[KERNEL, OBJECT];
-    $self->{irc}->_send_event( 'irc_tail_reset', $self->{filename} );
+    $self->{irc}->send_event( 'irc_tail_reset', $self->{filename} );
     return;
 }
 

@@ -82,7 +82,7 @@ sub _start {
     );
     
     if ($self->{listener}) {
-        $self->{irc}->_send_event( 'irc_console_service' => $self->{listener}->getsockname() );
+        $self->{irc}->send_event( 'irc_console_service' => $self->{listener}->getsockname() );
     }
     else {
         my $irc = $self->{irc};
@@ -106,7 +106,7 @@ sub _listener_accept {
     );
 
     if ( !defined $wheel ) {
-        $self->{irc}->_send_event( 'irc_console_rw_fail' => $peeradr => $peerport );
+        $self->{irc}->send_event( 'irc_console_rw_fail' => $peeradr => $peerport );
         return;
     }
 
@@ -114,7 +114,7 @@ sub _listener_accept {
     $self->{wheels}->{ $wheel_id } = $wheel;
     $self->{authed}->{ $wheel_id } = 0;
     $self->{exit}->{ $wheel_id } = 0;
-    $self->{irc}->_send_event( 'irc_console_connect' => $peeradr => $peerport => $wheel_id );
+    $self->{irc}->send_event( 'irc_console_connect' => $peeradr => $peerport => $wheel_id );
 
     return;
 }
@@ -143,7 +143,7 @@ sub _client_input {
     if (lc ( $input->{command} ) eq 'pass' && $input->{params}->[0] eq $self->{password} ) {
         $self->{authed}->{ $wheel_id } = 1;
         $self->{wheels}->{ $wheel_id }->put('NOTICE * Password accepted *');
-        $self->{irc}->_send_event( 'irc_console_authed' => $wheel_id );
+        $self->{irc}->send_event( 'irc_console_authed' => $wheel_id );
         return;
     }
     
@@ -163,7 +163,7 @@ sub _client_error {
 
     delete $self->{wheels}->{ $wheel_id };
     delete $self->{authed}->{ $wheel_id };
-    $self->{irc}->_send_event( 'irc_console_close' => $wheel_id );
+    $self->{irc}->send_event( 'irc_console_close' => $wheel_id );
     return;
 }
 

@@ -142,7 +142,7 @@ sub S_318 {
     my $nick = u_irc ${ $_[2] }->[0], $mapping;
     my $whois = delete $self->{WHOIS}->{ $nick };
 
-    $irc->_send_event( 'irc_whois', $whois ) if defined $whois;
+    $irc->send_event( 'irc_whois', $whois ) if defined $whois;
     return PCI_EAT_NONE;
 }
 
@@ -170,7 +170,7 @@ sub S_369 {
     my $nick = u_irc ${ $_[2] }->[0], $mapping;
 
     my $whowas = delete $self->{WHOWAS}->{ $nick };
-    $irc->_send_event( 'irc_whowas', $whowas ) if defined $whowas;
+    $irc->send_event( 'irc_whowas', $whowas ) if defined $whowas;
     return PCI_EAT_NONE;
 }
 

@@ -42,13 +42,13 @@ sub U_privmsg {
             my $ctcp_event = shift( @{ $self->{compat}->get([$line]) } );
             next if $ctcp_event->{name} ne 'ctcp_action';
             my $event = $self->{ActEvent};
-            $irc->_send_event( $event => @{ $ctcp_event->{args} }[1..2] );
+            $irc->send_event( $event => @{ $ctcp_event->{args} }[1..2] );
         }
         else {
             for my $recipient ( split(/,/,$line->{params}->[0]) ) {
                 my $event = $self->{PrivEvent};
                 $event = $self->{PubEvent} if ( $recipient =~ /^(\x23|\x26|\x2B)/ );
-                $irc->_send_event( $event => [ $recipient ] => $text );
+                $irc->send_event( $event => [ $recipient ] => $text );
             }
         }
     }
