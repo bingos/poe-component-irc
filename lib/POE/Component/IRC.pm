@@ -805,8 +805,7 @@ sub ctcp {
     my $message = join ' ', @_[ARG1 .. $#_];
 
     if (!defined $to || !defined $message) {
-        warn "The '$state' event requires two arguments"
-            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
+        warn "The '$state' event requires two arguments\n";
         return;
     }
 
@@ -901,8 +900,7 @@ sub ison {
     my $tmp = 'ISON';
 
     if (!@nicks) {
-        warn "The 'ison' event requires one or more nicknames"
-            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
+        warn "The 'ison' event requires one or more nicknames\n";
         return;
     }
 
@@ -928,8 +926,7 @@ sub kick {
     my $message = join '', @_[ARG2 .. $#_];
 
     if (!defined $chan || !defined $nick) {
-        warn "The 'kick' event requires at least two arguments"
-            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
+        warn "The 'kick' event requires at least two arguments\n";
         return;
     }
 
@@ -944,8 +941,7 @@ sub remove {
     my $message = join '', @_[ARG2 .. $#_];
 
     if (!defined $chan || !defined $nick) {
-        warn "The 'remove' event requires at least two arguments"
-            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
+        warn "The 'remove' event requires at least two arguments\n";
         return;
     }
 
@@ -1009,8 +1005,7 @@ sub noargs {
     my $pri = $_[OBJECT]->{IRC_CMDS}->{$state}->[CMD_PRI];
 
     if (defined $arg) {
-        warn "The '$state' event takes no arguments"
-            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
+        warn "The '$state' event takes no arguments\n";
         return;
     }
     $kernel->yield(sl_prioritized => $pri, $state);
@@ -1057,8 +1052,7 @@ sub oneortwo {
     my $pri = $_[OBJECT]->{IRC_CMDS}->{$state}->[CMD_PRI];
     
     if (!defined $one) {
-        warn "The '$state' event requires at least one argument"
-            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
+        warn "The '$state' event requires at least one argument\n";
         return;
     }
 
@@ -1075,8 +1069,7 @@ sub onlyonearg {
     my $pri = $_[OBJECT]->{IRC_CMDS}->{$state}->[CMD_PRI];
 
     if (!defined $arg) {
-        warn "The '$state' event requires one argument"
-            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
+        warn "The '$state' event requires one argument\n";
         return;
     }
 
@@ -1094,8 +1087,7 @@ sub onlytwoargs {
     my $pri = $_[OBJECT]->{IRC_CMDS}->{$state}->[CMD_PRI];
 
     if (!defined $one || !defined $two) {
-        warn "The '$state' event requires two arguments"
-            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
+        warn "The '$state' event requires two arguments\n";
         return;
     }
 
@@ -1118,8 +1110,7 @@ sub privandnotice {
     $state =~ s/noticehi/notice/;
 
     if (!defined $to || !defined $message) {
-        warn "The '$state' event requires two arguments"
-            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
+        warn "The '$state' event requires two arguments\n";
         return;
     }
 
@@ -1147,14 +1138,12 @@ sub _poco_irc_sig_register {
         $sender_id = $ref->ID();
     }
     else {
-        warn "Can\'t resolve $sender\n"
-            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
+        warn "Can\'t resolve $sender\n";
         return;
     }
   
     if (!@events) {
-        warn "Signal POCOIRC: Not enough arguments"
-            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
+        warn "Signal POCOIRC: Not enough arguments\n";
         return;
     }
 
@@ -1179,8 +1168,7 @@ sub register {
         = @_[KERNEL, OBJECT, SESSION, SENDER, ARG0 .. $#_];
 
     if (!@events) {
-        warn "The 'register' event requires more arguments"
-            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n"; 
+        warn "The 'register' event requires more arguments\n";
         return;
     }
 
@@ -1277,8 +1265,7 @@ sub sl_prioritized {
         ) == PCI_EAT_ALL;
     }
     else {
-        warn "Unable to extract the event name from '$msg'"
-            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
+        warn "Unable to extract the event name from '$msg'\n";
     }
 
     my $now = time();
@@ -1366,8 +1353,7 @@ sub unregister {
         = @_[KERNEL, OBJECT, SESSION, SENDER, ARG0 .. $#_];
 
     if (!@events) {
-        warn "The 'unregister' event requires more arguments"
-            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
+        warn "The 'unregister' event requires more arguments\n";
         return;
     }
 
@@ -1417,8 +1403,7 @@ sub userhost {
     my ($kernel, @nicks) = @_[KERNEL, ARG0 .. $#_];
 
     if (!@nicks) {
-        warn "The 'userhost' event requires at least one nickname"
-            . " at $_[CALLER_FILE] line $_[CALLER_LINE]\n";
+        warn "The 'userhost' event requires at least one nickname\n";
         return;
     }
 
