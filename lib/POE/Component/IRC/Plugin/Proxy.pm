@@ -425,7 +425,7 @@ multiple IRC clients to connect.
 
 Neat, huh? >;o)
 
-=head1METHODS
+=head1 METHODS
 
 =head2 C<new>
 
