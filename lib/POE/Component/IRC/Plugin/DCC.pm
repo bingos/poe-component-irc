@@ -73,6 +73,10 @@ sub nataddr {
     return;
 }
 
+# the U_* handlers are stubs which call our POE event handlers
+# so that we can do stuff related to our POE session, e.g.
+# create wheels and set alarms/delays
+
 sub U_dcc {
     my ($self, $irc) = splice @_, 0, 2;
     my @args = map { defined && ${ $_ } } @_;
