@@ -2485,7 +2485,7 @@ preoccupied, and pass your message along to anyone who tries to
 communicate with you. When sent without arguments, it tells the server
 that you're back and paying attention.
 
-=item C<dcc*>
+=item C<dcc>, C<dcc_accept>, C<dcc_chat>, C<dcc_close>, C<dcc_resume>
 
 See the L<DCC plugin|POE::Component::IRC::Plugin/"COMMANDS"> (loaded by default)
 documentation for DCC-related commands.
