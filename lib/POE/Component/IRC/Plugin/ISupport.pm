@@ -189,66 +189,48 @@ capabilities.
 This handles the C<irc_005> messages that come from the server.  They
 define the capabilities support by the server.
 
-=head1 CONSTRUCTOR
+=head1 METHODS
 
-=over 
-
-=item C<new>
+=head2 C<new>
 
 Takes no arguments.
 
 Returns a plugin object suitable for feeding to
 L<POE::Component::IRC|POE::Component::IRC>'s plugin_add() method.
 
-=back
-
-=head1 METHODS
-
-=over
-
-=item C<isupport>
+=head2 C<isupport>
 
 Takes one argument. the server capability to query. Returns a false value on
 failure or a value representing the applicable capability. A full list of
 capabilities is available at L<http://www.irc.org/tech_docs/005.html>.
 
-=item C<isupport_dump_keys>
+=head2 C<isupport_dump_keys>
 
 Takes no arguments, returns a list of the available server capabilities,
 which can be used with isupport().
 
-=back
-
-=head2 Handlers
+=head1 INPUT
 
 This module handles the following PoCo-IRC signals:
 
-=over 4
-
-=item C<irc_005> (RPL_ISUPPORT or RPL_PROTOCTL)
+=head2 C<irc_005> (RPL_ISUPPORT or RPL_PROTOCTL)
 
 Denotes the capabilities of the server.
 
-=item C<all>
+=head2 C<all>
 
 Once the next signal is received that is I<greater> than C<irc_005>,
 it emits an C<irc_isupport> signal.
 
-=back
+=head1 OUTPUT
 
-=head2 Signals Emitted
-
-=over 4
-
-=item C<irc_isupport>
+=head2 C<irc_isupport>
 
 Emitted by: the first signal received after C<irc_005>
 
 ARG0 will be the plugin object itself for ease of use.
 
 This is emitted when the support report has finished.
-
-=back
 
 =head1 AUTHOR
 

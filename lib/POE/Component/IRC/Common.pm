@@ -454,23 +454,21 @@ effect of cancelling the effect of all previous formatting codes as well.
 
 =head1 FUNCTIONS
 
-=over
-
-=item C<u_irc>
+=head2 C<u_irc>
 
 Takes one mandatory parameter, a string to convert to IRC uppercase, and one
 optional parameter, the casemapping of the ircd ( which can be 'rfc1459',
 'strict-rfc1459' or 'ascii'. Default is 'rfc1459' ). Returns the IRC uppercase
 equivalent of the passed string.
 
-=item C<l_irc>
+=head2 C<l_irc>
 
 Takes one mandatory parameter, a string to convert to IRC lowercase, and one
 optional parameter, the casemapping of the ircd ( which can be 'rfc1459',
 'strict-rfc1459' or 'ascii'. Default is 'rfc1459' ). Returns the IRC lowercase
 equivalent of the passed string.
 
-=item C<parse_mode_line>
+=head2 C<parse_mode_line>
 
 Takes a list representing an IRC mode line. Returns a hashref. If the modeline
 couldn't be parsed the hashref will be empty. On success the following keys
@@ -489,7 +487,7 @@ Example:
     args  => [ 'Bob', 'sue', 'stalin*!*@*' ],
  }
 
-=item C<parse_ban_mask>
+=head2 C<parse_ban_mask>
 
 Takes one parameter, a string representing an IRC ban mask. Returns a
 normalised full banmask.
@@ -500,7 +498,7 @@ Example:
 
  # $fullbanmask will be: 'stalin*!*@*';
 
-=item C<matches_mask>
+=head2 C<matches_mask>
 
 Takes two parameters, a string representing an IRC mask ( it'll be processed
 with parse_ban_mask() to ensure that it is normalised ) and something to match
@@ -508,32 +506,32 @@ against the IRC mask, such as a nick!user@hostname string. Returns a true
 value if they match, a false value otherwise. Optionally, one may pass the
 casemapping ( see u_irc() ), as this function uses u_irc() internally.
 
-=item C<matches_mask_array>
+=head2 C<matches_mask_array>
 
 Takes two array references, the first being a list of strings representing
 IRC mask, the second a list of somethings to test against the masks. Returns
 an empty hashref if there are no matches. Otherwise, the keys will be the
 masks matched, each value being an arrayref of the strings that matched it.
 
-=item C<parse_user>
+=head2 C<parse_user>
 
 Takes one parameter, a string representing a user in the form
 nick!user@hostname. In a scalar context it returns just the nickname.
 In a list context it returns a list consisting of the nick, user and hostname,
 respectively.
 
-=item C<has_color>
+=head2 C<has_color>
 
 Takes one parameter, a string of IRC text. Returns 1 if it contains any IRC
 color codes, 0 otherwise. Useful if you want your bot to kick users for
 (ab)using colors. :)
 
-=item C<has_formatting>
+=head2 C<has_formatting>
 
 Takes one parameter, a string of IRC text. Returns 1 if it contains any IRC
 formatting codes, 0 otherwise.
 
-=item C<strip_color>
+=head2 C<strip_color>
 
 Takes one paramter, a string of IRC text. Returns the string stripped of all
 IRC color codes. Due to the fact that both color and formatting codes can
@@ -541,7 +539,7 @@ be cancelled with the same character, this might strip more than you hoped for
 if the string contains both color and formatting codes. Stripping both will
 always do what you expect it to.
 
-=item C<strip_formatting>
+=head2 C<strip_formatting>
 
 Takes one paramter, a string of IRC text. Returns the string stripped of all
 IRC formatting codes. Due to the fact that both color and formatting codes can
@@ -549,7 +547,7 @@ be cancelled with the same character, this might strip more than you hoped for
 if the string contains both color and formatting codes. Stripping both will
 always do what you expect it to.
 
-=item C<irc_ip_get_version>
+=head2 C<irc_ip_get_version>
 
 Try to guess the IP version of an IP address.
 
@@ -558,7 +556,7 @@ Returns: 4, 6, 0(unable to determine)
 
 C<$version = ip_get_version ($ip)>
 
-=item C<irc_ip_is_ipv4>
+=head2 C<irc_ip_is_ipv4>
 
 Check if an IP address is of type 4.
 
@@ -567,7 +565,7 @@ Returns: 1 (yes) or 0 (no)
 
 C<ip_is_ipv4($ip) and print "$ip is IPv4";>
 
-=item C<irc_ip_is_ipv6>
+=head2 C<irc_ip_is_ipv6>
 
 Check if an IP address is of type 6.
 
@@ -575,8 +573,6 @@ Params: IP address
 Returns: 1 (yes) or 0 (no)
 
  ip_is_ipv6($ip) && print "$ip is IPv6";
-
-=back
 
 =head1 AUTHOR
 

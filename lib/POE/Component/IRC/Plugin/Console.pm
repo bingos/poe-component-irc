@@ -268,11 +268,9 @@ authenticateusing the applicable password. Once authed one will receive all
 events that are processed through the component. One may also issue all the
 documented component commands.
 
-=head1 CONSTRUCTOR
+=head1 METHODS
 
-=over
-
-=item C<new>
+=head2 C<new>
 
 Takes two arguments:
 
@@ -281,52 +279,40 @@ Takes two arguments:
 'bindport', specify a particular port to bind to, defaults to 0, ie. randomly
 allocated;
 
-=back
-
-=head1 METHODS
-
-=over
-
-=item C<getsockname>
+=head2 C<getsockname>
 
 Gives access to the underlying listener's getsockname() method. See
 L<POE::Wheel::SocketFactory|POE::Wheel::SocketFactory> for details.
 
-=back
-
-=head1 EVENTS
+=head1 OUTPUT
 
 The plugin generates the following additional
 L<POE::Component::IRC|POE::Component::IRC> events:
 
-=over
-
-=item C<irc_console_service>
+=head2 C<irc_console_service>
 
 Emitted when a listener is successfully spawned. ARG0 is the result of
 getsockname(), see above for details.
 
-=item C<irc_console_connect>
+=head2 C<irc_console_connect>
 
 Emitted when a client connects to the console. ARG0 is the peeradr, ARG1 is
 the peer port and ARG2 is the wheel id of the connection.
 
-=item C<irc_console_authed>
+=head2 C<irc_console_authed>
 
 Emitted when a client has successfully provided a valid password. ARG0 is the
 wheel id of the connection.
 
-=item C<irc_console_close>
+=head2 C<irc_console_close>
 
 Emitted when a client terminates a connection. ARG0 is the wheel id of the
 connection.
 
-=item C<irc_console_rw_fail>
+=head2 C<irc_console_rw_fail>
 
 Emitted when a wheel::rw could not be created on a socket. ARG0 is the peeradr,
 ARG1 is the peer port.
-
-=back
 
 =head1 AUTHOR
 

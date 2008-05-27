@@ -223,9 +223,7 @@ Quakenet service bots, Q and L.
 
 =head1 METHODS
 
-=over
-
-=item C<service_bots>
+=head2 C<service_bots>
 
 The component will query Q and L using their default names on Quakenet. If you
 wish to override these settings, use this method to configure them. 
@@ -234,45 +232,35 @@ wish to override these settings, use this method to configure them.
 
 In most cases you shouldn't need to mess with these >;o)
 
-=back
-
 =head1 INPUT
 
 The Quakenet service bots accept input as PRIVMSG. This module provides a
 wrapper around the L<POE::Component::IRC|POE::Component::IRC> "privmsg" command.
 
-=over
-
-=item C<qbot_*>
+=head2 C<qbot_*>
 
 Send commands to the Q bot. Pass additional command parameters as arguments to
 the event.
 
  $kernel->post ( 'my client' => qbot_auth => $q_user => $q_pass );
 
-=item C<lbot_*>
+=head2 C<lbot_*>
 
 Send commands to the L bot. Pass additional command parameters as arguments to
 the event.
 
  $kernel->post ( 'my client' => lbot_chanlev => $channel );
 
-=back
-
 =head1 OUTPUT
 
 All output from the Quakenet service bots is sent as NOTICEs. Use 'irc_notice'
 to trap these.
 
-=over
-
-=item C<irc_whois>
+=head2 C<irc_whois>
 
 Has all the same hash keys in ARG1 as L<POE::Component::IRC|POE::Component::IRC>,
 with the addition of 'account', which contains the name of their Q auth account,
 if they have authed, or a false value if they haven't.
-
-=back
 
 =head1 BUGS
 

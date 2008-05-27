@@ -106,9 +106,7 @@ out its current nickname.
 
 =head1 METHODS
 
-=over
-
-=item C<new>
+=head2 C<new>
 
 One optional argument:
 
@@ -118,27 +116,21 @@ event and only generate an appropriate event, default is false.
 Returns a plugin object suitable for feeding to L<POE::Component::IRC|POE::Component::IRC>'s
 plugin_add() method.
 
-=back
-
 =head1 OUTPUT
 
-=over
-
-=item irc_bot_addressed
+=head2 C<irc_bot_addressed>
 
 Has the same parameters passed as 'irc_public'. ARG2 contains the message with
 the addressed nickname removed, ie. Assuming that your bot is called LameBOT,
 and someone says 'LameBOT: dance for me', you will actually get 'dance for me'.
 
-=item irc_bot_mentioned
+=head2 C<irc_bot_mentioned>
 
 Has the same parameters passed as 'irc_public'.
 
-=item irc_bot_mentioned_action
+=head2 C<irc_bot_mentioned_action>
 
 Has the same parameters passed as 'irc_ctcp_action'.
-
-=back 
 
 =head1 AUTHOR
 

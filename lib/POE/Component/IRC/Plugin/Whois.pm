@@ -189,15 +189,11 @@ and 'irc_whowas' code from L<POE::Component::IRC|POE::Component::IRC> as a
 plugin. It is used internally by L<POE::Component::IRC|POE::Component::IRC>
 so there is no need to use this plugin yourself.
 
-=head1 CONSTRUCTOR
+=head1 METHODS
 
-=over
-
-=item C<new>
+=head2 C<new>
 
 No arguments required. Returns an POE::Component::IRC::Plugin::Whois object.
-
-=back
 
 =head1 AUTHOR
 

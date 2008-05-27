@@ -115,14 +115,12 @@ L<POE::Component::IRC::State|POE::Component::IRC::State> or a subclass thereof.
 
 =head1 METHODS
 
-=over
-
-=item C<new>
+=head2 C<new>
 
 Returns a plugin object suitable for feeding to
 L<POE::Component::IRC|POE::Component::IRC>'s plugin_add() method.
 
-=item C<cycling>
+=head2 C<cycling>
 
 One argument:
 
@@ -131,8 +129,6 @@ A channel name
 Returns 1 if the plugin is currently cycling that channel, 0 otherwise.
 Useful if need to ignore the fact that the Component just parted the channel
 in question.
-
-=back
 
 =head1 AUTHOR
 

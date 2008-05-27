@@ -154,11 +154,9 @@ plugin that uses L<POE::Wheel::FollowTail|POE::Wheel::FollowTail> to follow
 the end of an ever-growing file. It generates 'irc_tail_' prefixed events for
 each new record that is appended to its file.
 
-=head1 CONSTRUCTOR
+=head1 METHODS
 
-=over
-
-=item C<new>
+=head2 C<new>
 
 Takes two arguments:
 
@@ -166,30 +164,24 @@ Takes two arguments:
 
 'filter', a POE::Filter object to pass to POE::Wheel::FollowTail, optional;
 
-=back
-
-=head1 EVENTS
+=head1 OUTPUT
 
 The plugin generates the following additional
 L<POE::Component::IRC|POE::Component::IRC> events:
 
-=over
-
-=item C<irc_tail_input>
+=head2 C<irc_tail_input>
 
 Emitted for every complete record read. ARG0 will be the filename, ARG1 the
 record which was read.
 
-=item C<irc_tail_error>
+=head2 C<irc_tail_error>
 
 Emitted whenever an error occurs. ARG0 will be the filename, ARG1 and ARG2 hold
 numeric and string values for $!, respectively.
 
-=item C<irc_tail_reset>
+=head2 C<irc_tail_reset>
 
 Emitted every time a file is reset. ARG0 will be the filename.
-
-=back
 
 =head1 AUTHOR
 

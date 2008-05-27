@@ -152,9 +152,7 @@ or a subclass thereof.
 
 =head1 METHODS
 
-=over
-
-=item C<new>
+=head2 C<new>
 
 Two optional arguments:
 
@@ -168,8 +166,6 @@ uses the channels the component is already on, if any.
 
 Returns a plugin object suitable for feeding to L<POE::Component::IRC|POE::Component::IRC>'s
 plugin_add() method.
-
-=back
 
 =head1 AUTHOR
 

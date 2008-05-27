@@ -64,9 +64,7 @@ if your nickname matches the supplied password.
 
 =head1 METHODS
 
-=over
-
-=item C<new>
+=head2 C<new>
 
 Arguments:
 
@@ -74,8 +72,6 @@ Arguments:
 
 Returns a plugin object suitable for feeding to
 L<POE::Component::IRC|POE::Component::IRC>'s plugin_add() method.
-
-=back
 
 =head1 AUTHOR
 

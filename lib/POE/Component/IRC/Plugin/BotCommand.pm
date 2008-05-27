@@ -205,9 +205,7 @@ available commands, and information on how to use them.
 
 =head1 METHODS
 
-=over
-
-=item C<new>
+=head2 C<new>
 
 Four optional arguments:
 
@@ -227,29 +225,25 @@ plugins if they contain a valid command. Default is false.
 Returns a plugin object suitable for feeding to L<POE::Component::IRC|POE::Component::IRC>'s
 plugin_add() method.
 
-=item C<add>
+=head2 C<add>
 
 Adds a new command. Takes two arguments, the name of the command, and a string
 containing its usage information. Returns false if the command has already been
 defined, true otherwise.
 
-=item C<remove>
+=head2 C<remove>
 
 Removes a command. Takes one argument, the name of the command. Returns false
 if the command wasn't defined to begin with, true otherwise.
 
-=item C<list>
+=head2 C<list>
 
 Takes no arguments. Returns a list of key/value pairs, the keys being the
 command names and the values being the usage strings.
 
-=back
-
 =head1 OUTPUT
 
-=over
-
-=item C<irc_botcmd_*>
+=head2 C<irc_botcmd_*>
 
 You will receive an event like this for every valid command issued. E.g. if
 'slap' were a valid command, you would receive an C<irc_botcmd_slap> event
@@ -257,8 +251,6 @@ every time someone issued that command. ARG0 is the nick!hostmask of the user
 who issued the command. ARG1 is the name of the channel in which the command
 was issued. If the command was followed by any arguments, ARG2 will be a string
 containing them, otherwise ARG2 will be undefined.
-
-=back 
 
 =head1 AUTHOR
 

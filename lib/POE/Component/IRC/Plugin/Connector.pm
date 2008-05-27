@@ -219,9 +219,7 @@ L<http://poe.perl.org/?POE_Cookbook/IRC_Bot_Reconnecting>.
 
 =head1 METHODS
 
-=over
-
-=item C<new>
+=head2 C<new>
 
 Takes two optional arguments:
 
@@ -235,12 +233,10 @@ The plugin will cycle through this list of servers whenever it reconnects.
 Returns a plugin object suitable for use in
 L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
 
-=item C<lag>
+=head2 C<lag>
 
 Returns the current 'lag' in seconds between sending PINGs to the IRC server
 and getting PONG responses. Probably not likely to be wholely accurate.
-
-=back
 
 =head1 AUTHOR
 

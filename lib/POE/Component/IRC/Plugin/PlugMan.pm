@@ -265,11 +265,9 @@ plugin. It provides support for 'on-the-fly' loading, reloading and unloading
 of plugin modules, via object methods that you can incorporate into your own
 code and a handy IRC interface.
 
-=head1 CONSTRUCTOR
+=head1 METHODS
 
-=over
-
-=item C<new>
+=head2 C<new>
 
 Takes two optional arguments:
 
@@ -286,13 +284,7 @@ L<POE::Component::IRC::State> or sub-class and will fail to load otherwise.
 Returns a plugin object suitable for feeding to
 L<POE::Component::IRC|POE::Component::IRC>'s plugin_add() method.
 
-=back
-
-=head1 METHODS
-
-=over
-
-=item C<load>
+=head2 C<load>
 
 Loads a managed plugin.
 
@@ -303,7 +295,7 @@ Any other arguments are used as options to the loaded plugin constructor.
 
 Returns true or false depending on whether the load was successfully or not.
 
-=item C<unload>
+=head2 C<unload>
 
 Unloads a managed plugin.
 
@@ -313,7 +305,7 @@ Takes one mandatory argument, a plugin descriptor.
 
 Returns true or false depending on whether the unload was successfully or not.
 
-=item C<reload>
+=head2 C<reload>
 
 Unloads and loads a managed plugin, with applicable plugin options.
 
@@ -321,7 +313,7 @@ Takes one mandatory argument, a plugin descriptor.
 
  $plugin->reload( 'Connector' );
 
-=item C<loaded>
+=head2 C<loaded>
 
 Takes no arguments.
 
@@ -329,39 +321,33 @@ Takes no arguments.
 
 Returns a list of descriptors of managed plugins.
 
-=back
+=head1 INPUT
 
-=head1 IRC INTERFACE
-
-The IRC interface is enabled by specifying a "botowner" mask to new(). Commands
+An IRC interface is enabled by specifying a "botowner" mask to new(). Commands
 may be either invoked via a PRIVMSG directly to your bot or in a channel by
 prefixing the command with the nickname of your bot. One caveat, the parsing
 of the irc command is very rudimentary ( it merely splits the line on \s+ ). 
 
-=over
-
-=item C<plugin_add>
+=head2 C<plugin_add>
 
 Takes the same arguments as load().
 
-=item C<plugin_del>
+=head2 C<plugin_del>
 
 Takes the same arguments as unload().
 
-=item C<plugin_reload>
+=head2 C<plugin_reload>
 
 Takes the same arguments as reload().
 
-=item C<plugin_loaded>
+=head2 C<plugin_loaded>
 
 Returns a list of descriptors of managed plugins.
 
-=item C<plugin_list>
+=head2 C<plugin_list>
 
 Returns a list of descriptors of *all* plugins loaded into the current PoCo-IRC
 component.
-
-=back
 
 =head1 AUTHOR
 

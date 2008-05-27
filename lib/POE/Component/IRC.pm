@@ -2001,9 +2001,7 @@ Both CONSTRUCTORS return an object. The object is also available within 'irc_'
 event handlers by using 
 C<< $_[SENDER]->get_heap() >>. See also C<register> and C<irc_registered>.
 
-=over
-
-=item C<spawn>
+=head2 C<spawn>
 
 Takes a number of arguments, all of which are optional: 
 
@@ -2131,7 +2129,7 @@ installed. If you have L<Socket6|Socket6> and L<POE::Component::Client::DNS|POE:
 installed and specify a hostname that resolves to an IPv6 address then IPv6
 will be used. If you specify an ipv6 'localaddr' then IPv6 will be used.
 
-=item C<new>
+=head2 C<new>
 
 This method is deprecated. See the C<spawn()> method instead.
 Takes one argument: a name (kernel alias) which this new connection
@@ -2139,77 +2137,73 @@ will be known by. Returns a POE::Component::IRC object :)
 Use of this method will generate a warning. There are currently no plans to
 make it die() >;]
 
-=back
-
 =head1 METHODS
 
 These are methods supported by the POE::Component::IRC object. 
 
-=over
-
-=item C<server_name>
+=head2 C<server_name>
 
 Takes no arguments. Returns the name of the IRC server that the component
 is currently connected to.
 
-=item C<nick_name>
+=head2 C<nick_name>
 
 Takes no arguments. Returns a scalar containing the current nickname that the
 bot is using.
 
-=item C<localaddr>
+=head2 C<localaddr>
  
 Takes no arguments. Returns the IP address being used.
 
-=item C<session_id>
+=head2 C<session_id>
 
 Takes no arguments. Returns the ID of the component's session. Ideal for posting
 events to the component.
 
  $kernel->post( $irc->session_id() => 'mode' => $channel => '+o' => $dude );
 
-=item C<session_alias>
+=head2 C<session_alias>
 
 Takes no arguments. Returns the session alias that has been set through
 C<spawn()>'s alias argument. 
 
-=item C<version>
+=head2 C<version>
 
 Takes no arguments. Returns the version number of the module.
 
-=item C<send_queue>
+=head2 C<send_queue>
 
 The component provides anti-flood throttling. This method takes no arguments
 and returns a scalar representing the number of messages that are queued up
 waiting for dispatch to the irc server.
 
-=item C<connected>
+=head2 C<connected>
 
 Takes no arguments. Returns true or false depending on whether the component is
 currently connected to an IRC network or not.
 
-=item C<disconnect>
+=head2 C<disconnect>
 
 Takes no arguments. Terminates the socket connection disgracefully >;o]
 
-=item C<raw_events>
+=head2 C<raw_events>
 
 With no arguments, returns true or false depending on whether C<irc_raw> events
 are being  generated or not. Provide a true or false argument to enable or
 disable this feature accordingly.
 
-=item C<isupport>
+=head2 C<isupport>
 
 Takes one argument, a server capability to query. Returns undef on failure or a
 value representing the applicable capability. A full list of capabilities is
 available at L<http://www.irc.org/tech_docs/005.html>.
 
-=item C<isupport_dump_keys>
+=head2 C<isupport_dump_keys>
 
 Takes no arguments, returns a list of the available server capabilities keys,
 which can be used with C<isupport()>.
 
-=item C<yield>
+=head2 C<yield>
 
 This method provides an alternative object based means of posting events to the
 component. First argument is the event to post, following arguments are sent as
@@ -2217,7 +2211,7 @@ arguments to the resultant post.
 
  $irc->yield(mode => $channel => '+o' => $dude);
 
-=item C<call>
+=head2 C<call>
 
 This method provides an alternative object based means of calling events to the
 component. First argument is the event to call, following arguments are sent as
@@ -2226,7 +2220,7 @@ call.
 
  $irc->call(mode => $channel => '+o' => $dude);
 
-=item C<delay>
+=head2 C<delay>
 
 This method provides a way of posting delayed events to the component. The
 first argument is an arrayref consisting of the delayed command to post and
@@ -2238,7 +2232,7 @@ wishes to delay the command being posted.
 Returns an alarm ID that can be used with C<delay_remove()> to cancel the delayed
 event. This will be undefined if something went wrong.
 
-=item C<delay_remove>
+=head2 C<delay_remove>
 
 This method removes a previously scheduled delayed event from the component.
 Takes one argument, the C<alarm_id> that was returned by a C<delay()> method call.
@@ -2247,23 +2241,21 @@ Takes one argument, the C<alarm_id> that was returned by a C<delay()> method cal
 
 Returns an arrayref that was originally requested to be delayed.
 
-=item C<resolver>
+=head2 C<resolver>
 
 Returns a reference to the L<POE::Component::Client::DNS|POE::Component::Client::DNS>
 object that is internally created by the component.
 
-=item C<pipeline>
+=head2 C<pipeline>
 
 Returns a reference to the L<POE::Component::IRC::Pipeline|POE::Component::IRC::Pipeline>
 object used by the plugin system.
 
-=item C<send_event>
+=head2 C<send_event>
 
 Sends an event through the components event handling system. These will get
 processed by plugins then by registered sessions. First argument is the event
 name, followed by any parameters for that event.
-
-=back
 
 =head1 INPUT
 
@@ -2287,9 +2279,7 @@ So the following would be functionally equivalent:
 
 =head2 Important Commands
 
-=over
-
-=item C<register>
+=head3 C<register>
 
 Takes N arguments: a list of event names that your session wants to
 listen for, minus the 'irc_' prefix. So, for instance, if you just
@@ -2323,14 +2313,14 @@ session, the component will automatically register that session as wanting 'all'
 irc events. That session will receive an C<irc_registered> event indicating that
 the component is up and ready to go.
 
-=item C<connect>
+=head3 C<connect>
 
 Takes one argument: a hash reference of attributes for the new
 connection, see C<spawn()> for details. This event tells the IRC client to
 connect to a new/different server. If it has a connection already open, it'll
 close it gracefully before reconnecting.
 
-=item C<ctcp> and C<ctcpreply>
+=head3 C<ctcp> and C<ctcpreply>
 
 Sends a CTCP query or response to the nick(s) or channel(s) which you
 specify. Takes 2 arguments: the nick or channel to send a message to
@@ -2341,27 +2331,27 @@ for you). The "/me" command in popular IRC clients is actually a CTCP action.
  # Doing a /me 
  $irc->yield(ctcp => $channel => 'ACTION dances.');
 
-=item C<join>
+=head3 C<join>
 
 Tells your IRC client to join a single channel of your choice. Takes
 at least one arg: the channel name (required) and the channel key
 (optional, for password-protected channels).
 
-=item C<kick>
+=head3 C<kick>
 
 Tell the IRC server to forcibly evict a user from a particular
 channel. Takes at least 2 arguments: a channel name, the nick of the
 user to boot, and an optional witty message to show them as they sail
 out the door.
 
-=item C<remove> (FreeNode only)
+=head3 C<remove> (FreeNode only)
 
 Tell the IRC server to forcibly evict a user from a particular
 channel. Takes at least 2 arguments: a channel name, the nick of the
 user to boot, and an optional witty message to show them as they sail
 out the door. Similar to KICK but does an enforced PART instead.
 
-=item C<mode>
+=head3 C<mode>
 
 Request a mode change on a particular channel or user. Takes at least
 one argument: the mode changes to effect, as a single string (e.g.,
@@ -2371,30 +2361,30 @@ big string and it'll still work, whatever. I regret that I haven't the
 patience now to write a detailed explanation, but serious IRC users know
 the details anyhow.
 
-=item C<nick>
+=head3 C<nick>
 
 Allows you to change your nickname. Takes exactly one argument: the
 new username that you'd like to be known as.
 
-=item C<nickserv> (FreeNode only)
+=head3 C<nickserv> (FreeNode only)
 
 Talks to FreeNode's NickServ. Takes any number of arguments.
 
-=item C<notice>
+=head3 C<notice>
 
 Sends a NOTICE message to the nick(s) or channel(s) which you
 specify. Takes 2 arguments: the nick or channel to send a notice to
 (use an array reference here to specify multiple recipients), and the
 text of the notice to send.
 
-=item C<part>
+=head3 C<part>
 
 Tell your IRC client to leave the channels which you pass to it. Takes
 any number of arguments: channel names to depart from. If the last argument
 doesn't begin with a channel name identifier or contains a space character,
 it will be treated as a PART message and dealt with accordingly.
 
-=item C<privmsg>
+=head3 C<privmsg>
 
 Sends a public or private message to the nick(s) or channel(s) which
 you specify. Takes 2 arguments: the nick or channel to send a message
@@ -2404,14 +2394,14 @@ the text of the message to send.
 Have a look at the constants in L<POE::Component::IRC::Common|POE::Component::IRC::Common>
 if you would like to use formatting and color codes in your messages.
 
-=item C<quit>
+=head3 C<quit>
 
 Tells the IRC server to disconnect you. Takes one optional argument:
 some clever, witty string that other users in your channels will see
 as you leave. You can expect to get an C<irc_disconnect> event shortly
 after sending this.
 
-=item C<shutdown>
+=head3 C<shutdown>
 
 By default, POE::Component::IRC sessions never go away. Even after
 they're disconnected, they're still sitting around in the background,
@@ -2427,7 +2417,7 @@ message.
 Terminating multiple components can be tricky. Check the 'SIGNALS' section of
 this documentation for an alternative method of shutting down multiple poco-ircs.
 
-=item C<topic>
+=head3 C<topic>
 
 Retrieves or sets the topic for particular channel. If called with just
 the channel name as an argument, it will ask the server to return the
@@ -2435,7 +2425,7 @@ current topic. If called with the channel name and a string, it will
 set the channel topic to that string. Supply an empty string to unset a
 channel topic.
 
-=item C<unregister>
+=head3 C<unregister>
 
 Takes N arguments: a list of event names which you I<don't> want to
 receive. If you've previously done a C<register> for a particular event
@@ -2446,7 +2436,7 @@ ignores you. No big deal.)
 If you have registered with 'all', attempting to unregister individual 
 events such as 'mode', etc. will not work. This is a 'feature'.
 
-=item C<debug>
+=head3 C<debug>
 
 Takes one argument: 0 to turn debugging off or 1 to turn debugging on.
 This flips the debugging flag in L<POE::Filter::IRCD|POE::Filter::IRCD>,
@@ -2454,19 +2444,15 @@ L<POE::Filter::IRC::Compat|POE::Filter::IRC::Compat>, and
 POE::Component::IRC. This has the same effect as setting Debug in
 C<spawn()> or C<connect>.
 
-=back
-
 =head2 Not-So-Important Commands
 
-=over
-
-=item C<admin>
+=head3 C<admin>
 
 Asks your server who your friendly neighborhood server administrators
 are. If you prefer, you can pass it a server name to query, instead of
 asking the server you're currently on.
 
-=item C<away>
+=head3 C<away>
 
 When sent with an argument (a message describig where you went), the
 server will note that you're now away from your machine or otherwise
@@ -2474,37 +2460,37 @@ preoccupied, and pass your message along to anyone who tries to
 communicate with you. When sent without arguments, it tells the server
 that you're back and paying attention.
 
-=item C<dcc>, C<dcc_accept>, C<dcc_chat>, C<dcc_close>, C<dcc_resume>
+=head3 C<dcc>, C<dcc_accept>, C<dcc_chat>, C<dcc_close>, C<dcc_resume>
 
 See the L<DCC plugin|POE::Component::IRC::Plugin/"COMMANDS"> (loaded by default)
 documentation for DCC-related commands.
 
-=item C<info>
+=head3 C<info>
 
 Basically the same as the "version" command, except that the server is
 permitted to return any information about itself that it thinks is
 relevant. There's some nice, specific standards-writing for ya, eh?
 
-=item C<invite>
+=head3 C<invite>
 
 Invites another user onto an invite-only channel. Takes 2 arguments:
 the nick of the user you wish to admit, and the name of the channel to
 invite them to.
 
-=item C<ison>
+=head3 C<ison>
 
 Asks the IRC server which users out of a list of nicknames are
 currently online. Takes any number of arguments: a list of nicknames
 to query the IRC server about.
 
-=item C<links>
+=head3 C<links>
 
 Asks the server for a list of servers connected to the IRC
 network. Takes two optional arguments, which I'm too lazy to document
 here, so all you would-be linklooker writers should probably go dig up
 the RFC.
 
-=item C<list>
+=head3 C<list>
 
 Asks the server for a list of visible channels and their topics. Takes
 any number of optional arguments: names of channels to get topic
@@ -2512,7 +2498,7 @@ information for. If called without any channel names, it'll list every
 visible channel on the IRC network. This is usually a really big list,
 so don't do this often.
 
-=item C<motd>
+=head3 C<motd>
 
 Request the server's "Message of the Day", a document which typically
 contains stuff like the server's acceptable use policy and admin
@@ -2522,7 +2508,7 @@ here's how to do it. If you'd like to get the MOTD for a server other
 than the one you're logged into, pass it the server's hostname as an
 argument; otherwise, no arguments.
 
-=item C<names>
+=head3 C<names>
 
 Asks the server for a list of nicknames on particular channels. Takes
 any number of arguments: names of channels to get lists of users
@@ -2530,51 +2516,51 @@ for. If called without any channel names, it'll tell you the nicks of
 everyone on the IRC network. This is a really big list, so don't do
 this much.
 
-=item C<quote>
+=head3 C<quote>
 
 Sends a raw line of text to the server. Takes one argument: a string
 of a raw IRC command to send to the server. It is more optimal to use
 the events this module supplies instead of writing raw IRC commands
 yourself.
 
-=item C<stats>
+=head3 C<stats>
 
 Returns some information about a server. Kinda complicated and not
 terribly commonly used, so look it up in the RFC if you're
 curious. Takes as many arguments as you please.
 
-=item C<time>
+=head3 C<time>
 
 Asks the server what time it thinks it is, which it will return in a
 human-readable form. Takes one optional argument: a server name to
 query. If not supplied, defaults to current server.
 
-=item C<trace>
+=head3 C<trace>
 
 If you pass a server name or nick along with this request, it asks the
 server for the list of servers in between you and the thing you
 mentioned. If sent with no arguments, it will show you all the servers
 which are connected to your current server.
 
-=item C<userhost>
+=head3 C<userhost>
 
 Asks the IRC server for information about particular nicknames. (The
 RFC doesn't define exactly what this is supposed to return.) Takes any
 number of arguments: the nicknames to look up.
 
-=item C<users>
+=head3 C<users>
 
 Asks the server how many users are logged into it. Defaults to the
 server you're currently logged into; however, you can pass a server
 name as the first argument to query some other machine instead.
 
-=item C<version>
+=head3 C<version>
 
 Asks the server about the version of ircd that it's running. Takes one
 optional argument: a server name to query. If not supplied, defaults
 to current server.
 
-=item C<who>
+=head3 C<who>
 
 Lists the logged-on users matching a particular channel name, hostname,
 nickname, or what-have-you. Takes one optional argument: a string for
@@ -2583,14 +2569,14 @@ argument, it will return everyone who's currently logged in (bad
 move). Tack an "o" on the end if you want to list only IRCops, as per
 the RFC.
 
-=item C<whois>
+=head3 C<whois>
 
 Queries the IRC server for detailed information about a particular
 user. Takes any number of arguments: nicknames or hostmasks to ask for
 information about. As of version 3.2, you will receive an C<irc_whois>
 event in addition to the usual numeric responses. See below for details.
 
-=item C<whowas>
+=head3 C<whowas>
 
 Asks the server for information about nickname which is no longer
 connected. Takes at least one argument: a nickname to look up (no
@@ -2599,49 +2585,45 @@ return, and the optional server hostname to query. As of version 3.2,
 you will receive an C<irc_whowas> event in addition to the usual numeric
 responses. See below for details.
 
-=item C<ping> and C<pong>
+=head3 C<ping> and C<pong>
 
 Included for completeness sake. The component will deal with ponging to
 pings automatically. Don't worry about it.
 
-=back
-
 =head2 Purely Esoteric Commands
 
-=over
-
-=item C<locops>
+=head3 C<locops>
 
 Opers-only command. This one sends a message to all currently
 logged-on local-opers (+l). This option is specific to EFNet.
 
-=item C<oper>
+=head3 C<oper>
 
 In the exceedingly unlikely event that you happen to be an IRC
 operator, you can use this command to authenticate with your IRC
 server. Takes 2 arguments: your username and your password.
 
-=item C<operwall>
+=head3 C<operwall>
 
 Opers-only command. This one sends a message to all currently
 logged-on global opers. This option is specific to EFNet.
 
-=item C<rehash>
+=head3 C<rehash>
 
 Tells the IRC server you're connected to, to rehash its configuration
 files. Only useful for IRCops. Takes no arguments.
 
-=item C<die>
+=head3 C<die>
 
 Tells the IRC server you're connect to, to terminate. Only useful for
 IRCops, thank goodness. Takes no arguments. 
 
-=item C<restart>
+=head3 C<restart>
 
 Tells the IRC server you're connected to, to shut down and restart itself.
 Only useful for IRCops, thank goodness. Takes no arguments.
 
-=item C<sconnect>
+=head3 C<sconnect>
 
 Tells one IRC server (which you have operator status on) to connect to
 another. This is actually the CONNECT command, but I already had an
@@ -2649,18 +2631,16 @@ event called C<connect>, so too bad. Takes the args you'd expect: a
 server to connect to, an optional port to connect on, and an optional
 remote server to connect with, instead of the one you're currently on.
 
-=item C<summon>
+=head3 C<summon>
 
 Don't even ask.
 
-=item C<wallops>
+=head3 C<wallops>
 
 Another opers-only command. This one sends a message to all currently
 logged-on opers (and +w users); sort of a mass PA system for the IRC
 server administrators. Takes one argument: some clever, witty message
 to send.
-
-=back
 
 =head1 OUTPUT
 
@@ -2682,9 +2662,7 @@ object. Useful if you want on-the-fly access to the object and its methods.
 
 =head2 Important Events
 
-=over
-
-=item C<irc_connected>
+=head3 C<irc_connected>
 
 The IRC component will send an C<irc_connected> event as soon as it
 establishes a connection to an IRC server, before attempting to log
@@ -2695,7 +2673,7 @@ can start sending commands to the server yet. Wait until you receive
 an C<irc_001> event (the server welcome message) before actually sending
 anything back to the server.
 
-=item C<irc_ctcp>
+=head3 C<irc_ctcp>
 
 C<irc_ctcp> events are generated upon receipt of CTCP messages, in addition to
 the C<irc_ctcp_*> events mentioned below. They are identical in every way to
@@ -2707,7 +2685,7 @@ and the rest as given below.
 It is not recommended that you register for both C<irc_ctcp> and C<irc_ctcp_*>
 events, since they will both be fired and presumably cause duplication.
 
-=item C<irc_ctcp_*>
+=head3 C<irc_ctcp_*>
 
 C<irc_ctcp_whatever> events are generated upon receipt of CTCP messages.
 For instance, receiving a CTCP PING request generates an C<irc_ctcp_ping>
@@ -2719,44 +2697,44 @@ name(s). ARG2 is the text of the CTCP message.
 Note that DCCs are handled separately -- see the C<irc_dcc_request>
 event, below.
 
-=item C<irc_ctcpreply_*>
+=head3 C<irc_ctcpreply_*>
 
 C<irc_ctcpreply_whatever> messages are just like C<irc_ctcp_whatever>
 messages, described above, except that they're generated when a response
 to one of your CTCP queries comes back. They have the same arguments and
 such as C<irc_ctcp_*> events.
 
-=item C<irc_disconnected>
+=head3 C<irc_disconnected>
 
 The counterpart to C<irc_connected>, sent whenever a socket connection
 to an IRC server closes down (whether intentionally or
 unintentionally). ARG0 is the server name.
 
-=item C<irc_error>
+=head3 C<irc_error>
 
 You get this whenever the server sends you an ERROR message. Expect
 this to usually be accompanied by the sudden dropping of your
 connection. ARG0 is the server's explanation of the error.
 
-=item C<irc_join>
+=head3 C<irc_join>
 
 Sent whenever someone joins a channel that you're on. ARG0 is the
 person's nick!hostmask. ARG1 is the channel name.
 
-=item C<irc_invite>
+=head3 C<irc_invite>
 
 Sent whenever someone offers you an invitation to another channel. ARG0
 is the person's nick!hostmask. ARG1 is the name of the channel they want
 you to join.
 
-=item C<irc_kick>
+=head3 C<irc_kick>
 
 Sent whenever someone gets booted off a channel that you're on. ARG0
 is the kicker's nick!hostmask. ARG1 is the channel name. ARG2 is the
 nick of the unfortunate kickee. ARG3 is the explanation string for the
 kick.
 
-=item C<irc_mode>
+=head3 C<irc_mode>
 
 Sent whenever someone changes a channel mode in your presence, or when
 you change your own user mode. ARG0 is the nick!hostmask of that
@@ -2765,32 +2743,32 @@ mode change). ARG2 is the mode string (i.e., "+o-b"). The rest of the
 args (ARG3 .. $#_) are the operands to the mode string (nicks,
 hostmasks, channel keys, whatever).
 
-=item C<irc_msg>
+=head3 C<irc_msg>
 
 Sent whenever you receive a PRIVMSG command that was addressed to you
 privately. ARG0 is the nick!hostmask of the sender. ARG1 is an array
 reference containing the nick(s) of the recipients. ARG2 is the text
 of the message.
 
-=item C<irc_nick>
+=head3 C<irc_nick>
 
 Sent whenever you, or someone around you, changes nicks. ARG0 is the
 nick!hostmask of the changer. ARG1 is the new nick that they changed
 to.
 
-=item C<irc_notice>
+=head3 C<irc_notice>
 
 Sent whenever you receive a NOTICE command. ARG0 is the nick!hostmask
 of the sender. ARG1 is an array reference containing the nick(s) or
 channel name(s) of the recipients. ARG2 is the text of the NOTICE
 message.
 
-=item C<irc_part>
+=head3 C<irc_part>
 
 Sent whenever someone leaves a channel that you're on. ARG0 is the
 person's nick!hostmask. ARG1 is the channel name. ARG2 is the part message.
 
-=item C<irc_ping>
+=head3 C<irc_ping>
 
 An event sent whenever the server sends a PING query to the
 client. (Don't confuse this with a CTCP PING, which is another beast
@@ -2799,25 +2777,25 @@ automatically take care of sending the PONG response back to the
 server for you, although you can still register to catch the event for
 informational purposes.
 
-=item C<irc_public>
+=head3 C<irc_public>
 
 Sent whenever you receive a PRIVMSG command that was sent to a
 channel. ARG0 is the nick!hostmask of the sender. ARG1 is an array
 reference containing the channel name(s) of the recipients. ARG2 is
 the text of the message.
 
-=item C<irc_quit>
+=head3 C<irc_quit>
 
 Sent whenever someone on a channel with you quits IRC (or gets
 KILLed). ARG0 is the nick!hostmask of the person in question. ARG1 is
 the clever, witty message they left behind on the way out.
 
-=item C<irc_socketerr>
+=head3 C<irc_socketerr>
 
 Sent when a connection couldn't be established to the IRC server. ARG0
 is probably some vague and/or misleading reason for what failed.
 
-=item C<irc_topic>
+=head3 C<irc_topic>
 
 Sent when a channel topic is set or unset. ARG0 is the nick!hostmask of the
 sender. ARG1 is the channel affected. ARG2 will be either: a string if the
@@ -2825,8 +2803,7 @@ topic is being set; or a zero-length string (i.e. '') if the topic is being
 unset. Note: replies to queries about what a channel topic *is*
 (i.e. TOPIC #channel) , are returned as numerics, not with this event.
 
-
-=item C<irc_whois>
+=head3 C<irc_whois>
 
 Sent in response to a 'whois' query. ARG0 is a hashref, with the following
 keys: 
@@ -2859,58 +2836,58 @@ additional key:
 
 'identified'.
 
-=item C<irc_whowas>
+=head3 C<irc_whowas>
 
 Similar to the above, except some keys will be missing.
 
-=item C<irc_raw>
+=head3 C<irc_raw>
 
 Enabled by passing C<< Raw => 1 >> to C<spawn()> or C<connect>, ARG0 is the raw IRC
 string received by the component from the IRC server, before it has been
 mangled by filters and such like.
 
-=item C<irc_registered>
+=head3 C<irc_registered>
 
 Sent once to the requesting session on registration ( see C<register> ). ARG0
 is a reference tothe component's object.
 
-=item C<irc_shutdown>
+=head3 C<irc_shutdown>
 
 Sent to all registered sessions when the component has been asked to
 C<shutdown>. ARG0 will be the session ID of the requesting session.
 
-=item C<irc_isupport>
+=head3 C<irc_isupport>
 
 Emitted by the first event after an C<irc_005>, to indicate that isupport
 information has been gathered. ARG0 is the
 L<POE::Component::IRC::Plugin::ISupport|POE::Component::IRC::Plugin::ISupport>
 object.
 
-=item C<irc_delay_set>
+=head3 C<irc_delay_set>
 
 Emitted on a succesful addition of a delayed event using C<delay()> method. ARG0
 will be the alarm_id which can be used later with C<delay_remove()>. Subsequent
 parameters are the arguments that were passed to C<delay()>.
 
-=item C<irc_delay_removed>
+=head3 C<irc_delay_removed>
 
 Emitted when a delayed command is successfully removed. ARG0 will be the
 alarm_id that was removed. Subsequent parameters are the arguments that were
 passed to C<delay()>.
 
-=item C<irc_socks_failed>
+=head3 C<irc_socks_failed>
 
 Emitted whenever we fail to connect successfully to a SOCKS server or the
 SOCKS server is not actually a SOCKS server. ARG0 will be some vague reason
 as to what went wrong. Hopefully.
 
-=item C<irc_socks_rejected>
+=head3 C<irc_socks_rejected>
 
 Emitted whenever a SOCKS connection is rejected by a SOCKS server. ARG0 is
 the SOCKS code, ARG1 the SOCKS server address, ARG2 the SOCKS port and ARG3
 the SOCKS user id ( if defined ).
 
-=item All numeric events (see RFC 1459)
+=head3 All numeric events (see RFC 1459)
 
 Most messages from IRC servers are identified only by three-digit
 numeric codes with undescriptive constant names like RPL_UMODEIS and
@@ -2924,32 +2901,24 @@ is the name of the server which sent the message. ARG1 is the text of
 the message. ARG2 is an ARRAYREF of the parsed message, so there is no
 need to parse ARG1 yourself.
 
-=back
-
 =head2 Somewhat Less Important Events
 
-=over
-
-=item C<irc_dcc_*>
+=head3 C<irc_dcc_*>
 
 See the L<DCC plugin|POE::Component::IRC::Plugin/"OUTPUT"> (loaded by default)
 documentation for DCC-related events.
 
-=item C<irc_snotice>
+=head3 C<irc_snotice>
 
 A weird, non-RFC-compliant message from an IRC server. Don't worry
 about it. ARG0 is the text of the server's message.
-
-=back
 
 =head1 SIGNALS
 
 The component will handle a number of custom signals that you may send using 
 L<POE::Kernel|POE::Kernel> C<signal()> method.
 
-=over
-
-=item C<POCOIRC_REGISTER>
+=head2 C<POCOIRC_REGISTER>
 
 Registering with multiple PoCo-IRC components has been a pita. Well, no more,
 using the power of L<POE::Kernel|POE::Kernel> signals.
@@ -2998,7 +2967,7 @@ Each poco-irc will send your session an C<irc_registered> event:
      return;
  }
 
-=item C<POCOIRC_SHUTDOWN>
+=head2 C<POCOIRC_SHUTDOWN>
 
 Telling multiple poco-ircs to shutdown was a pita as well. The same principle as
 with registering applies to shutdown too.
@@ -3010,8 +2979,6 @@ poco-ircs simultaneously.
 
 Any additional parameters passed to the signal will become your quit messages
 on each IRC network.
-
-=back
 
 =head1 BUGS
 
