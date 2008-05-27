@@ -52,32 +52,16 @@ It now uses the same mechanism that that uses to parse IRC text.
 
 =head1 CONSTRUCTOR
 
-=over
-
-=item C<new>
+=head2 C<new>
 
 Returns a new L<POE::Filter::Stackable|POE::Filter::Stackable> object containing
 a L<POE::Filter::IRCD|POE::Filter::IRCD> object and a
 L<POE::Filter::IRC::Compat|POE::Filter::IRC::Compat> object. This does the same
 job that POE::Filter::IRC used to do.
 
-=back
-
 =head1 METHODS
 
-=over
-
-=item C<get>
-
-Takes an array reference full of lines of raw IRC text. Returns an
-array reference of processed, pasteurised events.
-
-=item C<put>
-
-There is no "put" method. That would be kinda silly for this filter,
-don't you think?
-
-=back
+See the documentation for POE::Filter::IRCD and POE::Filter::IRC::Compat.
 
 =head1 AUTHOR
 

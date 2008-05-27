@@ -326,51 +326,41 @@ generic.
 
 =head1 CONSTRUCTOR
 
-=over
-
-=item C<new>
+=head2 C<new>
 
 Returns a POE::Filter::IRC::Compat object.
 
-=back
-
 =head1 METHODS
 
-=over
-
-=item C<get>
+=head2 C<get>
 
 Takes an arrayref of L<POE::Filter::IRCD> hashrefs and produces an arrayref of
 L<POE::Component::IRC|POE::Component::IRC> compatible event hashrefs. Yay.
 
-=item C<get_one_start>
-
-=item C<get_one>
+=head2 C<get_one_start>, C<get_one>
 
 These perform a similar function as C<get()> but enable the filter to work with
 L<POE::Filter::Stackable|POE::Filter::Stackable>.
 
-=item C<chantypes>
+=head2 C<chantypes>
 
 Takes an arrayref of possible channel prefix indicators.
 
-=item C<debug>
+=head2 C<debug>
 
 Takes a true/false value which enables/disables debugging accordingly.
 Returns the debug status.
 
-=item C<clone>
+=head2 C<clone>
 
 Makes a copy of the filter, and clears the copy's buffer.
 
-=item C<put>
+=head2 C<put>
 
 Takes an array reference of CTCP messages to be properly quoted. This
 doesn't support CTCPs embedded in normal messages, which is a
 brain-dead hack in the protocol, so do it yourself if you really need
 it. Returns an array reference of the quoted lines for sending.
-
-=back
 
 =head1 AUTHOR
 
