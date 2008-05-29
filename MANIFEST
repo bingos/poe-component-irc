@@ -35,7 +35,6 @@ lib/POE/Component/IRC/Cookbook/BasicBot.pm
 lib/POE/Component/IRC/Cookbook/Disconnecting.pm
 lib/POE/Component/IRC/Cookbook/Resolver.pm
 lib/POE/Component/IRC/Cookbook/Translator.pm
-lib/POE/Component/IRC/Pipeline.pm
 lib/POE/Component/IRC/Plugin.pm
 lib/POE/Component/IRC/Plugin/AutoJoin.pm
 lib/POE/Component/IRC/Plugin/BotAddressed.pm

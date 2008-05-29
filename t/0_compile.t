@@ -10,7 +10,6 @@ my @modules = qw(
     POE::Component::IRC::State
     POE::Component::IRC::Qnet
     POE::Component::IRC::Qnet::State
-    POE::Component::IRC::Pipeline
     POE::Component::IRC::Constants
     POE::Component::IRC::Common
     POE::Component::IRC::Test::Plugin

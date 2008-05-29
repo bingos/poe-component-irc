@@ -9,12 +9,12 @@ use POE::Filter::IRCD;
 use POE::Filter::IRC::Compat;
 use POE::Component::IRC::Common qw(:ALL);
 use POE::Component::IRC::Constants qw(:ALL);
-use POE::Component::IRC::Pipeline;
 use POE::Component::IRC::Plugin qw(:ALL);
 use POE::Component::IRC::Plugin::DCC;
 use POE::Component::IRC::Plugin::ISupport;
 use POE::Component::IRC::Plugin::Whois;
 use Socket;
+use base qw(POE::Component::Pluggable);
 
 our $VERSION = '5.78';
 our $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
@@ -112,11 +112,6 @@ sub _create {
         _stop
         debug
         connect
-        dcc
-        dcc_accept
-        dcc_resume
-        dcc_chat
-        dcc_close
         _resolve_addresses
         _do_connect
         _send_login
@@ -138,7 +133,12 @@ sub _create {
 
     $self->{OBJECT_STATES_HASHREF} = {
         %event_map,
-        quote => 'sl',
+        quote      => 'sl',
+        dcc        => '_dcc_dispatch',
+        dcc_accept => '_dcc_dispatch',
+        dcc_resume => '_dcc_dispatch',
+        dcc_chat   => '_dcc_dispatch',
+        dcc_close  => '_dcc_dispatch',
     };
 
     return;
@@ -253,9 +253,9 @@ sub send_event {
 
 # Hack to make plugin_add/del send events from OUR session
 sub __send_event {
-    my($self, $event, @args) = @_[ OBJECT, ARG0, ARG1 .. $#_ ];
+    my ($self, $event, @args) = @_[OBJECT, ARG0..$#_];
     # Actually send the event...
-    $self->_send_event( $event, @args );
+    $self->_send_event($event, @args);
     return 1;
 }
 
@@ -265,7 +265,7 @@ sub __send_event {
 # Changed to a method by BinGOs, 21st January 2005.
 # Amended by BinGOs (2nd February 2005) use call to send events to
 # *our* session first.
-sub _send_event  {
+sub _send_event {
     my ($self, $event, @args) = @_;
     my $kernel = $poe_kernel;
     my $session = $kernel->get_active_session()->ID();
@@ -276,7 +276,8 @@ sub _send_event  {
     # don't eat the events before *our* session can process them. *sigh*
     
     for my $value (values %{ $self->{events}->{irc_all} },
-        values %{ $self->{events}->{$event} }) {
+        values %{ $self->{events}->{$event} })
+    {
         $sessions{$value} = $value;
     }
 
@@ -286,11 +287,11 @@ sub _send_event  {
 
     my @extra_args;
     # Let the plugin system process this
-    return 1 if $self->_plugin_process(
+    return 1 if $self->_pluggable_process(
         'SERVER',
         $event,
         \( @args ),
-        \@extra_args
+        \@extra_args,
     ) == PCI_EAT_ALL;
 
     push @args, @extra_args if @extra_args;
@@ -808,79 +809,13 @@ sub ctcp {
     return;
 }
 
-sub dcc {
-    my ($kernel, $self, $nick, $type, $file, $blocksize, $timeout)
-        = @_[KERNEL, OBJECT, ARG0..ARG4];
+sub _dcc_dispatch {
+    my ($state, $self, @args) = @_[STATE, OBJECT, ARG0..$#_];
 
-    $type = uc $type;
+    # DCC type (SEND, USER, etc) should be in upper case
+    $args[2] = uc $args[2] if $state eq 'dcc';
 
-    # Let the plugin system process this
-    return 1 if $self->_plugin_process(
-        'USER',
-        'DCC',
-        \$nick,
-        \$type,
-        \$file,
-        \$blocksize,
-        \$timeout,
-    ) == PCI_EAT_ALL;
-    
-    return;
-}
-
-sub dcc_accept {
-    my ($kernel, $self, $cookie, $myfile) = @_[KERNEL, OBJECT, ARG0, ARG1];
-    
-    # Let the plugin system process this
-    return 1 if $self->_plugin_process(
-        'USER',
-        'DCC_ACCEPT',
-        \$cookie,
-        \$myfile
-    ) == PCI_EAT_ALL;
-
-    return;
-}
-
-sub dcc_chat {
-    my ($kernel, $self, $id, @data) = @_[KERNEL, OBJECT, ARG0..$#_];
-    
-    # Let the plugin system process this
-    return 1 if $self->_plugin_process(
-        'USER',
-        'DCC_CHAT',
-        \$id,
-        \( @data ),
-    ) == PCI_EAT_ALL;
-
-    return;
-}
-
-# Terminate a DCC connection manually.
-sub dcc_close {
-    my ($kernel, $self, $id) = @_[KERNEL, OBJECT, ARG0];
-    
-    # Let the plugin system process this
-    return 1 if $self->_plugin_process(
-        'USER',
-        'DCC_CLOSE',
-        \$id,
-    ) == PCI_EAT_ALL;
-
-    return;
-}
-
-sub dcc_resume {
-    my ($kernel, $self, $cookie) = @_[KERNEL, OBJECT, ARG0];
-
-    # Let the plugin system process this
-    return 1 if $self->_plugin_process(
-        'USER',
-        'DCC_RESUME',
-        \$cookie,
-    ) == PCI_EAT_ALL;
-
-    return;
+    $self->_pluggable_process(USER => $state => \(@args));
 }
 
 # The way /notify is implemented in IRC clients.
@@ -962,6 +897,12 @@ sub spawn {
 
     my $self = bless { }, $package;
     $self->_create();
+
+    $self->_pluggable_init(
+        prefix     => 'irc_',
+        reg_prefix => 'PCI_',
+        types      => { SERVER => 'S', USER => 'U' },
+    );
 
     my $options = delete $params{options};
     my $alias = delete $params{alias};
@@ -1172,7 +1113,8 @@ sub register {
         if (!$self->{sessions}->{$sender_id}->{refcnt} && $session != $sender) {
             $kernel->refcount_increment($sender_id, PCI_REFCOUNT_TAG);
         }
-        $self->{sessions}->{$sender_id}->{refcnt}++
+        
+        $self->{sessions}->{$sender_id}->{refcnt}++;
     }
 
     # BINGOS:
@@ -1200,8 +1142,10 @@ sub shutdown {
     $kernel->alarm_remove_all();
     $kernel->alias_remove($_) for $kernel->alias_list($session);
     delete $self->{$_} for qw(socketfactory dcc wheelmap);
+    
     # Delete all plugins that are loaded.
-    $self->plugin_del($_) for keys %{ $self->plugin_list() };
+    $self->_pluggable_destroy();
+    
     $self->{resolver}->shutdown() if $self->{resolver};
     $kernel->call($session => sl_high => $cmd) if $self->{socket};
     
@@ -1247,7 +1191,7 @@ sub sl_prioritized {
     # Get the first word for the plugin system
     if (my ($event) = $msg =~ /^(\w+)\s*/ ) {
         # Let the plugin system process this
-        return 1 if $self->_plugin_process(
+        return 1 if $self->_pluggable_process(
             'USER',
             $event,
             \$msg,
@@ -1589,187 +1533,10 @@ sub resolver {
     return $_[0]->{resolver};
 }
 
-# accesses the plugin pipeline
-sub pipeline {
-    my ($self) = @_;
-    
-    if (!eval { $self->{PLUGINS}->isa('POE::Component::IRC::Pipeline') }) {
-        $self->{PLUGINS} = POE::Component::IRC::Pipeline->new($self);
-    }
-    return $self->{PLUGINS};
-}
-
-# Adds a new plugin object
-sub plugin_add {
-    my ($self, $name, $plugin) = @_;
-    my $pipeline = $self->pipeline;
-
-    if (!defined $name || !defined $plugin) {
-        carp 'Please supply a name and the plugin object to be added!';
-        return;
-    }
-
-    return $pipeline->push($name => $plugin);
-}
-
-# Removes a plugin object
-sub plugin_del {
-    my ($self, $name) = @_;
-
-    if (!defined $name) {
-        carp 'Please supply a name/object for the plugin to be removed!';
-        return;
-    }
-
-    my $return = scalar $self->pipeline->remove($name);
-    carp "$@" if $@;
-    
-    return $return;
-}
-
-# Gets the plugin object
-sub plugin_get {
-    my ($self, $name) = @_;  
-
-    if (!defined $name) {
-        carp 'Please supply a name/object for the plugin to be removed!';
-        return;
-  }
-
-  return scalar $self->pipeline->get($name);
-}
-
-# Lists loaded plugins
-sub plugin_list {
-  my ($self) = @_;
-  my $pipeline = $self->pipeline;
-  my %return;
-
-  for my $plugin (@{ $pipeline->{PIPELINE} }) {
-    $return{ $pipeline->{PLUGS}{$plugin} } = $plugin;
-  }
-
-  return \%return;
-}
-
-# Lists loaded plugins in order!
-sub plugin_order {
-    my ($self) = @_;
-    return $self->pipeline->{PIPELINE};
-}
-
-# Lets a plugin register for certain events
-sub plugin_register {
-    my ($self, $plugin, $type, @events) = @_;
-    my $pipeline = $self->pipeline;
-
-    if (!defined $plugin) {
-        carp 'Please supply the plugin object to register!';
-        return;
-    }
-
-    if (!defined $type || $type !~ /SERVER|USER/) {
-        carp 'Type should be SERVER or USER!';
-        return;
-    }
-
-    if (!@events) {
-        carp 'Please supply at least one event to register!';
-        return;
-    }
-
-    for my $event (@events) {
-        if (ref $event eq 'ARRAY') {
-            @{ $pipeline->{HANDLES}{$plugin}{$type} }{ map { lc } @$event } = (1) x @$event;
-        }
-        else {
-            $pipeline->{HANDLES}{$plugin}{$type}{lc $event} = 1;
-        }
-    }
-
-    return 1;
-}
-
-# Lets a plugin unregister events
-sub plugin_unregister {
-    my ($self, $plugin, $type, @events) = @_;
-    my $pipeline = $self->pipeline;
-
-    if (!defined $type || $type !~ /SERVER|USER/) {
-        carp 'Type should be SERVER or USER!';
-        return;
-    }
-
-    if (!defined $plugin) {
-        carp 'Please supply the plugin object to register!';
-        return;
-    }
-
-    if (!@events) {
-        carp 'Please supply at least one event to unregister!';
-        return;
-    }
-
-    for my $event (@events) {
-        if (ref $event eq 'ARRAY') {
-            for my $e (map { lc } @$event) {
-                if (!delete $pipeline->{HANDLES}{$plugin}{$type}{$e}) {
-                    carp "The event '$e' does not exist!";
-                    next;
-                }
-            }
-        }
-        else {
-            $event = lc $event;
-            if (!delete $pipeline->{HANDLES}{$plugin}{$type}{$event}) {
-                carp "The event '$event' does not exist!";
-                next;
-            }
-        }
-    }
-
-    return 1;
-}
-
-# Process an input event for plugins
-sub _plugin_process {
-    my ($self, $type, $event, @args) = @_;
-    my $pipeline = $self->pipeline;
-
-    $event = lc $event;
-    $event =~ s/^irc_//;
-
-    my $sub = ($type eq 'SERVER' ? 'S' : 'U') . "_$event";
-    my $return = PCI_EAT_NONE;
-
-    if ( $self->can($sub) ) {
-        eval { $self->$sub( $self, @args ) };
-        warn "$@\n" if $@;
-    }
-
-    for my $plugin (@{ $pipeline->{PIPELINE} }) {
-        next if $self eq $plugin;
-        next if !$pipeline->{HANDLES}{$plugin}{$type}{$event}
-            && !$pipeline->{HANDLES}{$plugin}{$type}{all};
-        
-        my $ret = PCI_EAT_NONE;
-        my $name = ($pipeline->get($plugin))[1];
-
-        if ( $plugin->can($sub) ) {
-            eval { $ret = $plugin->$sub($self, @args) };
-            warn "${name}->$sub call failed with '$@'\n" if $@ && $self->{plugin_debug};
-        }
-        elsif ( $plugin->can('_default') ) {
-            eval { $ret = $plugin->_default($self, $sub, @args) };
-            warn "${name}->_default call failed with '$@'\n" if $@ && $self->{plugin_debug};
-        }
-
-        return $return if $ret == PCI_EAT_PLUGIN;
-        $return = PCI_EAT_ALL if $ret == PCI_EAT_CLIENT;
-        return PCI_EAT_ALL if $ret == PCI_EAT_ALL;
-    }
-
-    return $return;
+sub _pluggable_event {
+    my ($self, @args) = @_;
+    $self->yield(__send_event => @args);
+    return;
 }
 
 1;
@@ -1932,6 +1699,10 @@ That is not a subclass, just a placeholder for documentation!
 A number of useful plugins have made their way into the core distribution:
 
 =over 
+
+=item L<POE::Component::IRC::Plugin::DCC|POE::Component::IRC::Plugin::DCC>
+
+Provides DCC support. Loaded by default.
 
 =item L<POE::Component::IRC::Plugin::AutoJoin|POE::Component::IRC::Plugin::AutoJoin>
 
@@ -2139,7 +1910,9 @@ make it die() >;]
 
 =head1 METHODS
 
-These are methods supported by the POE::Component::IRC object. 
+These are methods supported by the POE::Component::IRC object. It also
+inherits a few from L<POE::Component::Pluggable|POE::Component::Pluggable>.
+See its documentation for details.
 
 =head2 C<server_name>
 
@@ -2152,7 +1925,7 @@ Takes no arguments. Returns a scalar containing the current nickname that the
 bot is using.
 
 =head2 C<localaddr>
- 
+
 Takes no arguments. Returns the IP address being used.
 
 =head2 C<session_id>
@@ -2245,11 +2018,6 @@ Returns an arrayref that was originally requested to be delayed.
 
 Returns a reference to the L<POE::Component::Client::DNS|POE::Component::Client::DNS>
 object that is internally created by the component.
-
-=head2 C<pipeline>
-
-Returns a reference to the L<POE::Component::IRC::Pipeline|POE::Component::IRC::Pipeline>
-object used by the plugin system.
 
 =head2 C<send_event>
 
@@ -2460,7 +2228,7 @@ preoccupied, and pass your message along to anyone who tries to
 communicate with you. When sent without arguments, it tells the server
 that you're back and paying attention.
 
-=head3 C<dcc>, C<dcc_accept>, C<dcc_chat>, C<dcc_close>, C<dcc_resume>
+=head3 C<dcc*>
 
 See the L<DCC plugin|POE::Component::IRC::Plugin/"COMMANDS"> (loaded by default)
 documentation for DCC-related commands.
@@ -2768,15 +2536,6 @@ message.
 Sent whenever someone leaves a channel that you're on. ARG0 is the
 person's nick!hostmask. ARG1 is the channel name. ARG2 is the part message.
 
-=head3 C<irc_ping>
-
-An event sent whenever the server sends a PING query to the
-client. (Don't confuse this with a CTCP PING, which is another beast
-entirely. If unclear, read the RFC.) Note that POE::Component::IRC will
-automatically take care of sending the PONG response back to the
-server for you, although you can still register to catch the event for
-informational purposes.
-
 =head3 C<irc_public>
 
 Sent whenever you receive a PRIVMSG command that was sent to a
@@ -2887,7 +2646,28 @@ Emitted whenever a SOCKS connection is rejected by a SOCKS server. ARG0 is
 the SOCKS code, ARG1 the SOCKS server address, ARG2 the SOCKS port and ARG3
 the SOCKS user id ( if defined ).
 
-=head3 All numeric events (see RFC 1459)
+=head2 Somewhat Less Important Events
+
+=head3 C<irc_dcc_*>
+
+See the L<DCC plugin|POE::Component::IRC::Plugin/"OUTPUT"> (loaded by default)
+documentation for DCC-related events.
+
+=head3 C<irc_ping>
+
+An event sent whenever the server sends a PING query to the
+client. (Don't confuse this with a CTCP PING, which is another beast
+entirely. If unclear, read the RFC.) Note that POE::Component::IRC will
+automatically take care of sending the PONG response back to the
+server for you, although you can still register to catch the event for
+informational purposes.
+
+=head3 C<irc_snotice>
+
+A weird, non-RFC-compliant message from an IRC server. Don't worry
+about it. ARG0 is the text of the server's message.
+
+=head2 All numeric events
 
 Most messages from IRC servers are identified only by three-digit
 numeric codes with undescriptive constant names like RPL_UMODEIS and
@@ -2900,18 +2680,6 @@ register for '376', and listen for C<irc_376> events. Simple, no? ARG0
 is the name of the server which sent the message. ARG1 is the text of
 the message. ARG2 is an ARRAYREF of the parsed message, so there is no
 need to parse ARG1 yourself.
-
-=head2 Somewhat Less Important Events
-
-=head3 C<irc_dcc_*>
-
-See the L<DCC plugin|POE::Component::IRC::Plugin/"OUTPUT"> (loaded by default)
-documentation for DCC-related events.
-
-=head3 C<irc_snotice>
-
-A weird, non-RFC-compliant message from an IRC server. Don't worry
-about it. ARG0 is the text of the server's message.
 
 =head1 SIGNALS
 
@@ -2942,7 +2710,7 @@ _start handler:
      my ($kernel, $session) = @_[KERNEL, SESSION];
 
      # Registering with multiple pocoircs for 'all' IRC events
-     $kernel->signal( $kernel, 'POCOIRC_REGISTER', $session->ID(), 'all' );
+     $kernel->signal($kernel, 'POCOIRC_REGISTER', $session->ID(), 'all');
 
      return:
  }
@@ -2962,7 +2730,7 @@ Each poco-irc will send your session an C<irc_registered> event:
      $heap->{irc_objects}->{ $sender_id } = $irc_object;
 
      # Make the poco connect 
-     $irc_object->yield( connect => { } );
+     $irc_object->yield(connect => { });
 
      return;
  }
@@ -2975,7 +2743,7 @@ with registering applies to shutdown too.
 Send a C<POCOIRC_SHUTDOWN> to the POE Kernel to terminate all the active
 poco-ircs simultaneously.
 
- $poe_kernel->signal( $poe_kernel, 'POCOIRC_SHUTDOWN' );
+ $poe_kernel->signal($poe_kernel, 'POCOIRC_SHUTDOWN');
 
 Any additional parameters passed to the signal will become your quit messages
 on each IRC network.

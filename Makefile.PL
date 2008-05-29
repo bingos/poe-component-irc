@@ -43,6 +43,7 @@ requires 'File::Basename' => 0;
 requires 'File::Spec' => 0;
 requires 'Socket' => 0;
 requires 'POE'    => 0.3202;
+requires 'POE::Component::Pluggable' => '1.06';
 requires 'POE::Wheel::SocketFactory' => 0;
 requires 'POE::Wheel::ReadWrite' => 0;
 requires 'POE::Driver::SysRW' => 0;
