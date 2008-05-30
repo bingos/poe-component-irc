@@ -213,7 +213,6 @@ sub _configure {
 sub debug {
     my ($self, $switch) = @_[OBJECT, ARG0];
 
-    $switch = $switch eq 'on' ? 1 : 0;
     $self->{debug} = $switch;
     $self->{ircd_filter}->debug( $switch );
     $self->{ircd_compat}->debug( $switch );
@@ -1651,12 +1650,12 @@ and dispatches 'irc_' prefixed events to interested sessions and
 an object that can be used to access additional information using methods.
 
 Sessions register their interest in receiving 'irc_' events by sending
-C<register> to the component. One would usually do this in your C<_start>
-handler. Your session will continue to receive events until you C<unregister>.
-The component will continue to stay around until you tell it not to with
-C<shutdown>.
+L<< C<register>|/"register" >> to the component. One would usually do this in
+your C<_start> handler. Your session will continue to receive events until
+you L<< C<unregister>|/"unregister" >>. The component will continue to stay
+around until you tell it not to with L<< C<shutdown>|/"shutdown" >>.
 
-The SYNOPSIS demonstrates a fairly basic bot.
+The L<SYNOPSIS|/"SYNOPSIS"> demonstrates a fairly basic bot.
 
 See L<POE::Component::IRC::Cookbook|POE::Component::IRC::Cookbook> for more
 examples.
@@ -1764,9 +1763,9 @@ to gain ops.
 
 =head1 CONSTRUCTORS
 
-Both CONSTRUCTORS return an object. The object is also available within 'irc_'
-event handlers by using 
-C<< $_[SENDER]->get_heap() >>. See also C<register> and C<irc_registered>.
+Both constructors return an object. The object is also available within 'irc_'
+event handlers by using C<< $_[SENDER]->get_heap() >>. See also L<< C<register>|/"register" >>
+and L<< C<irc_registered>|"/irc_registered" >>.
 
 =head2 C<spawn>
 
@@ -1790,7 +1789,8 @@ Takes a number of arguments, all of which are optional:
 
 'UseSSL', set to some true value if you want to connect using SSL.
 
-'Raw', set to some true value to enable the component to send C<irc_raw> events.
+'Raw', set to some true value to enable the component to send
+L<< C<irc_raw>|/"irc_raw" >> events.
 
 'LocalAddr', which local IP address on a multihomed box to connect as;
 
@@ -1838,7 +1838,8 @@ the IRC server might disconnect you with a "Request too long" message.
 C<spawn> will supply reasonable defaults for any of these attributes which are
 missing, so don't feel obliged to write them all out.
 
-All the above options may be supplied to C<connect> input event as well.
+All the above options may be supplied to L<< C<connect>|/"connect" >> input
+event as well.
 
 If the component finds that L<POE::Component::Client::DNS|POE::Component::Client::DNS>
 is installed it will use that to resolve the server name passed. Disable this
@@ -1853,25 +1854,25 @@ when enabling this option.
 Two new attributes are "Proxy" and "ProxyPort" for sending your
 IRC traffic through a proxy server. "Proxy"'s value should be the IP
 address or server name of the proxy. "ProxyPort"'s value should be the
-port on the proxy to connect to.  C<connect> will default to using the
-I<actual> IRC server's port if you provide a proxy but omit the proxy's
-port. These are for HTTP Proxies. See 'socks_proxy' for SOCKS4 and SOCKS4a
-support.
+port on the proxy to connect to. L<< C<connect>|/"connect" >> will default
+to using the I<actual> IRC server's port if you provide a proxy but omit
+the proxy's port. These are for HTTP Proxies. See 'socks_proxy' for SOCKS4
+and SOCKS4a support.
 
 For those people who run bots behind firewalls and/or Network Address
 Translation there are two additional attributes for DCC. "DCCPorts", is an
-arrayref of ports to use when initiating DCC, using C<dcc()>. "NATAddr", is the
-NAT'ed IP address that your bot is hidden behind, this is sent whenever you
-do DCC.
+arrayref of ports to use when initiating DCC, using C<dcc>. "NATAddr", is
+the NAT'ed IP address that your bot is hidden behind, this is sent whenever
+you do DCC.
 
 SSL support requires L<POE::Component::SSLify|POE::Component::SSLify>, as well
 as an IRC server that supports SSL connections. If you're missing
 POE::Component::SSLify, specifing 'UseSSL' will do nothing. The default is to
 not try to use SSL.
 
-Setting 'Raw' to true, will enable the component to send C<irc_raw> events to
-interested plugins and sessions. See below for more details on what a C<irc_raw>
-events is :)
+Setting 'Raw' to true, will enable the component to send
+L<< C<irc_raw>|/"irc_raw" >> events to interested plugins and sessions.
+See below for more details on what a C<irc_raw> events is :)
 
 'NoDNS' has different results depending on whether it is set with C<spawn()> or
 C<connect>. Setting it with C<spawn()>, disables the creation of the
@@ -1957,9 +1958,9 @@ Takes no arguments. Terminates the socket connection disgracefully >;o]
 
 =head2 C<raw_events>
 
-With no arguments, returns true or false depending on whether C<irc_raw> events
-are being  generated or not. Provide a true or false argument to enable or
-disable this feature accordingly.
+With no arguments, returns true or false depending on whether
+L<< C<irc_raw>|/"irc_raw" >> events are being  generated or not. Provide a
+true or false argument to enable or disable this feature accordingly.
 
 =head2 C<isupport>
 
@@ -1970,7 +1971,7 @@ available at L<http://www.irc.org/tech_docs/005.html>.
 =head2 C<isupport_dump_keys>
 
 Takes no arguments, returns a list of the available server capabilities keys,
-which can be used with C<isupport()>.
+which can be used with L<< C<isupport()>|/"isupport" >>.
 
 =head2 C<yield>
 
@@ -1998,13 +1999,14 @@ wishes to delay the command being posted.
 
  my $alarm_id = $irc->delay( [ mode => $channel => '+o' => $dude ], 60 );
 
-Returns an alarm ID that can be used with C<delay_remove()> to cancel the delayed
-event. This will be undefined if something went wrong.
+Returns an alarm ID that can be used with L<< C<delay_remove()>|/"delay_remove" >>
+to cancel the delayed event. This will be undefined if something went wrong.
 
 =head2 C<delay_remove>
 
 This method removes a previously scheduled delayed event from the component.
-Takes one argument, the C<alarm_id> that was returned by a C<delay()> method call.
+Takes one argument, the C<alarm_id> that was returned by a
+L<< C<delay()>|/"delay" >> method call.
 
  my $arrayref = $irc->delay_remove( $alarm_id );
 
@@ -2025,7 +2027,7 @@ name, followed by any parameters for that event.
 
 How to talk to your new IRC component... here's the events we'll accept.
 These are events that are posted to the component, either via
-C<< $poe_kernel->post() >> or via the object method C<yield()>.
+C<< $poe_kernel->post() >> or via the object method L<< C<yield()>|/"yield" >>.
 
 So the following would be functionally equivalent:
 
@@ -2052,21 +2054,21 @@ need to listen for JOINs, PARTs, QUITs, and KICKs to people on the
 channel you're in. You'd tell POE::Component::IRC that you want those
 events by saying this:
 
- $kernel->post( 'my client', 'register', qw(join part quit kick) );
+ $kernel->post('my client', 'register', qw(join part quit kick));
 
 Then, whenever people enter or leave a channel your bot is on (forcibly
-or not), your session will receive events with names like C<irc_join>,
-C<irc_kick>, etc., which you can use to update a list of people on the
-channel.
+or not), your session will receive events with names like
+L<< C<irc_join>|/"irc_join" >>, L<< C<irc_kick>|/"irc_kick" >>, etc.,
+which you can use to update a list of people on the channel.
 
 Registering for C<'all'> will cause it to send all IRC-related events to
 you; this is the easiest way to handle it. See the test script for an
 example.
 
-Registering will generate an C<irc_registered> event that your session can
-trap. ARG0 is the components object. Useful if you want to bolt PoCo-IRC's
-new features such as Plugins into a bot coded to the older deprecated API.
-If you are using the new API, ignore this :)
+Registering will generate an L<< C<irc_registered>|/"irc_registered" >>
+event that your session can trap. ARG0 is the components object. Useful
+if you want to bolt PoCo-IRC's new features such as Plugins into a bot
+coded to the older deprecated API. If you are using the new API, ignore this :)
 
 Registering with multiple component sessions can be tricky, especially if
 one wants to marry up sessions/objects, etc. Check 'SIGNALS' section of this
@@ -2162,24 +2164,24 @@ if you would like to use formatting and color codes in your messages.
 
 Tells the IRC server to disconnect you. Takes one optional argument:
 some clever, witty string that other users in your channels will see
-as you leave. You can expect to get an C<irc_disconnect> event shortly
-after sending this.
+as you leave. You can expect to get an
+L<< C<irc_disconnect>|/"irc_disconnect" >> event shortly after sending this.
 
 =head3 C<shutdown>
 
 By default, POE::Component::IRC sessions never go away. Even after
 they're disconnected, they're still sitting around in the background,
-waiting for you to call C<connect> on them again to reconnect.
-(Whether this behavior is the Right Thing is doubtful, but I don't want
-to break backwards compatibility at this point.) You can send the IRC
-session a C<shutdown> event manually to make it delete itself.
+waiting for you to call L<< C<connect>|/"connect" >> on them again to
+reconnect. (Whether this behavior is the Right Thing is doubtful, but I
+don't want to break backwards compatibility at this point.) You can send
+the IRC session a C<shutdown> event manually to make it delete itself.
 
 If you are connected, C<shutdown> will send a quit message to ircd and
 disconnect. If you provide an argument that will be used as the QUIT
 message.
 
-Terminating multiple components can be tricky. Check the 'SIGNALS' section of
-this documentation for an alternative method of shutting down multiple poco-ircs.
+Terminating multiple components can be tricky. Check the L<SIGNALS|/"SIGNALS">
+section for an alternative method of shutting down multiple poco-ircs.
 
 =head3 C<topic>
 
@@ -2192,9 +2194,9 @@ channel topic.
 =head3 C<unregister>
 
 Takes N arguments: a list of event names which you I<don't> want to
-receive. If you've previously done a C<register> for a particular event
-which you no longer care about, this event will tell the IRC
-connection to stop sending them to you. (If you haven't, it just
+receive. If you've previously done a L<< C<register>|/"register" >>
+for a particular event which you no longer care about, this event will
+tell the IRC connection to stop sending them to you. (If you haven't, it just
 ignores you. No big deal.)
 
 If you have registered with 'all', attempting to unregister individual 
@@ -2306,12 +2308,6 @@ server for the list of servers in between you and the thing you
 mentioned. If sent with no arguments, it will show you all the servers
 which are connected to your current server.
 
-=head3 C<userhost>
-
-Asks the IRC server for information about particular nicknames. (The
-RFC doesn't define exactly what this is supposed to return.) Takes any
-number of arguments: the nicknames to look up.
-
 =head3 C<users>
 
 Asks the server how many users are logged into it. Defaults to the
@@ -2337,8 +2333,9 @@ the RFC.
 
 Queries the IRC server for detailed information about a particular
 user. Takes any number of arguments: nicknames or hostmasks to ask for
-information about. As of version 3.2, you will receive an C<irc_whois>
-event in addition to the usual numeric responses. See below for details.
+information about. As of version 3.2, you will receive an
+L<< C<irc_whois>|/"irc_whois" >> event in addition to the usual numeric
+responses. See below for details.
 
 =head3 C<whowas>
 
@@ -2346,8 +2343,8 @@ Asks the server for information about nickname which is no longer
 connected. Takes at least one argument: a nickname to look up (no
 wildcards allowed), the optional maximum number of history entries to
 return, and the optional server hostname to query. As of version 3.2,
-you will receive an C<irc_whowas> event in addition to the usual numeric
-responses. See below for details.
+you will receive an L<< C<irc_whowas>|/"irc_whowas" >> event in addition
+to the usual numeric responses. See below for details.
 
 =head3 C<ping> and C<pong>
 
@@ -2355,6 +2352,11 @@ Included for completeness sake. The component will deal with ponging to
 pings automatically. Don't worry about it.
 
 =head2 Purely Esoteric Commands
+
+=head3 C<die>
+
+Tells the IRC server you're connect to, to terminate. Only useful for
+IRCops, thank goodness. Takes no arguments. 
 
 =head3 C<locops>
 
@@ -2377,11 +2379,6 @@ logged-on global opers. This option is specific to EFNet.
 Tells the IRC server you're connected to, to rehash its configuration
 files. Only useful for IRCops. Takes no arguments.
 
-=head3 C<die>
-
-Tells the IRC server you're connect to, to terminate. Only useful for
-IRCops, thank goodness. Takes no arguments. 
-
 =head3 C<restart>
 
 Tells the IRC server you're connected to, to shut down and restart itself.
@@ -2391,13 +2388,20 @@ Only useful for IRCops, thank goodness. Takes no arguments.
 
 Tells one IRC server (which you have operator status on) to connect to
 another. This is actually the CONNECT command, but I already had an
-event called C<connect>, so too bad. Takes the args you'd expect: a
-server to connect to, an optional port to connect on, and an optional
-remote server to connect with, instead of the one you're currently on.
+event called L<< C<connect>|/"connect" >>, so too bad. Takes the args
+you'd expect: a server to connect to, an optional port to connect on,
+and an optional remote server to connect with, instead of the one you're
+currently on.
 
 =head3 C<summon>
 
 Don't even ask.
+
+=head3 C<userhost>
+
+Asks the IRC server for information about particular nicknames. (The
+RFC doesn't define exactly what this is supposed to return.) Takes any
+number of arguments: the nicknames to look up.
 
 =head3 C<wallops>
 
@@ -2458,8 +2462,8 @@ generates an C<irc_ctcp_action> event, blah blah, so on and so forth. ARG0
 is the nick!hostmask of the sender. ARG1 is the channel/recipient
 name(s). ARG2 is the text of the CTCP message.
 
-Note that DCCs are handled separately -- see the C<irc_dcc_request>
-event, below.
+Note that DCCs are handled separately -- see the
+L<DCC plugin|POE::Component::IRC::Plugin::DCC>.
 
 =head3 C<irc_ctcpreply_*>
 
@@ -2470,8 +2474,8 @@ such as C<irc_ctcp_*> events.
 
 =head3 C<irc_disconnected>
 
-The counterpart to C<irc_connected>, sent whenever a socket connection
-to an IRC server closes down (whether intentionally or
+The counterpart to L<< C<irc_connected>|/"irc_connected" >>, sent whenever
+a socket connection to an IRC server closes down (whether intentionally or
 unintentionally). ARG0 is the server name.
 
 =head3 C<irc_error>
@@ -2609,7 +2613,8 @@ is a reference tothe component's object.
 =head3 C<irc_shutdown>
 
 Sent to all registered sessions when the component has been asked to
-C<shutdown>. ARG0 will be the session ID of the requesting session.
+L<< C<shutdown>|/"shutdown" >>. ARG0 will be the session ID of the requesting
+session.
 
 =head3 C<irc_isupport>
 
@@ -2620,9 +2625,10 @@ object.
 
 =head3 C<irc_delay_set>
 
-Emitted on a succesful addition of a delayed event using C<delay()> method. ARG0
-will be the alarm_id which can be used later with C<delay_remove()>. Subsequent
-parameters are the arguments that were passed to C<delay()>.
+Emitted on a succesful addition of a delayed event using the
+L<< C<delay()>|/"delay" >> method. ARG0 will be the alarm_id which can be used
+later with L<< C<delay_remove()>|/"delay_remove" >>. Subsequent parameters are
+the arguments that were passed to C<delay()>.
 
 =head3 C<irc_delay_removed>
 
@@ -2680,7 +2686,7 @@ need to parse ARG1 yourself.
 =head1 SIGNALS
 
 The component will handle a number of custom signals that you may send using 
-L<POE::Kernel|POE::Kernel> C<signal()> method.
+L<POE::Kernel|POE::Kernel>'s C<signal()> method.
 
 =head2 C<POCOIRC_REGISTER>
 
@@ -2688,16 +2694,17 @@ Registering with multiple PoCo-IRC components has been a pita. Well, no more,
 using the power of L<POE::Kernel|POE::Kernel> signals.
 
 If the component receives a C<POCOIRC_REGISTER> signal it'll register the
-requesting session and trigger an C<irc_registered> event. From that event one
-can get all the information necessary such as the poco-irc object and the
-SENDER session to do whatever one needs to build a poco-irc dispatch table.
+requesting session and trigger an L<< C<irc_registered>|/"irc_registered" >>
+event. From that event one can get all the information necessary such as the
+poco-irc object and the SENDER session to do whatever one needs to build a
+poco-irc dispatch table.
 
 The way the signal handler in PoCo-IRC is written also supports sending the 
 C<POCOIRC_REGISTER> to multiple sessions simultaneously, by sending the signal
 to the POE Kernel itself.
 
 Pass the signal your session, session ID or alias, and the IRC events (as
-specified to C<register>).
+specified to L<< C<register>|/"register" >>).
 
 To register with multiple PoCo-IRCs one can do the following in your session's
 _start handler:
