@@ -32,6 +32,7 @@ my @modules = qw(
     POE::Component::IRC::Plugin::BotAddressed
     POE::Component::IRC::Plugin::AutoJoin
     POE::Component::IRC::Plugin::BotCommand
+    POE::Component::IRC::Plugin::DCC
 );
 
 plan tests => scalar @modules;
