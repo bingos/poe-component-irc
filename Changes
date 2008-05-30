@@ -8,6 +8,7 @@ Revision history for Perl extension POE::Component::IRC.
       allow it to be exported (Hinrik)
     - IRC.pm et al: Improved some warning messages (Hinrik)
     - IRC.pm: Moved DCC support to a plugin (Hinrik)
+    - IRC.pm: Improved the docs some. Better index and more links. (Hinrik)
     - The plugin system now uses POE::Component::Pluggable (Hinrik)
 
 5.76  Thu Apr 24 15:05:05 GMT 2008
