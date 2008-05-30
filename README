@@ -41,7 +41,7 @@ available at https://www.bingosnet.net/svn/pocoirc/
 POE. (Duh. :-)  Specifically, version 0.3202 or better.
 Perl 5.6.0 or later is required.
 
-POE::Component::Pluggable is also needed.
+POE::Component::Pluggable 1.06 or later is also needed.
 
 If the module finds POE::Component::Client::DNS installed it
 will use it to resolve the IP address of the servername given to connect.
