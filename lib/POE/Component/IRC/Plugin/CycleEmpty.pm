@@ -80,7 +80,7 @@ sub _cycle {
     return;
 }
 
-sub cycling {
+sub is_cycling {
     my ($self, $value) = @_;
     return 1 if $self->{cycling}->{ u_irc($value) };
     return;
@@ -120,7 +120,7 @@ L<POE::Component::IRC::State|POE::Component::IRC::State> or a subclass thereof.
 Returns a plugin object suitable for feeding to
 L<POE::Component::IRC|POE::Component::IRC>'s plugin_add() method.
 
-=head2 C<cycling>
+=head2 C<is_cycling>
 
 One argument:
 
