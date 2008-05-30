@@ -810,12 +810,8 @@ sub ctcp {
 }
 
 sub _dcc_dispatch {
-    my ($state, $self, @args) = @_[STATE, OBJECT, ARG0..$#_];
-
-    # DCC type (SEND, USER, etc) should be in upper case
-    $args[2] = uc $args[2] if $state eq 'dcc';
-
-    $self->_pluggable_process(USER => $state => \(@args));
+    $_[OBJECT]->_pluggable_process(USER => $_[STATE] => \(@_[ARG0..$#_]));
+    return;
 }
 
 # The way /notify is implemented in IRC clients.

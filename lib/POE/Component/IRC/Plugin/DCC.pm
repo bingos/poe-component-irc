@@ -124,7 +124,8 @@ sub _event_dcc {
 
     my $irc = $self->{irc};
     my ($bindport, $factory, $port, $myaddr, $size);
-    
+
+    $type = uc $type;
     if ($type eq 'CHAT') {
         $file = 'chat';   # As per the semi-specification
     }
