@@ -1,11 +1,3 @@
-package POE::Component::IRC::Cookbook::Disconnecting;
-
-use strict;
-use warnings;
-
-1;
-__END__
-
 =head1 NAME
 
 POE::Component::IRC::Cookbook::Disconnecting - How to disconnect gracefully
@@ -52,4 +44,3 @@ and things shut down.
 
 Rocco Caputo (I think). PODified by Hinrik E<Ouml>rn SigurE<eth>sson.
 
-=cut

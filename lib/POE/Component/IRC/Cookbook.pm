@@ -1,11 +1,3 @@
-package POE::Component::IRC::Cookbook;
-
-use strict;
-use warnings;
-
-1;
-__END__
-
 =head1 NAME
 
 POE::Component::IRC::Cookbook - The PoCo-IRC Cookbook: Overview
@@ -96,3 +88,4 @@ A simple IRC client with a ReadLine interface.
 =head1 AUTHOR
 
 Hinrik E<Ouml>rn SigurE<eth>sson, hinrik.sig@gmail.com
+

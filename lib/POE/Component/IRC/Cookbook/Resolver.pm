@@ -1,11 +1,3 @@
-package POE::Component::IRC::Cookbook::Resolver;
-
-use strict;
-use warnings;
-
-1;
-__END__
-
 =head1 NAME
 
 POE::Component::IRC::Cookbook::Resolver - A bot that can resolve DNS records
@@ -47,7 +39,7 @@ to DNS records for channel members.
      $irc->plugin_add('AutoJoin', POE::Component::IRC::Plugin::AutoJoin->new(
          Channels => [ '#test_channel1', '#test_channel2' ]
      ));
-     
+
      $irc->plugin_add('BotCommand', POE::Component::IRC::Plugin::BotCommand->new(
          Commands => {
             resolve => 'Usage: resolve <host>'
@@ -65,7 +57,7 @@ to DNS records for channel members.
      my $dns = $_[HEAP]->{dns};
      my $nick = parse_user( $_[ARG0] );
      my ($channel, $host) = @_[ARG1, ARG2];
-    
+
      my $res = $dns->resolve(
          event => 'dns_response',
          host => $host,
@@ -74,7 +66,7 @@ to DNS records for channel members.
              nick    => $nick,
          },
      );
-    
+
      $poe_kernel->yield(dns_response => $res) if $res;
      return;
  }
@@ -85,7 +77,7 @@ to DNS records for channel members.
      my @answers = $res->{response}
          ? map { $_->rdatastr } $res->{response}->answer()
          : ();
- 
+
      $irc->yield(
          'privmsg',
          $res->{context}->{channel},
@@ -101,4 +93,3 @@ to DNS records for channel members.
 
 Hinrik E<Ouml>rn SigurE<eth>sson, hinrik.sig@gmail.com
 
-=cut

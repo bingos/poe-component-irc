@@ -1,11 +1,3 @@
-package POE::Component::IRC::Cookbook::BasicBot;
-
-use strict;
-use warnings;
-
-1;
-__END__
-
 =head1 NAME
 
 POE::Component::IRC::Cookbook::BasicBot - A basic IRC bot
@@ -81,4 +73,3 @@ That's it!
 
 Hinrik E<Ouml>rn SigurE<eth>sson, hinrik.sig@gmail.com
 
-=cut

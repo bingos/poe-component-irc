@@ -1,13 +1,3 @@
-package POE::Component::IRC::Projects;
-
-use strict;
-use warnings;
-
-our $VERSION = '0.02';
-
-1;
-__END__
-
 =head1 NAME
 
 POE::Component::IRC::Projects - Listing of projects that use L<POE::Component::IRC>.
@@ -121,4 +111,3 @@ A featureful easy-to-use IRC bouncer.
 
 =back
 
-=cut

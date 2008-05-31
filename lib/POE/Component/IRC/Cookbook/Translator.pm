@@ -1,11 +1,3 @@
-package POE::Component::IRC::Cookbook::Translator;
-
-use strict;
-use warnings;
-
-1;
-__END__
-
 =head1 NAME
 
 POE::Component::IRC::Cookbook::Translator - A bot that can translate text
@@ -53,7 +45,7 @@ to handle the translate command.
      $irc->plugin_add('AutoJoin', POE::Component::IRC::Plugin::AutoJoin->new(
          Channels => [ '#test_channel1', '#test_channel2' ]
      ));
-     
+
      $irc->plugin_add('BotCommand', POE::Component::IRC::Plugin::BotCommand->new(
          Commands => {
             trans => 'Usage: trans <from>,<to> <text>'
@@ -71,7 +63,7 @@ to handle the translate command.
      my $nick = parse_user( $_[ARG0] );
      my $channel = $_[ARG1];
      my ($from, $to, $text) = split /,|\s+/, $_[ARG2], 3;
-     
+
      if (!exists $heap->{translators}->{$from . $to}) {
          eval {
              $heap->{translators}->{$from . $to} = POE::Component::Lingua::Translate->new(
@@ -81,7 +73,7 @@ to handle the translate command.
                  dest      => $to,
              );
          };
-         
+
          if ($@) {
              $irc->yield(privmsg => $channel, "$nick: There was an error: $@");
              return;
@@ -104,7 +96,7 @@ to handle the translate command.
      my $utf8 = guess_encoding($line, 'utf8');
      return ref $utf8 ? decode('utf8', $line) : decode('cp1252', $line);
  }
- 
+
  sub translated {
      my $irc = $_[HEAP]->{irc};
      my ($text, $context, $error) = @_[ARG0, ARG1, ARG2]; 
@@ -117,7 +109,7 @@ to handle the translate command.
          );
          return;
      }
-     
+
      $irc->yield(
          'privmsg',
          $context->{channel},
@@ -130,4 +122,3 @@ to handle the translate command.
 
 Hinrik E<Ouml>rn SigurE<eth>sson, hinrik.sig@gmail.com
 
-=cut
