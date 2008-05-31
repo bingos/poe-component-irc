@@ -12,9 +12,7 @@ my @modules = qw(
     POE::Component::IRC::Qnet::State
     POE::Component::IRC::Constants
     POE::Component::IRC::Common
-    POE::Component::IRC::Test::Plugin
     POE::Component::IRC::Test::Harness
-    POE::Component::IRC::Projects
     POE::Component::IRC::Plugin
     POE::Component::IRC::Plugin::Whois
     POE::Component::IRC::Plugin::Proxy
