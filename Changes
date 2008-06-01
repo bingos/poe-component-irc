@@ -3,6 +3,7 @@ Revision history for Perl extension POE::Component::IRC.
 5.80
     - CycleEmpty.pm: Renamed cycling() to is_cycling() (Hinrik)
     - IRC.pm: Documented the squit command (Hinrik)
+    - Only test ziplinks given a proper version of *Zlib::Stream (Hinrik)
 
 5.78  Fri May 30 08:03:30 BST 2008
     - Logger.pm: Fix the PART thing properly (Hinrik)
