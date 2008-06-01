@@ -18,7 +18,7 @@ use base qw(POE::Component::Pluggable);
 
 our $VERSION = '5.78';
 our $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
-our ($GOT_SSL, $GOT_CLIENT_DNS, $GOT_SOCKET6);
+our ($GOT_SSL, $GOT_CLIENT_DNS, $GOT_SOCKET6, $GOT_ZLIB);
 
 BEGIN {
     eval {
@@ -35,6 +35,10 @@ BEGIN {
         import Socket6;
         $GOT_SOCKET6 = 1;
     };
+    eval {
+        require POE::Filter::Zlib::Stream;
+        $GOT_ZLIB = 1 if $POE::Filter::Zlib::Stream::VERSION >= 1.96;
+    }
 }
 
 # BINGOS: I have bundled up all the stuff that needs changing
@@ -591,10 +595,6 @@ sub _start {
         POE::Filter::Line->new( OutputLiteral => "\015\012" ),
     ]);
 
-    if (eval { require POE::Filter::Zlib::Stream }) {
-        $self->{can_do_zlib} = 1;
-    }
-    
     $self->{SESSION_ID} = $session->ID();
 
     # Plugin 'irc_whois' and 'irc_whowas' support
@@ -1456,7 +1456,7 @@ sub connected {
 sub _compress_uplink {
     my ($self, $value) = @_;
     
-    return if !$self->{can_do_zlib};
+    return if !$GOT_ZLIB;
     return $self->{uplink} if !defined $value;
     
     if ($value) {
@@ -1474,7 +1474,7 @@ sub _compress_uplink {
 sub _compress_downlink {
     my ($self, $value) = @_;
     
-    return if !$self->{can_do_zlib};
+    return if !$GOT_ZLIB;
     return $self->{downlink} if !defined $value;
     
     if ($value) {

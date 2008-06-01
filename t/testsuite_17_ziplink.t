@@ -6,9 +6,14 @@ use POE::Component::IRC::Test::Harness;
 use Socket;
 use Test::More;
 
-eval { require POE::Filter::Zlib::Stream };
-if ($@) {
-    plan skip_all => 'POE::Filter::Zlib::Stream not installed';
+my $GOT_ZLIB;
+eval {
+    require POE::Filter::Zlib::Stream;
+    $GOT_ZLIB = 1 if $POE::Filter::Zlib::Stream::VERSION >= 1.96;
+};
+
+if (!$GOT_ZLIB) {
+    plan skip_all => 'POE::Filter::Zlib::Stream >=1.96 not installed';
 }
 
 plan tests => 3;
