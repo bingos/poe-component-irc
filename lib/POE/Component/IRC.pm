@@ -2396,6 +2396,11 @@ you'd expect: a server to connect to, an optional port to connect on,
 and an optional remote server to connect with, instead of the one you're
 currently on.
 
+=head3 C<squit>
+
+Operator-only command used to disconnect server links. Takes two arguments,
+the server to disconnect and a message explaining your action.
+
 =head3 C<summon>
 
 Don't even ask.
