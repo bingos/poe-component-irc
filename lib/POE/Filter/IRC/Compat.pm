@@ -9,56 +9,109 @@ use base qw(POE::Filter);
 
 our $VERSION = '1.4';
 
+my %irc_cmds = (
+    qr/^\d{3,3}$/ => sub {
+        my ($self, $event, $line) = @_;
+        $event->{args}->[0] = _decolon( $line->{prefix} );
+        shift @{ $line->{params} };
+        if ( $line->{params}->[0] && $line->{params}->[0] =~ /\s+/ ) {
+            $event->{args}->[1] = $line->{params}->[0];
+        }
+        else {
+            $event->{args}->[1] = join(' ', ( map { /\s+/ ? ":$_" : $_ } @{ $line->{params} } ) );
+        }
+        $event->{args}->[2] = $line->{params};
+    },
+    qr/notice/ => sub {
+        my ($self, $event, $line) = @_;
+        if ($line->{prefix}) {
+            $event->{args} = [ _decolon( $line->{prefix} ), [split /,/, $line->{params}->[0]], $line->{params}->[1] ];
+        }
+        else {
+            $event->{name} = 'snotice';
+            $event->{args}->[0] = $line->{params}->[1];
+        }
+    },
+    qr/privmsg/ => sub {
+        my ($self, $event, $line) = @_;
+        if ( grep { index( $line->{params}->[0], $_ ) >= 0 } @{ $self->{chantypes} } ) {
+            $event->{args} = [ _decolon( $line->{prefix} ), [split /,/, $line->{params}->[0]], $line->{params}->[1] ];
+            $event->{name} = 'public';
+        }
+        else {
+            $event->{args} = [ _decolon( $line->{prefix} ), [split /,/, $line->{params}->[0]], $line->{params}->[1] ];
+            $event->{name} = 'msg';
+        }
+    },
+    qr/invite/ => sub {
+        my ($self, $event, $line) = @_;
+        shift( @{ $line->{params} } );
+        unshift( @{ $line->{params} }, _decolon( $line->{prefix} || '' ) ) if $line->{prefix};
+        $event->{args} = $line->{params};
+    },
+);
+
+# the magic cookie jar
+my %dcc_cmds = (
+    qr/CHAT|SEND/ => sub {
+        my ($nick, $type, $arg_string) = @_;
+        my ($file, $addr, $port, $size);
+        return if !(($file, $addr, $port, $size) = $arg_string =~ /^(".+"|\S+) +(\d+) +(\d+)(?: +(\d+))?/);
+        
+        $file =~ s/^"|"$//g;
+        $file = fileparse($file);
+        
+        return (
+            $port,
+            {
+                open => undef,
+                nick => $nick,
+                type => $type,
+                file => $file,
+                size => $size,
+                done => 0,
+                addr => $addr,
+                port => $port,
+            },
+            $file,
+            $size,
+        );
+    },
+    qr/ACCEPT|RESUME/ => sub {
+        my ($nick, $type, $args) = @_;
+        my ($file, $port, $position);
+        return if !(($file, $port, $position) = $args =~ /^(".+"|\S+) +(\d+) +(\d+)/);
+
+        $file =~ s/^"|"$//g;
+        $file = fileparse($file);
+
+        return (
+            $port,
+            {
+                open => undef,
+                nick => $nick,
+                type => $type,
+                file => $file,
+                size => $position,
+                done => 0,
+                addr => undef,
+                port => $port,
+            },
+            $file,
+            $position,
+        );
+    },
+);
+
 sub new {
-    my ($package, %params) = @_;
+    my ($package, %self) = @_;
     
-    $params{lc $_} = delete $params{$_} for keys %params;
-    $params{BUFFER} = [ ];
-    $params{_ircd} = POE::Filter::IRCD->new();
-    $params{chantypes} = [ '#', '&' ] if ref $params{chantypes} ne 'ARRAY';
-    $params{commands} = {
-        qr/^\d{3,3}$/ => sub {
-            my ($self, $event, $line) = @_;
-            $event->{args}->[0] = _decolon( $line->{prefix} );
-            shift @{ $line->{params} };
-            if ( $line->{params}->[0] && $line->{params}->[0] =~ /\s+/ ) {
-                $event->{args}->[1] = $line->{params}->[0];
-            }
-            else {
-                $event->{args}->[1] = join(' ', ( map { /\s+/ ? ":$_" : $_ } @{ $line->{params} } ) );
-            }
-            $event->{args}->[2] = $line->{params};
-        },
-        qr/notice/ => sub {
-            my ($self, $event, $line) = @_;
-            if ($line->{prefix}) {
-                $event->{args} = [ _decolon( $line->{prefix} ), [split /,/, $line->{params}->[0]], $line->{params}->[1] ];
-            }
-            else {
-                $event->{name} = 'snotice';
-                $event->{args}->[0] = $line->{params}->[1];
-            }
-        },
-        qr/privmsg/ => sub {
-            my ($self, $event, $line) = @_;
-            if ( grep { index( $line->{params}->[0], $_ ) >= 0 } @{ $self->{chantypes} } ) {
-                $event->{args} = [ _decolon( $line->{prefix} ), [split /,/, $line->{params}->[0]], $line->{params}->[1] ];
-                $event->{name} = 'public';
-            }
-            else {
-                $event->{args} = [ _decolon( $line->{prefix} ), [split /,/, $line->{params}->[0]], $line->{params}->[1] ];
-                $event->{name} = 'msg';
-            }
-        },
-        qr/invite/ => sub {
-            my ($self, $event, $line) = @_;
-            shift( @{ $line->{params} } );
-            unshift( @{ $line->{params} }, _decolon( $line->{prefix} || '' ) ) if $line->{prefix};
-            $event->{args} = $line->{params};
-        },
-    };
+    $self{lc $_} = delete $self{$_} for keys %self;
+    $self{BUFFER} = [ ];
+    $self{_ircd} = POE::Filter::IRCD->new();
+    $self{chantypes} = [ '#', '&' ] if ref $self{chantypes} ne 'ARRAY';
   
-    return bless \%params, $package;
+    return bless \%self, $package;
 }
 
 sub clone {
@@ -104,9 +157,9 @@ sub get_one {
         raw_line => $line->{raw_line},
     };
 
-    for my $cmd (keys %{ $self->{commands} }) {
+    for my $cmd (keys %irc_cmds) {
         if ($event->{name} =~ $cmd) {
-            $self->{commands}->{$cmd}->($self, $event, $line);
+            $irc_cmds{$cmd}->($self, $event, $line);
             return [ $event ];
         }
     }
@@ -208,43 +261,48 @@ sub _get_ctcp {
     my $events = [ ];
     my ($name, $args);
     CTCP: for my $string (@$ctcp) {
-        if (!(($name, $args) = $string =~ /^(\w+)(?: (.*))?/)) {
-            warn "Received malformed CTCP message: '$string'\n" if $self->{debug};
+        if (!(($name, $args) = $string =~ /^(\w+)(?: +(.*))?/)) {
+            warn "Received malformed CTCP message from $who: $string\n" if $self->{debug};
             last CTCP;
         }
             
         if (lc $name eq 'dcc') {
-            my ($type, $file, $addr, $port, $size);
+            my ($type, $rest);
             
-            if (!(($type, $file, $addr, $port, $size)
-                = $args =~ /^(\w+) (".+"|\S+) (\d+) (\d+)(?: (\d+))?$/)) {
-                warn "Received malformed DCC request: '$args'\n" if $self->{debug};
+            if (!(($type, $rest) = $args =~ /^(\w+) +(.+)/)) {
+                warn "Received malformed DCC request from $who: $args\n" if $self->{debug};
                 last CTCP;
+
             }
-            $file =~ s/^"|"$//g;
-            $file = fileparse($file);
-                
-            push @$events, {
-                name => 'dcc_request',
-                args => [
-                    $who,
-                    uc $type,
-                    $port,
+            $type = uc $type;
+
+            if (my ($handler) = grep { $type =~ /$_/ } keys %dcc_cmds) {
+                my @dcc_args = $dcc_cmds{$handler}->($who, $type, $rest);
+                if (!@dcc_args) {
+                    warn "Received malformed DCC $type request from $who: $rest\n" if $self->{debug};
+                    last CTCP;
+                }
+
+                push @$events, (
                     {
-                        open => undef,
-                        nick => $who,
-                        type => uc $type,
-                        file => $file,
-                        size => $size,
-                        done => 0,
-                        addr => $addr,
-                        port => $port,
+                        name => 'dcc_request',
+                        args => [
+                            $who,
+                            $type,
+                            @dcc_args,
+                        ],
+                        raw_line => $line,
                     },
-                    $file,
-                    $size,
-                ],
-                raw_line => $line,
-            };
+                    {
+                        name => "dcc_request_${type}",
+                        args => [
+                            $who,
+                            @dcc_args,
+                        ],
+                        raw_line => $line,
+                    },
+                );
+            }
         }
         else {
             push @$events, {
