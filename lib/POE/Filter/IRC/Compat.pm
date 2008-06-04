@@ -299,7 +299,7 @@ sub _get_ctcp {
                     raw_line => $line,
                 },
                 {
-                    name => "dcc_request_${type}",
+                    name => 'dcc_request_' . lc $type,
                     args => [
                         $who,
                         @dcc_args,
