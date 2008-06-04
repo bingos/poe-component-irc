@@ -276,33 +276,37 @@ sub _get_ctcp {
             }
             $type = uc $type;
 
-            if (my ($handler) = grep { $type =~ /$_/ } keys %dcc_cmds) {
-                my @dcc_args = $dcc_cmds{$handler}->($who, $type, $rest);
-                if (!@dcc_args) {
-                    warn "Received malformed DCC $type request from $who: $rest\n" if $self->{debug};
-                    last CTCP;
-                }
-
-                push @$events, (
-                    {
-                        name => 'dcc_request',
-                        args => [
-                            $who,
-                            $type,
-                            @dcc_args,
-                        ],
-                        raw_line => $line,
-                    },
-                    {
-                        name => "dcc_request_${type}",
-                        args => [
-                            $who,
-                            @dcc_args,
-                        ],
-                        raw_line => $line,
-                    },
-                );
+            my ($handler) = grep { $type =~ /$_/ } keys %dcc_cmds;
+            if (!$handler) {
+                warn "Unhandled DCC $type request: $rest\n" if $self->{debug};
+                last CTCP;
             }
+
+            my @dcc_args = $dcc_cmds{$handler}->($who, $type, $rest);
+            if (!@dcc_args) {
+                warn "Received malformed DCC $type request from $who: $rest\n" if $self->{debug};
+                last CTCP;
+            }
+
+            push @$events, (
+                {
+                    name => 'dcc_request',
+                    args => [
+                        $who,
+                        $type,
+                        @dcc_args,
+                    ],
+                    raw_line => $line,
+                },
+                {
+                    name => "dcc_request_${type}",
+                    args => [
+                        $who,
+                        @dcc_args,
+                    ],
+                    raw_line => $line,
+                },
+            );
         }
         else {
             push @$events, {
