@@ -288,25 +288,15 @@ sub _get_ctcp {
                 last CTCP;
             }
 
-            push @$events, (
-                {
-                    name => 'dcc_request',
-                    args => [
-                        $who,
-                        $type,
-                        @dcc_args,
-                    ],
-                    raw_line => $line,
-                },
-                {
-                    name => 'dcc_request_' . lc $type,
-                    args => [
-                        $who,
-                        @dcc_args,
-                    ],
-                    raw_line => $line,
-                },
-            );
+            push @$events, {
+                name => 'dcc_request',
+                args => [
+                    $who,
+                    $type,
+                    @dcc_args,
+                ],
+                raw_line => $line,
+            };
         }
         else {
             push @$events, {
