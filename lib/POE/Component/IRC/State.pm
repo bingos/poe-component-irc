@@ -1162,14 +1162,15 @@ well as two additional ones:
 
 'AwayPoll', the interval (in seconds) in which to poll (i.e. C<WHO #channel>)
 the away status of channel members. Defaults to 0 (disabled). If enabled, you
-will receive C<irc_away_sync_*> / C<irc_user_away> / C<irc_user_back> events,
-and will be able to use the C<is_away> method for users other than yourself.
+will receive C<irc_away_sync_*> / L<C<irc_user_away>|/"irc_user_away"> /
+L<C<irc_user_back>|/"irc_user_back"> events, and will be able to use the
+L<C<is_away>|/"is_away"> method for users other than yourself.
 
 'WhoJoiners', a boolean indicating whether the component should send a
 C<WHO nick> for every person which joins a channel. Defaults to on
-(the C<WHO> is sent). If you turn this off, C<is_operator> will not work
-and C<nick_info> will only return the keys C<'Nick'>, C<'User'>, C<'Host'>
-and C<'Userhost'>.
+(the C<WHO> is sent). If you turn this off, L<C<is_operator>|/"is_operator">
+will not work and L<C<nick_info>|/"nick_info"> will only return the keys
+C<'Nick'>, C<'User'>, C<'Host'> and C<'Userhost'>.
 
 =head1 METHODS
 
@@ -1214,7 +1215,7 @@ to not be on that channel an empty list will be returned.
 Expects a nick as parameter. Returns a true value if the specified nick is away.
 Returns a false value if the nick is not away or not in the state. This will
 only work for your IRC user unless you specified a value for 'AwayPoll' in
-C<spawn>.
+L<C<spawn>|POE::Component::IRC/"spawn">.
 
 =head2 C<is_operator>
 
@@ -1362,13 +1363,13 @@ events, there are the following events you can register for:
 
 Sent whenever the component starts to synchronise the away statuses of channel
 members. ARG0 is the channel name. You will only receive this event if you
-specified a value for 'AwayPoll' in C<spawn>.
+specified a value for 'AwayPoll' in L<C<spawn>|POE::Component::IRC/"spawn">.
 
 =head2 C<irc_away_sync_end>
 
 Sent whenever the component has completed synchronising the away statuses of
 channel members. ARG0 is the channel name. You will only receive this event if
-you specified a value for 'AwayPoll' in C<spawn>.
+you specified a value for 'AwayPoll' in L<C<spawn>|POE::Component::IRC/"spawn">.
 
 =head2 C<irc_chan_sync>
 
@@ -1417,7 +1418,7 @@ component. You will only receive this event if you specified a value for
 Sent when an IRC user unsets his/her away status. ARG0 is the nickname, ARG1
 is an arrayref of channel names that are common to the nickname and the
 component. You will only receive this event if you specified a value for
-'AwayPoll' in C<spawn>.
+'AwayPoll' in L<C<spawn>|POE::Component::IRC/"spawn">.
 
 The following two 'irc_*' events are the same as their
 L<POE::Component::IRC|POE::Component::IRC> counterparts, with the additional
