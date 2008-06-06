@@ -15,7 +15,7 @@ our $VERSION = '1.8';
 
 sub new {
     my ($package, %self) = @_;
-    if (!$self{Path}) {
+    if (!defined $self{Path}) {
         die "$package requires a Path";
     }
     return bless \%self, $package;

@@ -54,7 +54,7 @@ my %irc_cmds = (
 # the magic cookie jar
 my %dcc_types = (
     qr/CHAT|SEND/ => sub {
-        my ($user, $type, $arg_string) = @_;
+        my ($nick, $type, $arg_string) = @_;
         my ($file, $addr, $port, $size);
         return if !(($file, $addr, $port, $size) = $arg_string =~ /^(".+"|\S+) +(\d+) +(\d+)(?: +(\d+))?/);
         
@@ -65,7 +65,7 @@ my %dcc_types = (
             $port,
             {
                 open => undef,
-                user => $user,
+                nick => $nick,
                 type => $type,
                 file => $file,
                 size => $size,
@@ -78,7 +78,7 @@ my %dcc_types = (
         );
     },
     qr/ACCEPT|RESUME/ => sub {
-        my ($user, $type, $args) = @_;
+        my ($nick, $type, $args) = @_;
         my ($file, $port, $position);
         return if !(($file, $port, $position) = $args =~ /^(".+"|\S+) +(\d+) +(\d+)/);
 
@@ -89,7 +89,7 @@ my %dcc_types = (
             $port,
             {
                 open => undef,
-                user => $user,
+                nick => $nick,
                 type => $type,
                 file => $file,
                 size => $position,
@@ -257,12 +257,13 @@ sub _decolon {
 sub _get_ctcp {
     my ($self, $line) = @_;
     my ($who, $type, $where, $ctcp, $text) = _ctcp_dequote( $line );
+    my $nick = (split /!/, $who)[0];
 
     my $events = [ ];
     my ($name, $args);
     CTCP: for my $string (@$ctcp) {
         if (!(($name, $args) = $string =~ /^(\w+)(?: +(.*))?/)) {
-            warn "Received malformed CTCP message from $who: $string\n" if $self->{debug};
+            warn "Received malformed CTCP message from $nick: $string\n" if $self->{debug};
             last CTCP;
         }
             
@@ -270,7 +271,7 @@ sub _get_ctcp {
             my ($type, $rest);
             
             if (!(($type, $rest) = $args =~ /^(\w+) +(.+)/)) {
-                warn "Received malformed DCC request from $who: $args\n" if $self->{debug};
+                warn "Received malformed DCC request from $nick: $args\n" if $self->{debug};
                 last CTCP;
 
             }
@@ -282,16 +283,16 @@ sub _get_ctcp {
                 last CTCP;
             }
 
-            my @dcc_args = $dcc_types{$handler}->($who, $type, $rest);
+            my @dcc_args = $dcc_types{$handler}->($nick, $type, $rest);
             if (!@dcc_args) {
-                warn "Received malformed DCC $type request from $who: $rest\n" if $self->{debug};
+                warn "Received malformed DCC $type request from $nick: $rest\n" if $self->{debug};
                 last CTCP;
             }
 
             push @$events, {
                 name => 'dcc_request',
                 args => [
-                    $who,
+                    $nick,
                     $type,
                     @dcc_args,
                 ],

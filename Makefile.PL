@@ -48,9 +48,9 @@ requires 'POE::Filter::Stackable' => 0;
 requires 'POE::Filter::IRCD' => 1.7;
 requires 'Encode' => 0;
 requires 'Encode::Guess' => 0;
-tests 't/*.t t/*/*.t';
+tests 't/*.t t/*/*.t t/*/*/*.t';
 author_tests 'xt';
-clean_files 'README.send followtail';
+clean_files 'README.send Changes.resume followtail logger_test';
 WriteAll();
 exit 0;
 
