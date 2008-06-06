@@ -7,7 +7,7 @@ use POE::Filter::IRCD;
 use File::Basename qw(fileparse);
 use base qw(POE::Filter);
 
-our $VERSION = '1.4';
+our $VERSION = '1.5';
 
 my %irc_cmds = (
     qr/^\d{3,3}$/ => sub {
@@ -52,9 +52,9 @@ my %irc_cmds = (
 );
 
 # the magic cookie jar
-my %dcc_cmds = (
+my %dcc_types = (
     qr/CHAT|SEND/ => sub {
-        my ($nick, $type, $arg_string) = @_;
+        my ($user, $type, $arg_string) = @_;
         my ($file, $addr, $port, $size);
         return if !(($file, $addr, $port, $size) = $arg_string =~ /^(".+"|\S+) +(\d+) +(\d+)(?: +(\d+))?/);
         
@@ -65,7 +65,7 @@ my %dcc_cmds = (
             $port,
             {
                 open => undef,
-                nick => $nick,
+                user => $user,
                 type => $type,
                 file => $file,
                 size => $size,
@@ -78,7 +78,7 @@ my %dcc_cmds = (
         );
     },
     qr/ACCEPT|RESUME/ => sub {
-        my ($nick, $type, $args) = @_;
+        my ($user, $type, $args) = @_;
         my ($file, $port, $position);
         return if !(($file, $port, $position) = $args =~ /^(".+"|\S+) +(\d+) +(\d+)/);
 
@@ -89,7 +89,7 @@ my %dcc_cmds = (
             $port,
             {
                 open => undef,
-                nick => $nick,
+                user => $user,
                 type => $type,
                 file => $file,
                 size => $position,
@@ -276,13 +276,13 @@ sub _get_ctcp {
             }
             $type = uc $type;
 
-            my ($handler) = grep { $type =~ /$_/ } keys %dcc_cmds;
+            my ($handler) = grep { $type =~ /$_/ } keys %dcc_types;
             if (!$handler) {
                 warn "Unhandled DCC $type request: $rest\n" if $self->{debug};
                 last CTCP;
             }
 
-            my @dcc_args = $dcc_cmds{$handler}->($who, $type, $rest);
+            my @dcc_args = $dcc_types{$handler}->($who, $type, $rest);
             if (!@dcc_args) {
                 warn "Received malformed DCC $type request from $who: $rest\n" if $self->{debug};
                 last CTCP;

@@ -6,11 +6,16 @@ use File::Basename qw(fileparse);
 use POE qw(Driver::SysRW Filter::Line Filter::Stream
            Wheel::ReadWrite Wheel::SocketFactory);
 use POE::Component::IRC::Common qw(parse_user);
-use POE::Component::IRC::Constants qw(:ALL);
 use POE::Component::IRC::Plugin qw(:ALL);
 use Socket;
 
-our $VERSION = '1.0';
+our $VERSION = '1.1';
+
+use constant {
+    BLOCKSIZE          => 1024,  # Send DCC data in 1k chunks
+    INCOMING_BLOCKSIZE => 10240, # 10k per DCC socket read
+    DCC_TIMEOUT        => 300,   # Five minutes for listening DCCs
+};
 
 sub new {
     my ($package, %self) = @_;
@@ -39,6 +44,7 @@ sub PCI_register {
         ],
     );
 
+    $irc->plugin_register($self, 'SERVER', qw(disconnected dcc_request));
     $irc->plugin_register($self, 'USER', qw(dcc dcc_accept dcc_chat dcc_close dcc_resume));
     
     return 1;
@@ -71,6 +77,35 @@ sub nataddr {
     my ($self, $value) = @_;
     $self->{nataddr} = $value;
     return;
+}
+
+sub S_disconnected {
+    my ($self) = $_;
+    # clean up old cookies for any ignored RESUME requests 
+    delete $self->{resuming};
+    return PCI_EAT_NONE;
+}
+
+sub S_dcc_request {
+    my ($self, $irc) = splice @_, 0, 2;
+    my ($user, $type, $port, $cookie, $file, $size) = map { defined && ${ $_ } } @_;
+
+    if ($type eq 'ACCEPT' && $self->{resuming}->{"$port+$user"}) {
+        # the old cookie has the peer's address
+        my $old_cookie = delete $self->{resuming}->{"$port+$user"};
+        $irc->yield(dcc_accept => $old_cookie);
+    }
+    elsif ($type eq 'RESUME') {
+        for my $cookie (values %{ $self->{dcc} }) {
+            next if $cookie->{user} ne $user;
+            next if $cookie->{port} ne $port;
+            my $nick = parse_user($user);
+            $irc->yield(ctcp => $nick => "DCC ACCEPT $file $port $size");
+            last;
+        }
+    }
+
+    return PCI_EAT_NONE;
 }
 
 # the U_* handlers are stubs which call our POE event handlers
@@ -114,7 +149,7 @@ sub U_dcc_resume {
 
 # Attempt to initiate a DCC SEND or CHAT connection with another person.
 sub _event_dcc {
-    my ($kernel, $self, $nick, $type, $file, $blocksize, $timeout)
+    my ($kernel, $self, $user, $type, $file, $blocksize, $timeout)
         = @_[KERNEL, OBJECT, ARG0..$#_];
     
     if (!defined $type) {
@@ -140,7 +175,7 @@ sub _event_dcc {
                 'irc_dcc_error',
                 0,
                 "Couldn't get ${file}'s size: $!",
-                $nick,
+                $user,
                 $type,
                 0,
                 $file,
@@ -185,14 +220,14 @@ sub _event_dcc {
     # Tell the other end that we're waiting for them to connect.
     $irc->yield(
         'ctcp',
-        $nick,
+        $user,
         "DCC $type $basename $myaddr $port" . ($size ? " $size" : '')
     );
 
     # Store the state for this connection.
     $self->{dcc}->{ $factory->ID } = {
         open       => undef,
-        nick       => $nick,
+        user       => $user,
         type       => $type,
         file       => $file,
         size       => $size,
@@ -225,7 +260,7 @@ sub _event_dcc_accept {
         return;
     }
 
-    if ($cookie->{type} =~ /SEND|ACCEPT/) {
+    if ($cookie->{type} eq 'SEND') {
         $cookie->{type} = 'GET';
         $cookie->{file} = $myfile if defined $myfile;   # filename override
     }
@@ -294,7 +329,7 @@ sub _event_dcc_close {
         'irc_dcc_done',
         $id,
         @{ $self->{dcc}->{$id} }{qw(
-            nick type port file size
+            user type port file size
             done listenport clientaddr
         )},
     );
@@ -318,30 +353,27 @@ sub _event_dcc_close {
 # tries to resume a previous dcc transfer. See '_dcc_up' for
 # the rest of the logic for this.
 sub _event_dcc_resume {
-    my ($self, $cookie) = @_[OBJECT, ARG0];
+    my ($self, $cookie, $myfile) = @_[OBJECT, ARG0];
     my $irc = $self->{irc};
-    # TODO: this isn't finished
 
-    if ($cookie->{type} eq 'SEND') {
-        $cookie->{type} = 'RESUME';
-        if ($cookie->{tmpfile}) {
-            my $size = -s $cookie->{tmpfile};
-            my $fraction = $size % INCOMING_BLOCKSIZE;
-            $size -= $fraction;
-            $cookie->{resumesize} = $size;
+    $cookie->{file} = $myfile if defined $myfile;
+    my $size = -s $cookie->{file};
+    my $fraction = $size % INCOMING_BLOCKSIZE;
+    $size -= $fraction;
 
-            # we need to truncate the whole thing, adjust the size we are
-            # requesting to the size we will truncate the file to
-            if (open(my $handle, '>>', $cookie->{tmpfile})) {
-                if (!truncate($handle, $size)) {
-                    warn "dcc_resume: Can't truncate '$cookie->{file}' to size $size\n";
-                }
-
-                my $nick = parse_user($cookie->{nick});
-                my $message = "\001DCC RESUME @{$cookie}{qw(file port)} $size\001";
-                $irc->yield(ctcp => $nick => $message);
-            }
+    # we need to truncate the whole thing, adjust the size we are
+    # requesting to the size we will truncate the file to
+    if (open(my $handle, '>>', $cookie->{file})) {
+        if (!truncate($handle, $size)) {
+            warn "dcc_resume: Can't truncate '$cookie->{file}' to size $size\n";
+            return;
         }
+        
+        my $nick = parse_user($cookie->{user});
+        $irc->yield(ctcp => $nick => "DCC RESUME @{$cookie}{qw(file port)} $size");
+        
+        # save the cookie for later
+        $self->{resuming}->{"$cookie->{port}+$cookie->{user}"} = $cookie;
     }
     
     return;
@@ -367,7 +399,7 @@ sub _dcc_read {
             'irc_dcc_get',
             $id,
             @{ $self->{dcc}->{$id} }{qw(
-                nick port file size
+                user port file size
                 done listenport clientaddr
             )},
         );
@@ -380,7 +412,7 @@ sub _dcc_read {
             'irc_dcc_send',
             $id,
             @{ $self->{dcc}->{$id} }{qw(
-                nick port file size done
+                user port file size done
                 listenport clientaddr
             )},
         );
@@ -398,7 +430,7 @@ sub _dcc_read {
                 'irc_dcc_done',
                 $id,
                 @{ $self->{dcc}->{$id} }{qw(
-                    nick type port file size
+                    user type port file size
                     done listenport clientaddr
                 )},
             );
@@ -417,7 +449,7 @@ sub _dcc_read {
         $irc->send_event(
             'irc_dcc_' . lc $self->{dcc}->{$id}->{type},
             $id,
-            @{ $self->{dcc}->{$id} }{qw(nick port)},
+            @{ $self->{dcc}->{$id} }{qw(user port)},
             $data,
         );
     }
@@ -460,7 +492,7 @@ sub _dcc_failed {
                 'irc_dcc_done',
                 $id,
                 @{ $self->{dcc}->{$id} }{qw(
-                    nick type port file size
+                    user type port file size
                     done listenport clientaddr
                 )},
             );
@@ -475,7 +507,7 @@ sub _dcc_failed {
                 'irc_dcc_done',
                 $id,
                 @{ $self->{dcc}->{$id} }{qw(
-                    nick type port done
+                    user type port done
                     listenport clientaddr
                 )}
             );
@@ -505,7 +537,7 @@ sub _dcc_failed {
         $id,
         $errstr,
         @{ $self->{dcc}->{$id} }{qw(
-            nick type port file size
+            user type port file size
             done listenport clientaddr
         )},
     );
@@ -595,7 +627,7 @@ sub _dcc_up {
     $irc->send_event(
         'irc_dcc_start',
         $id,
-        @{ $self->{dcc}->{$id} }{qw(nick type port)},
+        @{ $self->{dcc}->{$id} }{qw(user type port)},
         ($self->{dcc}->{$id}->{'type'} =~ /^(SEND|GET)$/
             ? (@{ $self->{dcc}->{$id} }{qw(file size)})
             : ()
@@ -622,11 +654,12 @@ POE::Component::IRC::Plugin::DCC - a PoCo-IRC plugin providing DCC support
 
  # receive a file
  sub irc_dcc_request {
-     my ($nick, $type, $port, $cookie, $file, $size) = @_[ARG0..$#_];
+     my ($user, $type, $port, $cookie, $file, $size) = @_[ARG0..$#_];
      return if $type ne 'SEND';
 
      my $irc = $_[SENDER]->get_heap();
-     print "Someone's sending me '$file' (size: $size) on port $port\n");
+     my $nick = (split /!/, $user)[0];
+     print "$nick wants to send me '$file' (size: $size) on port $port\n");
      $irc->yield(dcc_accept => $cookie);
  }
 
@@ -662,7 +695,7 @@ L<POE::Component::IRC|POE::Component::IRC> commands.
 =head2 C<dcc>
 
 Send a DCC SEND or CHAT request to another person. Takes at least two
-arguments: the nickname of the person to send the request to and the
+arguments: the nick!user@host of the person to send the request to and the
 type of DCC request (SEND or CHAT). For SEND requests, be sure to add
 a third argument for the filename you want to send. Optionally, you
 can add a fourth argument for the DCC transfer blocksize, but the
@@ -690,9 +723,8 @@ section below for more details.)
 =head2 C<dcc_resume>
 
 Resumes a DCC SEND file transfer. First argument: the magic cookie from an
-L<C<irc_dcc_request>|/"irc_dcc_request"> event. The second argument is the
-name of the file to which you want to write. The third argument is the size
-from which will be resumed.
+L<C<irc_dcc_request>|/"irc_dcc_request"> event. An optional second argument
+provides the name of the file to which you want to write.
 
 =head2 C<dcc_chat>
 
@@ -725,7 +757,7 @@ L<C<dcc_resume>|/"dcc_resume">.
 
 =over
 
-=item ARG0: the peer's nickname
+=item ARG0: the peer's nick!user@host
 
 =item ARG1: the port which the peer is listening on
 
@@ -748,7 +780,7 @@ client on the other end of a DCC CHAT connection.
 
 =item ARG0: this connection's "magic cookie"
 
-=item ARG1: the peer's nickname
+=item ARG1: the peer's nick!user@host
 
 =item ARG2: the port number
 
@@ -765,7 +797,7 @@ Abnormal terminations are reported by L<C<irc_dcc_error>|/"irc_dcc_error">.
 
 =item ARG0: this connection's "magic cookie"
 
-=item ARG1: the peer's nickname
+=item ARG1: the peer's nick!user@host
 
 =item ARG2: the DCC type
 
@@ -806,7 +838,7 @@ terminates unexpectedly or suffers some fatal error.
 
 =item ARG1: the error string
 
-=item ARG2: the peer's nickname
+=item ARG2: the peer's nick!user@host
 
 =item ARG3: the DCC type
 
@@ -829,7 +861,7 @@ transferred from the client on the other end of your DCC GET connection.
 
 =item ARG0: this connection's "magic cookie"
 
-=item ARG1: the peer's nickname
+=item ARG1: the peer's nick!user@host
 
 =item ARG2: the port number
 
@@ -851,7 +883,7 @@ connection.
 
 =item ARG0: this connection's "magic cookie"
 
-=item ARG1: the peer's nickname
+=item ARG1: the peer's nick!user@host
 
 =item ARG2: the port number
 
@@ -872,7 +904,7 @@ established.
 
 =item ARG0: this connection's "magic cookie"
 
-=item ARG1: the peer's nickname
+=item ARG1: the peer's nick!user@host
 
 =item ARG2: the DCC type
 
