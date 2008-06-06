@@ -228,7 +228,7 @@ Quakenet service bots, Q and L.
 The component will query Q and L using their default names on Quakenet. If you
 wish to override these settings, use this method to configure them. 
 
- $self->service_bots( QBOT => 'W@blah.network.net', LBOT => 'Z@blah.network.net' );
+ $irc->service_bots(QBOT => 'W@blah.network.net', LBOT => 'Z@blah.network.net');
 
 In most cases you shouldn't need to mess with these >;o)
 
@@ -242,19 +242,19 @@ wrapper around the L<POE::Component::IRC|POE::Component::IRC> "privmsg" command.
 Send commands to the Q bot. Pass additional command parameters as arguments to
 the event.
 
- $kernel->post ( 'my client' => qbot_auth => $q_user => $q_pass );
+ $kernel->post ('my client' => qbot_auth => $q_user => $q_pass);
 
 =head2 C<lbot_*>
 
 Send commands to the L bot. Pass additional command parameters as arguments to
 the event.
 
- $kernel->post ( 'my client' => lbot_chanlev => $channel );
+ $kernel->post ('my client' => lbot_chanlev => $channel);
 
 =head1 OUTPUT
 
-All output from the Quakenet service bots is sent as NOTICEs. Use 'irc_notice'
-to trap these.
+All output from the Quakenet service bots is sent as NOTICEs.
+Use L<C<irc_notice>|POE::Component::IRC/"irc_notice"> to trap these.
 
 =head2 C<irc_whois>
 
