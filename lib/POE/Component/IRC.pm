@@ -81,6 +81,7 @@ sub _create {
         notice    => [ PRI_NORMAL,   'privandnotice', ],
         noticelo  => [ PRI_NORMAL+1, 'privandnotice', ],
         noticehi  => [ PRI_NORMAL-1, 'privandnotice', ],
+        squery    => [ PRI_NORMAL,   'privandnotice', ],
         join      => [ PRI_HIGH,     'oneortwo',      ],
         summon    => [ PRI_HIGH,     'oneortwo',      ],
         sconnect  => [ PRI_HIGH,     'oneandtwoopt',  ],
@@ -89,6 +90,7 @@ sub _create {
         links     => [ PRI_HIGH,     'spacesep',      ],
         mode      => [ PRI_HIGH,     'spacesep',      ],
         nickserv  => [ PRI_HIGH,     'spacesep',      ],
+        servlist  => [ PRI_HIGH,     'spacesep',      ],
         part      => [ PRI_HIGH,     'commasep',      ],
         names     => [ PRI_HIGH,     'commasep',      ],
         list      => [ PRI_HIGH,     'commasep',      ],
@@ -2404,6 +2406,17 @@ the server to disconnect and a message explaining your action.
 =head3 C<summon>
 
 Don't even ask.
+
+=head3 C<servlist>
+
+Lists the currently connected services on the network that are visible to you.
+Takes two optional arguments, a mask for matching service names against, and
+a service type.
+
+=head3 C<squery>
+
+Sends a message to a service. Takes the same arguments as
+L<C<privmsg>|/"privmsg">.
 
 =head3 C<userhost>
 
