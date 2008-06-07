@@ -7,7 +7,6 @@ use POE qw(Driver::SysRW Filter::Line Filter::Stream
            Wheel::ReadWrite Wheel::SocketFactory);
 use POE::Component::IRC::Plugin qw(:ALL);
 use Socket;
-use Data::Dumper;
 
 our $VERSION = '1.1';
 
