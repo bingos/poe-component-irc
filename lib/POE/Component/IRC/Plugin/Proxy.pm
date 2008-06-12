@@ -28,7 +28,7 @@ sub PCI_register {
         object_states => [
             $self => [ qw(_client_error _client_flush _client_input _listener_accept _listener_failed _start _shutdown _spawn_listener) ],
         ],
-        options => { trace => 0 },
+        options => { trace => 1 },
     )->ID();
 
     return 1;
@@ -252,7 +252,7 @@ sub _listener_failed {
 sub _client_flush {
     my ($kernel, $self, $wheel_id) = @_[KERNEL, OBJECT, ARG0];
 
-    return if !defined ( $self->{wheels}->{ $wheel_id } ) && $self->{wheels}->{ $wheel_id }->{quiting};
+    return if !defined ( $self->{wheels}->{ $wheel_id } ) or !$self->{wheels}->{ $wheel_id }->{quiting};
     $self->_close_wheel( $wheel_id );
     return;
 }

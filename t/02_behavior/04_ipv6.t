@@ -35,7 +35,6 @@ POE::Session->create(
             client_error
             irc_connected
             irc_socketerr
-            irc_registered
             irc_001
         )]
     ]

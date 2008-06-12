@@ -8,6 +8,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Cleaned up and reorganized the test suite (Hinrik)
     - IRC.pm: Added SERVLIST and SQUERY commands. Should include
       everything from RFC2812 now. (Hinrik)
+    - Fixed a bug in Proxy plugin (bingos)
 
 5.78  Fri May 30 08:03:30 BST 2008
     - Logger.pm: Fix the PART thing properly (Hinrik)
