@@ -23,15 +23,7 @@ my @methods = qw(
     delay
     delay_remove
     resolver
-    pipeline
     send_event
-    plugin_add
-    plugin_del
-    plugin_get
-    plugin_list
-    plugin_order
-    plugin_register
-    plugin_unregister
 );
 
 can_ok('POE::Component::IRC', @methods);
