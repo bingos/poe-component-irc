@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-5.82
+5.82 Sat Jun 14 09:02:11 BST 2008
     - Depend on new PoCo-Pluggable to fix a regression (Hinrik)
 
 5.80 Thu Jun 13 15:30:08 GMT 2008
