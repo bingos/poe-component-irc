@@ -3,7 +3,7 @@ package POE::Component::IRC::Plugin::CTCP;
 use strict;
 use warnings;
 use POE::Component::IRC::Plugin qw( :ALL );
-use POSIX;
+use POSIX qw(strftime);
 
 our $VERSION = '1.3';
 

@@ -46,7 +46,7 @@ sub S_public {
     my $channels = ${ $_[1] };
     my $what = ${ $_[2] };
     my $me = $irc->nick_name();
-    my ($cmd) = $what =~ m/^\s*\Q$me\E[\:\,\;\.\~]?\s*(.*)$/i;
+    my ($cmd) = $what =~ m/^\s*\Q$me\E[:,;.!?]?\s*(.*)$/i;
     
     return PCI_EAT_NONE if !defined $cmd && $what !~ /$me/i;
     

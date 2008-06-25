@@ -1,8 +1,7 @@
 use strict;
 use warnings;
-use Test::More tests => 31;
-
-BEGIN { use_ok('POE::Component::IRC::Common', qw(:ALL)) }
+use POE::Component::IRC::Common qw(:ALL);
+use Test::More tests => 32;
 
 is('SIMPLE', u_irc('simple'), 'Upper simple test');
 is('simple', l_irc('SIMPLE'), 'Lower simple test');
@@ -29,8 +28,8 @@ my $no_match = 'BinGOs!foo@blah.com';
 is($banmask, 'stalin*!*@*', 'Parse ban mask test');
 ok(matches_mask($banmask, $match), 'Matches Mask test 1');
 ok(!matches_mask($banmask, $no_match), 'Matches Mask test 2');
-ok(keys %{ matches_mask_array([$banmask], [$match]) }, 'Matches Mask array test 1');
-ok(!keys %{ matches_mask_array([$banmask], [$no_match] ) }, 'Matches Mask array test 2');
+ok(%{ matches_mask_array([$banmask], [$match]) }, 'Matches Mask array test 1');
+ok(!%{ matches_mask_array([$banmask], [$no_match] ) }, 'Matches Mask array test 2');
 
 my $nick = parse_user('BinGOs!null@fubar.com');
 my @args = parse_user('BinGOs!null@fubar.com');
@@ -42,6 +41,12 @@ is($args[2], 'fubar.com', 'Parse User Test 4');
 my $colored = "\x0304,05Hi, I am a color junkie\x03";
 ok(has_color($colored), 'Has Color Test');
 is(strip_color($colored), 'Hi, I am a color junkie', 'Strip Color Test');
+
+my $bg_colored = "\x03,05Hi, observe my colored background\x03";
+is(strip_color($bg_colored), 'Hi, observe my colored background', 'Strip bg color test');
+my $fg_colored = "\x0305Hi, observe my colored foreground\x03";
+is(strip_color($fg_colored), 'Hi, observe my colored foreground', 'Strip fg color test');
+
 my $formatted = "This is \x02bold\x0f and this is \x1funderlined\x0f";
 ok(has_formatting($formatted), 'Has Formatting Test');
 my $stripped = strip_formatting($formatted);

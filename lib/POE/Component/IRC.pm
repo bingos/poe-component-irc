@@ -899,6 +899,8 @@ sub spawn {
         prefix     => 'irc_',
         reg_prefix => 'PCI_',
         types      => { SERVER => 'S', USER => 'U' },
+        debug => 1,
+        #($self->{plugin_debug} ? (debug => 1) : () ),
     );
 
     my $options = delete $params{options};
@@ -1767,7 +1769,7 @@ to gain ops.
 
 Both constructors return an object. The object is also available within 'irc_'
 event handlers by using C<< $_[SENDER]->get_heap() >>. See also
-L<C<register>|/"register"> and L<C<irc_registered>|"/irc_registered">.
+L<C<register>|/"register"> and L<C<irc_registered>|/"irc_registered">.
 
 =head2 C<spawn>
 
@@ -2170,7 +2172,7 @@ like to use formatting and color codes in your messages.
 Tells the IRC server to disconnect you. Takes one optional argument:
 some clever, witty string that other users in your channels will see
 as you leave. You can expect to get an
-L<C<irc_disconnect>|/"irc_disconnect"> event shortly after sending this.
+L<C<irc_disconnected>|/"irc_disconnected"> event shortly after sending this.
 
 =head3 C<shutdown>
 
@@ -2238,8 +2240,8 @@ documentation for DCC-related commands.
 
 =head3 C<info>
 
-Basically the same as the "version" command, except that the server is
-permitted to return any information about itself that it thinks is
+Basically the same as the L<C<version>|/"version"> command, except that the
+server is permitted to return any information about itself that it thinks is
 relevant. There's some nice, specific standards-writing for ya, eh?
 
 =head3 C<invite>
@@ -2459,8 +2461,8 @@ in. ARG0 is the server name.
 
 B<NOTE:> When you get an C<irc_connected> event, this doesn't mean you
 can start sending commands to the server yet. Wait until you receive
-an C<irc_001> event (the server welcome message) before actually sending
-anything back to the server.
+an L<C<irc_001>|/"All numeric events"> event (the server welcome message)
+before actually sending anything back to the server.
 
 =head3 C<irc_ctcp>
 
@@ -2639,8 +2641,8 @@ session.
 
 =head3 C<irc_isupport>
 
-Emitted by the first event after an C<irc_005>, to indicate that isupport
-information has been gathered. ARG0 is the
+Emitted by the first event after an L<C<irc_005>|/"All numeric events">, to
+indicate that isupport information has been gathered. ARG0 is the
 L<POE::Component::IRC::Plugin::ISupport|POE::Component::IRC::Plugin::ISupport>
 object.
 
@@ -2649,7 +2651,7 @@ object.
 Emitted on a succesful addition of a delayed event using the
 L<C<delay>|/"delay"> method. ARG0 will be the alarm_id which can be used
 later with L<C<delay_remove>|/"delay_remove">. Subsequent parameters are
-the arguments that were passed to C<delay>.
+the arguments that were passed to L<C<delay>|/"delay">.
 
 =head3 C<irc_delay_removed>
 
@@ -2667,7 +2669,7 @@ as to what went wrong. Hopefully.
 
 Emitted whenever a SOCKS connection is rejected by a SOCKS server. ARG0 is
 the SOCKS code, ARG1 the SOCKS server address, ARG2 the SOCKS port and ARG3
-the SOCKS user id ( if defined ).
+the SOCKS user id (if defined).
 
 =head2 Somewhat Less Important Events
 
@@ -2740,7 +2742,7 @@ _start handler:
  }
 
 Each poco-irc will send your session an
-L<C<irc_registered>|/"irc_register"> event:
+L<C<irc_registered>|/"irc_registered"> event:
 
  sub irc_registered {
      my ($kernel, $sender, $heap, $irc_object) = @_[KERNEL, SENDER, HEAP, ARG0];

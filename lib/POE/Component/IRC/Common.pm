@@ -3,7 +3,7 @@ package POE::Component::IRC::Common;
 use strict;
 use warnings;
 
-our $VERSION = '5.17';
+our $VERSION = '5.18';
 
 require Exporter;
 use base qw(Exporter);
@@ -210,11 +210,11 @@ sub strip_color {
     my $string = shift;
     
     # mIRC colors
-    $string =~ s/\x03(?:\d{1,2}(?:,\d{1,2})?)?//g;
+    $string =~ s/\x03(?:,\d{1,2}|\d{1,2}(?:,\d{1,2})?)?//g;
     $string =~ s/\x0f//g;
     
     # RGB colors supported by some clients
-    $string =~ s/\x04[0-9a-f]{0,6}//ig;
+    $string =~ s/\x04[0-9a-fA-F]{0,6}//ig;
     
     return $string;
 }
