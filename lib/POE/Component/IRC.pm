@@ -899,8 +899,7 @@ sub spawn {
         prefix     => 'irc_',
         reg_prefix => 'PCI_',
         types      => { SERVER => 'S', USER => 'U' },
-        debug => 1,
-        #($self->{plugin_debug} ? (debug => 1) : () ),
+        ($self->{plugin_debug} ? (debug => 1) : () ),
     );
 
     my $options = delete $params{options};
