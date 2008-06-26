@@ -6,7 +6,7 @@ Revision history for Perl extension POE::Component::IRC.
     - IRC.pm: Propagate plugin_debug flag to Pluggable (Hinrik)
     - IRC.pm: Added support for FreeNode's CAPAB IDENTIFY-MSG (Hinrik)
     - Makefile.PL: Depend on new Pluggable for better debug info (Hinrik)
-    - t/02_behavior/12_delays.t: Should't fail if there's an IRC server
+    - t/02_behavior/12_delays.t: Shouldn't fail if there's an IRC server
       running on localhost (Hinrik)
 
 5.82 Sat Jun 14 09:02:11 BST 2008
