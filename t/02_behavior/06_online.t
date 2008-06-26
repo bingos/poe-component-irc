@@ -71,7 +71,7 @@ sub _time_out {
 sub _shutdown {
     my $skip = $_[ARG0];
     SKIP: {
-        skip "$skip", 5 if $skip;
+        skip $skip, 5 if $skip;
     }
     $poe_kernel->alarm_remove_all();
     $irc->yield('shutdown');
@@ -101,8 +101,7 @@ sub irc_socketerr {
 }
 
 sub irc_001 {
-    my ($sender, $text) = @_[SENDER, ARG1];
-    my $irc = $sender->get_heap();
+    my $irc = $_[SENDER]->get_heap();
     pass('Logged in');
     $irc->yield('quit');
 }
