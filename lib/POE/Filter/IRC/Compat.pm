@@ -7,7 +7,7 @@ use POE::Filter::IRCD;
 use File::Basename qw(fileparse);
 use base qw(POE::Filter);
 
-our $VERSION = '1.5';
+our $VERSION = '1.6';
 
 my %irc_cmds = (
     qr/^\d{3,3}$/ => sub {
@@ -24,8 +24,16 @@ my %irc_cmds = (
     },
     qr/notice/ => sub {
         my ($self, $event, $line) = @_;
+
         if ($line->{prefix}) {
-            $event->{args} = [ _decolon( $line->{prefix} ), [split /,/, $line->{params}->[0]], $line->{params}->[1] ];
+            $event->{args} = [
+                _decolon( $line->{prefix} ),
+                [split /,/, $line->{params}->[0]],
+                ($self->{identifymsg}
+                    ? _split_idmsg($line->{params}->[1])
+                    : $line->{params}->[1]
+                ),
+            ];
         }
         else {
             $event->{name} = 'snotice';
@@ -35,11 +43,25 @@ my %irc_cmds = (
     qr/privmsg/ => sub {
         my ($self, $event, $line) = @_;
         if ( grep { index( $line->{params}->[0], $_ ) >= 0 } @{ $self->{chantypes} } ) {
-            $event->{args} = [ _decolon( $line->{prefix} ), [split /,/, $line->{params}->[0]], $line->{params}->[1] ];
+            $event->{args} = [
+                _decolon( $line->{prefix} ),
+                [split /,/, $line->{params}->[0]],
+                ($self->{identifymsg}
+                    ? _split_idmsg($line->{params}->[1])
+                    : $line->{params}->[1]
+                ),
+            ];
             $event->{name} = 'public';
         }
         else {
-            $event->{args} = [ _decolon( $line->{prefix} ), [split /,/, $line->{params}->[0]], $line->{params}->[1] ];
+            $event->{args} = [
+                _decolon( $line->{prefix} ),
+                [split /,/, $line->{params}->[0]],
+                ($self->{identifymsg}
+                    ? _split_idmsg($line->{params}->[1])
+                    : $line->{params}->[1]
+                ),
+            ];
             $event->{name} = 'msg';
         }
     },
@@ -139,6 +161,19 @@ sub chantypes {
     return 1;
 }
 
+sub identifymsg {
+    my ($self, $switch) = @_;
+    $self->{identifymsg} = $switch;
+    return;
+}
+
+sub _split_idmsg {
+    my ($line) = @_;
+    my ($identified, $msg) = split //, $line, 2;
+    $identified = $identified eq '+' ? 1 : 0;
+    return $msg, $identified;
+}
+
 sub get_one {
     my ($self) = @_;
     my $line = shift @{ $self->{BUFFER} } or return [ ];
@@ -198,27 +233,24 @@ sub _ctcp_quote {
 # this is also stolen from Net::IRC, but I (fimm) wrote that too, so it's
 # used with permission. ;-)
 sub _ctcp_dequote {
-    my ($line) = @_;
-    my (@chunks, $ctcp, $text, $who, $type, $where, $msg);
+    my ($msg) = @_;
+    my (@chunks, $ctcp, $text);
 
     # CHUNG! CHUNG! CHUNG!
 
-    if (!defined $line) {
+    if (!defined $msg) {
         croak 'Not enough arguments to POE::Filter::IRC::Compat->_ctcp_dequote';
     }
 
     # Strip out any low-level quoting in the text.
-    $line = _low_dequote( $line );
+    $msg = _low_dequote( $msg );
 
     # Filter misplaced \001s before processing... (Thanks, tchrist!)
-    substr($line, rindex($line, "\001"), 1, '\\a')
-        if ($line =~ tr/\001//) % 2 != 0;
+    substr($msg, rindex($msg, "\001"), 1, '\\a')
+        if ($msg =~ tr/\001//) % 2 != 0;
 
-    return if $line !~ tr/\001//;
+    return if $msg !~ tr/\001//;
 
-    ($who, $type, $where, $msg) = ($line =~ /^:(\S+) +(\w+) +(\S+) +:?(.*)$/)
-        or return;
-    
     @chunks = split /\001/, $msg;
     shift @chunks if !length $chunks[0]; # FIXME: Is this safe?
 
@@ -241,10 +273,7 @@ sub _ctcp_dequote {
         push @$ctcp, shift @chunks if @chunks;
     }
 
-    # Is this a CTCP request or reply?
-    $type = $type eq 'PRIVMSG' ? 'ctcp' : 'ctcpreply';
-
-    return ($who, $type, $where, $ctcp, $text);
+    return ($ctcp, $text);
 }
 
 sub _decolon {
@@ -256,7 +285,14 @@ sub _decolon {
 
 sub _get_ctcp {
     my ($self, $line) = @_;
-    my ($who, $type, $where, $ctcp, $text) = _ctcp_dequote( $line );
+    my ($who, $type, $where, $msg) = ($line =~ /^:(\S+) +(\S+) +(\S+) +:?(.*)$/) or return;
+    # Is this a CTCP request or reply?
+    $type = $type eq 'PRIVMSG' ? 'ctcp' : 'ctcpreply';
+    
+    my $identified;
+    ($msg, $identified) = _split_idmsg($msg) if $self->{identifymsg};
+    
+    my ($ctcp, $text) = _ctcp_dequote($msg);
     my $nick = (split /!/, $who)[0];
 
     my $events = [ ];
@@ -306,6 +342,7 @@ sub _get_ctcp {
                     $who,
                     [split /,/, $where],
                     (defined $args ? $args : ''),
+                    ($self->{identifymsg} ? $identified : () ),
                 ],
                 raw_line => $line,
             };
@@ -398,6 +435,10 @@ L<POE::Filter::Stackable|POE::Filter::Stackable>.
 =head2 C<chantypes>
 
 Takes an arrayref of possible channel prefix indicators.
+
+=head2 C<identifymsg>
+
+Takes a boolean to turn on/off the support for CAPAB IDENTIFY-MSG.
 
 =head2 C<debug>
 

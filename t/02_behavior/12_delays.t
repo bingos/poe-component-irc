@@ -12,7 +12,6 @@ POE::Session->create(
         main => [qw(
             _start
             irc_registered 
-            irc_socketerr
             irc_delay_set
             irc_delay_removed
         )],
@@ -51,9 +50,6 @@ sub irc_delay_removed {
     my ($heap, $alarm_id) = @_[HEAP, ARG0];
     
     is($alarm_id, $heap->{alarm_id}, $_[STATE] );
-    $irc->yield( @_[ARG1..$#_] );
-}
-
-sub irc_socketerr {
     $irc->yield('shutdown');
 }
+

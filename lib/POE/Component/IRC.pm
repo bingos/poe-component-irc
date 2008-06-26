@@ -16,7 +16,7 @@ use POE::Component::IRC::Plugin::Whois;
 use Socket;
 use base qw(POE::Component::Pluggable);
 
-our $VERSION = '5.82';
+our $VERSION = '5.84';
 our $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 our ($GOT_SSL, $GOT_CLIENT_DNS, $GOT_SOCKET6, $GOT_ZLIB);
 
@@ -348,6 +348,7 @@ sub _sock_down {
     $self->_compress_uplink( 0 );
     $self->_compress_downlink( 0 );
     $self->{ircd_compat}->chantypes( [ '#', '&' ] );
+    $self->{ircd_compat}->identifymsg(0);
 
     # post a 'irc_disconnected' to each session that cares
     $self->_send_event(irc_disconnected => $self->{server} );
@@ -1511,9 +1512,18 @@ sub S_nick {
     return PCI_EAT_NONE;
 }
 
+# tell POE::Filter::IRC::Compat to handle IDENTIFY-MSG
+sub S_290 {
+    my ($self, $irc) = splice @_, 0, 2;
+    my $text = ${ $_[1] };
+    $self->{ircd_compat}->identifymsg(1) if $text eq 'IDENTIFY-MSG';
+    return PCI_EAT_NONE;
+}
+
 sub S_isupport {
     my ($self, $irc) = splice @_, 0, 2;
     $self->{ircd_compat}->chantypes( $self->{isupport}->isupport('CHANTYPES') || [ '#', '&' ] );
+    $irc->yield(quote => 'CAPAB IDENTIFY-MSG') if $self->{isupport}->isupport('CAPAB');
     return PCI_EAT_NONE;
 }
 
@@ -2482,7 +2492,8 @@ For instance, receiving a CTCP PING request generates an C<irc_ctcp_ping>
 event, CTCP ACTION (produced by typing "/me" in most IRC clients)
 generates an C<irc_ctcp_action> event, blah blah, so on and so forth. ARG0
 is the nick!hostmask of the sender. ARG1 is the channel/recipient
-name(s). ARG2 is the text of the CTCP message.
+name(s). ARG2 is the text of the CTCP message. On FreeNode there is also
+ARG3, which will be 1 if the sender has identified with NickServ, 0 otherwise.
 
 Note that DCCs are handled separately -- see the
 L<DCC plugin|POE::Component::IRC::Plugin::DCC>.
@@ -2538,7 +2549,8 @@ hostmasks, channel keys, whatever).
 Sent whenever you receive a PRIVMSG command that was addressed to you
 privately. ARG0 is the nick!hostmask of the sender. ARG1 is an array
 reference containing the nick(s) of the recipients. ARG2 is the text
-of the message.
+of the message. On FreeNode there is also ARG3, which will be 1 if the
+sender has identified with NickServ, 0 otherwise.
 
 =head3 C<irc_nick>
 
@@ -2563,7 +2575,8 @@ person's nick!hostmask. ARG1 is the channel name. ARG2 is the part message.
 Sent whenever you receive a PRIVMSG command that was sent to a
 channel. ARG0 is the nick!hostmask of the sender. ARG1 is an array
 reference containing the channel name(s) of the recipients. ARG2 is
-the text of the message.
+the text of the message. On FreeNode there is also ARG3, which will be
+1 if the sender has identified with NickServ, 0 otherwise.
 
 =head3 C<irc_quit>
 
