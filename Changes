@@ -4,6 +4,7 @@ Revision history for Perl extension POE::Component::IRC.
     - BotAddressed.pm: Made it a little smarter (Hinrik)
     - Common.pm: Make strip_color() strip bg color-only changes (Hinrik)
     - IRC.pm: Propagate plugin_debug flag to Pluggable (Hinrik)
+    - Makefile.PL: Depend on new Pluggable for better debug info (Hinrik)
 
 5.82 Sat Jun 14 09:02:11 BST 2008
     - Depend on new PoCo-Pluggable to fix a regression (Hinrik)
