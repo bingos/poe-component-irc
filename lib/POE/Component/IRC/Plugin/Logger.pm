@@ -311,7 +311,7 @@ sub _log_entry {
 sub _open_log {
     my ($self, $file_name) = @_;
     sysopen(my $log, $file_name, O_WRONLY|O_APPEND|O_CREAT, $self->{file_perm})
-        or die "Couldn't create file $file_name: $!; aborted";
+        or die "Couldn't open or create file '$file_name': $!; aborted";
     binmode($log, ':utf8');
     $log->autoflush(1);
     return $log;
