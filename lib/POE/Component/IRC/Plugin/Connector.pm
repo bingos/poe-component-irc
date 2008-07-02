@@ -22,7 +22,6 @@ sub PCI_register {
         object_states => [
             $self => [ qw(_start _auto_ping _reconnect _shutdown _start_ping _start_time_out _stop_ping _time_out) ],
         ],
-        options => { trace => 0 },
     )->ID();
 
     $irc->plugin_register( $self, 'SERVER', qw(all) );
