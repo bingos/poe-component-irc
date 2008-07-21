@@ -289,8 +289,9 @@ sub _get_ctcp {
     # Is this a CTCP request or reply?
     $type = $type eq 'PRIVMSG' ? 'ctcp' : 'ctcpreply';
     
+    # CAPAP IDENTIFY-MSG is only applied to ACTIONs
     my $identified;
-    ($msg, $identified) = _split_idmsg($msg) if $self->{identifymsg};
+    ($msg, $identified) = _split_idmsg($msg) if $self->{identifymsg} && $msg =~ /.ACTION/;
     
     my ($ctcp, $text) = _ctcp_dequote($msg);
     my $nick = (split /!/, $who)[0];
@@ -342,7 +343,7 @@ sub _get_ctcp {
                     $who,
                     [split /,/, $where],
                     (defined $args ? $args : ''),
-                    ($self->{identifymsg} ? $identified : () ),
+                    (defined $identified ? $identified : () ),
                 ],
                 raw_line => $line,
             };
