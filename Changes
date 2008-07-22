@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-5.86
+5.86  Tue Jul 22 09:53:26 BST 2008
     - Proxy.pm: Remove 'options => {trace => 1}' from constructor (Hinrik)
     - Compat.pm: Don't handle CAPAB IDENTIFY-MSG with non-ACTION CTCPs (Hinrik)
 

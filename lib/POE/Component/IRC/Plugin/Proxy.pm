@@ -8,7 +8,7 @@ use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::IRCD
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Common qw( :ALL );
 
-our $VERSION = '5.78';
+our $VERSION = '5.86';
 
 sub new {
     my ($package, %args) = @_;
