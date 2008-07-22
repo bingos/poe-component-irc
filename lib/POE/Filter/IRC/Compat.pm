@@ -7,10 +7,10 @@ use POE::Filter::IRCD;
 use File::Basename qw(fileparse);
 use base qw(POE::Filter);
 
-our $VERSION = '1.6';
+our $VERSION = '1.7';
 
 my %irc_cmds = (
-    qr/^\d{3,3}$/ => sub {
+    qr/^\d{3}$/ => sub {
         my ($self, $event, $line) = @_;
         $event->{args}->[0] = _decolon( $line->{prefix} );
         shift @{ $line->{params} };
