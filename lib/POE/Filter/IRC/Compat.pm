@@ -76,9 +76,9 @@ my %irc_cmds = (
 # the magic cookie jar
 my %dcc_types = (
     qr/CHAT|SEND/ => sub {
-        my ($nick, $type, $arg_string) = @_;
+        my ($nick, $type, $args) = @_;
         my ($file, $addr, $port, $size);
-        return if !(($file, $addr, $port, $size) = $arg_string =~ /^(".+"|\S+) +(\d+) +(\d+)(?: +(\d+))?/);
+        return if !(($file, $addr, $port, $size) = $args =~ /^(".+"|\S+) +(\d+) +(\d+)(?: +(\d+))?/);
         
         $file =~ s/^"|"$//g;
         $file = fileparse($file);
