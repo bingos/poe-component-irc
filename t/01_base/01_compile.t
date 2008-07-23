@@ -5,7 +5,6 @@ use Test::More;
 my @modules = qw(
     POE::Filter::IRC
     POE::Filter::IRC::Compat
-    POE::Filter::CTCP
     POE::Component::IRC
     POE::Component::IRC::State
     POE::Component::IRC::Qnet
