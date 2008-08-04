@@ -85,7 +85,7 @@ sub irc_registered {
 }
 
 sub irc_connected {
-  pass('Connected');
+    pass('Connected');
 }
 
 sub irc_001 {
