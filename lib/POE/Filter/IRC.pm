@@ -1,11 +1,3 @@
-#
-# POE::Filter::IRC, by Dennis Taylor <dennis@funkplanet.com>
-#
-# This module may be used, modified, and distributed under the same
-# terms as Perl itself. Please see the license that came with your Perl
-# distribution for details.
-#
-
 package POE::Filter::IRC;
 
 use strict;

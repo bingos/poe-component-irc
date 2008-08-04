@@ -895,16 +895,17 @@ sub spawn {
 
     my $self = bless { }, $package;
     $self->_create();
+    
+    my $options      = delete $params{options};
+    my $alias        = delete $params{alias};
+    my $plugin_debug = delete $params{plugin_debug};
 
     $self->_pluggable_init(
         prefix     => 'irc_',
         reg_prefix => 'PCI_',
         types      => { SERVER => 'S', USER => 'U' },
-        ($self->{plugin_debug} ? (debug => 1) : () ),
+        ($plugin_debug ? (debug => 1) : () ),
     );
-
-    my $options = delete $params{options};
-    my $alias = delete $params{alias};
 
     POE::Session->create(
         object_states => [
