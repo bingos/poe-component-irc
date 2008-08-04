@@ -510,7 +510,7 @@ internally.
 =head2 C<matches_mask_array>
 
 Takes two array references, the first being a list of strings representing
-IRC mask, the second a list of somethings to test against the masks. Returns
+IRC masks, the second a list of somethings to test against the masks. Returns
 an empty hashref if there are no matches. Otherwise, the keys will be the
 masks matched, each value being an arrayref of the strings that matched it.
 Optionally, one may pass the casemapping (see L<C<u_irc()>|/"u_irc">), as
