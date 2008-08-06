@@ -120,17 +120,18 @@ plugin_add() method.
 
 =head2 C<irc_bot_addressed>
 
-Has the same parameters passed as 'irc_public'. ARG2 contains the message with
-the addressed nickname removed, ie. Assuming that your bot is called LameBOT,
-and someone says 'LameBOT: dance for me', you will actually get 'dance for me'.
+Has the same parameters passed as L<C<irc_ctcp_action>|POE::Component::IRC/"irc_ctcp_action">.
+ARG2 contains the message with the addressed nickname removed, ie. Assuming
+that your bot is called LameBOT, and someone says 'LameBOT: dance for me',
+you will actually get 'dance for me'.
 
 =head2 C<irc_bot_mentioned>
 
-Has the same parameters passed as 'irc_public'.
+Has the same parameters passed as L<C<irc_public>|POE::Component::IRC/"irc_public">.
 
 =head2 C<irc_bot_mentioned_action>
 
-Has the same parameters passed as 'irc_ctcp_action'.
+Has the same parameters passed as L<C<irc_ctcp_action>|POE::Component::IRC/"irc_ctcp_action">.
 
 =head1 AUTHOR
 
