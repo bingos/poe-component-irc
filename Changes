@@ -1,6 +1,7 @@
 Revision history for Perl extension POE::Component::IRC.
 
 5.88
+    - BotCommand.pm: Send responses back via NOTICE, not PRIVMSG (Hinrik)
     - Filter/CTCP.pm: Removed, as it is deprecated and unmaintained (Hinrik)
     - IRC.pm: Really propagate the plugin_debug flag (Hinrik)
 

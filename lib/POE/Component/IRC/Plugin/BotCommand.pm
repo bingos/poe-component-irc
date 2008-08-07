@@ -5,7 +5,7 @@ use warnings;
 use POE::Component::IRC::Common qw( parse_user );
 use POE::Component::IRC::Plugin qw( :ALL );
 
-our $VERSION = '1.0';
+our $VERSION = '1.1';
 
 sub new {
     my ($package, %args) = @_;
@@ -42,17 +42,17 @@ sub S_msg {
     if (defined $cmd) {
         if (exists $self->{Commands}->{lc $cmd}) {
             my @help_lines = split /\015?\012/, $self->{Commands}->{lc $cmd};
-            $irc->yield(privmsg => $who => $_) for @help_lines;
+            $irc->yield(notice => $who => $_) for @help_lines;
         }
         else {
-            $irc->yield(privmsg => $who, "Unknown command: $cmd");
-            $irc->yield(privmsg => $who, 'To get a list of commands, do: /msg '
+            $irc->yield(notice => $who, "Unknown command: $cmd");
+            $irc->yield(notice => $who, 'To get a list of commands, do: /msg '
                 . $irc->nick_name() . ' help');
         }
     }
     else {
-        $irc->yield(privmsg => $who, 'Commands: ' . join ', ', keys %{ $self->{Commands} });
-        $irc->yield(privmsg => $who, 'You can do: /msg ' . $irc->nick_name() . ' help <command>');
+        $irc->yield(notice => $who, 'Commands: ' . join ', ', keys %{ $self->{Commands} });
+        $irc->yield(notice => $who, 'You can do: /msg ' . $irc->nick_name() . ' help <command>');
     }
     
     return PCI_EAT_NONE;
@@ -185,7 +185,7 @@ to handle commands issued to your bot.
      my @answers = map { $_->rdatastr } $res->{response}->answer() if $res->{response};
      
      $irc->yield(
-         'privmsg',
+         'notice',
          $res->{context}->{channel},
          $res->{context}->{nick} . (@answers
              ? ": @answers"
