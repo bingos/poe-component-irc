@@ -40,16 +40,8 @@ sub PCI_unregister {
 sub S_001 {
     my ($self, $irc) = splice @_, 0, 2;
     
-    # delay this so that the user will be cloaked (if applicable) before joining channels
-    if ( grep { $_->isa('POE::Component::IRC::Plugin::NickServID') } values %{ $irc->plugin_list() } ) {
-        while (my ($chan, $key) = each %{ $self->{Channels} }) {
-            $irc->delay([join => $chan => $key], 5);
-        }
-    }
-    else {
-        while (my ($chan, $key) = each %{ $self->{Channels} }) {
-            $irc->yield(join => $chan => $key);
-        }
+    while (my ($chan, $key) = each %{ $self->{Channels} }) {
+        $irc->yield(join => $chan => $key);
     }
     return PCI_EAT_NONE;
 }

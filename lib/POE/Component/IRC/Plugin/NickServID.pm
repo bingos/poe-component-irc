@@ -62,6 +62,11 @@ POE::Component::IRC::Plugin::NickServID is a L<POE::Component::IRC|POE::Componen
 plugin. It identifies with NickServ on connect and when you change your nick,
 if your nickname matches the supplied password.
 
+B<Note>: If you have a cloak and you don't want to be seen without it, make sure
+you identify yourself before joining any channels. If you use the
+L<AutoJoin plugin|POE::Component::IRC::Plugin::AutoJoin>, make sure it is
+positioned after this one in the plugin pipeline (e.g. load this one first). 
+
 =head1 METHODS
 
 =head2 C<new>
