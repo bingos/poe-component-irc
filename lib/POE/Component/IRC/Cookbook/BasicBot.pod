@@ -11,7 +11,7 @@ its arrival.
 
 We start off quite simply:
 
- #!/usr/bin/perl
+ #!/usr/bin/env perl
 
  use strict;
  use warnings;

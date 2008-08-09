@@ -9,7 +9,7 @@ to DNS records for channel members.
 
 =head1 SYNOPSIS
 
- #!/usr/bin/perl
+ #!/usr/bin/env perl
 
  use strict;
  use warnings;

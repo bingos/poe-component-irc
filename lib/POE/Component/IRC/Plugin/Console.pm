@@ -64,7 +64,7 @@ sub _default {
 }
 
 sub _start {
-  my ($kernel, $self) = @_[KERNEL, OBJECT];
+    my ($kernel, $self) = @_[KERNEL, OBJECT];
 
     $self->{SESSION_ID} = $_[SESSION]->ID();
     $kernel->refcount_increment( $self->{SESSION_ID}, __PACKAGE__ );
@@ -85,8 +85,7 @@ sub _start {
         $self->{irc}->send_event( 'irc_console_service' => $self->{listener}->getsockname() );
     }
     else {
-        my $irc = $self->{irc};
-        $irc->plugin_del( $self );
+        $self->{irc}->plugin_del( $self );
     }
     
     return;

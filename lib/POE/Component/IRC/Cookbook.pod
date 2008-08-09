@@ -39,14 +39,14 @@ Add translating capabilities to your bot.
 
 Have your bot resolve DNS records for you.
 
+=item MegaHal
+
+Allow your bot to talk, using artificial "intelligence".
+
 =item Seen
 
 Implement the "seen" feature found in many bots, which tells you when your bot
 last saw a particular user, and what they were doing/saying.
-
-=item MegaHal
-
-Allow your bot to talk, using artificial "intelligence".
 
 =item Feeds
 
