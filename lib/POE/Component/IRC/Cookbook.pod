@@ -39,7 +39,7 @@ Add translating capabilities to your bot.
 
 Have your bot resolve DNS records for you.
 
-=item MegaHal
+=item L<MegaHAL|POE::Component::IRC::Cookbook::MegaHAL>
 
 Allow your bot to talk, using artificial "intelligence".
 
