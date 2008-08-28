@@ -285,7 +285,7 @@ sub _decolon {
 
 sub _get_ctcp {
     my ($self, $line) = @_;
-    my ($who, $type, $where, $msg) = ($line =~ /^:(\S+) +(\S+) +(\S+) +:?(.*)$/) or return;
+    my ($who, $type, $where, $msg) = ($line =~ /^:(\S+) +(\S+) +(\S+) +:?(.*)$/) or return [];
     # Is this a CTCP request or reply?
     $type = $type eq 'PRIVMSG' ? 'ctcp' : 'ctcpreply';
     
