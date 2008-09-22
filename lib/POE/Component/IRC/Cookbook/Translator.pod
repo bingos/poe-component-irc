@@ -53,7 +53,7 @@ to handle the translate command.
      ));
 
      $irc->yield(register => 'botcmd_trans');
-     $irc->yield(connect => );
+     $irc->yield('connect');
      return;
  }
 

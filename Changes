@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.90
+    - Seen.pod: Recipe for a bot implementing the 'seen' command (Hinrik)
+
 5.88 Thu Aug 28 15:49:48 BST 2008
     - MegaHAL.pod: Bare-bones recipe for a MegaHAL bot (Hinrik)
     - BotCommand.pm: Send responses back via NOTICE, not PRIVMSG (Hinrik)
