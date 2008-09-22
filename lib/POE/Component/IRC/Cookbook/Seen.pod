@@ -5,7 +5,7 @@ POE::Component::IRC::Cookbook::Seen - Implement the 'seen' command
 =head1 DESCRIPTION
 
 This little bot tracks the whereabouts of users and allows you to retrieve
-that information with on command.
+that information on command.
 
  19:59:51 * seen_bot (n=hinrik@pool-71-164-43-32.chrlwv.east.verizon.net) has joined #test_channel1
  19:59:55 <literal> sdfsdfdsf
