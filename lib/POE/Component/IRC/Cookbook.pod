@@ -43,7 +43,7 @@ Have your bot resolve DNS records for you.
 
 Allow your bot to talk, using artificial "intelligence".
 
-=item Seen
+=item L<Seen|POE::Component::IRC::Cookbook::Seen>
 
 Implement the "seen" feature found in many bots, which tells you when your bot
 last saw a particular user, and what they were doing/saying.
