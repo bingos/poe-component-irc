@@ -1068,7 +1068,7 @@ sub _poco_irc_sig_register {
         $sender_id = $ref->ID();
     }
     else {
-        warn "Can\'t resolve $sender\n";
+        warn "Can't resolve $sender\n";
         return;
     }
   
