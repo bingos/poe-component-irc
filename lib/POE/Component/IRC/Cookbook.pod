@@ -48,6 +48,11 @@ Allow your bot to talk, using artificial "intelligence".
 Implement the "seen" feature found in many bots, which tells you when your bot
 last saw a particular user, and what they were doing/saying.
 
+=item L<Reload|POE::Component::IRC::Cookbook::Reload>
+
+Structure your code in such a way that your bot can be reprogrammed at runtime
+without reconnecting to the IRC server.
+
 =item Feeds
 
 Use your bot as an RSS/Atom feed aggregator.
@@ -63,11 +68,6 @@ Have your bot deliver messages to users as soon as they become active.
 =item Eval
 
 Have your bot evaluate mathematical expressions and code.
-
-=item Reload
-
-Structure your code in such a way that your bot can be reprogrammed at runtime
-without reconnecting to the IRC server.
 
 =back
 

@@ -2,7 +2,7 @@
 
 POE::Component::IRC::Cookbook::Seen - Implement the 'seen' command
 
-=head1 DESCRIPTION
+=head1 SYNOPSIS
 
 This little bot tracks the whereabouts of users and allows you to retrieve
 that information on command.
@@ -16,7 +16,7 @@ that information on command.
  20:00:45 <literal> seen_bot: seen baz
  20:00:48 <seen_bot> literal: I haven't seen baz
 
-=head1 SYNOPSIS
+=head1 DESCRIPTION
 
  #!/usr/bin/env perl
 

@@ -2,12 +2,12 @@
 
 POE::Component::IRC::Cookbook::BasicBot - A basic IRC bot
 
-=head1 DESCRIPTION
+=head1 SYNOPSIS
 
 This a very basic bot that connects to IRC, joins a few channels, and announces
 its arrival.
 
-=head1 SYNOPSIS
+=head1 DESCRIPTION
 
 We start off quite simply:
 
