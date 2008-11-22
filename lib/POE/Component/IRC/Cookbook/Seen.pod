@@ -11,6 +11,8 @@ that information on command.
  19:59:55 <foo> bar
  20:00:16 * seen_bot has quit (Remote closed the connection)
  20:00:27 * seen_bot (n=hinrik@pool-71-164-43-32.chrlwv.east.verizon.net) has joined #test_channel1
+ 20:00:29 <literal> seen_bot: seen seen_bot
+ 20:00:29 <seen_bot> literal: I last saw seen_bot at Mon Sep 22 20:00:27 2008 joining #test_channel1
  20:00:34 <literal> seen_bot: seen foo
  20:00:40 <seen_bot> literal: I last saw foo at Mon Sep 22 19:59:56 2008 on #test_channel1 saying: bar
  20:00:45 <literal> seen_bot: seen baz
@@ -31,9 +33,9 @@ that information on command.
 
  use constant {
      USER_DATE     => 0,
-     USER_ACTIVITY => 1,
+     USER_MSG      => 1,
      DATA_FILE     => 'seen',
-     SAVE_INTERVAL => 60 * 20,   # save state every 20 mins
+     SAVE_INTERVAL => 20 * 60,   # save state every 20 mins
  };
 
  my $seen = { };
@@ -79,9 +81,10 @@ that information on command.
      $kernel->delay_set('save', SAVE_INTERVAL);
      return;
  }
-
+ 
  sub save {
      my $kernel = $_[KERNEL];
+     warn "storing\n";
      store($seen, DATA_FILE) or die "Can't save state";
      $kernel->delay_set('save', SAVE_INTERVAL);
  }
@@ -106,10 +109,10 @@ that information on command.
      my $chan = $_[ARG1];
      my $text = $_[ARG2];
      
-     my $activity = 'parting $chan';
-     $activity .= " with message '$text'" if defined $text;
+     my $msg = 'parting $chan';
+     $msg .= " with message '$text'" if defined $text;
      
-     add_nick($nick, $activity);
+     add_nick($nick, $msg);
  }
 
  sub irc_public {
@@ -124,10 +127,10 @@ that information on command.
      my $nick = parse_user($_[ARG0]);
      my $text = $_[ARG1];
      
-     my $activity = 'quitting';
-     $activity .= " with message '$text'" if defined $text;
+     my $msg = 'quitting';
+     $msg .= " with message '$text'" if defined $text;
      
-     add_nick($nick, $activity);
+     add_nick($nick, $msg);
  }
 
  sub add_nick {
@@ -142,8 +145,8 @@ that information on command.
 
      if ($seen->{l_irc($target)}) {
          my $date = localtime $seen->{l_irc($target)}->[USER_DATE];
-         my $activity = $seen->{l_irc($target)}->[USER_ACTIVITY];
-         $irc->yield(privmsg => $channel, "$nick: I last saw $target at $date $activity");
+         my $msg = $seen->{l_irc($target)}->[USER_MSG];
+         $irc->yield(privmsg => $channel, "$nick: I last saw $target at $date $msg");
      }
      else {
          $irc->yield(privmsg => $channel, "$nick: I haven't seen $target");

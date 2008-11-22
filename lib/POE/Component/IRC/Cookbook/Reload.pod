@@ -9,7 +9,7 @@ be applied without dropping the connection to the IRC server?
 
 =head1 DESCRIPTION
 
-At first, this might seem complicated. You'd have to mess with
+At first, this might seem complicated. You might have to mess with
 C<eval STRING>/C<do FILE>, deal with scoping issues and what not. But when
 you really think about it, all you need is an IRC proxy. Let the proxy
 handle the IRC connection, and let the bot run as a separate process which
