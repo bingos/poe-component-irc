@@ -38,7 +38,7 @@ abstract_from 'lib/POE/Component/IRC.pm';
 build_requires 'Test::More' => '0.47';
 perl_version '5.006';
 requires 'POE'    => 0.3202;
-requires 'POE::Component::Pluggable' => '1.10';
+requires 'POE::Component::Pluggable' => '1.12';
 requires 'POE::Wheel::SocketFactory' => 0;
 requires 'POE::Wheel::ReadWrite' => 0;
 requires 'POE::Driver::SysRW' => 0;

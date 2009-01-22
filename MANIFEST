@@ -33,7 +33,9 @@ lib/POE/Component/IRC/Cookbook.pod
 lib/POE/Component/IRC/Cookbook/BasicBot.pod
 lib/POE/Component/IRC/Cookbook/Disconnecting.pod
 lib/POE/Component/IRC/Cookbook/MegaHAL.pod
+lib/POE/Component/IRC/Cookbook/Reload.pod
 lib/POE/Component/IRC/Cookbook/Resolver.pod
+lib/POE/Component/IRC/Cookbook/Seen.pod
 lib/POE/Component/IRC/Cookbook/Translator.pod
 lib/POE/Component/IRC/Plugin.pm
 lib/POE/Component/IRC/Plugin/AutoJoin.pm
@@ -42,8 +44,8 @@ lib/POE/Component/IRC/Plugin/BotCommand.pm
 lib/POE/Component/IRC/Plugin/BotTraffic.pm
 lib/POE/Component/IRC/Plugin/Connector.pm
 lib/POE/Component/IRC/Plugin/Console.pm
-lib/POE/Component/IRC/Plugin/CycleEmpty.pm
 lib/POE/Component/IRC/Plugin/CTCP.pm
+lib/POE/Component/IRC/Plugin/CycleEmpty.pm
 lib/POE/Component/IRC/Plugin/DCC.pm
 lib/POE/Component/IRC/Plugin/FollowTail.pm
 lib/POE/Component/IRC/Plugin/ISupport.pm

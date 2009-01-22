@@ -1,8 +1,10 @@
 Revision history for Perl extension POE::Component::IRC.
 
-5.90
+5.90 Thu Jan 22 10:52:53 GMT 2009
     - Seen.pod: Recipe for a bot implementing the 'seen' command (Hinrik)
     - Reload.pod: How to reload your bot with out reconnecting (Hinrik)
+    - Memory leak with stashing $self in $self->{alias}, change to 
+      stash a stringified version of $self instead. (bingos)
 
 5.88 Thu Aug 28 15:49:48 BST 2008
     - MegaHAL.pod: Bare-bones recipe for a MegaHAL bot (Hinrik)
