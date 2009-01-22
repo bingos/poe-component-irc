@@ -7,7 +7,7 @@ use POE::Filter::IRCD;
 use File::Basename qw(fileparse);
 use base qw(POE::Filter);
 
-our $VERSION = '1.7';
+our $VERSION = '1.8';
 
 my %irc_cmds = (
     qr/^\d{3}$/ => sub {
@@ -183,8 +183,8 @@ sub get_one {
         return [ ];
     }
     
-    if ($line->{raw_line} =~ tr/\001//) {
-        return $self->_get_ctcp( $line->{raw_line} );
+    if ($line->{command} =~ /^PRIVMSG|NOTICE$/ && $line->{params}->[1] =~ tr/\001//) {
+        return $self->_get_ctcp($line);
     }
     
     my $event = {
@@ -285,22 +285,25 @@ sub _decolon {
 
 sub _get_ctcp {
     my ($self, $line) = @_;
-    my ($who, $type, $where, $msg) = ($line =~ /^:(\S+) +(\S+) +(\S+) +:?(.*)$/) or return [];
+
     # Is this a CTCP request or reply?
-    $type = $type eq 'PRIVMSG' ? 'ctcp' : 'ctcpreply';
+    my $type = $line->{command} eq 'PRIVMSG' ? 'ctcp' : 'ctcpreply';
     
     # CAPAP IDENTIFY-MSG is only applied to ACTIONs
-    my $identified;
-    ($msg, $identified) = _split_idmsg($msg) if $self->{identifymsg} && $msg =~ /.ACTION/;
+    my ($msg, $identified) = ($line->{params}->[1], undef);
+    ($msg, $identified) = _split_idmsg($msg) if $self->{identifymsg} && $msg =~ /^.ACTION/;
     
     my ($ctcp, $text) = _ctcp_dequote($msg);
-    my $nick = (split /!/, $who)[0];
+    my $nick = defined $line->{prefix} ? (split /!/, $line->{prefix})[0] : undef;
 
     my $events = [ ];
     my ($name, $args);
     CTCP: for my $string (@$ctcp) {
         if (!(($name, $args) = $string =~ /^(\w+)(?: +(.*))?/)) {
-            warn "Received malformed CTCP message from $nick: $string\n" if $self->{debug};
+            defined $nick
+                ? do { warn "Received malformed CTCP message from $nick: $string\n" if $self->{debug} }
+                : do { warn "Trying to send malformed CTCP message: $string\n" if $self->{debug} }
+            ;
             last CTCP;
         }
             
@@ -308,7 +311,10 @@ sub _get_ctcp {
             my ($type, $rest);
             
             if (!(($type, $rest) = $args =~ /^(\w+) +(.+)/)) {
-                warn "Received malformed DCC request from $nick: $args\n" if $self->{debug};
+                defined $nick
+                    ? do { warn "Received malformed DCC request from $nick: $args\n" if $self->{debug} }
+                    : do { warn "Trying to send malformed DCC request: $args\n" if $self->{debug} }
+                ;
                 last CTCP;
 
             }
@@ -322,7 +328,10 @@ sub _get_ctcp {
 
             my @dcc_args = $dcc_types{$handler}->($nick, $type, $rest);
             if (!@dcc_args) {
-                warn "Received malformed DCC $type request from $nick: $rest\n" if $self->{debug};
+                defined $nick
+                    ? do { warn "Received malformed DCC $type request from $nick: $rest\n" if $self->{debug} }
+                    : do { warn "Trying to send malformed DCC $type request: $rest\n" if $self->{debug} }
+                ;
                 last CTCP;
             }
 
@@ -333,27 +342,27 @@ sub _get_ctcp {
                     $type,
                     @dcc_args,
                 ],
-                raw_line => $line,
+                raw_line => $line->{raw_line},
             };
         }
         else {
             push @$events, {
                 name => $type . '_' . lc $name,
                 args => [
-                    $who,
-                    [split /,/, $where],
+                    $line->{prefix},
+                    [split /,/, $line->{params}->[0]],
                     (defined $args ? $args : ''),
                     (defined $identified ? $identified : () ),
                 ],
-                raw_line => $line,
+                raw_line => $line->{raw_line},
             };
         }
     }
 
     if ($text && @$text) {
         my $what;
-        ($what) = $line =~ /^(:\S+ +\w+ +\S+ +)/
-            or warn "What the heck? '$line'\n" if $self->{debug};
+        ($what) = $line->{raw_line} =~ /^(:\S+ +\w+ +\S+ +)/
+            or warn "What the heck? '".$line->{raw_line}."'\n" if $self->{debug};
         $text = (defined $what ? $what : '') . ':' . join '', @$text;
         $text =~ s/\cP/^P/g;
         warn "CTCP: $text\n" if $self->{debug};

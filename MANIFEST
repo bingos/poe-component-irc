@@ -92,6 +92,7 @@ t/04_plugins/01_plugman/01_load.t
 t/04_plugins/02_connector/01_load.t
 t/04_plugins/03_botaddressed/01_load.t
 t/04_plugins/04_bottraffic/01_load.t
+t/04_plugins/04_bottraffic/02_output.t
 t/04_plugins/05_isupport/01_load.t
 t/04_plugins/06_ctcp/01_load.t
 t/04_plugins/07_console/01_load.t
