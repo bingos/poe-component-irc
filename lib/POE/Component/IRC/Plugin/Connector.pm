@@ -148,7 +148,7 @@ sub _reconnect {
         $self->{irc}->yield('connect' => %args);
     }
     else {
-        $kernel->delay( '_reconnect' => 60 );
+        $kernel->delay( '_reconnect' => $self->{reconnect} || 60 );
     }
     
     return;
@@ -224,6 +224,9 @@ Takes two optional arguments:
 
 'delay', the frequency, in seconds, at which the plugin will ping the IRC
 server. Defaults to 300.
+
+'reconnect', the time in seconds, to wait before trying to reconnect to
+the server. Defaults to 60.
 
 'servers', an array reference of IRC servers to consider. Each element should
 be an array reference containing a server host and (optionally) a port number.
