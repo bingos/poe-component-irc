@@ -1,11 +1,12 @@
 use strict;
 use warnings;
+use lib 't/inc';
 use POE;
-use POE::Component::IRC::Test::Harness;
+use POE::Component::Server::IRC;
 use Test::More tests => 2;
 
-my $ircd = POE::Component::IRC::Test::Harness->spawn( Alias => 'ircd' );
-isa_ok($ircd, 'POE::Component::IRC::Test::Harness');
+my $ircd = POE::Component::Server::IRC->spawn( Alias => 'ircd' );
+isa_ok($ircd, 'POE::Component::Server::IRC');
 
 POE::Session->create(
     package_states => [

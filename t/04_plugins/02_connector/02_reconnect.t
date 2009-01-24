@@ -2,18 +2,23 @@ use strict;
 use warnings;
 use lib 't/inc';
 use POE qw(Wheel::SocketFactory);
-use POE::Component::IRC;
-use POE::Component::Server::IRC;
 use Socket;
-use Test::More tests => 14;
+use POE::Component::IRC;
+use POE::Component::IRC::Plugin::Connector;
+use POE::Component::Server::IRC;
+use Test::More tests => 4;
 
-my $irc = POE::Component::IRC->spawn(),
-my $irc2 = POE::Component::IRC->spawn();
+my $irc = POE::Component::IRC->spawn( plugin_debug => 1 );
 my $ircd = POE::Component::Server::IRC->spawn(
     Alias     => 'ircd',
     Auth      => 0,
     AntiFlood => 0,
 );
+
+$irc->plugin_add(Connector => POE::Component::IRC::Plugin::Connector->new(
+    timeout   => 2,
+    reconnect => 2,
+));
 
 POE::Session->create(
     package_states => [
@@ -21,12 +26,8 @@ POE::Session->create(
             _start
             _config_ircd 
             _shutdown 
-            irc_registered 
-            irc_connected 
             irc_001 
-            irc_error
             irc_disconnected
-            irc_shutdown
         )],
     ],
 );
@@ -37,8 +38,8 @@ sub _start {
     my ($kernel, $heap) = @_[KERNEL, HEAP];
 
     my $wheel = POE::Wheel::SocketFactory->new(
-        BindAddress => '127.0.0.1',
-        BindPort => 0,
+        BindAddress  => '127.0.0.1',
+        BindPort     => 0,
         SuccessEvent => '_fake_success',
         FailureEvent => '_fake_failure',
     );
@@ -48,7 +49,7 @@ sub _start {
         $kernel->yield(_config_ircd => $port);
         $heap->{count} = 0;
         $wheel = undef;
-        $kernel->delay(_shutdown => 60);
+        $kernel->delay(_shutdown => 60 );
         return;
     }
 
@@ -56,58 +57,54 @@ sub _start {
 }
 
 sub _config_ircd {
-    my ($kernel, $heap, $session, $port) = @_[KERNEL, HEAP, SESSION, ARG0];
+    my ($kernel, $port) = @_[KERNEL, ARG0];
+
     $kernel->post(ircd => 'add_i_line');
     $kernel->post(ircd => 'add_listener' => Port => $port);
-    $kernel->signal($kernel, 'POCOIRC_REGISTER', $session, 'all');
-    $heap->{nickcounter} = 0;
-    $heap->{port} = $port;
-}
-
-sub irc_registered {
-    my ($heap, $irc) = @_[HEAP, ARG0];
     
-    $heap->{nickcounter}++;
-    pass('Registered ' . $heap->{nickcounter});
-    isa_ok($irc, 'POE::Component::IRC');
-
+    $irc->yield(register => 'all');
     $irc->yield(connect => {
-        nick    => 'TestBot' . $heap->{nickcounter},
+        nick    => 'TestBot1',
         server  => '127.0.0.1',
-        port    => $heap->{port},
+        port    => $port,
         ircname => 'Test test bot',
     });
 }
 
-sub irc_connected {
-    pass('Connected');
-}
-
 sub irc_001 {
-    my ($sender,$text) = @_[SENDER, ARG1];
+    my ($kernel, $sender, $heap) = @_[KERNEL, SENDER, HEAP];
     my $irc = $sender->get_heap();
-    pass('Logged in');
-    $irc->yield('quit');
-}
 
-sub irc_error {
-    pass('irc_error');
+    if (!$heap->{killed}) {
+        pass('Logged in');
+        $ircd->daemon_server_kill($irc->nick_name());
+        $heap->{killed}++;
+        return;
+    }
+    
+    pass('Re-logged in');
+    $irc->plugin_del('Connector');
+    $irc->yield('quit');
 }
 
 sub irc_disconnected {
     my ($kernel, $heap) = @_[KERNEL, HEAP];
+
+    if ($heap->{killed} < 2) {
+        $heap->{killed}++;
+        pass('Killed from the IRC server');
+        return;
+    }
+    
     pass('irc_disconnected');
-    $heap->{count}++;
-    $kernel->yield('_shutdown') if $heap->{count} == 2;
+    $kernel->yield('_shutdown');
 }
 
 sub _shutdown {
-    my ($kernel, $heap) = @_[KERNEL, HEAP];
+    my ($kernel) = $_[KERNEL];
+    
     $kernel->alarm_remove_all();
     $kernel->post(ircd => 'shutdown');
-    $kernel->signal($kernel, 'POCOIRC_SHUTDOWN');
+    $irc->yield('shutdown');
 }
 
-sub irc_shutdown {
-    pass('irc_shutdown');
-}

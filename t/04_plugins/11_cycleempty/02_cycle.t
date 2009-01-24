@@ -1,15 +1,16 @@
 use strict;
 use warnings;
+use lib 't/inc';
 use POE qw(Wheel::SocketFactory);
 use Socket;
 use POE::Component::IRC::State;
 use POE::Component::IRC::Plugin::CycleEmpty;
-use POE::Component::IRC::Test::Harness;
+use POE::Component::Server::IRC;
 use Test::More tests => 10;
 
 my $bot1 = POE::Component::IRC::State->spawn( plugin_debug => 1 );
 my $bot2 = POE::Component::IRC::State->spawn( plugin_debug => 1 );
-my $ircd = POE::Component::IRC::Test::Harness->spawn(
+my $ircd = POE::Component::Server::IRC->spawn(
     Alias     => 'ircd',
     Auth      => 0,
     AntiFlood => 0,
@@ -60,7 +61,7 @@ sub _config_ircd {
     my ($kernel, $port) = @_[KERNEL, ARG0];
 
     $kernel->post(ircd => 'add_i_line');
-    $kernel->post(ircd => 'add_listener' => { Port => $port });
+    $kernel->post(ircd => 'add_listener' => Port => $port);
     
     $bot1->yield(register => 'all');
     $bot1->yield(connect => {
@@ -92,17 +93,16 @@ sub irc_join {
     my $irc = $sender->get_heap();
 
     return if $nick ne $irc->nick_name();
-    pass("$nick joined channel");
     
-    if ($irc == $bot1) {
-        $irc->yield(part => $where);
+    if (!$heap->{joined} || $heap->{joined} != 2) {
+        $heap->{joined}++;
+        pass("$nick joined channel");
     }
-    else {
-        if (!$heap->{cycling}) {
-            $irc->yield(part => $where);
-            $heap->{cycling} = 1;
-        }
-        else {
+
+    if ($irc == $bot2) {
+        $bot1->yield(part => $where);
+
+        if ($heap->{cycling}) {
             pass("$nick rejoined channel");
             $bot1->yield('quit');
             $bot2->yield('quit');
@@ -116,10 +116,11 @@ sub irc_part {
     my $irc = $sender->get_heap();
 
     return if $nick ne $irc->nick_name();
+    pass("$nick parted channel");
 
     if ($irc == $bot2) {
-        pass("$nick parted channel");
         ok($plugin->is_cycling($where), "$nick is cycling");
+        $heap->{cycling} = 1;
     }
 }
 

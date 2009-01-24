@@ -1,13 +1,14 @@
 use strict;
 use warnings;
+use lib 't/inc';
 use POE qw(Wheel::SocketFactory);
 use POE::Component::IRC;
-use POE::Component::IRC::Test::Harness;
+use POE::Component::Server::IRC;
 use Socket;
 use Test::More tests => 7;
 
 my $irc = POE::Component::IRC->spawn();
-my $ircd = POE::Component::IRC::Test::Harness->spawn(
+my $ircd = POE::Component::Server::IRC->spawn(
     Alias     => 'ircd',
     Auth      => 0,
     AntiFlood => 0,
@@ -55,7 +56,7 @@ sub _start {
 sub _config_ircd {
     my ($kernel, $heap, $session, $port) = @_[KERNEL, HEAP, SESSION, ARG0];
     $kernel->post (ircd => 'add_i_line');
-    $kernel->post (ircd => 'add_listener' => { Port => $port } );
+    $kernel->post (ircd => 'add_listener' => Port => $port);
     $kernel->signal($kernel, 'POCOIRC_REGISTER', $session, 'all');
     $heap->{port} = $port;
 }

@@ -1,19 +1,29 @@
 use strict;
 use warnings;
-use lib 't/inc';
 use POE qw(Wheel::SocketFactory);
 use Socket;
 use POE::Component::IRC;
+use POE::Component::IRC::Plugin::NickReclaim;
 use POE::Component::Server::IRC;
-use Test::More tests => 13;
+use Test::More tests => 6;
 
-my $irc = POE::Component::IRC->spawn( plugin_debug => 1 );
-my $irc2 = POE::Component::IRC->spawn( plugin_debug => 1 );
+my $bot1 = POE::Component::IRC->spawn(
+    plugin_debug => 1,
+    alias        => 'bot1',
+);
+my $bot2 = POE::Component::IRC->spawn(
+    plugin_debug => 1,
+    alias        => 'bot2',
+);
 my $ircd = POE::Component::Server::IRC->spawn(
     Alias     => 'ircd',
     Auth      => 0,
     AntiFlood => 0,
 );
+
+$bot2->plugin_add(NickReclaim => POE::Component::IRC::Plugin::NickReclaim->new(
+    poll => 3,
+));
 
 POE::Session->create(
     package_states => [
@@ -21,12 +31,10 @@ POE::Session->create(
             _start
             _config_ircd 
             _shutdown 
-            irc_001 
-            irc_join
+            irc_001
+            irc_433
+            irc_nick
             irc_disconnected
-            irc_dcc_request
-            irc_dcc_done
-            irc_dcc_start
         )],
     ],
 );
@@ -61,17 +69,17 @@ sub _config_ircd {
     $kernel->post(ircd => 'add_i_line');
     $kernel->post(ircd => 'add_listener' => Port => $port);
     
-    $irc->yield(register => 'all');
-    $irc->yield(connect => {
+    $bot1->yield(register => 'all');
+    $bot1->yield(connect => {
         nick    => 'TestBot1',
         server  => '127.0.0.1',
         port    => $port,
         ircname => 'Test test bot',
     });
-  
-    $irc2->yield(register => 'all');
-    $irc2->yield(connect => {
-        nick    => 'TestBot2',
+    
+    $bot2->yield(register => 'all');
+    $bot2->yield(connect => {
+        nick    => 'TestBot1',
         server  => '127.0.0.1',
         port    => $port,
         ircname => 'Test test bot',
@@ -80,51 +88,30 @@ sub _config_ircd {
 
 sub irc_001 {
     my $irc = $_[SENDER]->get_heap();
-    pass('Logged in');
-    $irc->yield(join => '#testchannel');
+    pass($irc->session_alias() . ' logged in');
 }
 
-sub irc_join {
-    my ($sender, $who, $where) = @_[SENDER, ARG0, ARG1];
-    my $nick = ( split /!/, $who )[0];
+sub irc_433 {
+    my $irc = $_[SENDER]->get_heap();
+    my $other = $irc == $bot1 ? $bot2 : $bot1;
+
+    pass($irc->session_alias . ' nick collision');
+    $other->yield('quit');
+}
+
+sub irc_nick {
+    my ($sender, $new_nick) = @_[SENDER, ARG1];
     my $irc = $sender->get_heap();
-    
-    if ( $nick eq $irc->nick_name() ) {
-        is($where, '#testchannel', 'Joined Channel Test');
-    }
-    else {
-        $irc->yield(dcc => $nick => SEND => 'Changes' => '' => 15);
-    }
-}
 
-sub irc_dcc_request {
-    my ($sender, $who, $type, $port, $cookie) = @_[SENDER, ARG0..ARG3];
-    return if $type ne 'SEND';
-    pass('Got dcc request');
-
-    open (my $orig, '<', 'Changes');
-    sysread $orig, my $partial, 12000;
-    open (my $resume, '>', 'Changes.resume');
-    truncate $resume, 12000;
-    syswrite $resume, $partial;
-
-    $sender->get_heap()->yield(dcc_resume => $cookie => 'Changes.resume');
-}
-
-sub irc_dcc_start {
-    pass('DCC started');
-}
-
-sub irc_dcc_done {
-    my ($sender, $size1, $size2) = @_[SENDER, ARG5, ARG6];
-    pass('Got dcc close');
-    is($size1, $size2, 'Send test results');
-    $sender->get_heap()->yield('quit');
+    is($new_nick, 'TestBot1', $irc->session_alias . ' nick reclaimed');
+    $irc->yield('quit');
 }
 
 sub irc_disconnected {
-    my ($kernel, $heap) = @_[KERNEL, HEAP];
-    pass('irc_disconnected');
+    my ($kernel, $sender, $heap) = @_[KERNEL, SENDER, HEAP];
+    my $irc = $sender->get_heap();
+    
+    pass($irc->session_alias() . ' disconnected');
     $heap->{count}++;
     $kernel->yield('_shutdown') if $heap->{count} == 2;
 }
@@ -134,7 +121,7 @@ sub _shutdown {
     
     $kernel->alarm_remove_all();
     $kernel->post(ircd => 'shutdown');
-    $irc->yield('shutdown');
-    $irc2->yield('shutdown');
+    $bot1->yield('shutdown');
+    $bot2->yield('shutdown');
 }
 

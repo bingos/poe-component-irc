@@ -59,7 +59,6 @@ lib/POE/Component/IRC/Projects.pod
 lib/POE/Component/IRC/Qnet.pm
 lib/POE/Component/IRC/Qnet/State.pm
 lib/POE/Component/IRC/State.pm
-lib/POE/Component/IRC/Test/Harness.pm
 lib/POE/Component/IRC/Test/Plugin.pm
 lib/POE/Filter/IRC.pm
 lib/POE/Filter/IRC/Compat.pm
@@ -71,7 +70,7 @@ README
 t/01_base/01_compile.t
 t/01_base/02_filters.t
 t/01_base/03_common.t
-t/01_base/04_test_harness.t
+t/01_base/04_pocosi.t
 t/02_behavior/01_public_methods.t
 t/02_behavior/02_connect.t
 t/02_behavior/03_socketerr.t
@@ -84,12 +83,12 @@ t/02_behavior/09_multiple.t
 t/02_behavior/10_signal.t
 t/02_behavior/11_multi_signal.t
 t/02_behavior/12_delays.t
-t/02_behavior/13_ziplink.t
 t/03_subclasses/01_state.t
 t/03_subclasses/02_qnet.t
 t/03_subclasses/03_qnet_state.t
 t/04_plugins/01_plugman/01_load.t
 t/04_plugins/02_connector/01_load.t
+t/04_plugins/02_connector/02_reconnect.t
 t/04_plugins/03_botaddressed/01_load.t
 t/04_plugins/03_botaddressed/02_output.t
 t/04_plugins/04_bottraffic/01_load.t
@@ -100,6 +99,7 @@ t/04_plugins/06_ctcp/02_replies.t
 t/04_plugins/07_console/01_load.t
 t/04_plugins/08_proxy/01_load.t
 t/04_plugins/09_nickreclaim/01_load.t
+t/04_plugins/09_nickreclaim/02_reclaim.t
 t/04_plugins/10_followtail/01_load.t
 t/04_plugins/11_cycleempty/01_load.t
 t/04_plugins/11_cycleempty/02_cycle.t
@@ -115,6 +115,18 @@ t/04_plugins/17_dcc/03_send.t
 t/04_plugins/17_dcc/04_resume.t
 t/04_plugins/17_dcc/05_chat.t
 t/04_plugins/17_dcc/06_nat.t
+t/inc/Algorithm/Diff.pm
+t/inc/Algorithm/DiffOld.pm
+t/inc/Net/Netmask.pm
+t/inc/POE/Filter/Ident.pm
+t/inc/POE/Component/Client/Ident.pm
+t/inc/POE/Component/Client/Ident/Agent.pm
+t/inc/POE/Component/Server/IRC.pm
+t/inc/POE/Component/Server/IRC/Backend.pm
+t/inc/POE/Component/Server/IRC/Common.pm
+t/inc/POE/Component/Server/IRC/OperServ.pm
+t/inc/POE/Component/Server/IRC/Pipeline.pm
+t/inc/POE/Component/Server/IRC/Plugin.pm
 xt/perl_critic.t
 xt/perlcriticrc
 xt/pod.t

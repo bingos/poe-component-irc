@@ -1,10 +1,16 @@
 Revision history for Perl extension POE::Component::IRC.
 
-5.92
+5.91_01
+    - Connector.pm: Allow adjusting the time to wait before reconnecting,
+      to ease testing. (Hinrik)
     - Compat.pm: Fix parsing of CTCPs when no prefix is present
       (i.e. client CTCPs) (Hinrik)
+    - Updated included POE::Component::Server::IRC to 1.34 (Hinrik)
+    - Fixed up some tests to work with it (Hinrik)
+    - Removed ziplink test since PoCo-Server-IRC only supports server
+      ziplinks, not client ones (Hinrik)
     - Added tests for the following plugins: AutoJoin, BotAddressed,
-      CycleEmpty, CTCP, ISupport (Hinrik)
+      CycleEmpty, CTCP, Connector, ISupport, NickReclaim (Hinrik)
 
 5.90 Thu Jan 22 10:52:53 GMT 2009
     - Seen.pod: Recipe for a bot implementing the 'seen' command (Hinrik)
