@@ -5,7 +5,7 @@ use warnings;
 use POE;
 use POE::Component::IRC::Plugin qw( :ALL );
 
-our $VERSION = '1.1';
+our $VERSION = '1.2';
 
 sub new {
     my ($package, %args) = @_;
