@@ -5,7 +5,7 @@ Revision history for Perl extension POE::Component::IRC.
       to ease testing. (Hinrik)
     - Compat.pm: Fix parsing of CTCPs when no prefix is present
       (i.e. client CTCPs) (Hinrik)
-    - Updated included POE::Component::Server::IRC to 1.34 (Hinrik)
+    - Updated included POE::Component::Server::IRC to 1.36 (Hinrik)
     - Fixed up some tests to work with it (Hinrik)
     - Removed ziplink test since PoCo-Server-IRC only supports server
       ziplinks, not client ones (Hinrik)
