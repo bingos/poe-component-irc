@@ -257,7 +257,7 @@ sub _client_flush {
 }
 
 # this code needs refactoring
-## no critic
+## no critic (Subroutines::ProhibitExcessComplexity)
 sub _client_input {
     my ($kernel, $self, $input, $wheel_id) = @_[KERNEL, OBJECT, ARG0, ARG1];
 

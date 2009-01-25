@@ -152,7 +152,7 @@ sub _create {
 
 # BINGOS: the component can now configure itself via _configure() from
 # either spawn() or connect()
-## no critic
+## no critic (Subroutines::ProhibitExcessComplexity)
 sub _configure {
     my ($self, $args) = @_;
     my $spawned = 0;
@@ -396,8 +396,8 @@ sub _sock_up {
         );
     
         if ( !$self->{socket} ) {
-            $self->_send_event(irc_socketerr => "Couldn't create ReadWrite
-                wheel for SOCKS socket" );
+            $self->_send_event(irc_socketerr =>
+                "Couldn't create ReadWrite wheel for SOCKS socket" );
             return;
         }
     

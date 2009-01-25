@@ -283,11 +283,12 @@ sub _decolon {
     return $line;
 }
 
+## no critic (Subroutines::ProhibitExcessComplexity)
 sub _get_ctcp {
     my ($self, $line) = @_;
 
     # Is this a CTCP request or reply?
-    my $type = $line->{command} eq 'PRIVMSG' ? 'ctcp' : 'ctcpreply';
+    my $ctcp_type = $line->{command} eq 'PRIVMSG' ? 'ctcp' : 'ctcpreply';
     
     # CAPAP IDENTIFY-MSG is only applied to ACTIONs
     my ($msg, $identified) = ($line->{params}->[1], undef);
@@ -308,9 +309,9 @@ sub _get_ctcp {
         }
             
         if (lc $name eq 'dcc') {
-            my ($type, $rest);
+            my ($dcc_type, $rest);
             
-            if (!(($type, $rest) = $args =~ /^(\w+) +(.+)/)) {
+            if (!(($dcc_type, $rest) = $args =~ /^(\w+) +(.+)/)) {
                 defined $nick
                     ? do { warn "Received malformed DCC request from $nick: $args\n" if $self->{debug} }
                     : do { warn "Trying to send malformed DCC request: $args\n" if $self->{debug} }
@@ -318,19 +319,19 @@ sub _get_ctcp {
                 last CTCP;
 
             }
-            $type = uc $type;
+            $dcc_type = uc $dcc_type;
 
-            my ($handler) = grep { $type =~ /$_/ } keys %dcc_types;
+            my ($handler) = grep { $dcc_type =~ /$_/ } keys %dcc_types;
             if (!$handler) {
-                warn "Unhandled DCC $type request: $rest\n" if $self->{debug};
+                warn "Unhandled DCC $dcc_type request: $rest\n" if $self->{debug};
                 last CTCP;
             }
 
-            my @dcc_args = $dcc_types{$handler}->($nick, $type, $rest);
+            my @dcc_args = $dcc_types{$handler}->($nick, $dcc_type, $rest);
             if (!@dcc_args) {
                 defined $nick
-                    ? do { warn "Received malformed DCC $type request from $nick: $rest\n" if $self->{debug} }
-                    : do { warn "Trying to send malformed DCC $type request: $rest\n" if $self->{debug} }
+                    ? do { warn "Received malformed DCC $dcc_type request from $nick: $rest\n" if $self->{debug} }
+                    : do { warn "Trying to send malformed DCC $dcc_type request: $rest\n" if $self->{debug} }
                 ;
                 last CTCP;
             }
@@ -339,7 +340,7 @@ sub _get_ctcp {
                 name => 'dcc_request',
                 args => [
                     $nick,
-                    $type,
+                    $dcc_type,
                     @dcc_args,
                 ],
                 raw_line => $line->{raw_line},
@@ -347,7 +348,7 @@ sub _get_ctcp {
         }
         else {
             push @$events, {
-                name => $type . '_' . lc $name,
+                name => $ctcp_type . '_' . lc $name,
                 args => [
                     $line->{prefix},
                     [split /,/, $line->{params}->[0]],

@@ -275,7 +275,7 @@ sub S_306 {
 }
 
 # this code needs refactoring
-## no critic
+## no critic (Subroutines::ProhibitExcessComplexity ControlStructures::ProhibitCascadingIfElse)
 sub S_mode {
     my ($self, $irc) = splice @_, 0, 2;
     my $mapping = $irc->isupport('CASEMAPPING');

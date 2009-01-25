@@ -347,6 +347,7 @@ sub _event_dcc_close {
 # bboett - first step - the user asks for a resume:
 # tries to resume a previous dcc transfer. See '_dcc_up' for
 # the rest of the logic for this.
+## no critic (InputOutput::RequireBriefOpen)
 sub _event_dcc_resume {
     my ($self, $cookie, $myfile) = @_[OBJECT, ARG0, ARG1];
     my $irc = $self->{irc};
@@ -563,6 +564,7 @@ sub _dcc_timeout {
 }
 
 # This event occurs when a DCC connection is established.
+## no critic (InputOutput::RequireBriefOpen)
 sub _dcc_up {
     my ($kernel, $self, $sock, $addr, $port, $id) =
         @_[KERNEL, OBJECT, ARG0 .. ARG3];
