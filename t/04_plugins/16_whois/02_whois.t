@@ -5,7 +5,7 @@ use POE qw(Wheel::SocketFactory);
 use POE::Component::IRC;
 use POE::Component::Server::IRC;
 use Socket;
-use Test::More tests => 5;
+use Test::More tests => 4;
 
 my $irc = POE::Component::IRC->spawn( plugin_debug => 1 );
 my $ircd = POE::Component::Server::IRC->spawn(
@@ -21,7 +21,7 @@ POE::Session->create(
             _config_ircd 
             _shutdown 
             irc_001 
-            irc_isupport
+            irc_whois
             irc_disconnected
         )],
     ],
@@ -69,25 +69,21 @@ sub _config_ircd {
 sub irc_001 {
     my $irc = $_[SENDER]->get_heap();
     pass('Logged in');
+    $irc->yield(whois => $irc->nick_name());
 }
 
-sub irc_isupport {
-    my ($sender, $heap, $plugin) = @_[SENDER, HEAP, ARG0];
+sub irc_whois {
+    my ($sender, $heap, $whois) = @_[SENDER, HEAP, ARG0];
     my $irc = $sender->get_heap();
 
-    return if $heap->{got_isupport};
-    $heap->{got_isupport}++;
-
-    pass('irc_isupport');
-    isa_ok($plugin, 'POE::Component::IRC::Plugin::ISupport');
-    my @keys = $plugin->isupport_dump_keys();
-    ok($plugin->isupport(pop @keys), "Queried a parameter");
-
+    pass('irc_whois');
+    ok(keys %$whois, 'Got whois info');
     $irc->yield('quit');
 }
 
 sub irc_disconnected {
-    my ($kernel) = $_[KERNEL];
+    my ($kernel, $heap, $sender) = @_[KERNEL, HEAP, SENDER];
+    my $irc = $sender->get_heap();
     pass('irc_disconnected');
     $kernel->yield('_shutdown');
 }

@@ -10,7 +10,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Removed ziplink test since PoCo-Server-IRC only supports server
       ziplinks, not client ones (Hinrik)
     - Added tests for the following plugins: AutoJoin, BotAddressed,
-      CycleEmpty, CTCP, Connector, ISupport, NickReclaim (Hinrik)
+      CycleEmpty, CTCP, Connector, ISupport, NickReclaim, Whois (Hinrik)
 
 5.90 Thu Jan 22 10:52:53 GMT 2009
     - Seen.pod: Recipe for a bot implementing the 'seen' command (Hinrik)

@@ -109,6 +109,7 @@ t/04_plugins/13_botcommand/01_load.t
 t/04_plugins/14_logger/01_load.t
 t/04_plugins/15_nickservid/01_load.t
 t/04_plugins/16_whois/01_load.t
+t/04_plugins/16_whois/02_whois.t
 t/04_plugins/17_dcc/01_load.t
 t/04_plugins/17_dcc/02_timeout.t
 t/04_plugins/17_dcc/03_send.t
