@@ -1,6 +1,7 @@
 Revision history for Perl extension POE::Component::IRC.
 
 5.91_01
+    - PlugMan.pm: Only require ::State when 'botowner' is set (Hinrik)
     - ISupport.pm: Fix parsing of MODES and SILENCE parameters (Hinrik)
     - AutoJoin.pm: Added 'Rejoin_delay' option (Hinrik)
     - Connector.pm: Allow adjusting the time to wait before reconnecting,
