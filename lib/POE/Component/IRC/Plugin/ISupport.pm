@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use POE::Component::IRC::Plugin qw(:ALL);
 
-our $VERSION = '0.57';
+our $VERSION = '0.58';
 
 sub new {
     return bless { }, shift;
@@ -18,12 +18,11 @@ sub PCI_register {
     $self->{parser} = {
         CASEMAPPING => sub {
             my ($support, $key, $val) = @_;
-            $support->{ $key } = $val;
+            $support->{$key} = $val;
         },
         CHANLIMIT => sub {
             my ($support, $key, $val) = @_;
-            while ($val =~ /([^:]+):(\d+),?/g) {
-                my ($k, $v) = ($1, $2);
+            while (my ($k, $v) = $val =~ /([^:]+):(\d+),?/g) {
                 @{ $support->{$key} }{ split(//, $k) } = ($v) x length $k;
             }
         },
@@ -55,13 +54,9 @@ sub PCI_register {
         },
         PREFIX => sub {
             my ($support, $key, $val) = @_;
-            if ( my ($k, $v) = $val =~ /\(([^)]+)\)(.*)/ ) {
+            if (my ($k, $v) = $val =~ /\(([^)]+)\)(.*)/ ) {
                 @{ $support->{$key} }{ split(//, $k) } = split(//, $v);
             }
-        },
-        SILENCE => sub {
-            my ($support, $key, $val) = @_;
-            $support->{$key} = length($val) ? $val : 'off';
         },
         STATUSMSG => sub {
             my ($support, $key, $val) = @_;
@@ -69,25 +64,17 @@ sub PCI_register {
         },
         TARGMAX => sub {
             my ($support, $key, $val) = @_;
-            while ($val =~ /([^:]+):(\d*),?/g) {
-            $support->{$key}->{$1} = $2;
-          }
+            while (my ($k, $v) = $val =~ /([^:]+):(\d*),?/g) {
+                $support->{$key}->{$k} = $v;
+            }
         },
         EXCEPTS => sub {
             my ($support, $flag) = @_;
             $support->{$flag} = 'e';
         },
-        INVEX   => sub {
+        INVEX => sub {
             my ($support, $flag) = @_;
             $support->{$flag} = 'I';
-        },
-        MODES   => sub {
-            my ($support, $flag) = @_;
-            $support->{$flag} = '';
-        },
-        SILENCE => sub {
-            my ($support, $flag) = @_;
-            $support->{$flag} = 'off';
         },
     };
 
@@ -125,8 +112,8 @@ sub S_005 {
             }
             else {
                 # AWAYLEN CHANNELLEN CHIDLEN EXCEPTS INVEX KICKLEN MAXBANS
-                # MAXCHANNELS MAXTARGETS MODES NETWORK NICKLEN SILENCE STD
-                # TOPICLEN WATCH
+                # MAXCHANNELS MAXTARGETS MODES NETWORK NICKLEN STD TOPICLEN
+                # WATCH
                 $support->{$key} = $val;
             }
         }
