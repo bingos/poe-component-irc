@@ -143,8 +143,8 @@ on the next time it gets connected to the IRC server. It can also rejoin a
 channel if the IRC component gets kicked from it. It keeps track of channel
 keys so it will be able to rejoin keyed channels in case of reconnects/kicks.
 
-This plugin requires the IRC component L<POE::Component::IRC::State|POE::Component::IRC::State>
-or a subclass thereof.
+This plugin requires the IRC component to be
+L<POE::Component::IRC::State|POE::Component::IRC::State> or a subclass thereof.
 
 =head1 METHODS
 
