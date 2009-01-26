@@ -7,7 +7,6 @@ verbose  = 3
 [-RegularExpressions::RequireExtendedFormatting]
 
 [-ValuesAndExpressions::ProhibitConstantPragma]
-[-ValuesAndExpressions::ProhibitCommaSeparatedStatements]
 
 [-Variables::ProhibitPackageVars]
 [-Variables::RequireLocalizedPunctuationVars]
