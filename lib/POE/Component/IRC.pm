@@ -1553,7 +1553,7 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC - a fully event-driven IRC client module.
+POE::Component::IRC - A fully event-driven IRC client module
 
 =head1 SYNOPSIS
 

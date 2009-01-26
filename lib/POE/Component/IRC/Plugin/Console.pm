@@ -188,7 +188,7 @@ __END__
 
 POE::Component::IRC::Plugin::Console - A PoCo-IRC plugin that provides a
 lightweight debugging and control console for
-L<POE::Component::IRC|POE::Component::IRC> bots.
+your bot
 
 =head1 SYNOPSIS
 

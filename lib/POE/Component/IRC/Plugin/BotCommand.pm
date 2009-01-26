@@ -111,8 +111,8 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Plugin::BotCommand - A PoCo-IRC plugin which makes it easy
-to handle commands issued to your bot.
+POE::Component::IRC::Plugin::BotCommand - A PoCo-IRC plugin which handles
+commands issued to your bot
 
 =head1 SYNOPSIS
 

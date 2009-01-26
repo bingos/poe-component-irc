@@ -225,7 +225,7 @@ __END__
 =head1 NAME
 
 POE::Component::IRC::Plugin::PlugMan - A PoCo-IRC plugin that provides plugin
-management services. 
+management services.
 
 =head1 SYNOPSIS
 

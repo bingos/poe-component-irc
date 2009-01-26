@@ -179,8 +179,8 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Plugin::Whois - A PoCo-IRC plugin that implements
-'irc_whois' and 'irc_whowas' events.
+POE::Component::IRC::Plugin::Whois - A PoCo-IRC plugin that generates events
+for WHOIS and WHOWAS replies
 
 =head1 DESCRIPTION
 

@@ -443,9 +443,8 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Qnet::State - a fully event-driven IRC client module
-for Quakenet, with nickname and channel tracking from
-L<POE::Component::IRC::State|POE::Component::IRC::State>.
+POE::Component::IRC::Qnet::State - A fully event-driven IRC client module
+for Quakenet with nickname and channel tracking
 
 =head1 SYNOPSIS
 

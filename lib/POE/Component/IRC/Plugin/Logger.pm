@@ -332,7 +332,7 @@ __END__
 =head1 NAME
 
 POE::Component::IRC::Plugin::Logger - A PoCo-IRC plugin which
-logs public and private messages to disk.
+logs public and private messages to disk
 
 =head1 SYNOPSIS
 

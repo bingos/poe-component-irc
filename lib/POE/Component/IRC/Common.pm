@@ -363,8 +363,8 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Common - provides a set of common functions for the
-L<POE::Component::IRC|POE::Component::IRC> suite.
+POE::Component::IRC::Common - Provides a set of common functions for the
+L<POE::Component::IRC|POE::Component::IRC> suite
 
 =head1 SYNOPSIS
 

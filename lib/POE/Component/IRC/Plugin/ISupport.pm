@@ -182,7 +182,7 @@ __END__
 =head1 NAME
 
 POE::Component::IRC::Plugin::ISupport - A PoCo-IRC plugin that handles server
-capabilities.
+capabilities
 
 =head1 DESCRIPTION
 

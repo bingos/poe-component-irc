@@ -640,7 +640,8 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Plugin::DCC - a PoCo-IRC plugin providing DCC support
+POE::Component::IRC::Plugin::DCC - A PoCo-IRC plugin providing support for
+DCC transfers
 
 =head1 SYNOPSIS
 

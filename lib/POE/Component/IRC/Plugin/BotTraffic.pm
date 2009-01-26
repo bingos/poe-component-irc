@@ -62,8 +62,7 @@ __END__
 =head1 NAME
 
 POE::Component::IRC::Plugin::BotTraffic - A PoCo-IRC plugin that generates
-'irc_bot_public', 'irc_bot_msg', and 'irc_bot_action' events whenever your bot
-sends privmsgs.
+events when you send messages
 
 =head1 SYNOPSIS
 

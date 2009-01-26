@@ -122,14 +122,14 @@ __END__
 =head1 NAME
 
 POE::Component::IRC::Plugin::NickReclaim - A PoCo-IRC plugin for reclaiming
-nickname.
+your nickname
 
 =head1 SYNOPSIS
 
  use strict;
  use warnings;
  use POE qw(Component::IRC Component::IRC::Plugin::NickReclaim);
-
+i
  my $nickname = 'Flibble' . $$;
  my $ircname = 'Flibble the Sailor Bot';
  my $ircserver = 'irc.blahblahblah.irc';

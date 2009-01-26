@@ -124,7 +124,7 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Qnet - a fully event-driven IRC client module for Quakenet.
+POE::Component::IRC::Qnet - A fully event-driven IRC client module for Quakenet
 
 =head1 SYNOPSIS
 

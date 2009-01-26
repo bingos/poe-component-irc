@@ -415,7 +415,7 @@ __END__
 =head1 NAME
 
 POE::Filter::IRC::Compat - A filter which converts L<POE::Filter::IRCD|POE::Filter::IRCD>
-output into L<POE::Component::IRC|POE::Component::IRC> events.
+output into L<POE::Component::IRC|POE::Component::IRC> events
 
 =head1 SYNOPSIS
 

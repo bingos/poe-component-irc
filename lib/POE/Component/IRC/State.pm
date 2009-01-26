@@ -1051,8 +1051,8 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::State - a fully event-driven IRC client module with
-channel/nick tracking.
+POE::Component::IRC::State - A fully event-driven IRC client module with
+nickname and channel tracking
 
 =head1 SYNOPSIS
 

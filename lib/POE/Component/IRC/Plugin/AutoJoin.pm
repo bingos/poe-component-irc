@@ -95,7 +95,7 @@ __END__
 =head1 NAME
 
 POE::Component::IRC::Plugin::AutoJoin - A PoCo-IRC plugin which
-keeps you on your favorite channels throughout reconnects and even kicks.
+keeps you on your favorite channels
 
 =head1 SYNOPSIS
 

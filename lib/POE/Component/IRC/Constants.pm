@@ -39,7 +39,7 @@ __END__
 =head1 NAME
 
 POE::Component::IRC::Constants - Defines constants required by
-L<POE::Component::IRC|POE::Component::IRC>.
+L<POE::Component::IRC|POE::Component::IRC>
 
 =head1 SYNOPSIS
 

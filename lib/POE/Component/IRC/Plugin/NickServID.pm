@@ -46,7 +46,7 @@ __END__
 =head1 NAME
 
 POE::Component::IRC::Plugin::NickServID - A PoCo-IRC plugin
-which identifies with FreeNode's NickServ when needed.
+which identifies with FreeNode's NickServ when needed
 
 =head1 SYNOPSIS
 

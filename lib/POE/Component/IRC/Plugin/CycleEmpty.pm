@@ -92,8 +92,7 @@ __END__
 =head1 NAME
 
 POE::Component::IRC::Plugin::CycleEmpty - A PoCo-IRC plugin which cycles
-(parts and rejoins) channels if they become empty and opless, in order
-to gain ops.
+channels if they become empty and opless.
 
 =head1 SYNOPSIS
 
@@ -104,11 +103,13 @@ to gain ops.
 =head1 DESCRIPTION
 
 POE::Component::IRC::Plugin::CycleEmpty is a L<POE::Component::IRC|POE::Component::IRC>
-plugin. When someone quits, gets kicked, or parts a channel, the plugin will
+plugin. When a channel member quits, gets kicked, or parts, the plugin will
 cycle the channel if the IRC component is alone on that channel and is not
 a channel operator. If there was a topic or a key set on the channel, they
-will be restored upon rejoining. This can be useful on small channels if the
-IRC network does not have ChanServ or IRCNet's +R channel mode.
+will be restored upon rejoining.
+
+This is useful for regaining ops in small channels if the IRC network does
+not have ChanServ or IRCNet's +R channel mode.
 
 This plugin requires the IRC component to be
 L<POE::Component::IRC::State|POE::Component::IRC::State> or a subclass thereof.

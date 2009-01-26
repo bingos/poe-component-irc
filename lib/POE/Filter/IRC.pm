@@ -24,7 +24,7 @@ __END__
 
 =head1 NAME
 
-POE::Filter::IRC -- A POE-based parser for the IRC protocol.
+POE::Filter::IRC -- A POE-based parser for the IRC protocol
 
 =head1 SYNOPSIS
 

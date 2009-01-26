@@ -172,7 +172,7 @@ __END__
 =head1 NAME
 
 POE::Component::IRC::Plugin::Connector - A PoCo-IRC plugin that deals with the
-messy business of staying connected to an IRC server.
+messy business of staying connected to an IRC server
 
 =head1 SYNOPSIS
 

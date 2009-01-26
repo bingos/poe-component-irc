@@ -22,7 +22,8 @@ __END__
 
 =head1 NAME
 
-POE::Component::IRC::Plugin - Provides plugin documentation for PoCo-IRC
+POE::Component::IRC::Plugin - Provides plugin documentation for 
+L<POE::Component::IRC|POE::Component::IRC>
 
 =head1 SYNOPSIS
 
