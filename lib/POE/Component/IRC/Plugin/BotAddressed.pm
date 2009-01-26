@@ -5,6 +5,8 @@ use warnings;
 use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 
+our $VERSION = 5.90;
+
 sub new {
     my ($package) = shift;
     croak "$package requires an even number of arguments" if @_ & 1;

@@ -12,9 +12,9 @@ use Socket;
 our $VERSION = '1.1';
 
 use constant {
-    BLOCKSIZE          => 1024,  # Send DCC data in 1k chunks
-    INCOMING_BLOCKSIZE => 10240, # 10k per DCC socket read
-    DCC_TIMEOUT        => 300,   # Five minutes for listening DCCs
+    BLOCKSIZE          => 1024,   # Send DCC data in 1k chunks
+    INCOMING_BLOCKSIZE => 10_240, # 10k per DCC socket read
+    DCC_TIMEOUT        => 300,    # Five minutes for listening DCCs
 };
 
 sub new {
