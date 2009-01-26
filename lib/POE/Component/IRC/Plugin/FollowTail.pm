@@ -2,13 +2,16 @@ package POE::Component::IRC::Plugin::FollowTail;
 
 use strict;
 use warnings;
+use Carp;
 use POE qw(Wheel::FollowTail);
 use POE::Component::IRC::Plugin qw( :ALL );
 
 our $VERSION = '0.02';
 
 sub new {
-    my ($package, %args) = @_;
+    my ($package) = shift;
+    croak "$package requires an even number of arguments" if @_ & 1;
+    my %args = @_;
     $args{lc $_} = delete $args{$_} for keys %args;
     
     if (!$args{filename} || ! -e $args{filename}) {

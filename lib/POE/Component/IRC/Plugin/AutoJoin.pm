@@ -2,13 +2,16 @@ package POE::Component::IRC::Plugin::AutoJoin;
 
 use strict;
 use warnings;
+use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Common qw( parse_user );
 
 our $VERSION = '1.2';
 
 sub new {
-    my ($package, %self) = @_;
+    my ($package) = shift;
+    croak "$package requires an even number of arguments" if @_ & 1;
+    my %self = @_;
     return bless \%self, $package;
 }
 

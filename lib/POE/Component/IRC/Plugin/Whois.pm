@@ -1,4 +1,3 @@
-# Declare our package
 package POE::Component::IRC::Plugin::Whois;
 
 use strict;

@@ -2,6 +2,7 @@ package POE::Component::IRC::Plugin::Proxy;
 
 use strict;
 use warnings;
+use Carp;
 use Socket;
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::IRCD 
            Filter::Line Filter::Stackable);
@@ -11,7 +12,9 @@ use POE::Component::IRC::Common qw( :ALL );
 our $VERSION = '5.86';
 
 sub new {
-    my ($package, %args) = @_;
+    my ($package) = shift;
+    croak "$package requires an even number of arguments" if @_ & 1;
+    my %args = @_;
     $args{ lc $_ } = delete $args{ $_ } for keys %args;
     return bless \%args, $package;
 }

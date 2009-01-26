@@ -2,6 +2,7 @@ package POE::Component::IRC::Plugin::Logger;
 
 use strict;
 use warnings;
+use Carp;
 use Encode qw(decode);
 use Encode::Guess;
 use Fcntl qw(O_WRONLY O_APPEND O_CREAT);
@@ -14,7 +15,10 @@ use POSIX qw(strftime);
 our $VERSION = '1.8';
 
 sub new {
-    my ($package, %self) = @_;
+    my ($package) = shift;
+    croak "$package requires an even number of arguments" if @_ & 1;
+    my %self = @_;
+    
     if (!defined $self{Path}) {
         die "$package requires a Path";
     }

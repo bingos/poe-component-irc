@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+use lib 't/inc';
 use POE qw(Wheel::SocketFactory);
 use Socket;
 use POE::Component::IRC;

@@ -14,8 +14,7 @@ sub new {
         PrivEvent => 'irc_bot_msg',
         PubEvent => 'irc_bot_public',
         ActEvent => 'irc_bot_action',
-    },
-    $package;
+    }, $package;
 }
 
 sub PCI_register {

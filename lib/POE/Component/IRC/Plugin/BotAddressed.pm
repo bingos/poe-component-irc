@@ -2,10 +2,14 @@ package POE::Component::IRC::Plugin::BotAddressed;
 
 use strict;
 use warnings;
+use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 
 sub new {
-    my ($package, %args) = @_;
+    my ($package) = shift;
+    croak "$package requires an even number of arguments" if @_ & 1;
+    my %args = @_;
+
     $args{lc $_} = delete $args{$_} for keys %args;
     return bless \%args, $package;
 }

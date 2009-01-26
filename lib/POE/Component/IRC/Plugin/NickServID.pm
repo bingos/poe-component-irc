@@ -2,13 +2,17 @@ package POE::Component::IRC::Plugin::NickServID;
 
 use strict;
 use warnings;
+use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Common qw( u_irc );
 
 our $VERSION = '1.2';
 
 sub new {
-    my ($package, %self) = @_;
+    my ($package) = shift;
+    croak "$package requires an even number of arguments" if @_ & 1;
+    my %self = @_;
+    
     die "$package requires a Password" if !defined $self{Password};
     return bless \%self, $package;
 }

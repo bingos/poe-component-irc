@@ -2,13 +2,17 @@ package POE::Component::IRC::Plugin::CTCP;
 
 use strict;
 use warnings;
+use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POSIX qw(strftime);
 
 our $VERSION = '1.3';
 
 sub new {
-    my ($package, %args) = @_;
+    my ($package) = shift;
+    croak "$package requires an even number of arguments" if @_ & 1;
+    my %args = @_;
+    
     $args{ lc $_ } = delete $args{ $_ } for keys %args;
     $args{eat} = 1 if !defined ( $args{eat} ) || $args{eat} eq '0';
     return bless \%args, $package;

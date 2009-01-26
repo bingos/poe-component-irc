@@ -2,6 +2,7 @@ package POE::Component::IRC::Plugin::PlugMan;
 
 use strict;
 use warnings;
+use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Common qw( :ALL );
 
@@ -18,7 +19,9 @@ BEGIN {
 }
 
 sub new {
-    my ($package, %args) = @_;
+    my ($package) = shift;
+    croak "$package requires an even number of arguments" if @_ & 1;
+    my %args = @_;
     $args{ lc $_ } = delete $args{ $_ } for keys %args;
     return bless \%args, $package;
 }

@@ -2,6 +2,7 @@ package POE::Component::IRC::Plugin::DCC;
 
 use strict;
 use warnings;
+use Carp;
 use File::Basename qw(fileparse);
 use POE qw(Driver::SysRW Filter::Line Filter::Stream
            Wheel::ReadWrite Wheel::SocketFactory);
@@ -17,7 +18,9 @@ use constant {
 };
 
 sub new {
-    my ($package, %self) = @_;
+    my ($package) = shift;
+    croak "$package requires an even number of arguments" if @_ & 1;
+    my %self = @_;
     return bless \%self, $package;
 }
 

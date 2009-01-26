@@ -874,7 +874,9 @@ sub remove {
 
 # Set up a new IRC component. Deprecated.
 sub new {
-    my ($package, $alias, %options) = @_;
+    my ($package, $alias) = splice @_, 0, 2;
+    croak "$package options should be an even-sized list" if @_ & 1;
+    my %options = @_;
 
     if (!defined $alias) {
         croak 'Not enough arguments to POE::Component::IRC::new()';
@@ -888,7 +890,9 @@ sub new {
 
 # Set up a new IRC component. New interface.
 sub spawn {
-    my ($package, %params) = @_;
+    my ($package) = shift;
+    croak "$package requires an even number of arguments" if @_ & 1;
+    my %params = @_;
 
     $params{ lc $_ } = delete $params{$_} for keys %params;
     delete $params{options} if ref $params{options} ne 'HASH';
@@ -1915,10 +1919,12 @@ If you specify an ipv6 'localaddr' then IPv6 will be used.
 =head2 C<new>
 
 This method is deprecated. See the L<C<spawn>|/"spawn"> method instead.
-Takes one argument: a name (kernel alias) which this new connection
-will be known by. Returns a POE::Component::IRC object :)
-Use of this method will generate a warning. There are currently no plans to
-make it die() >;]
+The first argument should be a name (kernel alias) which this new connection
+will be known by. Optionally takes more arguments (see L<C<spawn>|/"spawn">
+as name/value pairs. Returns a POE::Component::IRC object :)
+
+B<Note:> Use of this method will generate a warning. There are currently no
+plans to make it die() >;]
 
 =head1 METHODS
 

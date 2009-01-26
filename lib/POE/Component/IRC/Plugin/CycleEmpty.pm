@@ -2,13 +2,16 @@ package POE::Component::IRC::Plugin::CycleEmpty;
 
 use strict;
 use warnings;
+use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Common qw( parse_user u_irc );
 
 our $VERSION = '1.1';
 
 sub new {
-    my ($package, %self) = @_;
+    my ($package) = shift;
+    croak "$package requires an even number of arguments" if @_ & 1;
+    my %self = @_;
     return bless \%self, $package;
 }
 

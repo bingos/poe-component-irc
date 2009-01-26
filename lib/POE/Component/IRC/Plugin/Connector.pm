@@ -2,13 +2,17 @@ package POE::Component::IRC::Plugin::Connector;
 
 use strict;
 use warnings;
+use Carp;
 use POE;
 use POE::Component::IRC::Plugin qw( :ALL );
 
 our $VERSION = '1.2';
 
 sub new {
-    my ($package, %args) = @_;
+    my ($package) = shift;
+    croak "$package requires an even number of arguments" if @_ & 1;
+    my %args = @_;
+    
     $args{ lc $_ } = delete $args{$_} for keys %args;
     $args{lag} = 0;
     return bless \%args, $package;
