@@ -29,6 +29,8 @@ sub PCI_register {
         $channels->{$_} = '' for @{ $self->{Channels} };
         $self->{Channels} = $channels;
     }
+
+    $self->{Rejoin_delay} = 5 if !defined $self->{Rejoin_delay};
     $irc->plugin_register($self, 'SERVER', qw(001 chan_mode join kick part));
     return 1;
 }
@@ -71,7 +73,9 @@ sub S_kick {
     my $chan = ${ $_[1] };
     my $victim = ${ $_[2] };
     if ($victim eq $irc->nick_name()) {
-        $irc->delay([join => $chan => $self->{Channels}->{$chan}], 5) if $self->{RejoinOnKick};
+        if ($self->{RejoinOnKick}) {
+            $irc->delay([join => $chan => $self->{Channels}->{$chan}], $self->{Rejoin_delay});
+        }
         delete $self->{Channels}->{$chan};
     }
     return PCI_EAT_NONE;
@@ -154,6 +158,9 @@ uses the channels the component is already on, if any.
 
 'RejoinOnKick', set this to 1 if you want the plugin to try to rejoin a channel
 (once) if you get kicked from it. Default is 0.
+
+'Rejoin_delay', the time, in seconds, to wait before rejoining a channel (if 
+'RejoinOnKick' is on). Default is 5.
  
 
 Returns a plugin object suitable for feeding to L<POE::Component::IRC|POE::Component::IRC>'s

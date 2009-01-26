@@ -1,6 +1,7 @@
 Revision history for Perl extension POE::Component::IRC.
 
 5.91_01
+    - AutoJoin.pm: Added 'Rejoin_delay' option (Hinrik)
     - Connector.pm: Allow adjusting the time to wait before reconnecting,
       to ease testing. (Hinrik)
     - Compat.pm: Fix parsing of CTCPs when no prefix is present

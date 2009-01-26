@@ -83,8 +83,7 @@ sub _config_ircd {
 sub irc_001 {
     my $irc = $_[SENDER]->get_heap();
     pass($irc->nick_name . ' logged in');
-    sleep 1 if $irc == $bot2;
-    $irc->yield(join => '#testchannel');
+    $irc->yield(join => '#testchannel') if $irc == $bot1;
 }
 
 sub irc_join {
@@ -97,6 +96,7 @@ sub irc_join {
     if (!$heap->{joined} || $heap->{joined} != 2) {
         $heap->{joined}++;
         pass("$nick joined channel");
+        $bot2->yield(join => $where) if $irc == $bot1;
     }
 
     if ($irc == $bot2) {
