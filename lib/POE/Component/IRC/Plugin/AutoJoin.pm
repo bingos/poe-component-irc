@@ -159,8 +159,8 @@ uses the channels the component is already on, if any.
 'RejoinOnKick', set this to 1 if you want the plugin to try to rejoin a channel
 (once) if you get kicked from it. Default is 0.
 
-'Rejoin_delay', the time, in seconds, to wait before rejoining a channel (if 
-'RejoinOnKick' is on). Default is 5.
+'Rejoin_delay', the time, in seconds, to wait before rejoining a channel after
+being kicked (if 'RejoinOnKick' is on). Default is 5.
  
 
 Returns a plugin object suitable for feeding to L<POE::Component::IRC|POE::Component::IRC>'s
