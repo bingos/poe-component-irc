@@ -8,14 +8,13 @@ use POE::Component::IRC::Plugin::Connector;
 use POE::Component::Server::IRC;
 use Test::More tests => 4;
 
-my $irc = POE::Component::IRC->spawn( plugin_debug => 1 );
+my $bot = POE::Component::IRC->spawn( plugin_debug => 1 );
 my $ircd = POE::Component::Server::IRC->spawn(
-    Alias     => 'ircd',
     Auth      => 0,
     AntiFlood => 0,
 );
 
-$irc->plugin_add(Connector => POE::Component::IRC::Plugin::Connector->new(
+$bot->plugin_add(Connector => POE::Component::IRC::Plugin::Connector->new(
     timeout   => 2,
     reconnect => 2,
 ));
@@ -59,11 +58,11 @@ sub _start {
 sub _config_ircd {
     my ($kernel, $port) = @_[KERNEL, ARG0];
 
-    $kernel->post(ircd => 'add_i_line');
-    $kernel->post(ircd => 'add_listener' => Port => $port);
+    $ircd->yield('add_i_line');
+    $ircd->yield(add_listener => Port => $port);
     
-    $irc->yield(register => 'all');
-    $irc->yield(connect => {
+    $bot->yield(register => 'all');
+    $bot->yield(connect => {
         nick    => 'TestBot1',
         server  => '127.0.0.1',
         port    => $port,
@@ -104,7 +103,7 @@ sub _shutdown {
     my ($kernel) = $_[KERNEL];
     
     $kernel->alarm_remove_all();
-    $kernel->post(ircd => 'shutdown');
-    $irc->yield('shutdown');
+    $ircd->yield('shutdown');
+    $bot->yield('shutdown');
 }
 

@@ -5,7 +5,7 @@ use POE::Component::IRC;
 use Socket;
 use Test::More tests => 4;
 
-my $irc = POE::Component::IRC->spawn();
+my $bot = POE::Component::IRC->spawn();
 
 POE::Session->create(
     package_states => [
@@ -21,7 +21,7 @@ POE::Session->create(
 $poe_kernel->run();
 
 sub _start {
-    $irc->yield(register => 'all');
+    $bot->yield(register => 'all');
 }
 
 sub irc_registered {
@@ -42,7 +42,7 @@ sub irc_delay_set {
     my ($heap, $event, $alarm_id) = @_[HEAP, STATE, ARG0];
     
     is($alarm_id, $heap->{alarm_id}, $_[STATE]);
-    my $opts = $irc->delay_remove($alarm_id);
+    my $opts = $bot->delay_remove($alarm_id);
     ok($opts, 'Delay Removed');
 }
 
@@ -50,6 +50,6 @@ sub irc_delay_removed {
     my ($heap, $alarm_id) = @_[HEAP, ARG0];
     
     is($alarm_id, $heap->{alarm_id}, $_[STATE] );
-    $irc->yield('shutdown');
+    $bot->yield('shutdown');
 }
 

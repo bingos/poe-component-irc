@@ -17,7 +17,7 @@ if ($@) {
 }
 
 plan tests => 5;
-my $irc = POE::Component::IRC->spawn( plugin_debug => 1 );
+my $bot = POE::Component::IRC->spawn( plugin_debug => 1 );
 
 POE::Session->create(
     package_states => [
@@ -28,7 +28,7 @@ POE::Session->create(
 $poe_kernel->run();
 
 sub _start {
-    $irc->yield(register => 'all');
+    $bot->yield(register => 'all');
 
     my $plugin = POE::Component::IRC::Plugin::FollowTail->new( 
         filename => 'followtail',
@@ -37,9 +37,9 @@ sub _start {
     
     isa_ok($plugin, 'POE::Component::IRC::Plugin::FollowTail');
   
-    if (!$irc->plugin_add('TestPlugin', $plugin) ) {
+    if (!$bot->plugin_add('TestPlugin', $plugin) ) {
         fail('plugin_add failed');
-        $irc->yield('shutdown');
+        $bot->yield('shutdown');
     }
 }
 
@@ -52,7 +52,8 @@ sub irc_plugin_add {
 }
 
 sub irc_tail_input {
-    my ($filename, $input) = @_[ARG0, ARG1];
+    my ($sender, $filename, $input) = @_[SENDER, ARG0, ARG1];
+    my $irc = $sender->get_heap();
     
     is($filename, 'followtail', 'Filename is okay');
     is($input, 'Cows go moo, yes they do', 'Cows go moo!');
@@ -64,7 +65,8 @@ sub irc_tail_input {
 }
 
 sub irc_plugin_del {
-    my ($name, $plugin) = @_[ARG0, ARG1];
+    my ($sender, $name, $plugin) = @_[SENDER, ARG0, ARG1];
+    my $irc = $sender->get_heap();
     return if $name ne 'TestPlugin';
 
     isa_ok($plugin, 'POE::Component::IRC::Plugin::FollowTail'); 

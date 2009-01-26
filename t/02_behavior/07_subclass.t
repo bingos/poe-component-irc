@@ -23,14 +23,13 @@ use Test::More tests => 17;
     }
 }
 
-my $irc = SubclassIRC->spawn();
+my $bot = SubclassIRC->spawn();
 my $ircd = POE::Component::Server::IRC->spawn(
-    Alias => 'ircd',
     Auth => 0,
     AntiFlood => 0,
 );
 
-isa_ok($irc, 'POE::Component::IRC');
+isa_ok($bot, 'POE::Component::IRC');
 isa_ok($ircd, 'POE::Component::Server::IRC');
 
 POE::Session->create(
@@ -76,16 +75,18 @@ sub _start {
 sub _shutdown {
     my ($kernel) = $_[KERNEL];
     $kernel->alarm_remove_all();
-    $kernel->post(ircd => 'shutdown');
-    $irc->yield('shutdown');
+    $bot->yield('shutdown');
+    $ircd->yield('shutdown');
 }
 
 sub _config_ircd {
     my ($kernel, $port) = @_[KERNEL, ARG0];
-    $kernel->post(ircd => 'add_i_line');
-    $kernel->post(ircd => add_listener => Port => $port);
-    $irc->yield(register => 'all');
-    $irc->yield( connect => {
+
+    $ircd->yield('add_i_line');
+    $ircd->yield(add_listener => Port => $port);
+
+    $bot->yield(register => 'all');
+    $bot->yield( connect => {
         nick    => 'TestBot',
         server  => '127.0.0.1',
         port    => $port,

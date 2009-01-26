@@ -3,7 +3,7 @@ use POE::Component::IRC;
 use Socket;
 use Test::More tests => 5;
 
-my $irc = POE::Component::IRC->spawn();
+my $bot = POE::Component::IRC->spawn();
 my $server = 'irc.freenode.net';
 my $nick = "PoCoIRC" . $$;
 
@@ -74,13 +74,13 @@ sub _shutdown {
         skip $skip, 5 if $skip;
     }
     $poe_kernel->alarm_remove_all();
-    $irc->yield('shutdown');
+    $bot->yield('shutdown');
 }
 
 sub _irc_connect {
     my ($heap) = $_[HEAP];
-    $irc->yield(register => 'all');
-    $irc->yield(connect => {
+    $bot->yield(register => 'all');
+    $bot->yield(connect => {
         server => $heap->{address},
         nick => $nick,
     });

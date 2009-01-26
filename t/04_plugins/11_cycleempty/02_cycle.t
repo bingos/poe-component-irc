@@ -11,7 +11,6 @@ use Test::More tests => 10;
 my $bot1 = POE::Component::IRC::State->spawn( plugin_debug => 1 );
 my $bot2 = POE::Component::IRC::State->spawn( plugin_debug => 1 );
 my $ircd = POE::Component::Server::IRC->spawn(
-    Alias     => 'ircd',
     Auth      => 0,
     AntiFlood => 0,
 );
@@ -60,8 +59,8 @@ sub _start {
 sub _config_ircd {
     my ($kernel, $port) = @_[KERNEL, ARG0];
 
-    $kernel->post(ircd => 'add_i_line');
-    $kernel->post(ircd => 'add_listener' => Port => $port);
+    $ircd->yield('add_i_line');
+    $ircd->yield(add_listener => Port => $port);
     
     $bot1->yield(register => 'all');
     $bot1->yield(connect => {
@@ -135,7 +134,7 @@ sub _shutdown {
     my ($kernel) = $_[KERNEL];
     
     $kernel->alarm_remove_all();
-    $kernel->post(ircd => 'shutdown');
+    $ircd->yield('shutdown');
     $bot1->yield('shutdown');
     $bot2->yield('shutdown');
 }

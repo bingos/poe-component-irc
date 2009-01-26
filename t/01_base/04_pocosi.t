@@ -5,7 +5,7 @@ use POE;
 use POE::Component::Server::IRC;
 use Test::More tests => 2;
 
-my $ircd = POE::Component::Server::IRC->spawn( Alias => 'ircd' );
+my $ircd = POE::Component::Server::IRC->spawn();
 isa_ok($ircd, 'POE::Component::Server::IRC');
 
 POE::Session->create(
@@ -19,5 +19,5 @@ $poe_kernel->run();
 sub _start {
     my ($kernel) = $_[KERNEL];
     pass('Session started');
-    $kernel->post(ircd => 'shutdown');
+    $ircd->yield('shutdown');
 }

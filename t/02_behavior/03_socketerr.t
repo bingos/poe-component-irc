@@ -1,9 +1,11 @@
+use strict;
+use warnings;
 use POE qw(Wheel::SocketFactory);
 use POE::Component::IRC;
 use Socket;
 use Test::More tests => 1;
 
-my $irc = POE::Component::IRC->spawn();
+my $bot = POE::Component::IRC->spawn();
 
 POE::Session->create(
     package_states => [
@@ -42,15 +44,15 @@ sub _start {
 sub _shutdown {
     my ($kernel) = $_[KERNEL];
     $kernel->alarm_remove_all();
-    $irc->yield(unregister => 'socketerr');
-    $irc->yield('shutdown');
+    $bot->yield(unregister => 'socketerr');
+    $bot->yield('shutdown');
 }
 
 sub _try_connect {
     my ($port) = $_[ARG0];
     
-    $irc->yield(register => 'socketerr');
-    $irc->yield( connect => {
+    $bot->yield(register => 'socketerr');
+    $bot->yield( connect => {
         nick => 'TestBot',
         server => '127.0.0.1',
         port => $port,

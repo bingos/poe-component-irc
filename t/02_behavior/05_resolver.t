@@ -18,20 +18,20 @@ BEGIN {
 plan tests => 4;
 
 my $dns = POE::Component::Client::DNS->spawn();
-my $irc = POE::Component::IRC->spawn( Resolver => $dns );
+my $bot = POE::Component::IRC->spawn( Resolver => $dns );
 
-isa_ok($irc, 'POE::Component::IRC');
+isa_ok($bot, 'POE::Component::IRC');
 isa_ok($dns, 'POE::Component::Client::DNS');
 
 POE::Session->create(
-    package_states => [ main => [qw(_start)] ],
+    package_states => [ main => ['_start'] ],
 );
 
 $poe_kernel->run();
 
 sub _start {
-    isa_ok($irc->resolver(), 'POE::Component::Client::DNS');
-    is($irc->resolver(), $dns, 'DNS objects match');
-    $irc->yield('shutdown');
+    isa_ok($bot->resolver(), 'POE::Component::Client::DNS');
+    is($bot->resolver(), $dns, 'DNS objects match');
+    $bot->yield('shutdown');
     $dns->shutdown();
 }

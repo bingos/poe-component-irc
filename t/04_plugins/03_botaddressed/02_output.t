@@ -8,17 +8,14 @@ use POE::Component::IRC::Plugin::BotAddressed;
 use POE::Component::Server::IRC;
 use Test::More tests => 9;
 
-my $irc = POE::Component::IRC->spawn( plugin_debug => 1 );
-my $irc2 = POE::Component::IRC->spawn( plugin_debug => 1 );
+my $bot1 = POE::Component::IRC->spawn( plugin_debug => 1 );
+my $bot2 = POE::Component::IRC->spawn( plugin_debug => 1 );
 my $ircd = POE::Component::Server::IRC->spawn(
-    Alias     => 'ircd',
     Auth      => 0,
     AntiFlood => 0,
 );
 
-for ($irc, $irc2) {
-    $_->plugin_add(BotAddressed => POE::Component::IRC::Plugin::BotAddressed->new());
-}
+$bot1->plugin_add(BotAddressed => POE::Component::IRC::Plugin::BotAddressed->new());
 
 POE::Session->create(
     package_states => [
@@ -63,19 +60,19 @@ sub _start {
 sub _config_ircd {
     my ($kernel, $port) = @_[KERNEL, ARG0];
 
-    $kernel->post(ircd => 'add_i_line');
-    $kernel->post(ircd => 'add_listener' => Port => $port);
+    $ircd->yield('add_i_line');
+    $ircd->yield(add_listener => Port => $port);
     
-    $irc->yield(register => 'all');
-    $irc->yield(connect => {
+    $bot1->yield(register => 'all');
+    $bot1->yield(connect => {
         nick    => 'TestBot1',
         server  => '127.0.0.1',
         port    => $port,
         ircname => 'Test test bot',
     });
   
-    $irc2->yield(register => 'all');
-    $irc2->yield(connect => {
+    $bot2->yield(register => 'all');
+    $bot2->yield(connect => {
         nick    => 'TestBot2',
         server  => '127.0.0.1',
         port    => $port,
@@ -125,8 +122,8 @@ sub irc_bot_mentioned_action {
 
     is($msg, 'greets ' . $irc->nick_name(), 'irc_bot_mentioned_action');
 
-    $irc->yield('quit');
-    $irc2->yield('quit');
+    $bot1->yield('quit');
+    $bot2->yield('quit');
 }
 
 sub irc_disconnected {
@@ -140,8 +137,8 @@ sub _shutdown {
     my ($kernel) = $_[KERNEL];
     
     $kernel->alarm_remove_all();
-    $kernel->post(ircd => 'shutdown');
-    $irc->yield('shutdown');
-    $irc2->yield('shutdown');
+    $ircd->yield('shutdown');
+    $bot1->yield('shutdown');
+    $bot2->yield('shutdown');
 }
 

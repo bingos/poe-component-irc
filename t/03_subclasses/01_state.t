@@ -7,14 +7,13 @@ use POE::Component::Server::IRC;
 use Socket;
 use Test::More tests => 19;
 
-my $irc = POE::Component::IRC::State->spawn();
+my $bot = POE::Component::IRC::State->spawn();
 my $ircd = POE::Component::Server::IRC->spawn(
-    Alias     => 'ircd',
     Auth      => 0,
     AntiFlood => 0,
 );
 
-isa_ok($irc, 'POE::Component::IRC::State');
+isa_ok($bot, 'POE::Component::IRC::State');
 
 POE::Session->create(
     package_states => [
@@ -64,18 +63,18 @@ sub _start {
 sub _shutdown {
     my ($kernel) = $_[KERNEL];
     $kernel->alarm_remove_all();
-    $kernel->post(ircd => 'shutdown');
-    $irc->yield('shutdown');
+    $ircd->yield('shutdown');
+    $bot->yield('shutdown');
 }
 
 sub _config_ircd {
     my ($kernel, $port) = @_[KERNEL, ARG0];
     
-    $kernel->post(ircd => 'add_i_line');
-    $kernel->post(ircd => 'add_listener' => Port => $port);
+    $ircd->yield('add_i_line');
+    $ircd->yield(add_listener => Port => $port);
     
-    $irc->yield(register => 'all');
-    $irc->yield(connect => {
+    $bot->yield(register => 'all');
+    $bot->yield(connect => {
         nick    => 'TestBot',
         server  => '127.0.0.1',
         port    => $port,
@@ -154,9 +153,9 @@ sub irc_mode {
 }
 
 sub irc_221 {
-    my $object = $_[SENDER]->get_heap();
+    my $irc = $_[SENDER]->get_heap();
     pass('State did a MODE query');
-    $irc->yield(mode => $object->nick_name(), '+iw');
+    $irc->yield(mode => $irc->nick_name(), '+iw');
 }
 
 sub irc_error {

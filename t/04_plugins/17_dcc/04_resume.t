@@ -7,10 +7,9 @@ use POE::Component::IRC;
 use POE::Component::Server::IRC;
 use Test::More tests => 13;
 
-my $irc = POE::Component::IRC->spawn( plugin_debug => 1 );
-my $irc2 = POE::Component::IRC->spawn( plugin_debug => 1 );
+my $bot1 = POE::Component::IRC->spawn( plugin_debug => 1 );
+my $bot2 = POE::Component::IRC->spawn( plugin_debug => 1 );
 my $ircd = POE::Component::Server::IRC->spawn(
-    Alias     => 'ircd',
     Auth      => 0,
     AntiFlood => 0,
 );
@@ -58,19 +57,19 @@ sub _start {
 sub _config_ircd {
     my ($kernel, $port) = @_[KERNEL, ARG0];
 
-    $kernel->post(ircd => 'add_i_line');
-    $kernel->post(ircd => 'add_listener' => Port => $port);
+    $ircd->yield('add_i_line');
+    $ircd->yield(add_listener => Port => $port);
     
-    $irc->yield(register => 'all');
-    $irc->yield(connect => {
+    $bot1->yield(register => 'all');
+    $bot1->yield(connect => {
         nick    => 'TestBot1',
         server  => '127.0.0.1',
         port    => $port,
         ircname => 'Test test bot',
     });
   
-    $irc2->yield(register => 'all');
-    $irc2->yield(connect => {
+    $bot2->yield(register => 'all');
+    $bot2->yield(connect => {
         nick    => 'TestBot2',
         server  => '127.0.0.1',
         port    => $port,
@@ -102,9 +101,9 @@ sub irc_dcc_request {
     return if $type ne 'SEND';
     pass('Got dcc request');
 
-    open (my $orig, '<', 'Changes');
+    open (my $orig, '<', 'Changes') or die "Can't open Changes file";
     sysread $orig, my $partial, 12000;
-    open (my $resume, '>', 'Changes.resume');
+    open (my $resume, '>', 'Changes.resume') or die "Can't open Changes.resume file";
     truncate $resume, 12000;
     syswrite $resume, $partial;
 
@@ -133,8 +132,8 @@ sub _shutdown {
     my ($kernel) = $_[KERNEL];
     
     $kernel->alarm_remove_all();
-    $kernel->post(ircd => 'shutdown');
-    $irc->yield('shutdown');
-    $irc2->yield('shutdown');
+    $ircd->yield('shutdown');
+    $bot1->yield('shutdown');
+    $bot2->yield('shutdown');
 }
 

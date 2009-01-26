@@ -5,7 +5,7 @@ use POE;
 use POE::Component::IRC::State;
 use POE::Component::IRC::Plugin::Logger;
 
-my $irc = POE::Component::IRC::State->spawn( plugin_debug => 1 );
+my $bot = POE::Component::IRC::State->spawn( plugin_debug => 1 );
 
 POE::Session->create(
     package_states => [
@@ -16,14 +16,14 @@ POE::Session->create(
 $poe_kernel->run();
 
 sub _start {
-    $irc->yield(register => 'all');
+    $bot->yield(register => 'all');
 
     my $plugin = POE::Component::IRC::Plugin::Logger->new( Path => 'logger_test' );
     isa_ok($plugin, 'POE::Component::IRC::Plugin::Logger');
   
-    if (!$irc->plugin_add('TestPlugin', $plugin )) {
+    if (!$bot->plugin_add('TestPlugin', $plugin )) {
         fail('plugin_add failed');
-        $irc->yield('shutdown');
+        $bot->yield('shutdown');
     }
 }
 
@@ -33,9 +33,9 @@ sub irc_plugin_add {
 
     isa_ok($plugin, 'POE::Component::IRC::Plugin::Logger');
   
-    if (!$irc->plugin_del('TestPlugin') ) {
+    if (!$bot->plugin_del('TestPlugin') ) {
         fail('plugin_del failed');
-        $irc->yield('shutdown');
+        $bot->yield('shutdown');
     }
 }
 
@@ -44,5 +44,5 @@ sub irc_plugin_del {
     return if $name ne 'TestPlugin';
 
     isa_ok($plugin, 'POE::Component::IRC::Plugin::Logger');
-    $irc->yield('shutdown');
+    $bot->yield('shutdown');
 }

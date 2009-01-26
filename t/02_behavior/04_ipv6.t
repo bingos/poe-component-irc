@@ -23,7 +23,7 @@ if (!defined $addr) {
 
 plan tests => $tests;
 
-my $irc = POE::Component::IRC->spawn();
+my $bot = POE::Component::IRC->spawn();
 
 POE::Session->create(
     package_states => [
@@ -73,8 +73,8 @@ sub _start {
     }
 
 
-    $irc->yield(register => 'all');
-    $irc->yield(connect => {
+    $bot->yield(register => 'all');
+    $bot->yield(connect => {
         Nick     => 'testbot',
         Server   => '::1',
         useipv6  => 1,
@@ -149,7 +149,7 @@ sub irc_socketerr {
 
 sub irc_001 {
     pass('Logged in');
-    $irc->yield('shutdown');
+    $bot->yield('shutdown');
 }
 
 sub _skip_rest {
@@ -158,5 +158,5 @@ sub _skip_rest {
     SKIP: {
         skip "AF_INET6 probably not supported ($error)", $tests;
     }
-    $irc->yield('shutdown');
+    $bot->yield('shutdown');
 }

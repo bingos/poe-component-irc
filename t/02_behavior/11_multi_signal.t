@@ -7,10 +7,9 @@ use POE::Component::Server::IRC;
 use Socket;
 use Test::More tests => 14;
 
-my $irc = POE::Component::IRC->spawn(),
-my $irc2 = POE::Component::IRC->spawn();
+my $bot1 = POE::Component::IRC->spawn(),
+my $bot2 = POE::Component::IRC->spawn();
 my $ircd = POE::Component::Server::IRC->spawn(
-    Alias     => 'ircd',
     Auth      => 0,
     AntiFlood => 0,
 );
@@ -57,8 +56,8 @@ sub _start {
 
 sub _config_ircd {
     my ($kernel, $heap, $session, $port) = @_[KERNEL, HEAP, SESSION, ARG0];
-    $kernel->post(ircd => 'add_i_line');
-    $kernel->post(ircd => 'add_listener' => Port => $port);
+    $ircd->yield('add_i_line');
+    $ircd->yield(add_listener => Port => $port);
     $kernel->signal($kernel, 'POCOIRC_REGISTER', $session, 'all');
     $heap->{nickcounter} = 0;
     $heap->{port} = $port;
@@ -104,8 +103,8 @@ sub irc_disconnected {
 sub _shutdown {
     my ($kernel, $heap) = @_[KERNEL, HEAP];
     $kernel->alarm_remove_all();
-    $kernel->post(ircd => 'shutdown');
     $kernel->signal($kernel, 'POCOIRC_SHUTDOWN');
+    $ircd->yield('shutdown');
 }
 
 sub irc_shutdown {
