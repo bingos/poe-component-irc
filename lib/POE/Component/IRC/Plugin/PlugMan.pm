@@ -6,7 +6,7 @@ use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Common qw( :ALL );
 
-our $VERSION = '5.76';
+our $VERSION = '5.90';
 
 BEGIN { 
     # Turn on the debugger's symbol source tracing
@@ -33,7 +33,7 @@ sub new {
 sub PCI_register {
     my ($self, $irc) = @_;
 
-    if ( !$irc->isa('POE::Component::IRC::State') ) {
+    if (defined $self->{botowner} && !$irc->isa('POE::Component::IRC::State') ) {
         die __PACKAGE__ . ' requires PoCo::IRC::State or a subclass thereof';
     }
 
