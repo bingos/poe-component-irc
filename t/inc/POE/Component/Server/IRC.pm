@@ -317,6 +317,7 @@ sub _cmd_from_unknown {
 	my $nicklen = $self->server_config('NICKLEN');
 	$params->[0] = substr($params->[0],0,$nicklen) if length( $params->[0] ) > $nicklen;
 	$self->{state}->{conns}->{ $wheel_id }->{ lc $cmd } = $params->[0];
+	$self->{state}->{pending}->{ u_irc $params->[0] } = $wheel_id;
 	$self->_client_register( $wheel_id );
 	last SWITCH;
     }
@@ -4188,6 +4189,7 @@ sub _state_register_client {
   $self->{state}->{users}->{ u_irc $record->{nick} } = $record;
   $self->{state}->{peers}->{ uc $record->{server} }->{users}->{ u_irc $record->{nick} } = $record; 
   my $arrayref = [ $record->{nick}, $record->{hops} + 1, $record->{ts}, '+i', $record->{auth}->{ident}, $record->{auth}->{hostname}, $record->{server}, $record->{ircname} ];
+  delete $self->{state}->{pending}->{ u_irc $record->{nick} };
   $self->{ircd}->send_output( { command => 'NICK', params => $arrayref }, $self->_state_connected_peers() );
   $self->{ircd}->send_event( "daemon_nick", @{ $arrayref } );
   $self->_state_update_stats();
@@ -4202,7 +4204,8 @@ sub state_nicks {
 sub state_nick_exists {
   my $self = shift;
   my $nick = shift || return 1;
-  return 0 unless defined $self->{state}->{users}->{ u_irc $nick };
+  $nick = u_irc $nick;
+  return 0 unless defined $self->{state}->{users}->{ $nick } or defined $self->{state}->{pending}->{ $nick };
   return 1;
 }
 
