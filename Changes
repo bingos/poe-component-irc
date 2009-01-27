@@ -1,6 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
-5.91_01
+5.94 Tue Jan 27 21:38:51 GMT 2009
+    - Fixed dependency on Date::Format in inc. poco-server-irc (bingos)
+
+5.92 Tue Jan 27 13:18:12 GMT 2009
     - PlugMan.pm: Only require ::State when 'botowner' is set (Hinrik)
     - ISupport.pm: Fix parsing of MODES and SILENCE parameters (Hinrik)
     - AutoJoin.pm: Added 'Rejoin_delay' option (Hinrik)
