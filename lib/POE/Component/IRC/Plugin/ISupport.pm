@@ -22,7 +22,8 @@ sub PCI_register {
         },
         CHANLIMIT => sub {
             my ($support, $key, $val) = @_;
-            while (my ($k, $v) = $val =~ /([^:]+):(\d+),?/g) {
+            while ($val =~ /([^:]+):(\d+),?/g) {
+                my ($k, $v) = ($1, $2);
                 @{ $support->{$key} }{ split(//, $k) } = ($v) x length $k;
             }
         },
@@ -64,7 +65,8 @@ sub PCI_register {
         },
         TARGMAX => sub {
             my ($support, $key, $val) = @_;
-            while (my ($k, $v) = $val =~ /([^:]+):(\d*),?/g) {
+            while ($val =~ /([^:]+):(\d*),?/g) {
+                my ($k, $v) = ($1, $2);
                 $support->{$key}->{$k} = $v;
             }
         },
