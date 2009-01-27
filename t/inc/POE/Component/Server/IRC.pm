@@ -12,7 +12,7 @@ use base qw(POE::Component::Server::IRC::Backend);
 use POE;
 use POE::Component::Server::IRC::Common qw(:ALL);
 use POE::Component::Server::IRC::Plugin qw(:ALL);
-use Date::Format;
+use POSIX qw(strftime);
 use vars qw($VERSION $REVISION);
 
 $VERSION = '1.36';
@@ -1266,7 +1266,7 @@ sub _daemon_cmd_gline {
 	($user_part,$host_part) = split /\@/, $args->[0];
      }
      my $time = time();
-     my $reason = join ' ', $args->[1], time2str("(%c)", $time );
+     my $reason = join ' ', $args->[1], strftime("(%c)", localtime($time) );
      my $full = $self->state_user_full( $nick );
      push @{ $self->{state}->{glines} }, { setby => $full, setat => time(), user => $user_part, host => $host_part, reason => $reason };
      $self->{ircd}->send_output( { prefix => $nick, command => 'GLINE', params => [ $user_part, $host_part, $reason ], colonify => 0 }, grep { $self->_state_peer_capab( $_, 'GLN' ) } $self->_state_connected_peers() );
@@ -1509,7 +1509,7 @@ sub _daemon_cmd_time {
 	$self->{ircd}->send_output( { prefix => $nick, command => 'TIME', params => [ $self->_state_peer_name( $target ) ] }, $self->_state_peer_route( $target ) );
 	last SWITCH;
     }
-    push @{ $ref }, { prefix => $server, command => '391', params => [ $nick, $server, time2str( "%A %B %e %Y -- %T %z", time() ) ] };
+    push @{ $ref }, { prefix => $server, command => '391', params => [ $nick, $server, strftime( "%A %B %m %Y -- %T %z", localtime ) ] };
   }
   return @{ $ref } if wantarray();
   return $ref;
@@ -4599,7 +4599,7 @@ sub server_version {
 }
 
 sub server_created {
-  return time2str("This server was created %a %h %d %Y at %H:%M:%S %Z",$_[0]->server_config('created'));
+  return strftime("This server was created %a %b %d %Y at %H:%M:%S %Z",localtime($_[0]->server_config('created')));
 }
 
 sub _client_nickname {
