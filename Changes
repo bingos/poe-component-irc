@@ -1,5 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
+5.96 Wed Jan 28 11:29:28 GMT 2009
+    - Added delays to the two failing tests reported by CPAN Testers,
+      believe we are seeing race conditions. (bingos)
+
 5.94 Tue Jan 27 21:38:51 GMT 2009
     - Fixed dependency on Date::Format in inc. poco-server-irc (bingos)
 

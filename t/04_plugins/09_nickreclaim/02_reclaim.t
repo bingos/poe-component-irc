@@ -78,12 +78,12 @@ sub _config_ircd {
     });
     
     $bot2->yield(register => 'all');
-    $bot2->yield(connect => {
+    $bot2->delay([connect => {
         nick    => 'TestBot1',
         server  => '127.0.0.1',
         port    => $port,
         ircname => 'Test test bot',
-    });
+    }], 10);
 }
 
 sub irc_001 {
