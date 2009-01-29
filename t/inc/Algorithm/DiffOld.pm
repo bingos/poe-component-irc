@@ -13,85 +13,6 @@ require Exporter;
 @EXPORT_OK = qw(LCS diff traverse_sequences);
 $VERSION = 1.10;	# manually tracking Algorithm::Diff
 
-# McIlroy-Hunt diff algorithm
-# Adapted from the Smalltalk code of Mario I. Wolczko, <mario@wolczko.com>
-# by Ned Konz, perl@bike-nomad.com
-
-=head1 NAME
-
-Algorithm::DiffOld - Compute `intelligent' differences between two files / lists
-but use the old (<=0.59) interface.
-
-=head1 NOTE
-
-This has been provided as part of the Algorithm::Diff package by Ned Konz.
-This particular module is B<ONLY> for people who B<HAVE> to have the old
-interface, which uses a comparison function rather than a key generating
-function.
-
-Because each of the lines in one array have to be compared with each 
-of the lines in the other array, this does M*N comparisions. This can
-be very slow. I clocked it at taking 18 times as long as the stock
-version of Algorithm::Diff for a 4000-line file. It will get worse
-quadratically as array sizes increase.
-
-=head1 SYNOPSIS
-
-  use Algorithm::DiffOld qw(diff LCS traverse_sequences);
-
-  @lcs    = LCS( \@seq1, \@seq2, $comparison_function );
-
-  $lcsref = LCS( \@seq1, \@seq2, $comparison_function );
-
-  @diffs = diff( \@seq1, \@seq2, $comparison_function );
-  
-  traverse_sequences( \@seq1, \@seq2,
-                     { MATCH => $callback,
-                       DISCARD_A => $callback,
-                       DISCARD_B => $callback,
-                     },
-                     $comparison_function );
-
-=head1 COMPARISON FUNCTIONS
-
-Each of the main routines should be passed a comparison function. If you
-aren't passing one in, B<use Algorithm::Diff instead>.
-
-These functions should return a true value when two items should compare
-as equal.
-
-For instance,
-
-  @lcs    = LCS( \@seq1, \@seq2, sub { my ($a, $b) = @_; $a eq $b } );
-
-but if that is all you're doing with your comparison function, just use
-Algorithm::Diff and let it do this (this is its default).
-
-Or:
-
-  sub someFunkyComparisonFunction
-  {
-  	my ($a, $b) = @_;
-	$a =~ m{$b};
-  }
-
-  @diffs = diff( \@lines, \@patterns, \&someFunkyComparisonFunction );
-
-which would allow you to diff an array @lines which consists of text
-lines with an array @patterns which consists of regular expressions.
-
-This is actually the reason I wrote this version -- there is no way
-to do this with a key generation function as in the stock Algorithm::Diff.
-
-=cut
-
-# Find the place at which aValue would normally be inserted into the array. If
-# that place is already occupied by aValue, do nothing, and return undef. If
-# the place does not exist (i.e., it is off the end of the array), add it to
-# the end, otherwise replace the element at that point with aValue.
-# It is assumed that the array's values are numeric.
-# This is where the bulk (75%) of the time is spent in this module, so try to
-# make it fast!
 
 sub _replaceNextLargerWith
 {
@@ -133,18 +54,6 @@ sub _replaceNextLargerWith
 	$array->[ $low ] = $aValue;		# overwrite next larger
 	return $low;
 }
-
-# This method computes the longest common subsequence in $a and $b.
-
-# Result is array or ref, whose contents is such that
-# 	$a->[ $i ] == $b->[ $result[ $i ] ]
-# foreach $i in ( 0 .. $#result ) if $result[ $i ] is defined.
-
-# An additional argument may be passed; this is a CODE ref to a comparison
-# routine. By default, comparisons will use "eq" .
-# Note that this routine will be called as many as M*N times, so make it fast!
-
-# Additional parameters, if any, will be passed to the key generation routine.
 
 sub _longestCommonSubsequence
 {

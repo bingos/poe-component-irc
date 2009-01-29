@@ -25,39 +25,6 @@ require Exporter;
 @ISA = qw(Exporter);
 @EXPORT = qw(unix_md5_crypt apache_md5_crypt);
 
-=head1 NAME
-
-Crypt::PasswdMD5 - Provides interoperable MD5-based crypt() functions
-
-=head1 SYNOPSIS
-
-    use Crypt::PasswdMD5;
-
-    $cryptedpassword = unix_md5_crypt($password, $salt);
-    $apachepassword = apache_md5_crypt($password, $salt);
-
-
-=head1 DESCRIPTION
-
-the C<unix_md5_crypt()> provides a crypt()-compatible interface to the
-rather new MD5-based crypt() function found in modern operating systems.
-It's based on the implementation found on FreeBSD 2.2.[56]-RELEASE and
-contains the following license in it:
-
- "THE BEER-WARE LICENSE" (Revision 42):
- <phk@login.dknet.dk> wrote this file.  As long as you retain this notice you
- can do whatever you want with this stuff. If we meet some day, and you think
- this stuff is worth it, you can buy me a beer in return.   Poul-Henning Kamp
-
-C<apache_md5_crypt()> provides a function compatible with Apache's
-C<.htpasswd> files. This was contributed by Bryan Hart <bryan@eai.com>.
-As suggested by William A. Rowe, Jr. <wrowe@lnd.com>, it is 
-exported by default.
-
-For both functions, if a salt value is not supplied, a random salt will be
-generated.  Contributed by John Peacock <jpeacock@cpan.org>.
-
-=cut
 
 $Magic = q/$1$/;			# Magic string
 $itoa64 = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -167,54 +134,3 @@ sub unix_md5_crypt {
 1;
 
 __END__
-
-=pod
-
-=head2 EXPORT
-
-None by default.
-
-
-=head1 HISTORY
-
-$Id: PasswdMD5.pm,v 1.3 2004/02/17 11:21:38 lem Exp $
-
- 19980710 luismunoz@cpan.org: Initial release
- 19990402 bryan@eai.com: Added apache_md5_crypt to create a valid hash
-                        for use in .htpasswd files
- 20001006 wrowe@lnd.com: Requested apache_md5_crypt to be
-			exported by default.
- 20010706 luismunoz@cpan.org: Use Digest::MD5 instead of the (obsolete) MD5.
-
-$Log: PasswdMD5.pm,v $
-Revision 1.3  2004/02/17 11:21:38  lem
-Modified the POD so that ABSTRACT can work
-Added usage example for apache_md5_crypt()
-
-Revision 1.2  2004/02/17 11:04:35  lem
-Added patch for random salts from John Peacock (Thanks John!)
-De-MS-DOS-ified the file
-Replaced some '' with q// to make Emacs color highlighting happy
-Added CVS docs
-Completed the missing sections of the POD documentation
-Changed my email address to the Perl-related one for consistency
-The file is now encoded in ISO-8859-1
-
-
-=head1 LICENSE AND WARRANTY
-
-This code and all accompanying software comes with NO WARRANTY. You
-use it at your own risk.
-
-This code and all accompanying software can be used freely under the
-same terms as Perl itself.
-
-=head1 AUTHOR
-
-Luis E. Muñoz <luismunoz@cpan.org>
-
-=head1 SEE ALSO
-
-perl(1).
-
-=cut
