@@ -758,17 +758,17 @@ L<C<dcc_resume>|/"dcc_resume">.
 
 =over
 
-=item ARG0: the peer's nickname
+=item * ARG0: the peer's nickname
 
-=item ARG1: the port which the peer is listening on
+=item * ARG1: the port which the peer is listening on
 
-=item ARG2: the DCC type
+=item * ARG2: the DCC type
 
-=item ARG3: this connection's "magic cookie"
+=item * ARG3: this connection's "magic cookie"
 
-=item ARG4: the file name
+=item * ARG4: the file name
 
-=item ARG5: the file size (SEND only)
+=item * ARG5: the file size (SEND only)
 
 =back
 
@@ -779,13 +779,13 @@ client on the other end of a DCC CHAT connection.
 
 =over
 
-=item ARG0: this connection's "magic cookie"
+=item * ARG0: this connection's "magic cookie"
 
-=item ARG1: the peer's nickname
+=item * ARG1: the peer's nickname
 
-=item ARG2: the port number
+=item * ARG2: the port number
 
-=item ARG3: the text they sent
+=item * ARG3: the text they sent
 
 =back
 
@@ -796,19 +796,19 @@ Abnormal terminations are reported by L<C<irc_dcc_error>|/"irc_dcc_error">.
 
 =over
 
-=item ARG0: this connection's "magic cookie"
+=item * ARG0: this connection's "magic cookie"
 
-=item ARG1: the peer's nickname
+=item * ARG1: the peer's nickname
 
-=item ARG2: the DCC type
+=item * ARG2: the DCC type
 
-=item ARG3: the port number
+=item * ARG3: the port number
 
-=item ARG4: the filename
+=item * ARG4: the filename
 
-=item ARG5: file size (SEND/GET only)
+=item * ARG5: file size (SEND/GET only)
 
-=item ARG6: transferred file size (SEND/GET only, should be same as ARG5)
+=item * ARG6: transferred file size (SEND/GET only, should be same as ARG5)
 
 =back
 
@@ -818,13 +818,13 @@ You get this event when a DCC connection fails for some reason.
 
 =over
 
-=item ARG0: the operation that failed
+=item * ARG0: the operation that failed
 
-=item ARG1: the error number
+=item * ARG1: the error number
 
-=item ARG2: the error string
+=item * ARG2: the error string
 
-=item ARG3: this connection's "magic cookie"
+=item * ARG3: this connection's "magic cookie"
 
 =back
 
@@ -835,21 +835,21 @@ terminates unexpectedly or suffers some fatal error.
 
 =over
 
-=item ARG0: this connection's "magic cookie"
+=item * ARG0: this connection's "magic cookie"
 
-=item ARG1: the error string
+=item * ARG1: the error string
 
-=item ARG2: the peer's nickname
+=item * ARG2: the peer's nickname
 
-=item ARG3: the DCC type
+=item * ARG3: the DCC type
 
-=item ARG4: the port number
+=item * ARG4: the port number
 
-=item ARG5: the file name
+=item * ARG5: the file name
 
-=item ARG6: expected file size
+=item * ARG6: expected file size
 
-=item ARG7: tranferred file size
+=item * ARG7: tranferred file size
 
 =back
 
@@ -860,17 +860,17 @@ transferred from the client on the other end of your DCC GET connection.
 
 =over
 
-=item ARG0: this connection's "magic cookie"
+=item * ARG0: this connection's "magic cookie"
 
-=item ARG1: the peer's nickname
+=item * ARG1: the peer's nickname
 
-=item ARG2: the port number
+=item * ARG2: the port number
 
-=item ARG3: the file name
+=item * ARG3: the file name
 
-=item ARG4: the file size
+=item * ARG4: the file size
 
-=item ARG5: transferred file size
+=item * ARG5: transferred file size
 
 =back
 
@@ -882,17 +882,17 @@ connection.
 
 =over
 
-=item ARG0: this connection's "magic cookie"
+=item * ARG0: this connection's "magic cookie"
 
-=item ARG1: the peer's nickname
+=item * ARG1: the peer's nickname
 
-=item ARG2: the port number
+=item * ARG2: the port number
 
-=item ARG3: the file name
+=item * ARG3: the file name
 
-=item ARG4: the file size
+=item * ARG4: the file size
 
-=item ARG5: transferred file size
+=item * ARG5: transferred file size
 
 =back
 
@@ -903,17 +903,17 @@ established.
 
 =over
 
-=item ARG0: this connection's "magic cookie"
+=item * ARG0: this connection's "magic cookie"
 
-=item ARG1: the peer's nickname
+=item * ARG1: the peer's nickname
 
-=item ARG2: the DCC type
+=item * ARG2: the DCC type
 
-=item ARG3: the port number
+=item * ARG3: the port number
 
-=item ARG4: the file name (SEND/GET only)
+=item * ARG4: the file name (SEND/GET only)
 
-=item ARG5: the file size (SEND/GET only)
+=item * ARG5: the file size (SEND/GET only)
 
 =back
 
