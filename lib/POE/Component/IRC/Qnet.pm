@@ -201,7 +201,7 @@ POE::Component::IRC::Qnet - A fully event-driven IRC client module for Quakenet
 
      for my $arg ( @$args ) {
          if (ref $arg eq 'ARRAY') {
-             push( @output, '[' . join(' ,', @$arg ) . ']' );
+             push( @output, '[' . join(', ', @$arg ) . ']' );
          }
          else {
              push ( @output, "'$arg'" );

@@ -1133,7 +1133,7 @@ nickname and channel tracking
 
      for my $arg ( @$args ) {
          if (ref $arg  eq 'ARRAY') {
-             push( @output, '[' . join(' ,', @$arg ) . ']' );
+             push( @output, '[' . join(', ', @$arg ) . ']' );
          }
          else {
              push ( @output, "'$arg'" );
