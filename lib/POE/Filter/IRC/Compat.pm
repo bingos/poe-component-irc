@@ -14,11 +14,11 @@ my %irc_cmds = (
         my ($self, $event, $line) = @_;
         $event->{args}->[0] = _decolon( $line->{prefix} );
         shift @{ $line->{params} };
-        if ( $line->{params}->[0] && $line->{params}->[0] =~ /\s+/ ) {
+        if ( $line->{params}->[0] && $line->{params}->[0] =~ /\x20/ ) {
             $event->{args}->[1] = $line->{params}->[0];
         }
         else {
-            $event->{args}->[1] = join(' ', ( map { /\s+/ ? ":$_" : $_ } @{ $line->{params} } ) );
+            $event->{args}->[1] = join(' ', ( map { /\x20/ ? ":$_" : $_ } @{ $line->{params} } ) );
         }
         $event->{args}->[2] = $line->{params};
     },
@@ -78,7 +78,7 @@ my %dcc_types = (
     qr/CHAT|SEND/ => sub {
         my ($nick, $type, $args) = @_;
         my ($file, $addr, $port, $size);
-        return if !(($file, $addr, $port, $size) = $args =~ /^(".+"|\S+) +(\d+) +(\d+)(?: +(\d+))?/);
+        return if !(($file, $addr, $port, $size) = $args =~ /^(".+"|[^ ]+) +(\d+) +(\d+)(?: +(\d+))?/);
         
         $file =~ s/^"|"$//g;
         $file = fileparse($file);
@@ -102,7 +102,7 @@ my %dcc_types = (
     qr/ACCEPT|RESUME/ => sub {
         my ($nick, $type, $args) = @_;
         my ($file, $port, $position);
-        return if !(($file, $port, $position) = $args =~ /^(".+"|\S+) +(\d+) +(\d+)/);
+        return if !(($file, $port, $position) = $args =~ /^(".+"|[^ ]+) +(\d+) +(\d+)/);
 
         $file =~ s/^"|"$//g;
         $file = fileparse($file);
@@ -362,7 +362,7 @@ sub _get_ctcp {
 
     if ($text && @$text) {
         my $what;
-        ($what) = $line->{raw_line} =~ /^(:\S+ +\w+ +\S+ +)/
+        ($what) = $line->{raw_line} =~ /^(:[^ ]+ +\w+ +[^ ]+ +)/
             or warn "What the heck? '".$line->{raw_line}."'\n" if $self->{debug};
         $text = (defined $what ? $what : '') . ':' . join '', @$text;
         $text =~ s/\cP/^P/g;

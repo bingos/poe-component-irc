@@ -144,7 +144,7 @@ sub S_quit {
     # Check if it is a netsplit
 #    if ($msg) {
 #        SWITCH: {
-#            my @args = split /\s/, $msg;
+#            my @args = split /\x20/, $msg;
 #            if ( @args != 2 ) {
 #                last SWITCH;
 #           }
@@ -396,7 +396,7 @@ sub S_352 {
     my $mapping = $irc->isupport('CASEMAPPING');
     my ($channel,$user,$host,$server,$nick,$status,$rest) = @{ ${ $_[2] } };
     $rest =~ s/^://;
-    my ($hops, $real) = split /\s/, $rest, 2;
+    my ($hops, $real) = split /\x20/, $rest, 2;
     my $unick = u_irc $nick, $mapping;
     my $uchan = u_irc $channel, $mapping;
 

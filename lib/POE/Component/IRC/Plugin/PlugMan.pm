@@ -329,7 +329,7 @@ Returns a list of descriptors of managed plugins.
 An IRC interface is enabled by specifying a "botowner" mask to new(). Commands
 may be either invoked via a PRIVMSG directly to your bot or in a channel by
 prefixing the command with the nickname of your bot. One caveat, the parsing
-of the irc command is very rudimentary ( it merely splits the line on \s+ ). 
+of the irc command is very rudimentary (it merely splits the line on spaces).
 
 =head2 C<plugin_add>
 

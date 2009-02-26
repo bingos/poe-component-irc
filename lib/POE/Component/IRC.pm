@@ -647,7 +647,7 @@ sub commasep {
     elsif ( $state eq 'part' and @args > 1 ) {
         my $chantypes = join('', @{ $self->isupport('CHANTYPES') }) || '#&';
         my $message;
-        if ($args[-1] =~ /\s+/ || $args[-1] !~ /^[$chantypes]/) {
+        if ($args[-1] =~ / +/ || $args[-1] !~ /^[$chantypes]/) {
             $message = pop @args;
         }
         $args = join(',', @args);
@@ -955,7 +955,7 @@ sub oneandtwoopt {
     $state = 'connect' if $state eq 'sconnect';
     $state = uc $state;
     if (defined $arg) {
-        $arg = ':' . $arg if $arg =~ /\s/;
+        $arg = ':' . $arg if $arg =~ /\x20/;
         $state .= " $arg";
     }
     
@@ -971,7 +971,7 @@ sub oneoptarg {
 
     if (defined $_[ARG0]) {
         my $arg = join '', @_[ARG0 .. $#_];
-        $arg = ':' . $arg if $arg =~ /\s/;
+        $arg = ':' . $arg if $arg =~ /\x20/;
         $state .= " $arg";
     }
 
@@ -1008,7 +1008,7 @@ sub onlyonearg {
     }
 
     $state = uc $state;
-    $arg = ':' . $arg if $arg =~ /\s/;
+    $arg = ':' . $arg if $arg =~ /\x20/;
     $state .= " $arg";
     $kernel->yield(sl_prioritized => $pri, $state);
     return;
@@ -1026,7 +1026,7 @@ sub onlytwoargs {
     }
 
     $state = uc $state;
-    $two = ':' . $two if $two =~ /\s/;
+    $two = ':' . $two if $two =~ /\x20/;
     $state .= " $one $two";
     $kernel->yield(sl_prioritized => $pri, $state);
     return;
@@ -1135,7 +1135,7 @@ sub shutdown {
     my ($kernel, $self, $sender, $session) = @_[KERNEL, OBJECT, SENDER, SESSION];
     my $args = '';
     $args = join '', @_[ARG0..$#_] if @_[ARG0..$#_];
-    $args = ":$args" if $args =~ /\s/;
+    $args = ":$args" if $args =~ /\x20/;
     my $cmd = "QUIT $args";
 
     $kernel->sig('POCOIRC_REGISTER');
@@ -1193,7 +1193,7 @@ sub sl_prioritized {
     my ($kernel, $self, $priority, $msg) = @_[KERNEL, OBJECT, ARG0, ARG1];
 
     # Get the first word for the plugin system
-    if (my ($event) = $msg =~ /^(\w+)\s*/ ) {
+    if (my ($event) = $msg =~ /^(\w+)/ ) {
         # Let the plugin system process this
         return 1 if $self->_pluggable_process(
             'USER',
