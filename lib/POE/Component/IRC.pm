@@ -1840,8 +1840,9 @@ the 'user' part and some even replace the whole string (think FreeNode cloaks).
 If you have an unusually long user@host mask you might want to decrease this
 value if you're prone to sending long messages. Conversely, if you have an
 unusually short one, you can increase this value if you want to be able to
-send as long a message as possible. Be careful though, increase it too much and
-the IRC server might disconnect you with a "Request too long" message. 
+send as long a message as possible. Be careful though, increase it too much 
+and the IRC server might disconnect you with a "Request too long" message when
+you try to send a message that's too long.
 
 B<'plugin_debug'>, set to some true value to print plugin debug info, default 0.
 
