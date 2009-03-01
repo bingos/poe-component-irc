@@ -315,6 +315,16 @@ sub _event_dcc_close {
         return;
     }
 
+    if (!exists $self->{dcc}->{$id}) {
+        warn "dcc_close: Unknown wheel ID: $id\n";
+        return;
+    }
+    
+    if (!exists $self->{dcc}->{$id}->{wheel}) {
+        warn "dcc_close: No DCC wheel for id $id!\n";
+        return;
+    }
+
     if ($self->{dcc}->{$id}->{wheel}->get_driver_out_octets()) {
         $kernel->delay_set(
             '_event_dcc_close',
@@ -726,6 +736,10 @@ You receive this event when another IRC client sends you a DCC
 and decide whether or not to accept it (with L<C<dcc_accept>|/"dcc_accept">)
 here. In the case of DCC SENDs, you can also request to resume the file with
 L<C<dcc_resume>|/"dcc_resume">.
+
+B<Note:> DCC doesn't provice a way to explicitly reject requests, so if you
+don't intend to accept one, just ignore it or send a NOTICE/PRIVMSG to the
+peer explaining why you're not going to accept.
 
 =over 4
 
