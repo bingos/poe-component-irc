@@ -620,16 +620,17 @@ DCC transfers
  # send a file
  my $file = '/home/user/secret.pdf';
  my $recipient = 'that_guy';
- $irc->dcc($recipient => SEND => $file);
+ $irc->yield(dcc => $recipient => SEND => $file);
 
  # receive a file
  sub irc_dcc_request {
-     my ($user, $type, $port, $cookie, $file, $size) = @_[ARG0..$#_];
+     my ($user, $type, $port, $cookie, $file, $size, $addr) = @_[ARG0..$#_];
      return if $type ne 'SEND';
 
      my $irc = $_[SENDER]->get_heap();
      my $nick = (split /!/, $user)[0];
-     print "$nick wants to send me '$file' (size: $size) on port $port\n");
+
+     print "$nick wants to send me '$file' ($size bytes) from $addr:$port\n");
      $irc->yield(dcc_accept => $cookie);
  }
 
@@ -727,7 +728,7 @@ L<C<dcc_resume>|/"dcc_resume">.
 
 =over 4
 
-=item * ARG0: the peer's nickname
+=item * ARG0: the peer's nick!user@host
 
 =item * ARG1: the DCC type (e.g. 'CHAT' or 'SEND')
 

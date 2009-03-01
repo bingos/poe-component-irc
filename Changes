@@ -7,6 +7,8 @@ Revision history for Perl extension POE::Component::IRC.
     - DCC.pm: Most events now tell you what the peer's IP address is (Hinrik)
     - DCC.pm: Document the timeout parameter to the dcc command, and fixed
       some errors in the docs. (Hinrik)
+    - Compat.pm/DCC.pm: Actually provide the whole nick!user@host (not just
+      the nick) with every dcc_request, like the synopsis suggests (Hinrik)
     - DCC.pm: Fix crash when closing a DCC connection with pending outgoing
       data, reported by meneldor (Hinrik)
     - Added test case for the above (Hinrik)

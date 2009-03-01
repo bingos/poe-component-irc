@@ -338,7 +338,7 @@ sub _get_ctcp {
             push @$events, {
                 name => 'dcc_request',
                 args => [
-                    $nick,
+                    $line->{prefix},
                     $dcc_type,
                     @dcc_args,
                 ],
