@@ -14,6 +14,7 @@ Revision history for Perl extension POE::Component::IRC.
     - DCC.pm: Don't crash if dcc_close is called with an invalid id
     - Added test case for the above (Hinrik)
     - Logger.pm: Add DCC chat logging
+    - IRC.pm: Document the 'account' key returned by irc_whois
 
 5.96 Wed Jan 28 11:29:28 GMT 2009
     - Added delays to the two failing tests reported by CPAN Testers,
