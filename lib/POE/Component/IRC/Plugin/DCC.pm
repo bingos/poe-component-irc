@@ -9,7 +9,7 @@ use POE qw(Driver::SysRW Filter::Line Filter::Stream
 use POE::Component::IRC::Plugin qw(:ALL);
 use Socket;
 
-our $VERSION = '1.1';
+our $VERSION = '1.2';
 
 use constant {
     BLOCKSIZE          => 1024,   # Send DCC data in 1k chunks
@@ -318,7 +318,7 @@ sub _event_dcc_close {
         $kernel->delay_set(
             '_event_dcc_close',
             2,
-            \$id,
+            $id,
         );
         return;
     }
@@ -700,7 +700,8 @@ arguments: the nick!user@host of the person to send the request to and the
 type of DCC request (SEND or CHAT). For SEND requests, be sure to add
 a third argument for the filename you want to send. Optionally, you
 can add a fourth argument for the DCC transfer blocksize, but the
-default of 1024 should usually be fine.
+default of 1024 should usually be fine. The fifth (and optional) argument
+is the request timeout value in seconds (default: 300).
 
 Incidentally, you can send other weird nonstandard kinds of DCCs too;
 just put something besides 'SEND' or 'CHAT' (say, 'FOO') in the type

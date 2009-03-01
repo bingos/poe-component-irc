@@ -117,6 +117,7 @@ t/04_plugins/17_dcc/03_send.t
 t/04_plugins/17_dcc/04_resume.t
 t/04_plugins/17_dcc/05_chat.t
 t/04_plugins/17_dcc/06_nat.t
+t/05_regression/01_dcc_chat_close.t
 t/inc/Algorithm/Diff.pm
 t/inc/Algorithm/DiffOld.pm
 t/inc/Crypt/PasswdMD5.pm
