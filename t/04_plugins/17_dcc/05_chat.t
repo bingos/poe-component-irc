@@ -98,21 +98,21 @@ sub irc_join {
 }
 
 sub irc_dcc_request {
-    my ($sender, $who, $type, $port, $cookie) = @_[SENDER, ARG0..ARG3];
+    my ($sender, $cookie) = @_[SENDER, ARG3];
     pass('Got dcc request');
     $sender->get_heap()->yield(dcc_accept => $cookie);
 }
 
 sub irc_dcc_start {
-    my ($sender, $cookie) = @_[SENDER, ARG0];
+    my ($sender, $id) = @_[SENDER, ARG0];
     pass('DCC started');
-    $sender->get_heap()->yield(dcc_chat => $cookie => 'MOO');
+    $sender->get_heap()->yield(dcc_chat => $id => 'MOO');
 }
 
 sub irc_dcc_chat {
-    my ($sender, $cookie, $what) = @_[SENDER, ARG0, ARG3];
+    my ($sender, $id, $what) = @_[SENDER, ARG0, ARG3];
     is($what, 'MOO', 'DCC CHAT test');
-    $sender->get_heap()->yield(dcc_close => $cookie);
+    $sender->get_heap()->yield(dcc_close => $id);
 }
 
 sub irc_dcc_done {

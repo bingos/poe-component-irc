@@ -97,7 +97,7 @@ sub irc_join {
 }
 
 sub irc_dcc_request {
-    my ($sender, $who, $type, $port, $cookie) = @_[SENDER, ARG0..ARG3];
+    my ($sender, $type, $cookie) = @_[SENDER, ARG1, ARG3];
     return if $type ne 'SEND';
     pass('Got dcc request');
 

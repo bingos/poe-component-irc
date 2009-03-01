@@ -97,7 +97,7 @@ sub irc_join {
 }
 
 sub irc_dcc_request {
-    my ($sender, $who, $type, $port, $cookie) = @_[SENDER, ARG0..ARG3];
+    my ($sender, $cookie) = @_[SENDER, ARG3];
     pass("Got dcc request");
     $sender->get_heap()->yield(dcc_accept => $cookie => 'README.send');
 }

@@ -107,7 +107,7 @@ sub irc_join {
 }
 
 sub irc_dcc_request {
-    my ($sender, $who, $type, $port, $cookie) = @_[SENDER,ARG0..ARG3];
+    my ($sender, $cookie) = @_[SENDER, ARG3];
     
     pass('Got dcc request');
     is($cookie->{addr}, '2130706532', 'NAT Address');

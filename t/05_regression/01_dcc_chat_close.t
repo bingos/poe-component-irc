@@ -104,24 +104,24 @@ sub irc_join {
 }
 
 sub irc_dcc_request {
-    my ($sender, $who, $type, $port, $cookie) = @_[SENDER, ARG0..ARG3];
+    my ($sender, $cookie) = @_[SENDER, ARG3];
     pass('Got dcc request');
     $sender->get_heap()->yield(dcc_accept => $cookie);
 }
 
 sub irc_dcc_start {
-    my ($sender, $cookie) = @_[SENDER, ARG0];
+    my ($sender, $id) = @_[SENDER, ARG0];
     my $irc = $sender->get_heap();
     pass('DCC started');
 
     if ($irc->nick_name() eq 'TestBot2') {
-        $irc->yield(dcc_chat => $cookie => 'MOO');
-        $irc->yield(dcc_close => $cookie);
+        $irc->yield(dcc_chat => $id => 'MOO');
+        $irc->yield(dcc_close => $id);
     }
 }
 
 sub irc_dcc_chat {
-    my ($sender, $cookie, $what) = @_[SENDER, ARG0, ARG3];
+    my ($sender, $what) = @_[SENDER, ARG3];
     is($what, 'MOO', 'DCC CHAT test');
 }
 
