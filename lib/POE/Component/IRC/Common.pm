@@ -474,8 +474,9 @@ Takes a list representing an IRC mode line. Returns a hashref. If the modeline
 couldn't be parsed the hashref will be empty. On success the following keys
 will be available in the hashref:
 
- 'modes', an arrayref of normalised modes;
- 'args', an arrayref of applicable arguments to the modes;
+B<'modes'>, an arrayref of normalised modes;
+
+B<'args'>, an arrayref of applicable arguments to the modes;
 
 Example:
 

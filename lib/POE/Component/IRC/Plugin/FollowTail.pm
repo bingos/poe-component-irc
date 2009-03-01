@@ -163,9 +163,9 @@ each new record that is appended to its file.
 
 Takes two arguments:
 
-'filename', the name of the file to tail, mandatory;
+B<'filename'>, the name of the file to tail, mandatory;
 
-'filter', a POE::Filter object to pass to POE::Wheel::FollowTail, optional;
+B<'filter'>, a POE::Filter object to pass to POE::Wheel::FollowTail, optional;
 
 =head1 OUTPUT
 

@@ -274,14 +274,14 @@ code and a handy IRC interface.
 
 Takes two optional arguments:
 
-'botowner', an IRC mask to match against for people issuing commands via the
+B<'botowner'>, an IRC mask to match against for people issuing commands via the
 IRC interface;
  
-'debug', set to a true value to see when stuff goes wrong;
+B<'debug'>, set to a true value to see when stuff goes wrong;
 
-Not setting a 'botowner' effectively disables the IRC interface. 
+Not setting a B<'botowner'> effectively disables the IRC interface. 
 
-If 'botowner' is specified the plugin checks that it is being loaded into a
+If B<'botowner'> is specified the plugin checks that it is being loaded into a
 L<POE::Component::IRC::State> or sub-class and will fail to load otherwise.
 
 Returns a plugin object suitable for feeding to

@@ -2611,33 +2611,38 @@ unset. Note: replies to queries about what a channel topic *is*
 Sent in response to a 'whois' query. ARG0 is a hashref, with the following
 keys: 
 
-'nick', the users nickname; 
+B<'nick'>, the users nickname; 
 
-'user', the users username; 
+B<'user'>, the users username; 
 
-'host', their hostname;
+B<'host'>, their hostname;
 
-'real', their real name;
+B<'real'>, their real name;
 
-'idle', their idle time in seconds;
+B<'idle'>, their idle time in seconds;
 
-'signon', the epoch time they signed on (will be undef if ircd does not support
+B<'signon'>, the epoch time they signed on (will be undef if ircd does not support
 this);
 
-'channels', an arrayref listing visible channels they are on, the channel is
+B<'channels'>, an arrayref listing visible channels they are on, the channel is
 prefixed with '@','+','%' depending on whether they have +o +v or +h;
 
-'server', their server ( might not be useful on some networks );
+B<'server'>, their server ( might not be useful on some networks );
 
-'oper', whether they are an IRCop, contains the IRC operator string if they are, 
+B<'oper'>, whether they are an IRCop, contains the IRC operator string if they are, 
 undef if they aren't.
 
-'actually', some ircds report the users actual ip address, that'll be here;
+B<'actually'>, some ircds report the users actual ip address, that'll be here;
+
+On ircu servers, if the user has registered with services, there will be
+another key:
+
+B<'account'>.
 
 On Freenode if the user has identified with NICKSERV there will be an
 additional key:
 
-'identified'.
+B<'identified'>.
 
 =head3 C<irc_whowas>
 

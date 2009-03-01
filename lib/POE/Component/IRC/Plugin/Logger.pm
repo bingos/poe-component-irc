@@ -434,29 +434,29 @@ present.
 
 Arguments:
 
-'Path', the place where you want the logs saved.
+B<'Path'>, the place where you want the logs saved.
 
-'Private', whether or not to log private messages. Defaults to 1.
+B<'Private'>, whether or not to log private messages. Defaults to 1.
 
-'Public', whether or not to log public messages. Defaults to 1.
+B<'Public'>, whether or not to log public messages. Defaults to 1.
 
-'DCC', whether or not to log DCC chats. Defaults to 1.
+B<'DCC'>, whether or not to log DCC chats. Defaults to 1.
 
-'Sort_by_date', whether or not to split log files by date, i.e.
+B<'Sort_by_date'>, whether or not to split log files by date, i.e.
 F<#channel/YYYY-MM-DD.log> instead of F<#channel.log>. If enabled, the date
 will be omitted from the timestamp. Defaults to 0.
 
-'Strip_color', whether or not to strip all color codes from messages. Defaults
+B<'Strip_color'>, whether or not to strip all color codes from messages. Defaults
 to 0.
 
-'Strip_formatting', whether or not to strip all formatting codes from messages.
+B<'Strip_formatting'>, whether or not to strip all formatting codes from messages.
 Defaults to 0.
 
-'Restricted', set this to 1 if you want all directories/files to be created
+B<'Restricted'>, set this to 1 if you want all directories/files to be created
 without read permissions for other users (i.e. 700 for dirs and 600 for files).
 Defaults to 0.
 
-'Format', a hash reference representing the log format, if you want to define
+B<'Format'>, a hash reference representing the log format, if you want to define
 your own. See the source for details.
 
 Returns a plugin object suitable for feeding to

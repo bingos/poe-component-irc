@@ -115,7 +115,7 @@ out its current nickname.
 
 One optional argument:
 
-'eat', set to true to make the plugin eat the 'irc_public' / 'irc_ctcp_action'
+B<'eat'>, set to true to make the plugin eat the 'irc_public' / 'irc_ctcp_action'
 event and only generate an appropriate event, default is false.
 
 Returns a plugin object suitable for feeding to L<POE::Component::IRC|POE::Component::IRC>'s

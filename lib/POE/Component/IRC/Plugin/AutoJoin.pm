@@ -155,14 +155,14 @@ L<POE::Component::IRC::State|POE::Component::IRC::State> or a subclass thereof.
 
 Two optional arguments:
 
-'Channels', either an array reference of channel names, or a hash reference
+B<'Channels'>, either an array reference of channel names, or a hash reference
 keyed on channel name, containing the password for each channel. By default it
 uses the channels the component is already on, if any.
 
-'RejoinOnKick', set this to 1 if you want the plugin to try to rejoin a channel
+B<'RejoinOnKick'>, set this to 1 if you want the plugin to try to rejoin a channel
 (once) if you get kicked from it. Default is 0.
 
-'Rejoin_delay', the time, in seconds, to wait before rejoining a channel after
+B<'Rejoin_delay'>, the time, in seconds, to wait before rejoining a channel after
 being kicked (if 'RejoinOnKick' is on). Default is 5.
  
 

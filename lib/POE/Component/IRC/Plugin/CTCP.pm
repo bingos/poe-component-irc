@@ -152,16 +152,16 @@ plugin. It watches for 'irc_ctcp_version', 'irc_ctcp_userinfo', 'irc_ctcp_ping',
 
 Takes a number of optional arguments:
 
-'version', a string to send in response to 'irc_ctcp_version'. Default is
+B<'version'>, a string to send in response to 'irc_ctcp_version'. Default is
 PoCo-IRC and version;
 
-'userinfo', a string to send in response to 'irc_ctcp_userinfo'. Default is
+B<'userinfo'>, a string to send in response to 'irc_ctcp_userinfo'. Default is
 'm33p';
 
-'source', a string to send in response to 'irc_ctcp_source'. Default is
+B<'source'>, a string to send in response to 'irc_ctcp_source'. Default is
 L<http://search.cpan.org/dist/POE-Component-IRC>.
 
-'eat', by default the plugin uses PCI_EAT_CLIENT, set this to 0 to disable this
+B<'eat'>, by default the plugin uses PCI_EAT_CLIENT, set this to 0 to disable this
 behaviour;
 
 Returns a plugin object suitable for feeding to

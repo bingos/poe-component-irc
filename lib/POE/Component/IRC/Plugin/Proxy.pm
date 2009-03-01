@@ -433,11 +433,11 @@ Neat, huh? >;o)
 
 Takes a number of arguments:
 
-'password', the password to require from connecting clients;
+B<'password'>, the password to require from connecting clients;
 
-'bindaddr', a local address to bind the listener to, default is 'localhost';
+B<'bindaddr'>, a local address to bind the listener to, default is 'localhost';
 
-'bindport', what port to bind to, default is 0, ie. randomly allocated by OS;
+B<'bindport'>, what port to bind to, default is 0, ie. randomly allocated by OS;
 
 Returns an object suitable for passing to
 L<POE::Component::IRC|POE::Component::IRC>'s plugin_add() method.

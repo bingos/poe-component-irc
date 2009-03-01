@@ -180,7 +180,7 @@ with an underscore, and then poll to try and change it to the original nickname.
 
 Takes one optional argument:
 
-'poll', the number of seconds between nick change attempts, default is 30;
+B<'poll'>, the number of seconds between nick change attempts, default is 30;
 
 Returns a plugin object suitable for feeding to
 L<POE::Component::IRC|POE::Component::IRC>'s plugin_add() method.
