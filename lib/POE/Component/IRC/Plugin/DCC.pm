@@ -12,9 +12,9 @@ use Socket;
 our $VERSION = '1.2';
 
 use constant {
-    BLOCKSIZE          => 1024,   # Send DCC data in 1k chunks
-    INCOMING_BLOCKSIZE => 10_240, # 10k per DCC socket read
-    DCC_TIMEOUT        => 300,    # Five minutes for listening DCCs
+    OUT_BLOCKSIZE  => 1024,   # Send DCC data in 1k chunks
+    IN_BLOCKSIZE   => 10_240, # 10k per DCC socket read
+    LISTEN_TIMEOUT => 300,    # Five minutes for listening DCCs
 };
 
 sub new {
@@ -90,7 +90,8 @@ sub S_disconnected {
 
 sub S_dcc_request {
     my ($self, $irc) = splice @_, 0, 2;
-    my ($nick, $type, $port, $cookie, $file, $size) = map { ref =~ /REF|SCALAR/ && ${ $_ } } @_;
+    my ($user, $type, $port, $cookie, $file, $size) = map { ref =~ /REF|SCALAR/ && ${ $_ } } @_;
+    my $nick = (split /!/, $user)[0];
 
     if ($type eq 'ACCEPT' && $self->{resuming}->{"$port+$nick"}) {
         # the old cookie has the peer's address
@@ -234,14 +235,14 @@ sub _event_dcc {
         port       => $port,
         addr       => $addr,
         done       => 0,
-        blocksize  => ($blocksize || BLOCKSIZE),
+        blocksize  => ($blocksize || OUT_BLOCKSIZE),
         listener   => 1,
         factory    => $factory,
     };
     
     $kernel->alarm(
         '_dcc_timeout',
-        time() + ($timeout || DCC_TIMEOUT),
+        time() + ($timeout || LISTEN_TIMEOUT),
         $factory->ID,
     );
     
@@ -353,7 +354,7 @@ sub _event_dcc_resume {
     my $sender_file = $cookie->{file};
     $cookie->{file} = $myfile if defined $myfile;
     my $size = -s $cookie->{file};
-    my $fraction = $size % INCOMING_BLOCKSIZE;
+    my $fraction = $size % IN_BLOCKSIZE;
     $size -= $fraction;
 
     # we need to truncate the whole thing, adjust the size we are
@@ -556,7 +557,7 @@ sub _dcc_up {
     $self->{dcc}->{$id}->{wheel} = POE::Wheel::ReadWrite->new(
         Handle => $sock,
         Driver => ($self->{dcc}->{$id}->{type} eq 'GET'
-            ? POE::Driver::SysRW->new( BlockSize => INCOMING_BLOCKSIZE )
+            ? POE::Driver::SysRW->new( BlockSize => IN_BLOCKSIZE )
             : POE::Driver::SysRW->new()
         ),
         Filter => ($self->{dcc}->{$id}->{type} eq 'CHAT'
