@@ -737,7 +737,7 @@ and decide whether or not to accept it (with L<C<dcc_accept>|/"dcc_accept">)
 here. In the case of DCC SENDs, you can also request to resume the file with
 L<C<dcc_resume>|/"dcc_resume">.
 
-B<Note:> DCC doesn't provice a way to explicitly reject requests, so if you
+B<Note:> DCC doesn't provide a way to explicitly reject requests, so if you
 don't intend to accept one, just ignore it or send a
 L<NOTICE|POE::Component::IRC/"notice"> or L<PRIVMSG|POE::Component::IRC/"privmsg">
 to the peer explaining why you're not going to accept.
