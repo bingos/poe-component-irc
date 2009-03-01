@@ -12,7 +12,7 @@ use POE::Component::IRC::Plugin::BotTraffic;
 use POE::Component::IRC::Common qw( l_irc parse_user strip_color strip_formatting );
 use POSIX qw(strftime);
 
-our $VERSION = '1.8';
+our $VERSION = '1.9';
 
 sub new {
     my ($package) = shift;
@@ -54,6 +54,7 @@ sub PCI_register {
     $self->{logging} = { };
     $self->{Private} = 1 if !defined $self->{Private};
     $self->{Public} = 1 if !defined $self->{Public};
+    $self->{DCC} = 1 if !defined $self->{DCC};
     $self->{Format} = {
         '+b'         => sub { my ($nick, $mask) = @_;            "--- $nick sets ban on $mask" },
         '-b'         => sub { my ($nick, $mask) = @_;            "--- $nick removes ban on $mask" },
@@ -87,7 +88,11 @@ sub PCI_register {
         topic_is     => sub { my ($chan, $topic) = @_;           "--- Topic for $chan is: $topic" },
         topic_change => sub { my ($nick, $topic) = @_;           "--- $nick changes the topic to: $topic" },
         privmsg      => sub { my ($nick, $msg) = @_;             "<$nick> $msg" },
+        dcc_privmsg  => sub { my ($nick, $msg) = @_;             "<$nick> $msg" },
         action       => sub { my ($nick, $action) = @_;          "* $nick $action" },
+        dcc_action   => sub { my ($nick, $action) = @_;          "* $nick $action" },
+        dcc_start    => sub { my ($nick, $address) = @_;         "--> Opened DCC chat connection with $nick ($address)" },
+        dcc_done     => sub { my ($nick, $address) = @_;         "<-- Closed DCC chat connection with $nick ($address)" },
         join         => sub { my ($nick, $userhost, $chan) = @_; "--> $nick ($userhost) joins $chan" },
         part         => sub {
             my ($nick, $userhost, $chan, $msg) = @_;
@@ -114,7 +119,9 @@ sub PCI_register {
         },
     } if !defined $self->{Format};
 
-    $irc->plugin_register($self, 'SERVER', qw(001 332 333 chan_mode ctcp_action bot_ctcp_action bot_msg bot_public join kick msg nick part public quit topic));
+    $irc->plugin_register($self, 'SERVER', qw(001 332 333 chan_mode 
+        ctcp_action bot_ctcp_action bot_msg bot_public join kick msg nick part 
+        public quit topic dcc_start dcc_chat dcc_done));
     return 1;
 }
 
@@ -130,8 +137,9 @@ sub S_001 {
 
 sub S_332 {
     my ($self, $irc) = splice @_, 0, 2;
-    my $chan = ${ $_[2] }->[0];
+    my $chan  = ${ $_[2] }->[0];
     my $topic = ${ $_[2] }->[1];
+
     # only log this if we were just joining the channel
     $self->_log_entry($chan, topic_is => $chan, $topic) if !$irc->channel_list($chan);
     return PCI_EAT_NONE;
@@ -140,6 +148,7 @@ sub S_332 {
 sub S_333 {
     my ($self, $irc) = splice @_, 0, 2;
     my ($chan, $user, $time) = @{ ${ $_[2] } };
+
     # only log this if we were just joining the channel
     $self->_log_entry($chan, topic_set_by => $chan, $user, $time) if !$irc->channel_list($chan);
     return PCI_EAT_NONE;
@@ -150,16 +159,18 @@ sub S_chan_mode {
     my $nick = parse_user(${ $_[0] });
     my $chan = ${ $_[1] };
     my $mode = ${ $_[2] };
-    my $arg = ${ $_[3] };
+    my $arg  = ${ $_[3] };
+
     $self->_log_entry($chan, $mode => $nick, $arg);
     return PCI_EAT_NONE;
 }
 
 sub S_ctcp_action {
     my ($self, $irc) = splice @_, 0, 2;
-    my $sender = parse_user(${ $_[0] });
+    my $sender     = parse_user(${ $_[0] });
     my $recipients = ${ $_[1] };
-    my $msg = ${ $_[2] };
+    my $msg        = ${ $_[2] };
+
     for my $recipient (@{ $recipients }) {
         $self->_log_entry($recipient, action => $sender, $msg);
     }
@@ -169,7 +180,8 @@ sub S_ctcp_action {
 sub S_bot_ctcp_action {
     my ($self, $irc) = splice @_, 0, 2;
     my $recipients = ${ $_[0] };
-    my $msg = ${ $_[1] };
+    my $msg        = ${ $_[1] };
+
     for my $recipient (@{ $recipients }) {
         $self->_log_entry($recipient, action => $irc->nick_name(), $msg);
     }
@@ -179,7 +191,8 @@ sub S_bot_ctcp_action {
 sub S_bot_msg {
     my ($self, $irc) = splice @_, 0, 2;
     my $recipients = ${ $_[0] };
-    my $msg = ${ $_[1] };
+    my $msg        = ${ $_[1] };
+
     for my $recipient (@{ $recipients }) {
         $self->_log_entry($recipient, privmsg => $irc->nick_name(), $msg);
     }
@@ -189,7 +202,8 @@ sub S_bot_msg {
 sub S_bot_public {
     my ($self, $irc) = splice @_, 0, 2;
     my $channels = ${ $_[0] };
-    my $msg = ${ $_[1] };
+    my $msg      = ${ $_[1] };
+
     for my $chan (@{ $channels }) {
         $self->_log_entry($chan, privmsg => $irc->nick_name(), $msg);
     }
@@ -200,6 +214,7 @@ sub S_join {
     my ($self, $irc) = splice @_, 0, 2;
     my ($joiner, $user, $host) = parse_user(${ $_[0] });
     my $chan = ${ $_[1] };
+
     $self->_log_entry($chan, join => $joiner, "$user\@$host", $chan);
     return PCI_EAT_NONE;
 }
@@ -207,9 +222,10 @@ sub S_join {
 sub S_kick {
     my ($self, $irc) = splice @_, 0, 2;
     my $kicker = parse_user(${ $_[0] });
-    my $chan = ${ $_[1] };
+    my $chan   = ${ $_[1] };
     my $victim = ${ $_[2] };
-    my $msg = ${ $_[3] };
+    my $msg    = ${ $_[3] };
+
     $self->_log_entry($chan, kick => $kicker, $victim, $chan, $msg);
     return PCI_EAT_NONE;
 }
@@ -217,7 +233,8 @@ sub S_kick {
 sub S_msg {
     my ($self, $irc) = splice @_, 0, 2;
     my $sender = parse_user(${ $_[0] });
-    my $msg = ${ $_[2] };
+    my $msg    = ${ $_[2] };
+
     $self->_log_entry($sender, privmsg => $sender, $msg);
     return PCI_EAT_NONE;
 }
@@ -227,6 +244,7 @@ sub S_nick {
     my $old_nick = parse_user(${ $_[0] });
     my $new_nick = ${ $_[1] };
     my $channels = @{ $_[2] }[0];
+
     for my $chan (@{ $channels }) {
         $self->_log_entry($chan, nick_change => $old_nick, $new_nick);
     }
@@ -237,16 +255,18 @@ sub S_part {
     my ($self, $irc) = splice @_, 0, 2;
     my ($parter, $user, $host) = parse_user(${ $_[0] });
     my $chan = ${ $_[1] };
-    my $msg = ref $_[2] eq 'SCALAR' ? ${ $_[2] } : '';
+    my $msg  = ref $_[2] eq 'SCALAR' ? ${ $_[2] } : '';
+
     $self->_log_entry($chan, part => $parter, "$user\@$host", $chan, $msg);
     return PCI_EAT_NONE;
 }
 
 sub S_public {
     my ($self, $irc) = splice @_, 0, 2;
-    my $sender = parse_user(${ $_[0] });
+    my $sender   = parse_user(${ $_[0] });
     my $channels = ${ $_[1] };
-    my $msg = ${ $_[2] };
+    my $msg      = ${ $_[2] };
+
     for my $chan (@{ $channels }) {
         $self->_log_entry($chan, privmsg => $sender, $msg);
     }
@@ -256,8 +276,9 @@ sub S_public {
 sub S_quit {
     my ($self, $irc) = splice @_, 0, 2;
     my ($quitter, $user, $host) = parse_user(${ $_[0] });
-    my $msg = ${ $_[1] };
+    my $msg      = ${ $_[1] };
     my $channels = @{ $_[2] }[0];
+
     for my $chan (@{ $channels }) {
         $self->_log_entry($chan, quit => $quitter, "$user\@$host", $msg);
     }
@@ -266,10 +287,49 @@ sub S_quit {
 
 sub S_topic {
     my ($self, $irc) = splice @_, 0, 2;
-    my $changer = parse_user(${ $_[0] });
-    my $chan = ${ $_[1] };
+    my $changer   = parse_user(${ $_[0] });
+    my $chan      = ${ $_[1] };
     my $new_topic = ${ $_[2] };
+
     $self->_log_entry($chan, topic_change => $changer, $new_topic);
+    return PCI_EAT_NONE;
+}
+
+sub S_dcc_start {
+    my ($self, $irc) = splice @_, 0, 2;
+    my $nick = ${ $_[1] };
+    my $type = ${ $_[2] };
+    my $port = ${ $_[3] };
+    my $addr = ${ $_[6] };
+
+    return if $type ne 'CHAT';
+    $self->_log_entry("=$nick", dcc_start => $nick, "$addr:$port");
+    return PCI_EAT_NONE;
+}
+
+sub S_dcc_chat {
+    my ($self, $irc) = splice @_, 0, 2;
+    my $nick = ${ $_[1] };
+    my $msg  = ${ $_[3] };
+
+    if (my ($action) = $msg =~ /\001ACTION (.*)\001/) {
+        $self->_log_entry("=$nick", dcc_action => $nick, $action);
+    }
+    else {
+        $self->_log_entry("=$nick", dcc_privmsg => $nick, $msg);
+    }
+    return PCI_EAT_NONE;
+}
+
+sub S_dcc_done {
+    my ($self, $irc) = splice @_, 0, 2;
+    my $nick = ${ $_[1] };
+    my $type = ${ $_[2] };
+    my $port = ${ $_[3] };
+    my $addr = ${ $_[7] };
+
+    return if $type ne 'CHAT';
+    $self->_log_entry("=$nick", dcc_done => $nick, "$addr:$port");
     return PCI_EAT_NONE;
 }
 
@@ -280,6 +340,9 @@ sub _log_entry {
 
     if ($context =~ /^[#&+!]/) {
         return if !$self->{Public};
+    }
+    elsif ($context =~ /^=/) {
+        return if !$self->{DCC};
     }
     else {
         return if !$self->{Private};
@@ -352,10 +415,13 @@ logs public and private messages to disk
 
 POE::Component::IRC::Plugin::Logger is a L<POE::Component::IRC|POE::Component::IRC>
 plugin. It logs messages and CTCP ACTIONs to either C<#some_channel.log> or
-C<some_nickname.log> in the supplied path. It tries to detect UTF-8 encoding of
-every message or else falls back to CP1252, like irssi (and, supposedly, mIRC)
-does by default. Resulting log files will be UTF-8 encoded. The default log
-format is similar to xchat's, except that it's sane and parsable.
+C<some_nickname.log> in the supplied path. In the case of DCC chats, a '=' is 
+prepended to the nickname (like in irssi).
+
+The plugin tries to detect UTF-8 encoding of every message or else falls back
+to CP1252, like irssi (and, supposedly, mIRC) does by default. Resulting log
+files will be UTF-8 encoded. The default log format is similar to xchat's,
+except that it's sane and parsable.
 
 This plugin requires the IRC component to be L<POE::Component::IRC::State|POE::Component::IRC::State>
 or a subclass thereof. It also requires a L<POE::Component::IRC::Plugin::BotTraffic|POE::Component::IRC::Plugin::BotTraffic>
@@ -374,6 +440,8 @@ Arguments:
 
 'Public', whether or not to log public messages. Defaults to 1.
 
+'DCC', whether or not to log DCC chats. Defaults to 1.
+
 'Sort_by_date', whether or not to split log files by date, i.e.
 F<#channel/YYYY-MM-DD.log> instead of F<#channel.log>. If enabled, the date
 will be omitted from the timestamp. Defaults to 0.
@@ -384,7 +452,7 @@ to 0.
 'Strip_formatting', whether or not to strip all formatting codes from messages.
 Defaults to 0.
 
-'Restricted', set this to 1 if you want to all directories/files to be created
+'Restricted', set this to 1 if you want all directories/files to be created
 without read permissions for other users (i.e. 700 for dirs and 600 for files).
 Defaults to 0.
 

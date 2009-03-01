@@ -4,10 +4,13 @@ Revision history for Perl extension POE::Component::IRC.
     - Parse some IRC protocol messages more strictly. Always split on ASCII
       space rather than \s, since tabs are not considered whitespace by the
       IRC protocol. (Hinrik)
-    - DCC.pm: Document the timeout parameter to the dcc command. (Hinrik)
+    - DCC.pm: Most events now tell you what the peer's IP address is (Hinrik)
+    - DCC.pm: Document the timeout parameter to the dcc command, and fixed
+      some errors in the docs. (Hinrik)
     - DCC.pm: Fix crash when closing a DCC connection with pending outgoing
       data, reported by meneldor (Hinrik)
     - Added test case for the above (Hinrik)
+    - Logger.pm: Add DCC chat logging
 
 5.96 Wed Jan 28 11:29:28 GMT 2009
     - Added delays to the two failing tests reported by CPAN Testers,

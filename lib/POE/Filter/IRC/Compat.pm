@@ -80,23 +80,25 @@ my %dcc_types = (
         my ($file, $addr, $port, $size);
         return if !(($file, $addr, $port, $size) = $args =~ /^(".+"|[^ ]+) +(\d+) +(\d+)(?: +(\d+))?/);
         
-        $file =~ s/^"|"$//g;
+        if ($file =~ s/^"//) {
+            $file =~ s/"$//;
+            $file =~ s/\\"/"/g;
+        }
         $file = fileparse($file);
         
         return (
             $port,
             {
-                open => undef,
                 nick => $nick,
                 type => $type,
                 file => $file,
                 size => $size,
-                done => 0,
                 addr => $addr,
                 port => $port,
             },
             $file,
             $size,
+            $addr,
         );
     },
     qr/ACCEPT|RESUME/ => sub {
@@ -110,13 +112,10 @@ my %dcc_types = (
         return (
             $port,
             {
-                open => undef,
                 nick => $nick,
                 type => $type,
                 file => $file,
                 size => $position,
-                done => 0,
-                addr => undef,
                 port => $port,
             },
             $file,
