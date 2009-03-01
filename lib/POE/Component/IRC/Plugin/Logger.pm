@@ -312,7 +312,7 @@ sub S_dcc_chat {
     my $nick = ${ $_[1] };
     my $msg  = ${ $_[3] };
 
-    if (my ($action) = $msg =~ /\001ACTION (.*)\001/) {
+    if (my ($action) = $msg =~ /\001ACTION (.*?)\001/) {
         $self->_log_entry("=$nick", dcc_action => $nick, $action);
     }
     else {

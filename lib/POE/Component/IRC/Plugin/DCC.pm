@@ -424,7 +424,6 @@ sub _dcc_read {
                 )},
             );
             delete $self->{wheelmap}->{ $self->{dcc}->{$id}->{wheel}->ID };
-            delete $self->{dcc}->{$id}->{wheel};
             delete $self->{dcc}->{$id};
             return;
         }
