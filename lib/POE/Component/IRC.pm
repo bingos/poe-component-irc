@@ -172,7 +172,7 @@ sub _configure {
     }
     
     if ($self->{usessl} && !$GOT_SSL) {
-        warn "'usessl' opyion specified, but POE::Component::SSLify was not found\n";
+        warn "'usessl' option specified, but POE::Component::SSLify was not found\n";
     }
 
     if (!$self->{nodns} && $GOT_CLIENT_DNS && !$self->{resolver} ) {
@@ -1789,48 +1789,48 @@ L<C<register>|/"register"> and L<C<irc_registered>|/"irc_registered">.
 
 Takes a number of arguments, all of which are optional: 
 
-'alias', a name (kernel alias) that this instance will be known by;
+B<'alias'>, a name (kernel alias) that this instance will be known by;
 
-'options', a hashref containing POE::Session options;
+B<'options'>, a hashref containing L<POE::Session|POE::Session> options;
 
-'Server', the server name;
+B<'Server'>, the server name;
 
-'Port', the remote port number;
+B<'Port'>, the remote port number;
 
-'Password', an optional password for restricted servers;
+B<'Password'>, an optional password for restricted servers;
 
-'Nick', your client's IRC nickname;
+B<'Nick'>, your client's IRC nickname;
 
-'Username', your client's username;
+B<'Username'>, your client's username;
 
-'Ircname', some cute comment or something.
+B<'Ircname'>, some cute comment or something.
 
-'UseSSL', set to some true value if you want to connect using SSL.
+B<'UseSSL'>, set to some true value if you want to connect using SSL.
 
-'Raw', set to some true value to enable the component to send
+B<'Raw'>, set to some true value to enable the component to send
 L<C<irc_raw>|/"irc_raw"> events.
 
-'LocalAddr', which local IP address on a multihomed box to connect as;
+B<'LocalAddr'>, which local IP address on a multihomed box to connect as;
 
-'LocalPort', the local TCP port to open your socket on;
+B<'LocalPort'>, the local TCP port to open your socket on;
 
-'NoDNS', set this to 1 to disable DNS lookups using PoCo-Client-DNS. (See note
+B<'NoDNS'>, set this to 1 to disable DNS lookups using PoCo-Client-DNS. (See note
 below).
 
-'Flood', set this to 1 to get quickly disconnected and klined from an ircd >;]
+B<'Flood'>, set this to 1 to get quickly disconnected and klined from an ircd >;]
 
-'Proxy', IP address or server name of a proxy server to use.
+B<'Proxy'>, IP address or server name of a proxy server to use.
 
-'ProxyPort', which tcp port on the proxy to connect to.
+B<'ProxyPort'>, which tcp port on the proxy to connect to.
 
-'NATAddr', what other clients see as your IP address.
+B<'NATAddr'>, what other clients see as your IP address.
 
-'DCCPorts', an arrayref containing tcp ports that can be used for DCC sends.
+B<'DCCPorts'>, an arrayref containing tcp ports that can be used for DCC sends.
 
-'Resolver', provide a L<POE::Component::Client::DNS|POE::Component::Client::DNS>
+B<'Resolver'>, provide a L<POE::Component::Client::DNS|POE::Component::Client::DNS>
 object for the component to use.
 
-'msg_length', the maximum length of IRC messages, in bytes. Default is 450.
+B<'msg_length'>, the maximum length of IRC messages, in bytes. Default is 450.
 The IRC component shortens all messages longer than this value minus the length
 of your current nickname. IRC only allows raw protocol lines messages that are
 512 bytes or shorter, including the trailing "\r\n". This is most relevant to
@@ -1843,15 +1843,15 @@ unusually short one, you can increase this value if you want to be able to
 send as long a message as possible. Be careful though, increase it too much and
 the IRC server might disconnect you with a "Request too long" message. 
 
-'plugin_debug', set to some true value to print plugin debug info, default 0.
+B<'plugin_debug'>, set to some true value to print plugin debug info, default 0.
 
-'socks_proxy', specify a SOCKS4/SOCKS4a proxy to use.
+B<'socks_proxy'>, specify a SOCKS4/SOCKS4a proxy to use.
 
-'socks_port', the SOCKS port to use, defaults to 1080 if not specified.
+B<'socks_port'>, the SOCKS port to use, defaults to 1080 if not specified.
 
-'socks_id', specify a SOCKS user_id. Default is none.
+B<'socks_id'>, specify a SOCKS user_id. Default is none.
 
-'useipv6', enable the use of IPv6 for connections.
+B<'useipv6'>, enable the use of IPv6 for connections.
 
 C<spawn> will supply reasonable defaults for any of these attributes which are
 missing, so don't feel obliged to write them all out.
@@ -1863,58 +1863,58 @@ If the component finds that L<POE::Component::Client::DNS|POE::Component::Client
 is installed it will use that to resolve the server name passed. Disable this
 behaviour if you like, by passing: C<< NoDNS => 1 >>.
 
-Additionally there is a "Flood" parameter. When true, it disables the
+Additionally there is a B<'Flood'> parameter. When true, it disables the
 component's flood protection algorithms, allowing it to send messages
 to an IRC server at full speed. Disconnects and k-lines are some
 common side effects of flooding IRC servers, so care should be used
 when enabling this option.
 
-Two new attributes are "Proxy" and "ProxyPort" for sending your
-IRC traffic through a proxy server. "Proxy"'s value should be the IP
-address or server name of the proxy. "ProxyPort"'s value should be the
+Two new attributes are B<'Proxy'> and B<'ProxyPort'> for sending your
+IRC traffic through a proxy server. B<'Proxy'>'s value should be the IP
+address or server name of the proxy. B<'ProxyPort'>'s value should be the
 port on the proxy to connect to. L<C<connect>|/"connect"> will default
 to using the I<actual> IRC server's port if you provide a proxy but omit
-the proxy's port. These are for HTTP Proxies. See 'socks_proxy' for SOCKS4
+the proxy's port. These are for HTTP Proxies. See B<'socks_proxy'> for SOCKS4
 and SOCKS4a support.
 
 For those people who run bots behind firewalls and/or Network Address
-Translation there are two additional attributes for DCC. "DCCPorts", is an
-arrayref of ports to use when initiating DCC connections. "NATAddr", is
+Translation there are two additional attributes for DCC. B<'DCCPorts'>, is an
+arrayref of ports to use when initiating DCC connections. B<'NATAddr'>, is
 the NAT'ed IP address that your bot is hidden behind, this is sent whenever
 you do DCC.
 
 SSL support requires L<POE::Component::SSLify|POE::Component::SSLify>, as well
 as an IRC server that supports SSL connections. If you're missing
-POE::Component::SSLify, specifing 'UseSSL' will do nothing. The default is to
+POE::Component::SSLify, specifing B<'UseSSL'> will do nothing. The default is to
 not try to use SSL.
 
-Setting 'Raw' to true, will enable the component to send
+Setting B<'Raw'> to true, will enable the component to send
 L<C<irc_raw>|/"irc_raw"> events to interested plugins and sessions.
 
-'NoDNS' has different results depending on whether it is set with
+B<'NoDNS'> has different results depending on whether it is set with
 L<C<spawn>|/"spawn"> or L<C<connect>|/"connect">. Setting it with
 C<spawn>, disables the creation of the POE::Component::Client::DNS
 completely. Setting it with L<C<connect>|/"connect"> on the other hand
 allows the PoCo-Client-DNS session to be spawned, but will disable
 any dns lookups using it.
 
-'Resolver', requires a L<POE::Component::Client::DNS|POE::Component::Client::DNS>
+B<'Resolver'>, requires a L<POE::Component::Client::DNS|POE::Component::Client::DNS>
 object. Useful when spawning multiple poco-irc sessions, saves the overhead of
 multiple dns sessions.
 
-'plugin_debug', setting to true enables plugin debug info. Plugins are processed
+B<'plugin_debug'>, setting to true enables plugin debug info. Plugins are processed
 inside an eval, so debugging them can be hard. This should help with that.
 
-SOCKS4 proxy support is provided by 'socks_proxy', 'socks_port' and 'socks_id'
-parameters. If something goes wrong with the SOCKS connection you should get a
-warning on STDERR. This is fairly experimental currently.
+SOCKS4 proxy support is provided by B<'socks_proxy'>, B<'socks_port'> and
+B<'socks_id'> parameters. If something goes wrong with the SOCKS connection
+you should get a warning on STDERR. This is fairly experimental currently.
 
 IPv6 support is available for connecting to IPv6 enabled ircds (it won't work
-for DCC though). To enable it, specify 'useipv6'. L<Socket6|Socket6> is
+for DCC though). To enable it, specify B<'useipv6'>. L<Socket6|Socket6> is
 required to be installed. If you have L<Socket6|Socket6> and
 L<POE::Component::Client::DNS|POE::Component::Client::DNS> installed and
 specify a hostname that resolves to an IPv6 address then IPv6 will be used.
-If you specify an ipv6 'localaddr' then IPv6 will be used.
+If you specify an ipv6 B<'localaddr'> then IPv6 will be used.
 
 =head2 C<new>
 
