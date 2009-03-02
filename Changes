@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-5.98
+5.98 Mon Mar  2 22:51:27 GMT 2009
     - Parse some IRC protocol messages more strictly. Always split on ASCII
       space rather than \s, since tabs are not considered whitespace by the
       IRC protocol. (Hinrik)
