@@ -17,7 +17,7 @@ use POE::Component::IRC::Common qw(:ALL);
 use POE::Component::IRC::Plugin qw(:ALL);
 use base qw(POE::Component::IRC::State POE::Component::IRC::Qnet);
 
-our $VERSION = '1.9';
+our $VERSION = '2.0';
 
 sub _create {
     my $self = shift;
@@ -64,34 +64,11 @@ sub _create {
         voice
         );
 
-  my @lbot_commands = qw(
-        whoami
-        whois
-        chanlev
-        adduser
-        removeuser
-        showcommands
-        op
-        voice
-        invite
-        setinvite
-        clearinvite
-        recover
-        deopall
-        unbanall
-        clearchan
-        version
-        welcome
-        requestowner
-        );
-
     $self->{OBJECT_STATES_HASHREF}->{'qbot_' . $_} = '_qnet_bot_commands' for @qbot_commands;
-    $self->{OBJECT_STATES_HASHREF}->{'lbot_' . $_} = '_qnet_bot_commands' for @lbot_commands;
     $self->{OBJECT_STATES_HASHREF}->{'resync_chan'} = '_resync_chan';
     $self->{OBJECT_STATES_HASHREF}->{'resync_nick'} = '_resync_nick';
     $self->{server} = 'irc.quakenet.org';
     $self->{QBOT} = 'Q@Cserve.quakenet.org';
-    $self->{LBOT} = 'L@lightweight.quakenet.org';
 
     return 1;
 }
@@ -266,7 +243,7 @@ sub S_chan_mode {
     my $arg = ${ $_[3] };
     my $uarg = u_irc $arg, $mapping;
     
-    return PCI_EAT_NONE if $source !~ /^[QL]$/ || $mode !~ /[ov]/;
+    return PCI_EAT_NONE if $source !~ /^[Q]$/ || $mode !~ /[ov]/;
     
     if ( !$self->is_nick_authed($arg) && !$self->{USER_AUTHED}->{ $uarg } ) {
        $self->{USER_AUTHED}->{ $uarg } = 0;
@@ -618,7 +595,7 @@ This module returns one additional event over and above the usual events:
 Sent when the component detects that a user has authed with Q. Due to the
 mechanics of Quakenet you will usually only receive this if an unauthed user
 joins a channel, then at some later point auths with Q. The component 'detects'
-the auth by seeing if Q or L decides to +v or +o the user. Klunky? Indeed. But
+the auth by seeing if Q decides to +v or +o the user. Klunky? Indeed. But
 it is the only way to do it, unfortunately.
 
 =back
