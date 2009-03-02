@@ -414,8 +414,8 @@ logs public and private messages to disk
 =head1 DESCRIPTION
 
 POE::Component::IRC::Plugin::Logger is a L<POE::Component::IRC|POE::Component::IRC>
-plugin. It logs messages and CTCP ACTIONs to either C<#some_channel.log> or
-C<some_nickname.log> in the supplied path. In the case of DCC chats, a '=' is 
+plugin. It logs messages and CTCP ACTIONs to either F<#some_channel.log> or
+F<some_nickname.log> in the supplied path. In the case of DCC chats, a '=' is 
 prepended to the nickname (like in irssi).
 
 The plugin tries to detect UTF-8 encoding of every message or else falls back

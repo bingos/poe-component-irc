@@ -325,12 +325,9 @@ sub _event_dcc_close {
         return;
     }
 
+    # pending data, wait till it has been flushed
     if ($self->{dcc}->{$id}->{wheel}->get_driver_out_octets()) {
-        $kernel->delay_set(
-            '_event_dcc_close',
-            2,
-            $id,
-        );
+        $kernel->delay_set(_event_dcc_close => 2, $id);
         return;
     }
 
@@ -686,8 +683,9 @@ is the request timeout value in seconds (default: 300).
 
 Incidentally, you can send other weird nonstandard kinds of DCCs too;
 just put something besides 'SEND' or 'CHAT' (say, 'FOO') in the type
-field, and you'll get back C<irc_dcc_foo> events when activity happens
-on its DCC connection.
+field, and you'll get back C<irc_dcc_foo> events (with same arguments as
+L<C<irc_dcc_chat>|/"irc_dcc_chat"> when activity happens on its DCC
+connection.
 
 If you are behind a firewall or Network Address Translation, you may want to
 consult L<POE::Component::IRC|POE::Component::IRC>'s
