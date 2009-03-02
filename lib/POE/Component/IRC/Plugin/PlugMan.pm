@@ -6,7 +6,7 @@ use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Common qw( :ALL );
 
-our $VERSION = '5.90';
+our $VERSION = '5.98';
 
 BEGIN { 
     # Turn on the debugger's symbol source tracing

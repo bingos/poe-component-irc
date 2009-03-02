@@ -17,7 +17,7 @@ use POE::Component::IRC::Common qw(:ALL);
 use POE::Component::IRC::Plugin qw(:ALL);
 use base qw(POE::Component::IRC::State POE::Component::IRC::Qnet);
 
-our $VERSION = '2.0';
+our $VERSION = '5.98';
 
 sub _create {
     my $self = shift;

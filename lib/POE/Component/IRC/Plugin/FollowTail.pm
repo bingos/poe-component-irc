@@ -6,7 +6,7 @@ use Carp;
 use POE qw(Wheel::FollowTail);
 use POE::Component::IRC::Plugin qw( :ALL );
 
-our $VERSION = '0.02';
+our $VERSION = '5.98';
 
 sub new {
     my ($package) = shift;

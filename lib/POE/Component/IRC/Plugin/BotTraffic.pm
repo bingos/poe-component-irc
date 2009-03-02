@@ -6,7 +6,7 @@ use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Filter::IRCD;
 use POE::Filter::IRC::Compat;
 
-our $VERSION = '5.56';
+our $VERSION = '5.98';
 
 sub new {
     my ($package) = @_;

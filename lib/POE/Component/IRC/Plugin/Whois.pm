@@ -6,7 +6,7 @@ use POE;
 use POE::Component::IRC::Plugin qw( PCI_EAT_NONE );
 use POE::Component::IRC::Common qw(:ALL);
 
-our $VERSION = '0.04';
+our $VERSION = '5.98';
 
 sub new {
     return bless { }, shift;
