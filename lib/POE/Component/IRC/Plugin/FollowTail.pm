@@ -154,7 +154,7 @@ of an ever-growing file
 
 POE::Component::IRC::Plugin::FollowTail is a L<POE::Component::IRC|POE::Component::IRC>
 plugin that uses L<POE::Wheel::FollowTail|POE::Wheel::FollowTail> to follow
-the end of an ever-growing file. It generates 'irc_tail_' prefixed events for
+the end of an ever-growing file. It generates C<irc_tail_> prefixed events for
 each new record that is appended to its file.
 
 =head1 METHODS
@@ -166,6 +166,9 @@ Takes two arguments:
 B<'filename'>, the name of the file to tail, mandatory;
 
 B<'filter'>, a POE::Filter object to pass to POE::Wheel::FollowTail, optional;
+
+Returns a plugin object suitable for feeding to
+L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
 
 =head1 OUTPUT
 

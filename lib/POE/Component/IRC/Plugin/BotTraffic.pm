@@ -82,9 +82,9 @@ events when you send messages
 
 POE::Component::IRC::Plugin::BotTraffic is a L<POE::Component::IRC|POE::Component::IRC>
 plugin. It watches for when your bot sends privmsgs to the server. If your bot
-sends a privmsg to a channel ( ie. the recipient is prefixed with '#', '&', or
-'+' ) it generates an 'irc_bot_public' event, otherwise it will generate an
-'irc_bot_msg' event.
+sends a privmsg to a channel (ie. the recipient is prefixed with '#', '&', or
+'+') it generates an C<irc_bot_public> event, otherwise it will generate an
+C<irc_bot_msg> event.
 
 These events are useful for logging what your bot says.
 
@@ -93,7 +93,7 @@ These events are useful for logging what your bot says.
 =head2 C<new>
 
 No arguments required. Returns a plugin object suitable for feeding to
-L<POE::Component::IRC|POE::Component::IRC>'s plugin_add() method.
+L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
 
 =head1 OUTPUT
 

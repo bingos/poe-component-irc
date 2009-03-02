@@ -658,7 +658,7 @@ need to add it manually.
 Takes no arguments.
 
 Returns a plugin object suitable for feeding to
-L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add()> method.
+L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
 
 =head2 C<dccports>
 

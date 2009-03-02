@@ -352,7 +352,7 @@ line, they are:
 =head2 _default
 
 If a plugin has registered for an event but doesn't have a hook method
-defined for ir, component will attempt to call a plugin's C<_default()> method.
+defined for ir, component will attempt to call a plugin's C<_default> method.
 The first parameter after the plugin and irc objects will be the handler name.
 
  sub _default {
@@ -362,7 +362,7 @@ The first parameter after the plugin and irc objects will be the handler name.
      return PCI_EAT_NONE;
  }
 
-The C<_default()> handler is expected to return one of the exit codes so PoCo-IRC
+The C<_default> handler is expected to return one of the exit codes so PoCo-IRC
 will know what to do.
 
 =head1 EXIT CODES

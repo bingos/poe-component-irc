@@ -440,7 +440,7 @@ B<'bindaddr'>, a local address to bind the listener to, default is 'localhost';
 B<'bindport'>, what port to bind to, default is 0, ie. randomly allocated by OS;
 
 Returns an object suitable for passing to
-L<POE::Component::IRC|POE::Component::IRC>'s plugin_add() method.
+L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
 
 =head2 C<current_channels>
 
@@ -449,7 +449,7 @@ currently a member of.
 
 =head2 C<getsockname>
 
-Takes no arguments.  Accesses the listeners getsockname() method. See
+Takes no arguments. Accesses the listeners C<getsockname> method. See
 L<POE::Wheel::SocketFactory|POE::Wheel::SocketFactory> for details of the
 return value;
 
@@ -472,7 +472,7 @@ events:
 =head2 C<irc_proxy_up>
 
 Emitted when the listener is successfully started. C<ARG0> is the result of the
-listener getsockname().
+listener C<getsockname>.
 
 =head2 C<irc_proxy_connect>
 
@@ -481,8 +481,8 @@ client.
 
 =head2 C<irc_proxy_rw_fail>
 
-Emitted when the Wheel::ReadWrite fails on a connection. C<ARG0> is the wheel ID
-of the client.
+Emitted when the L<POE::Wheel::ReadWrite|POE::Wheel::ReadWrite> fails on a
+connection. C<ARG0> is the wheel ID of the client.
 
 =head2 C<irc_proxy_authed>
 
@@ -491,12 +491,13 @@ the plugin. C<ARG0> is the wheel ID of the client.
 
 =head2 C<irc_proxy_close>
 
-Emitted when a connected client disconnects. C<ARG0> is the wheel ID of the client.
+Emitted when a connected client disconnects. C<ARG0> is the wheel ID of the
+client.
 
 =head2 C<irc_proxy_down>
 
 Emitted when the listener is successfully shutdown. C<ARG0> is the result of the
-listener getsockname().
+listener C<getsockname>.
 
 =head1 QUIRKS
 

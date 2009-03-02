@@ -460,7 +460,7 @@ B<'Format'>, a hash reference representing the log format, if you want to define
 your own. See the source for details.
 
 Returns a plugin object suitable for feeding to
-L<POE::Component::IRC|POE::Component::IRC>'s plugin_add() method.
+L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
 
 =head1 AUTHOR
 

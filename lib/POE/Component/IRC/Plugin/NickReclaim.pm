@@ -166,13 +166,15 @@ i
 
 =head1 DESCRIPTION
 
-POE::Component::IRC::Plugin::NickReclaim - A L<POE::Component::IRC> plugin
-automagically deals with your bot's nickname being in use and reclaims it when
-it becomes available again.
+POE::Component::IRC::Plugin::NickReclaim - A
+L<POE::Component::IRC|POE::Component::IRC> plugin automagically deals with
+your bot's nickname being in use and reclaims it when it becomes available
+again.
 
 It registers and handles 'irc_433' events. On receiving a 433 event it will
-reset the nickname to the 'nick' specified with spawn() or connect(), appended
-with an underscore, and then poll to try and change it to the original nickname. 
+reset the nickname to the 'nick' specified with C<spawn> or C<connect>,
+appendedwith an underscore, and then poll to try and change it to the
+original nickname. 
 
 =head1 METHODS
 
@@ -183,7 +185,7 @@ Takes one optional argument:
 B<'poll'>, the number of seconds between nick change attempts, default is 30;
 
 Returns a plugin object suitable for feeding to
-L<POE::Component::IRC|POE::Component::IRC>'s plugin_add() method.
+L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
 
 =head1 AUTHOR
 

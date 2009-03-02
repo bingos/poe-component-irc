@@ -282,9 +282,12 @@ B<'password'>, the password to set for *all* console connections;
 B<'bindport'>, specify a particular port to bind to, defaults to 0, ie. randomly
 allocated;
 
+Returns a plugin object suitable for feeding to
+L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
+
 =head2 C<getsockname>
 
-Gives access to the underlying listener's C<getsockname()> method. See
+Gives access to the underlying listener's C<getsockname> method. See
 L<POE::Wheel::SocketFactory|POE::Wheel::SocketFactory> for details.
 
 =head1 OUTPUT
@@ -295,7 +298,7 @@ L<POE::Component::IRC|POE::Component::IRC> events:
 =head2 C<irc_console_service>
 
 Emitted when a listener is successfully spawned. C<ARG0> is the result of
-C<getsockname()>, see above for details.
+C<getsockname>, see above for details.
 
 =head2 C<irc_console_connect>
 

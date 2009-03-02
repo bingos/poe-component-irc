@@ -227,8 +227,8 @@ Use L<C<irc_notice>|POE::Component::IRC/"irc_notice"> to trap these.
 
 =head2 C<irc_whois>
 
-Has all the same hash keys in C<ARG1> as L<POE::Component::IRC>,
-with the addition of 'account', which contains the name of their Q auth account,
+Has all the same hash keys in C<ARG1> as L<POE::Component::IRC|POE::Component::IRC>,
+with the addition of B<'account'>, which contains the name of their Q auth account,
 if they have authed, or a false value if they haven't.
 
 =head1 BUGS

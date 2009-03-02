@@ -159,15 +159,14 @@ B<'Channels'>, either an array reference of channel names, or a hash reference
 keyed on channel name, containing the password for each channel. By default it
 uses the channels the component is already on, if any.
 
-B<'RejoinOnKick'>, set this to 1 if you want the plugin to try to rejoin a channel
-(once) if you get kicked from it. Default is 0.
+B<'RejoinOnKick'>, set this to 1 if you want the plugin to try to rejoin a
+channel (once) if you get kicked from it. Default is 0.
 
-B<'Rejoin_delay'>, the time, in seconds, to wait before rejoining a channel after
-being kicked (if 'RejoinOnKick' is on). Default is 5.
- 
+B<'Rejoin_delay'>, the time, in seconds, to wait before rejoining a channel
+after being kicked (if B<'RejoinOnKick'> is on). Default is 5.
 
-Returns a plugin object suitable for feeding to L<POE::Component::IRC|POE::Component::IRC>'s
-plugin_add() method.
+Returns a plugin object suitable for feeding to
+L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
 
 =head1 AUTHOR
 

@@ -601,7 +601,7 @@ sub _start {
     $self->{SESSION_ID} = $session->ID();
 
     # Plugin 'irc_whois' and 'irc_whowas' support
-    $self->plugin_add ('Whois' . $self->{SESSION_ID},
+    $self->plugin_add('Whois' . $self->{SESSION_ID},
         POE::Component::IRC::Plugin::Whois->new()
     );
 

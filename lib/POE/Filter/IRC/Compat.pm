@@ -460,7 +460,7 @@ L<POE::Component::IRC|POE::Component::IRC> compatible event hashrefs. Yay.
 
 =head2 C<get_one_start>, C<get_one>
 
-These perform a similar function as C<get()> but enable the filter to work with
+These perform a similar function as C<get> but enable the filter to work with
 L<POE::Filter::Stackable|POE::Filter::Stackable>.
 
 =head2 C<put>

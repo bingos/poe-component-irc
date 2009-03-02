@@ -558,8 +558,8 @@ given channel that have authed with the given authname.
 
 Expects a nickname. Returns a hashref containing similar information to that
 returned by WHOIS. Returns a false value if the nickname doesn't exist in the
-state. The hashref contains the following keys: 'Nick', 'User', 'Host',
-'Server', 'Auth', if authed, and, if applicable, 'IRCop'.
+state. The hashref contains the following keys: B<'Nick'>, B<'User'>,
+B<'Host'>, B<'Server'>, B<'Auth'>, if authed, and, if applicable, B<'IRCop'>.
 
 =back
 
@@ -600,7 +600,7 @@ it is the only way to do it, unfortunately.
 
 =back
 
-The following two 'irc_*' events are the same as their
+The following two C<irc_*> events are the same as their
 L<POE::Component::IRC::State|POE::Component::IRC::State> counterparts, with
 the additional parameters:
 
@@ -626,7 +626,7 @@ Like L<POE::Component::IRC::State|POE::Component::IRC::State> this component
 registers itself for a number of events. The main difference with
 L<POE::Component::IRC::State|POE::Component::IRC::State> is that it uses an
 extended form of 'WHO' supported by the Quakenet ircd, asuka. This WHO returns
-a different numeric reply than the original WHO, namely, 'irc_354'. Also, due
+a different numeric reply than the original WHO, namely, C<irc_354>. Also, due
 to the way Quakenet is configured all users will appear to be on the server
 '*.quakenet.org'.
 
