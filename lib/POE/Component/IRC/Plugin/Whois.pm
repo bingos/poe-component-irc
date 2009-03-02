@@ -1,4 +1,4 @@
-7package POE::Component::IRC::Plugin::Whois;
+package POE::Component::IRC::Plugin::Whois;
 
 use strict;
 use warnings;
