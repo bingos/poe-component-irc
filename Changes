@@ -16,6 +16,9 @@ Revision history for Perl extension POE::Component::IRC.
     - Added test case for the above (Hinrik)
     - Logger.pm: Add DCC chat logging (Hinrik)
     - IRC.pm: Document the 'account' key returned by irc_whois (Hinrik)
+    - IRC.pm: Allow plugins to respond to custom commands without them having
+      the be defined explicitly in IRC.pm. This allows the removal of the last
+      piece of DCC-specific code (Hinrik)
 
 5.96 Wed Jan 28 11:29:28 GMT 2009
     - Added delays to the two failing tests reported by CPAN Testers,
