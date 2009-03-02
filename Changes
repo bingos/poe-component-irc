@@ -20,6 +20,7 @@ Revision history for Perl extension POE::Component::IRC.
       to be defined explicitly in IRC.pm. This allows the removal of the last
       piece of DCC-specific code (Hinrik)
     - AutoJoin.pm: Add an option for retrying joins when banned (Hinrik)
+    - NickServID.pm: Support ratbox-based ircds (Hinrik)
     - Synchronised all the version numbering (bingos)
 
 5.96 Wed Jan 28 11:29:28 GMT 2009

@@ -20,7 +20,7 @@ sub new {
 sub PCI_register {
     my ($self, $irc) = @_;
     $self->{nick} = $irc->{nick};
-    $irc->plugin_register($self, 'SERVER', qw(001 nick));
+    $irc->plugin_register($self, 'SERVER', qw(004 nick));
     return 1;
 }
 
@@ -28,9 +28,16 @@ sub PCI_unregister {
     return 1;
 }
 
-sub S_001 {
+sub S_004 {
     my ($self, $irc) = splice @_, 0, 2;
-    $irc->yield(nickserv => "IDENTIFY $self->{Password}");
+    my $version = ${ $_[2] }->[1];
+
+    if ($version =~ /ratbox/i) {
+        $irc->yield(quote => "NS IDENTIFY $self->{Password}");
+    }
+    else {
+        $irc->yield(nickserv => "IDENTIFY $self->{Password}");
+    }
     return PCI_EAT_NONE;
 }
 

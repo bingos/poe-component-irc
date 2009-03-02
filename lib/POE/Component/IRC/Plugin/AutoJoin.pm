@@ -34,7 +34,7 @@ sub PCI_register {
     }
 
     $self->{Rejoin_delay} = 5 if !defined $self->{Rejoin_delay};
-    $irc->plugin_register($self, 'SERVER', qw(001 474 chan_mode join kick part));
+    $irc->plugin_register($self, 'SERVER', qw(004 474 chan_mode join kick part));
     return 1;
 }
 
@@ -42,7 +42,9 @@ sub PCI_unregister {
     return 1;
 }
 
-sub S_001 {
+# we join channels after 004 rather than 001 so that the NickServID plugin
+# can check the server version and identify before we join channels
+sub S_004 {
     my ($self, $irc) = splice @_, 0, 2;
     
     while (my ($chan, $key) = each %{ $self->{Channels} }) {
