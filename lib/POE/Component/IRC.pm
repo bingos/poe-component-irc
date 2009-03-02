@@ -107,10 +107,10 @@ sub _create {
     $self->{OBJECT_STATES_HASHREF} = {
         %event_map,
         quote => 'sl',
+        _default => '__default',
     };
 
     $self->{OBJECT_STATES_ARRAYREF} = [qw(
-        _default
         _delay
         _delay_remove
         _parseline
@@ -808,7 +808,7 @@ sub ctcp {
 }
 
 # allow plugins to respond to user commands which are not defined here
-sub _default {
+sub __default {
     return if $_[ARG0] =~ /^_/;
     $_[OBJECT]->_pluggable_process(USER => $_[ARG0] => \(@{ $_[ARG1] }));
     return;
