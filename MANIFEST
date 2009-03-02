@@ -106,6 +106,7 @@ t/04_plugins/11_cycleempty/01_load.t
 t/04_plugins/11_cycleempty/02_cycle.t
 t/04_plugins/12_autojoin/01_load.t
 t/04_plugins/12_autojoin/02_join.t
+t/04_plugins/12_autojoin/03_banned.t
 t/04_plugins/13_botcommand/01_load.t
 t/04_plugins/14_logger/01_load.t
 t/04_plugins/15_nickservid/01_load.t

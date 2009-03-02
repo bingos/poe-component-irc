@@ -34,7 +34,7 @@ sub PCI_register {
     }
 
     $self->{Rejoin_delay} = 5 if !defined $self->{Rejoin_delay};
-    $irc->plugin_register($self, 'SERVER', qw(001 chan_mode join kick part));
+    $irc->plugin_register($self, 'SERVER', qw(001 474 chan_mode join kick part));
     return 1;
 }
 
@@ -51,11 +51,23 @@ sub S_001 {
     return PCI_EAT_NONE;
 }
 
+# ERR_BANNEDFROMCHAN
+sub S_474 {
+    my ($self, $irc) = splice @_, 0, 2;
+    my $chan = ${ $_[2] }->[0];
+    return if !$self->{Retry_when_banned};
+
+    my $pass = defined $self->{Channels}->{$chan} ? $self->{Channels}->{$chan} : '';
+    $irc->delay([join => $chan => $pass ], $self->{Retry_when_banned});
+    return PCI_EAT_NONE;
+}
+
 sub S_chan_mode {
     my ($self, $irc) = splice @_, 0, 2;
     my $chan = ${ $_[1] };
     my $mode = ${ $_[2] };
-    my $arg = ${ $_[3] };
+    my $arg  = ${ $_[3] };
+
     $self->{Channels}->{$chan} = $arg if $mode eq '+k';
     $self->{Channels}->{$chan} = '' if $mode eq '-k';
     return PCI_EAT_NONE;
@@ -64,7 +76,8 @@ sub S_chan_mode {
 sub S_join {
     my ($self, $irc) = splice @_, 0, 2;
     my $joiner = parse_user(${ $_[0] });
-    my $chan = ${ $_[1] };
+    my $chan   = ${ $_[1] };
+
     if ($joiner eq $irc->nick_name()) {
         $self->{Channels}->{$chan} = $irc->channel_key($chan);
     }
@@ -73,8 +86,9 @@ sub S_join {
 
 sub S_kick {
     my ($self, $irc) = splice @_, 0, 2;
-    my $chan = ${ $_[1] };
+    my $chan   = ${ $_[1] };
     my $victim = ${ $_[2] };
+
     if ($victim eq $irc->nick_name()) {
         if ($self->{RejoinOnKick}) {
             $irc->delay([join => $chan => $self->{Channels}->{$chan}], $self->{Rejoin_delay});
@@ -87,7 +101,8 @@ sub S_kick {
 sub S_part {
     my ($self, $irc) = splice @_, 0, 2;
     my $parter = parse_user(${ $_[0] });
-    my $chan = ${ $_[1] };
+    my $chan   = ${ $_[1] };
+
     delete $self->{Channels}->{$chan} if $parter eq $irc->nick_name();
     return PCI_EAT_NONE;
 }
@@ -164,6 +179,9 @@ channel (once) if you get kicked from it. Default is 0.
 
 B<'Rejoin_delay'>, the time, in seconds, to wait before rejoining a channel
 after being kicked (if B<'RejoinOnKick'> is on). Default is 5.
+
+B<'Retry_when_banned'>, if you can't join a channel due to a ban, set this
+to the number of seconds to wait between retries. Default is 0 (disabled).
 
 Returns a plugin object suitable for feeding to
 L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
