@@ -11,10 +11,11 @@ Revision history for Perl extension POE::Component::IRC.
       the nick) with every dcc_request, like the synopsis suggests (Hinrik)
     - DCC.pm: Fix crash when closing a DCC connection with pending outgoing
       data, reported by meneldor (Hinrik)
-    - DCC.pm: Don't crash if dcc_close is called with an invalid id
+    - DCC.pm: Don't crash if dcc_close is called with an invalid id, also
+      reported by meneldor (Hinrik)
     - Added test case for the above (Hinrik)
-    - Logger.pm: Add DCC chat logging
-    - IRC.pm: Document the 'account' key returned by irc_whois
+    - Logger.pm: Add DCC chat logging (Hinrik)
+    - IRC.pm: Document the 'account' key returned by irc_whois (Hinrik)
 
 5.96 Wed Jan 28 11:29:28 GMT 2009
     - Added delays to the two failing tests reported by CPAN Testers,
