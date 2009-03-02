@@ -277,14 +277,14 @@ documented component commands.
 
 Takes two arguments:
 
-'password', the password to set for *all* console connections;
+B<'password'>, the password to set for *all* console connections;
 
-'bindport', specify a particular port to bind to, defaults to 0, ie. randomly
+B<'bindport'>, specify a particular port to bind to, defaults to 0, ie. randomly
 allocated;
 
 =head2 C<getsockname>
 
-Gives access to the underlying listener's getsockname() method. See
+Gives access to the underlying listener's C<getsockname()> method. See
 L<POE::Wheel::SocketFactory|POE::Wheel::SocketFactory> for details.
 
 =head1 OUTPUT
@@ -294,28 +294,28 @@ L<POE::Component::IRC|POE::Component::IRC> events:
 
 =head2 C<irc_console_service>
 
-Emitted when a listener is successfully spawned. ARG0 is the result of
-getsockname(), see above for details.
+Emitted when a listener is successfully spawned. C<ARG0> is the result of
+C<getsockname()>, see above for details.
 
 =head2 C<irc_console_connect>
 
-Emitted when a client connects to the console. ARG0 is the peeradr, ARG1 is
-the peer port and ARG2 is the wheel id of the connection.
+Emitted when a client connects to the console. C<ARG0> is the peeradr, C<ARG1>
+is the peer port and C<ARG2> is the wheel id of the connection.
 
 =head2 C<irc_console_authed>
 
-Emitted when a client has successfully provided a valid password. ARG0 is the
-wheel id of the connection.
+Emitted when a client has successfully provided a valid password. C<ARG0> is
+the wheel id of the connection.
 
 =head2 C<irc_console_close>
 
-Emitted when a client terminates a connection. ARG0 is the wheel id of the
+Emitted when a client terminates a connection. C<ARG0> is the wheel id of the
 connection.
 
 =head2 C<irc_console_rw_fail>
 
-Emitted when a wheel::rw could not be created on a socket. ARG0 is the peeradr,
-ARG1 is the peer port.
+Emitted when a L<POE::Wheel::ReadWrite|POE::Wheel::ReadWrite> could not be
+created on a socket. C<ARG0> is the peer's address, C<ARG1> is the peer's port.
 
 =head1 AUTHOR
 

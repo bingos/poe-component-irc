@@ -471,31 +471,31 @@ events:
 
 =head2 C<irc_proxy_up>
 
-Emitted when the listener is successfully started. ARG0 is the result of the
+Emitted when the listener is successfully started. C<ARG0> is the result of the
 listener getsockname().
 
 =head2 C<irc_proxy_connect>
 
-Emitted when a client connects to the listener. ARG0 is the wheel ID of the
+Emitted when a client connects to the listener. C<ARG0> is the wheel ID of the
 client.
 
 =head2 C<irc_proxy_rw_fail>
 
-Emitted when the Wheel::ReadWrite fails on a connection. ARG0 is the wheel ID
+Emitted when the Wheel::ReadWrite fails on a connection. C<ARG0> is the wheel ID
 of the client.
 
 =head2 C<irc_proxy_authed>
 
 Emitted when a connecting client successfully negotiates an IRC session with
-the plugin. ARG0 is the wheel ID of the client.
+the plugin. C<ARG0> is the wheel ID of the client.
 
 =head2 C<irc_proxy_close>
 
-Emitted when a connected client disconnects. ARG0 is the wheel ID of the client.
+Emitted when a connected client disconnects. C<ARG0> is the wheel ID of the client.
 
 =head2 C<irc_proxy_down>
 
-Emitted when the listener is successfully shutdown. ARG0 is the result of the
+Emitted when the listener is successfully shutdown. C<ARG0> is the result of the
 listener getsockname().
 
 =head1 QUIRKS

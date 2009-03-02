@@ -126,7 +126,7 @@ plugin_add() method.
 =head2 C<irc_bot_addressed>
 
 Has the same parameters passed as L<C<irc_ctcp_public>|POE::Component::IRC/"irc_public">.
-ARG2 contains the message with the addressed nickname removed, ie. Assuming
+C<ARG2> contains the message with the addressed nickname removed, ie. Assuming
 that your bot is called LameBOT, and someone says 'LameBOT: dance for me',
 you will actually get 'dance for me'.
 

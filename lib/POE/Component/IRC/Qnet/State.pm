@@ -608,15 +608,15 @@ the additional parameters:
 
 =item C<irc_quit>
 
-ARG3 contains the quitting clients auth name if applicable.
+C<ARG3> contains the quitting clients auth name if applicable.
 
 =item C<irc_part>
 
-ARG3 contains the parting clients auth name if applicable.
+C<ARG3> contains the parting clients auth name if applicable.
 
 =item C<irc_kick>
 
-ARG5 contains the kick victim's auth name if applicable.
+C<ARG5> contains the kick victim's auth name if applicable.
 
 =back
 

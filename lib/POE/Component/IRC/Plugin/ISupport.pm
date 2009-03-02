@@ -217,7 +217,7 @@ it emits an C<irc_isupport> signal.
 
 Emitted by: the first signal received after C<irc_005>
 
-ARG0 will be the plugin object itself for ease of use.
+C<ARG0> will be the plugin object itself for ease of use.
 
 This is emitted when the support report has finished.
 

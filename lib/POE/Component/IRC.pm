@@ -1664,10 +1664,10 @@ The POE::Component::IRC distribution has a F<docs/> folder with a collection of
 salient documentation including the pertinent RFCs.
 
 POE::Component::IRC consists of a POE::Session that manages the IRC connection
-and dispatches 'irc_' prefixed events to interested sessions and 
+and dispatches C<irc_> prefixed events to interested sessions and 
 an object that can be used to access additional information using methods.
 
-Sessions register their interest in receiving 'irc_' events by sending
+Sessions register their interest in receiving C<irc_> events by sending
 L<C<register>|/"register"> to the component. One would usually do this in
 your C<_start> handler. Your session will continue to receive events until
 you L<C<unregister>|/"unregister">. The component will continue to stay
@@ -1892,16 +1892,16 @@ not try to use SSL.
 Setting B<'Raw'> to true, will enable the component to send
 L<C<irc_raw>|/"irc_raw"> events to interested plugins and sessions.
 
+B<'Resolver'>, requires a L<POE::Component::Client::DNS|POE::Component::Client::DNS>
+object. Useful when spawning multiple poco-irc sessions, saves the overhead of
+multiple dns sessions.
+
 B<'NoDNS'> has different results depending on whether it is set with
 L<C<spawn>|/"spawn"> or L<C<connect>|/"connect">. Setting it with
 C<spawn>, disables the creation of the POE::Component::Client::DNS
 completely. Setting it with L<C<connect>|/"connect"> on the other hand
 allows the PoCo-Client-DNS session to be spawned, but will disable
 any dns lookups using it.
-
-B<'Resolver'>, requires a L<POE::Component::Client::DNS|POE::Component::Client::DNS>
-object. Useful when spawning multiple poco-irc sessions, saves the overhead of
-multiple dns sessions.
 
 B<'plugin_debug'>, setting to true enables plugin debug info. Plugins are processed
 inside an eval, so debugging them can be hard. This should help with that.
@@ -1922,7 +1922,7 @@ If you specify an ipv6 B<'localaddr'> then IPv6 will be used.
 This method is deprecated. See the L<C<spawn>|/"spawn"> method instead.
 The first argument should be a name (kernel alias) which this new connection
 will be known by. Optionally takes more arguments (see L<C<spawn>|/"spawn">
-as name/value pairs. Returns a POE::Component::IRC object :)
+as name/value pairs. Returns a POE::Component::IRC object. :)
 
 B<Note:> Use of this method will generate a warning. There are currently no
 plans to make it die() >;]
@@ -2070,7 +2070,7 @@ So the following would be functionally equivalent:
 =head3 C<register>
 
 Takes N arguments: a list of event names that your session wants to
-listen for, minus the 'irc_' prefix. So, for instance, if you just
+listen for, minus the C<irc_> prefix. So, for instance, if you just
 want a bot that keeps track of which people are on a channel, you'll
 need to listen for JOINs, PARTs, QUITs, and KICKs to people on the
 channel you're in. You'd tell POE::Component::IRC that you want those
@@ -2083,12 +2083,12 @@ or not), your session will receive events with names like
 L<C<irc_join>|/"irc_join">, L<C<irc_kick>|/"irc_kick">, etc.,
 which you can use to update a list of people on the channel.
 
-Registering for C<'all'> will cause it to send all IRC-related events to
+Registering for B<'all'> will cause it to send all IRC-related events to
 you; this is the easiest way to handle it. See the test script for an
 example.
 
 Registering will generate an L<C<irc_registered>|/"irc_registered">
-event that your session can trap. ARG0 is the components object. Useful
+event that your session can trap. C<ARG0> is the components object. Useful
 if you want to bolt PoCo-IRC's new features such as Plugins into a bot
 coded to the older deprecated API. If you are using the new API, ignore this :)
 
@@ -2454,15 +2454,16 @@ to send.
 
 The events you will receive (or can ask to receive) from your running
 IRC component. Note that all incoming event names your session will
-receive are prefixed by 'irc_', to inhibit event namespace pollution.
+receive are prefixed by C<irc_>, to inhibit event namespace pollution.
 
 If you wish, you can ask the client to send you every event it
 generates. Simply register for the event name "all". This is a lot
 easier than writing a huge list of things you specifically want to
-listen for. FIXME: I'd really like to classify these somewhat
-("basic", "oper", "ctcp", "dcc", "raw" or some such), and I'd welcome
-suggestions for ways to make this easier on the user, if you can think
-of some.
+listen for. 
+
+FIXME: I'd really like to classify these somewhat ("basic", "oper", "ctcp",
+"dcc", "raw" or some such), and I'd welcome suggestions for ways to make
+this easier on the user, if you can think of some.
 
 In your event handlers, C<$_[SENDER]> is the particular component session that
 sent you the event. C<< $_[SENDER]->get_heap() >> will retrieve the component's 
@@ -2474,7 +2475,7 @@ object. Useful if you want on-the-fly access to the object and its methods.
 
 The IRC component will send an C<irc_connected> event as soon as it
 establishes a connection to an IRC server, before attempting to log
-in. ARG0 is the server name.
+in. C<ARG0> is the server name.
 
 B<NOTE:> When you get an C<irc_connected> event, this doesn't mean you
 can start sending commands to the server yet. Wait until you receive
@@ -2487,7 +2488,7 @@ C<irc_ctcp> events are generated upon receipt of CTCP messages, in addition to
 the C<irc_ctcp_*> events mentioned below. They are identical in every way to
 these, with one difference: instead of the * being in the method name, it
 is prepended to the argument list. For example, if someone types C</ctcp
-Flibble foo bar>, an C<irc_ctcp> event will be sent with C<foo> as ARG0,
+Flibble foo bar>, an C<irc_ctcp> event will be sent with B<'foo'> as C<ARG0>,
 and the rest as given below.
 
 It is not recommended that you register for both C<irc_ctcp> and C<irc_ctcp_*>
@@ -2498,10 +2499,10 @@ events, since they will both be fired and presumably cause duplication.
 C<irc_ctcp_whatever> events are generated upon receipt of CTCP messages.
 For instance, receiving a CTCP PING request generates an C<irc_ctcp_ping>
 event, CTCP ACTION (produced by typing "/me" in most IRC clients)
-generates an C<irc_ctcp_action> event, blah blah, so on and so forth. ARG0
-is the nick!hostmask of the sender. ARG1 is the channel/recipient
-name(s). ARG2 is the text of the CTCP message. On servers supporting the
-CAPAB IDENTIFY-MSG feature (e.g. FreeNode), CTCP ACTIONs will have ARG3,
+generates an C<irc_ctcp_action> event, blah blah, so on and so forth. C<ARG0>
+is the nick!hostmask of the sender. C<ARG1> is the channel/recipient
+name(s). C<ARG2> is the text of the CTCP message. On servers supporting the
+CAPAB IDENTIFY-MSG feature (e.g. FreeNode), CTCP ACTIONs will have C<ARG3>,
 which will be 1 if the sender has identified with NickServ, 0 otherwise.
 
 Note that DCCs are handled separately -- see the
@@ -2518,97 +2519,98 @@ such as C<irc_ctcp_*> events.
 
 The counterpart to L<C<irc_connected>|/"irc_connected">, sent whenever
 a socket connection to an IRC server closes down (whether intentionally or
-unintentionally). ARG0 is the server name.
+unintentionally). C<ARG0> is the server name.
 
 =head3 C<irc_error>
 
 You get this whenever the server sends you an ERROR message. Expect
 this to usually be accompanied by the sudden dropping of your
-connection. ARG0 is the server's explanation of the error.
+connection. C<ARG0> is the server's explanation of the error.
 
 =head3 C<irc_join>
 
-Sent whenever someone joins a channel that you're on. ARG0 is the
-person's nick!hostmask. ARG1 is the channel name.
+Sent whenever someone joins a channel that you're on. C<ARG0> is the
+person's nick!hostmask. C<ARG1> is the channel name.
 
 =head3 C<irc_invite>
 
-Sent whenever someone offers you an invitation to another channel. ARG0
-is the person's nick!hostmask. ARG1 is the name of the channel they want
+Sent whenever someone offers you an invitation to another channel. C<ARG0>
+is the person's nick!hostmask. C<ARG1> is the name of the channel they want
 you to join.
 
 =head3 C<irc_kick>
 
-Sent whenever someone gets booted off a channel that you're on. ARG0
-is the kicker's nick!hostmask. ARG1 is the channel name. ARG2 is the
-nick of the unfortunate kickee. ARG3 is the explanation string for the
+Sent whenever someone gets booted off a channel that you're on. C<ARG0>
+is the kicker's nick!hostmask. C<ARG1> is the channel name. C<ARG2> is the
+nick of the unfortunate kickee. C<ARG3> is the explanation string for the
 kick.
 
 =head3 C<irc_mode>
 
 Sent whenever someone changes a channel mode in your presence, or when
-you change your own user mode. ARG0 is the nick!hostmask of that
-someone. ARG1 is the channel it affects (or your nick, if it's a user
-mode change). ARG2 is the mode string (i.e., "+o-b"). The rest of the
-args (ARG3 .. $#_) are the operands to the mode string (nicks,
+you change your own user mode. C<ARG0> is the nick!hostmask of that
+someone. C<ARG1> is the channel it affects (or your nick, if it's a user
+mode change). C<ARG2> is the mode string (i.e., "+o-b"). The rest of the
+args (C<ARG3 .. $#_>) are the operands to the mode string (nicks,
 hostmasks, channel keys, whatever).
 
 =head3 C<irc_msg>
 
 Sent whenever you receive a PRIVMSG command that was addressed to you
-privately. ARG0 is the nick!hostmask of the sender. ARG1 is an array
-reference containing the nick(s) of the recipients. ARG2 is the text
-of the message. On FreeNode there is also ARG3, which will be 1 if the
+privately. C<ARG0> is the nick!hostmask of the sender. C<ARG1> is an array
+reference containing the nick(s) of the recipients. C<ARG2> is the text
+of the message. On FreeNode there is also C<ARG3>, which will be 1 if the
 sender has identified with NickServ, 0 otherwise.
 
 =head3 C<irc_nick>
 
-Sent whenever you, or someone around you, changes nicks. ARG0 is the
-nick!hostmask of the changer. ARG1 is the new nick that they changed
+Sent whenever you, or someone around you, changes nicks. C<ARG0> is the
+nick!hostmask of the changer. C<ARG1> is the new nick that they changed
 to.
 
 =head3 C<irc_notice>
 
-Sent whenever you receive a NOTICE command. ARG0 is the nick!hostmask
-of the sender. ARG1 is an array reference containing the nick(s) or
-channel name(s) of the recipients. ARG2 is the text of the NOTICE
+Sent whenever you receive a NOTICE command. C<ARG0> is the nick!hostmask
+of the sender. C<ARG1> is an array reference containing the nick(s) or
+channel name(s) of the recipients. C<ARG2> is the text of the NOTICE
 message.
 
 =head3 C<irc_part>
 
-Sent whenever someone leaves a channel that you're on. ARG0 is the
-person's nick!hostmask. ARG1 is the channel name. ARG2 is the part message.
+Sent whenever someone leaves a channel that you're on. C<ARG0> is the
+person's nick!hostmask. C<ARG1> is the channel name. C<ARG2> is the part
+message.
 
 =head3 C<irc_public>
 
-Sent whenever you receive a PRIVMSG command that was sent to a
-channel. ARG0 is the nick!hostmask of the sender. ARG1 is an array
-reference containing the channel name(s) of the recipients. ARG2 is
-the text of the message. On FreeNode there is also ARG3, which will be
+Sent whenever you receive a PRIVMSG command that was sent to a channel.
+C<ARG0> is the nick!hostmask of the sender. C<ARG1> is an array
+reference containing the channel name(s) of the recipients. C<ARG2> is
+the text of the message. On FreeNode there is also C<ARG3>, which will be
 1 if the sender has identified with NickServ, 0 otherwise.
 
 =head3 C<irc_quit>
 
 Sent whenever someone on a channel with you quits IRC (or gets
-KILLed). ARG0 is the nick!hostmask of the person in question. ARG1 is
+KILLed). C<ARG0> is the nick!hostmask of the person in question. C<ARG1> is
 the clever, witty message they left behind on the way out.
 
 =head3 C<irc_socketerr>
 
-Sent when a connection couldn't be established to the IRC server. ARG0
+Sent when a connection couldn't be established to the IRC server. C<ARG0>
 is probably some vague and/or misleading reason for what failed.
 
 =head3 C<irc_topic>
 
-Sent when a channel topic is set or unset. ARG0 is the nick!hostmask of the
-sender. ARG1 is the channel affected. ARG2 will be either: a string if the
+Sent when a channel topic is set or unset. C<ARG0> is the nick!hostmask of the
+sender. C<ARG1> is the channel affected. C<ARG2> will be either: a string if the
 topic is being set; or a zero-length string (i.e. '') if the topic is being
 unset. Note: replies to queries about what a channel topic *is*
 (i.e. TOPIC #channel), are returned as numerics, not with this event.
 
 =head3 C<irc_whois>
 
-Sent in response to a 'whois' query. ARG0 is a hashref, with the following
+Sent in response to a WHOIS query. C<ARG0> is a hashref, with the following
 keys: 
 
 B<'nick'>, the users nickname; 
@@ -2651,51 +2653,52 @@ Similar to the above, except some keys will be missing.
 =head3 C<irc_raw>
 
 Enabled by passing C<< Raw => 1 >> to L<C<spawn>|/"spawn"> or
-L<C<connect>|/"connect">, ARG0 is the raw IRC string received by the component
-from the IRC server, before it has been mangled by filters and such like.
+L<C<connect>|/"connect">, C<ARG0> is the raw IRC string received by the
+component from the IRC server, before it has been mangled by filters and
+such like.
 
 =head3 C<irc_registered>
 
 Sent once to the requesting session on registration (see
-L<C<register>|/"register">). ARG0 is a reference tothe component's object.
+L<C<register>|/"register">). C<ARG0> is a reference tothe component's object.
 
 =head3 C<irc_shutdown>
 
 Sent to all registered sessions when the component has been asked to
-L<C<shutdown>|/"shutdown">. ARG0 will be the session ID of the requesting
+L<C<shutdown>|/"shutdown">. C<ARG0> will be the session ID of the requesting
 session.
 
 =head3 C<irc_isupport>
 
 Emitted by the first event after an L<C<irc_005>|/"All numeric events">, to
-indicate that isupport information has been gathered. ARG0 is the
+indicate that isupport information has been gathered. C<ARG0> is the
 L<POE::Component::IRC::Plugin::ISupport|POE::Component::IRC::Plugin::ISupport>
 object.
 
 =head3 C<irc_delay_set>
 
 Emitted on a succesful addition of a delayed event using the
-L<C<delay>|/"delay"> method. ARG0 will be the alarm_id which can be used
+L<C<delay>|/"delay"> method. C<ARG0> will be the alarm_id which can be used
 later with L<C<delay_remove>|/"delay_remove">. Subsequent parameters are
 the arguments that were passed to L<C<delay>|/"delay">.
 
 =head3 C<irc_delay_removed>
 
-Emitted when a delayed command is successfully removed. ARG0 will be the
+Emitted when a delayed command is successfully removed. C<ARG0> will be the
 alarm_id that was removed. Subsequent parameters are the arguments that were
-passed to C<delay>.
+passed to L<C<delay>|/"delay">.
 
 =head3 C<irc_socks_failed>
 
 Emitted whenever we fail to connect successfully to a SOCKS server or the
-SOCKS server is not actually a SOCKS server. ARG0 will be some vague reason
+SOCKS server is not actually a SOCKS server. C<ARG0> will be some vague reason
 as to what went wrong. Hopefully.
 
 =head3 C<irc_socks_rejected>
 
-Emitted whenever a SOCKS connection is rejected by a SOCKS server. ARG0 is
-the SOCKS code, ARG1 the SOCKS server address, ARG2 the SOCKS port and ARG3
-the SOCKS user id (if defined).
+Emitted whenever a SOCKS connection is rejected by a SOCKS server. C<ARG0> is
+the SOCKS code, C<ARG1> the SOCKS server address, C<ARG2> the SOCKS port and
+C<ARG3> the SOCKS user id (if defined).
 
 =head2 Somewhat Less Important Events
 
@@ -2716,7 +2719,7 @@ informational purposes.
 =head3 C<irc_snotice>
 
 A weird, non-RFC-compliant message from an IRC server. Don't worry
-about it. ARG0 is the text of the server's message.
+about it. C<ARG0> is the text of the server's message.
 
 =head2 All numeric events
 
@@ -2727,10 +2730,10 @@ out-of-date... the list in the back of Net::IRC::Event.pm is more
 complete, and different IRC networks have different and incompatible
 lists. Ack!) As an example, say you wanted to handle event 376
 (RPL_ENDOFMOTD, which signals the end of the MOTD message). You'd
-register for '376', and listen for C<irc_376> events. Simple, no? ARG0
-is the name of the server which sent the message. ARG1 is the text of
-the message. ARG2 is an ARRAYREF of the parsed message, so there is no
-need to parse ARG1 yourself.
+register for '376', and listen for C<irc_376> events. Simple, no? C<ARG0>
+is the name of the server which sent the message. C<ARG1> is the text of
+the message. C<ARG2> is an array reference of the parsed message, so there
+is no need to parse C<ARG1> yourself.
 
 =head1 SIGNALS
 

@@ -744,19 +744,19 @@ to the peer explaining why you're not going to accept.
 
 =over 4
 
-=item * ARG0: the peer's nick!user@host
+=item * C<ARG0>: the peer's nick!user@host
 
-=item * ARG1: the DCC type (e.g. 'CHAT' or 'SEND')
+=item * C<ARG1>: the DCC type (e.g. 'CHAT' or 'SEND')
 
-=item * ARG2: the port which the peer is listening on
+=item * C<ARG2>: the port which the peer is listening on
 
-=item * ARG3: this connection's "magic cookie"
+=item * C<ARG3>: this connection's "magic cookie"
 
-=item * ARG4: the file name
+=item * C<ARG4>: the file name
 
-=item * ARG5: the file size
+=item * C<ARG5>: the file size
 
-=item * ARG6: the IP address which the peer is listening on
+=item * C<ARG6>: the IP address which the peer is listening on
 
 =back
 
@@ -767,15 +767,15 @@ client on the other end of a DCC CHAT connection.
 
 =over 4
 
-=item * ARG0: the connection's wheel id
+=item * C<ARG0>: the connection's wheel id
 
-=item * ARG1: the peer's nickname
+=item * C<ARG1>: the peer's nickname
 
-=item * ARG2: the port number
+=item * C<ARG2>: the port number
 
-=item * ARG3: the text they sent
+=item * C<ARG3>: the text they sent
 
-=item * ARG4: the peer's IP address
+=item * C<ARG4>: the peer's IP address
 
 =back
 
@@ -786,21 +786,21 @@ Abnormal terminations are reported by L<C<irc_dcc_error>|/"irc_dcc_error">.
 
 =over 4
 
-=item * ARG0: the connection's wheel id
+=item * C<ARG0>: the connection's wheel id
 
-=item * ARG1: the peer's nickname
+=item * C<ARG1>: the peer's nickname
 
-=item * ARG2: the DCC type
+=item * C<ARG2>: the DCC type
 
-=item * ARG3: the port number
+=item * C<ARG3>: the port number
 
-=item * ARG4: the filename
+=item * C<ARG4>: the filename
 
-=item * ARG5: file size
+=item * C<ARG5>: file size
 
-=item * ARG6: transferred file size
+=item * C<ARG6>: transferred file size
 
-=item * ARG7: the peer's IP address
+=item * C<ARG7>: the peer's IP address
 
 =back
 
@@ -813,23 +813,23 @@ the connection/attempt failed.
 
 =over 4
 
-=item * ARG0: the connection's wheel id
+=item * C<ARG0>: the connection's wheel id
 
-=item * ARG1: the error string
+=item * C<ARG1>: the error string
 
-=item * ARG2: the peer's nickname
+=item * C<ARG2>: the peer's nickname
 
-=item * ARG3: the DCC type
+=item * C<ARG3>: the DCC type
 
-=item * ARG4: the port number
+=item * C<ARG4>: the port number
 
-=item * ARG5: the file name
+=item * C<ARG5>: the file name
 
-=item * ARG6: file size in bytes
+=item * C<ARG6>: file size in bytes
 
-=item * ARG7: transferred file size in bytes
+=item * C<ARG7>: transferred file size in bytes
 
-=item * ARG8: the peer's IP address
+=item * C<ARG8>: the peer's IP address
 
 =back
 
@@ -840,19 +840,19 @@ transferred from the client on the other end of your DCC GET connection.
 
 =over 4
 
-=item * ARG0: the connection's wheel id
+=item * C<ARG0>: the connection's wheel id
 
-=item * ARG1: the peer's nickname
+=item * C<ARG1>: the peer's nickname
 
-=item * ARG2: the port number
+=item * C<ARG2>: the port number
 
-=item * ARG3: the file name
+=item * C<ARG3>: the file name
 
-=item * ARG4: the file size
+=item * C<ARG4>: the file size
 
-=item * ARG5: transferred file size
+=item * C<ARG5>: transferred file size
 
-=item * ARG6: the peer's IP address
+=item * C<ARG6>: the peer's IP address
 
 =back
 
@@ -864,19 +864,19 @@ connection.
 
 =over 4
 
-=item * ARG0: the connection's wheel id
+=item * C<ARG0>: the connection's wheel id
 
-=item * ARG1: the peer's nickname
+=item * C<ARG1>: the peer's nickname
 
-=item * ARG2: the port number
+=item * C<ARG2>: the port number
 
-=item * ARG3: the file name
+=item * C<ARG3>: the file name
 
-=item * ARG4: the file size
+=item * C<ARG4>: the file size
 
-=item * ARG5: transferred file size
+=item * C<ARG5>: transferred file size
 
-=item * ARG6: the peer's IP address
+=item * C<ARG6>: the peer's IP address
 
 =back
 
@@ -887,19 +887,19 @@ established.
 
 =over 4
 
-=item * ARG0: the connection's wheel id
+=item * C<ARG0>: the connection's wheel id
 
-=item * ARG1: the peer's nickname
+=item * C<ARG1>: the peer's nickname
 
-=item * ARG2: the DCC type
+=item * C<ARG2>: the DCC type
 
-=item * ARG3: the port number
+=item * C<ARG3>: the port number
 
-=item * ARG4: the file name
+=item * C<ARG4>: the file name
 
-=item * ARG5: the file size
+=item * C<ARG5>: the file size
 
-=item * ARG6: the peer's IP address
+=item * C<ARG6>: the peer's IP address
 
 =back
 

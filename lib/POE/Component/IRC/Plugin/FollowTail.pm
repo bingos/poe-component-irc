@@ -174,17 +174,17 @@ L<POE::Component::IRC|POE::Component::IRC> events:
 
 =head2 C<irc_tail_input>
 
-Emitted for every complete record read. ARG0 will be the filename, ARG1 the
-record which was read.
+Emitted for every complete record read. C<ARG0> will be the filename,
+C<ARG1> the record which was read.
 
 =head2 C<irc_tail_error>
 
-Emitted whenever an error occurs. ARG0 will be the filename, ARG1 and ARG2 hold
-numeric and string values for $!, respectively.
+Emitted whenever an error occurs. C<ARG0> will be the filename, C<ARG1>
+and C<ARG2> hold numeric and string values for $!, respectively.
 
 =head2 C<irc_tail_reset>
 
-Emitted every time a file is reset. ARG0 will be the filename.
+Emitted every time a file is reset. C<ARG0> will be the filename.
 
 =head1 AUTHOR
 

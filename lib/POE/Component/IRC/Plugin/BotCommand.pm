@@ -250,10 +250,10 @@ command names and the values being the usage strings.
 
 You will receive an event like this for every valid command issued. E.g. if
 'slap' were a valid command, you would receive an C<irc_botcmd_slap> event
-every time someone issued that command. ARG0 is the nick!hostmask of the user
-who issued the command. ARG1 is the name of the channel in which the command
-was issued. If the command was followed by any arguments, ARG2 will be a string
-containing them, otherwise ARG2 will be undefined.
+every time someone issued that command. C<ARG0> is the nick!hostmask of the
+user who issued the command. C<ARG1> is the name of the channel in which the
+command was issued. If the command was followed by any arguments, C<ARG2>
+will be a string containing them, otherwise C<ARG2> will be undefined.
 
 =head1 AUTHOR
 
