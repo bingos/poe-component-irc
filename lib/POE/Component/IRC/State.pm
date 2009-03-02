@@ -1398,9 +1398,10 @@ channel they have joined.
 
 =head2 C<irc_chan_mode>
 
-This is almost identical to irc_mode, except that it's sent once for each
-individual mode with it's respective argument if it has one (ie. the banmask
-if it's +b or -b). However, this event is only sent for channel modes.
+This is almost identical to L<C<irc_mode>|POE::Component::IRC/"irc_mode">,
+except that it's sent once for each individual mode with it's respective
+argument if it has one (ie. the banmask if it's +b or -b). However, this
+event is only sent for channel modes.
 
 =head2 C<irc_user_mode>
 
@@ -1412,7 +1413,7 @@ except it is sent for each individual umode that is being set.
 Sent when an IRC user sets his/her status to away. C<ARG0> is the nickname,
 C<ARG1> is an arrayref of channel names that are common to the nickname
 and the component. You will only receive this event if you specified a value
-for B<'AwayPoll'> in C<spawn>.
+for B<'AwayPoll'> in L<C<spawn>|POE::Component::IRC/"spawn">.
 
 =head2 C<irc_user_back>
 
