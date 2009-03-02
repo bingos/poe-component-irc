@@ -2095,8 +2095,8 @@ one wants to marry up sessions/objects, etc. Check the L<SIGNALS|/"SIGNALS">
 section for an alternative method of registering with multiple poco-ircs.
 
 Starting with version 4.96, if you spawn the component from inside another POE
-session, the component will automatically register that session as wanting 'all'
-irc events. That session will receive an
+session, the component will automatically register that session as wanting
+B<'all'> irc events. That session will receive an
 L<C<irc_registered>|/"irc_registered"> event indicating that the component
 is up and ready to go.
 
@@ -2141,8 +2141,8 @@ out the door. Similar to KICK but does an enforced PART instead.
 =head3 C<mode>
 
 Request a mode change on a particular channel or user. Takes at least
-one argument: the mode changes to effect, as a single string (e.g.,
-"+sm-p+o"), and any number of optional operands to the mode changes
+one argument: the mode changes to effect, as a single string (e.g. 
+"#mychan +sm-p+o"), and any number of optional operands to the mode changes
 (nicks, hostmasks, channel keys, whatever.) Or just pass them all as one
 big string and it'll still work, whatever. I regret that I haven't the
 patience now to write a detailed explanation, but serious IRC users know
