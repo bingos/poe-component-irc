@@ -2,7 +2,7 @@ Revision history for Perl extension POE::Component::IRC.
 
 6.00
     - Added more tests for general IRC activity, and for State.pm (Hinrik)
-    - Added tests for BotCommand plugin (Hinrik)
+    - Added tests for BotCommand and Logger plugin (Hinrik)
     - Turned off flood control in all the tests, and removed or adjusted many
       of the delays in the tests This shaves about 3 minutes off an entire
       tests suite run (Hinrik)
