@@ -90,7 +90,7 @@ sub S_public {
     my $what = ${ $_[2] };
     my $me = $irc->nick_name();
 
-    my ($command) = $what =~ m/^\s*\Q$me\E[\:\,\;\.]?\s*(.*)$/i;
+    my ($command) = $what =~ m/^\s*\Q$me\E[:,;.!?~]?\s*(.*)$/i;
     return PCI_EAT_NONE if !$command || !$self->_bot_owner($nick);
 
     my (@cmd) = split(/ +/, $command);

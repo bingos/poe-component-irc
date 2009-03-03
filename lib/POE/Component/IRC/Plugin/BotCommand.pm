@@ -69,7 +69,7 @@ sub S_public {
     my $me = $irc->nick_name();
 
     if ($self->{Addressed}) {
-        return PCI_EAT_NONE if !(($what) = $what =~ m/^\s*\Q$me\E[\:\,\;\.\~]?\s*(.*)$/);
+        return PCI_EAT_NONE if !(($what) = $what =~ m/^\s*\Q$me\E[:,;.!?~]?\s*(.*)$/);
     }
     else {
         return PCI_EAT_NONE if $what !~ s/^$self->{Prefix}//;
