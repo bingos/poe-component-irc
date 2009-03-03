@@ -104,9 +104,9 @@ sub irc_dcc_request {
     return if $type ne 'SEND';
     pass('Got dcc request');
 
-    open (my $orig, '<', 'Changes') or die "Can't open Changes file";
+    open (my $orig, '<', 'Changes') or die "Can't open Changes file: $!";
     sysread $orig, my $partial, 12000;
-    open (my $resume, '>', 'Changes.resume') or die "Can't open Changes.resume file";
+    open (my $resume, '>', 'Changes.resume') or die "Can't open Changes.resume file: $!";
     truncate $resume, 12000;
     syswrite $resume, $partial;
 
