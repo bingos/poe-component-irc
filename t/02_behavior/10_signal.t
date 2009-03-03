@@ -35,8 +35,8 @@ sub _start {
     my ($kernel) = $_[KERNEL];
 
     my $wheel = POE::Wheel::SocketFactory->new(
-        BindAddress => '127.0.0.1',
-        BindPort => 0,
+        BindAddress  => '127.0.0.1',
+        BindPort     => 0,
         SuccessEvent => '_fake_success',
         FailureEvent => '_fake_failure',
     );
