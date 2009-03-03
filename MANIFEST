@@ -126,9 +126,6 @@ t/inc/Algorithm/Diff.pm
 t/inc/Algorithm/DiffOld.pm
 t/inc/Crypt/PasswdMD5.pm
 t/inc/Net/Netmask.pm
-t/inc/POE/Filter/Ident.pm
-t/inc/POE/Component/Client/Ident.pm
-t/inc/POE/Component/Client/Ident/Agent.pm
 t/inc/POE/Component/IRC/Test/Plugin.pm
 t/inc/POE/Component/Server/IRC.pm
 t/inc/POE/Component/Server/IRC/Backend.pm

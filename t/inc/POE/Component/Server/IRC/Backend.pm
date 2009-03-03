@@ -612,15 +612,15 @@ sub _auth_client {
 	$self->{wheels}->{ $wheel_id }->{auth}->{hostname} = 'localhost';
 	$self->yield( '_auth_done' => $wheel_id );
   }
-  POE::Component::Client::Ident::Agent->spawn( 
-		PeerAddr => $peeraddr, 
-		PeerPort => $peerport, 
-		SockAddr => $sockaddr,
-	        SockPort => $sockport, 
-		BuggyIdentd => 1, 
-		TimeOut => 10,
-		Reference => $wheel_id 
-  );
+#  POE::Component::Client::Ident::Agent->spawn( 
+#		PeerAddr => $peeraddr, 
+#		PeerPort => $peerport, 
+#		SockAddr => $sockaddr,
+#	        SockPort => $sockport, 
+#		BuggyIdentd => 1, 
+#		TimeOut => 10,
+#		Reference => $wheel_id 
+#  );
   undef;
 }
 
