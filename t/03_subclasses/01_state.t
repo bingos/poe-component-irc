@@ -2,10 +2,11 @@ use strict;
 use warnings;
 use lib 't/inc';
 use POE qw(Wheel::SocketFactory);
+use POE::Component::IRC::Common qw(parse_user);
 use POE::Component::IRC::State;
 use POE::Component::Server::IRC;
 use Socket;
-use Test::More tests => 19;
+use Test::More tests => 45;
 
 my $bot = POE::Component::IRC::State->spawn();
 my $ircd = POE::Component::Server::IRC->spawn(
@@ -25,8 +26,11 @@ POE::Session->create(
             irc_connected 
             irc_001 
             irc_221
+            irc_305
+            irc_306
             irc_whois 
             irc_join
+            irc_topic
             irc_chan_sync
             irc_user_mode
             irc_chan_mode
@@ -92,11 +96,30 @@ sub irc_connected {
 }
 
 sub irc_001 {
+    my ($heap, $server) = @_[HEAP, ARG0];
     my $irc = $_[SENDER]->get_heap();
+    $heap->{server} = $server;
+    
     pass('Logged in');
     is($irc->server_name(), 'poco.server.irc', 'Server Name Test');
     is($irc->nick_name(), 'TestBot', 'Nick Name Test');
+
+    ok(!$irc->is_operator($irc->nick_name()), 'We are not an IRC op');
+    ok(!$irc->is_away($irc->nick_name()), 'We are not away');
+    $irc->yield(away => 'Gone for now');
+
     $irc->yield(whois => 'TestBot');
+}
+
+sub irc_305 {
+    my $irc = $_[SENDER]->get_heap();
+    ok(!$irc->is_away($irc->nick_name()), 'We are back');
+}
+
+sub irc_306 {
+    my $irc = $_[SENDER]->get_heap();
+    ok($irc->is_away($irc->nick_name()), 'We are away now');
+    $irc->yield('away');
 }
 
 sub irc_whois {
@@ -107,43 +130,81 @@ sub irc_whois {
 
 sub irc_join {
     my ($sender, $who, $where) = @_[SENDER, ARG0, ARG1];
-    my $nick = (split /!/, $who)[0];
+    my $nick = parse_user($who);
     my $irc = $sender->get_heap();
+
     is($nick, $irc->nick_name(), 'JOINER Test');
     is($where, '#testchannel', 'Joined Channel Test');
+    is($who, $irc->nick_long_form($nick), 'nick_long_form()');
+
+    my $chans = $irc->channels();
+    is(keys %$chans, 1, 'Correct number of channels');
+    is((keys %$chans)[0], $where, 'Correct channel name');
+
+    my @nicks = $irc->nicks();
+    is(@nicks, 1, 'Only one nick known');
+    is($nicks[0], $nick, 'Nickname correct');
+
+    $irc->yield(topic => $where, 'Test topic');
+}
+
+sub irc_topic {
+    my ($sender, $chan, $topic) = @_[SENDER, ARG1, ARG2];
+    my $irc = $sender->get_heap();
+    is($topic, $irc->channel_topic($chan)->{Value}, 'Channel topic set');
 }
 
 sub irc_chan_sync {
-    my ($sender, $heap, $channel) = @_[SENDER, HEAP, ARG0];
+    my ($sender, $heap, $chan) = @_[SENDER, HEAP, ARG0];
     my $irc = $sender->get_heap();
-    my $mynick = $irc->nick_name();
-    my ($occupant) = $irc->channel_list($channel);
+    my ($nick, $user, $host) = parse_user($irc->nick_long_form($irc->nick_name()));
+    my ($occupant) = $irc->channel_list($chan);
     
     is($occupant, 'TestBot', 'Channel Occupancy Test');
-    ok(!$irc->is_channel_mode_set( $channel, 'i'), 'Channel mode i not set yet');
-    ok($irc->is_channel_member($channel, $mynick), 'Is Channel Member');
-    ok($irc->is_channel_operator($channel, $mynick ), 'Is Channel Operator');
-    ok($irc->ban_mask( $channel, $mynick), 'Ban Mask Test');
+    ok($irc->channel_creation_time($chan), 'Got channel creation time');
+    ok(!$irc->channel_limit($chan), 'There is no channel limit');
+    ok(!$irc->is_channel_mode_set($chan, 'i'), 'Channel mode i not set yet');
+    ok($irc->is_channel_member($chan, $nick), 'Is Channel Member');
+    ok($irc->is_channel_operator($chan, $nick), 'Is Channel Operator');
+    ok(!$irc->is_channel_halfop($chan, $nick), 'Is not channel halfop');
+    ok(!$irc->has_channel_voice($chan, $nick), 'Does not have channel voice');
+    ok($irc->ban_mask($chan, $nick), 'Ban Mask Test');
+
+    my @channels = $irc->nick_channels($nick);
+    is(@channels, 1, 'Only present in one channel');
+    is($channels[0], $chan, 'The channel name matches');
+
+    my $info = $irc->nick_info($nick);
+    is($info->{Nick}, $nick, 'nick_info() - Nick');
+    is($info->{User}, $user, 'nick_info() - User');
+    is($info->{Host}, $host, 'nick_info() - Host');
+    is($info->{Userhost}, "$user\@$host", 'nick_info() - Userhost');
+    is($info->{Hops}, 0, 'nick_info() - Hops');
+    is($info->{Real}, 'Test test bot', 'nick_info() - Realname');
+    is($info->{Server}, $heap->{server}, 'nick_info() - Server');
+    ok(!$info->{IRCop}, 'nick_info() - IRCop');
     
-    $irc->yield(mode => $channel, '+i');
+    $irc->yield(mode => $chan, '+l 100');
     $heap->{mode_changed} = 1;
 }
 
 sub irc_chan_mode {
-    my ($sender, $heap, $who, $channel, $mode) = @_[SENDER, HEAP, ARG0..ARG2];
+    my ($sender, $heap, $who, $chan, $mode) = @_[SENDER, HEAP, ARG0..ARG2];
     my $irc = $sender->get_heap();
     return if !$heap->{mode_changed};
 
     $mode =~ s/\+//g;
-    ok($irc->is_channel_mode_set($channel, $mode), "Channel Mode Set: $mode");
+    ok($irc->is_channel_mode_set($chan, $mode), "Channel Mode Set: $mode");
+    is($irc->channel_limit($chan), 100, 'Channel limit correct');
 }
 
 sub irc_user_mode {
-    my ($sender, $who, $channel, $mode) = @_[SENDER, ARG0..ARG2];
+    my ($sender, $who, $mode) = @_[SENDER, ARG0, ARG2];
     my $irc = $sender->get_heap();
     
     $mode =~ s/\+//g;
     ok($irc->is_user_mode_set($mode), "User Mode Set: $mode");
+    is($irc->umode(), $mode, 'Corrent user mode in state');
 }
 
 sub irc_mode {
