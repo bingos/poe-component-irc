@@ -101,7 +101,7 @@ sub irc_join {
         is($where, '#testchannel', 'Joined Channel Test');
 
         if ($nick eq 'TestBot2') {
-            $irc->yield(dcc => TestBot1 => CHAT => '' => '' => 15);
+            $irc->yield(dcc => TestBot1 => CHAT => '' => '' => 5);
         }
     }
 }
