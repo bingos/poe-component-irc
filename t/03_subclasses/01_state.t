@@ -194,6 +194,7 @@ sub irc_chan_mode {
     $mode =~ s/\+//g;
     ok($irc->is_channel_mode_set($chan, $mode), "Channel Mode Set: $mode");
     is($irc->channel_limit($chan), 100, 'Channel limit correct');
+    $irc->yield('quit');
 }
 
 sub irc_user_mode {
@@ -208,7 +209,6 @@ sub irc_user_mode {
 sub irc_mode {
     my $irc = $_[SENDER]->get_heap();
     return if $_[ARG1] !~ /^\#/;
-    $irc->delay([ 'quit' ], 3);
 }
 
 sub irc_221 {

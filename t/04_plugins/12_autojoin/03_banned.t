@@ -22,7 +22,7 @@ my $ircd = POE::Component::Server::IRC->spawn(
 );
 
 $bot2->plugin_add(AutoJoin => POE::Component::IRC::Plugin::AutoJoin->new(
-    Retry_when_banned => 5,
+    Retry_when_banned => 1,
 ));
 
 POE::Session->create(

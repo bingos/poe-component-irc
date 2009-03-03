@@ -95,7 +95,7 @@ sub irc_join {
         is($where, '#testchannel', 'Joined Channel Test');
     }
     else {
-        $irc->yield(dcc => $nick => SEND => 'Changes' => '' => 10);
+        $irc->yield(dcc => $nick => SEND => 'Changes' => '' => 5);
     }
 }
 

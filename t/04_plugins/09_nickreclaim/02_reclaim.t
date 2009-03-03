@@ -82,7 +82,7 @@ sub _config_ircd {
         server  => '127.0.0.1',
         port    => $port,
         ircname => 'Test test bot',
-    }], 10);
+    }], 3);
 }
 
 sub irc_001 {
