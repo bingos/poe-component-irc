@@ -12,7 +12,10 @@ my $bot1 = POE::Component::IRC->spawn(
     Flood        => 1,
     plugin_debug => 1,
 );
-my $bot2 = POE::Component::IRC->spawn(plugin_debug => 1);
+my $bot2 = POE::Component::IRC->spawn(
+    Flood        => 1,
+    plugin_debug => 1,
+);
 my $ircd = POE::Component::Server::IRC->spawn(
     Auth      => 0,
     AntiFlood => 0,
