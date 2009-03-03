@@ -64,7 +64,6 @@ sub _start {
     if ($wheel) {
         my $port = ( unpack_sockaddr_in( $wheel->getsockname ) )[0];
         $kernel->yield(_config_ircd => $port);
-        $wheel = undef;
         $kernel->delay(_shutdown => 60);
         return;
     }
