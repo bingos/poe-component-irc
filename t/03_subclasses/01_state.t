@@ -8,7 +8,7 @@ use POE::Component::Server::IRC;
 use Socket;
 use Test::More tests => 45;
 
-my $bot = POE::Component::IRC::State->spawn();
+my $bot = POE::Component::IRC::State->spawn(Flood => 1);
 my $ircd = POE::Component::Server::IRC->spawn(
     Auth      => 0,
     AntiFlood => 0,
@@ -74,7 +74,6 @@ sub _shutdown {
 sub _config_ircd {
     my ($kernel, $port) = @_[KERNEL, ARG0];
     
-    $ircd->yield('add_i_line');
     $ircd->yield(add_listener => Port => $port);
     
     $bot->yield(register => 'all');

@@ -7,7 +7,7 @@ use POE::Component::Server::IRC;
 use Socket;
 use Test::More tests => 7;
 
-my $bot = POE::Component::IRC->spawn();
+my $bot = POE::Component::IRC->spawn(Flood => 1);
 my $ircd = POE::Component::Server::IRC->spawn(
     Auth      => 0,
     AntiFlood => 0,
@@ -54,7 +54,6 @@ sub _start {
 
 sub _config_ircd {
     my ($kernel, $heap, $session, $port) = @_[KERNEL, HEAP, SESSION, ARG0];
-    $ircd->yield('add_i_line');
     $ircd->yield(add_listener => Port => $port);
     $kernel->signal($kernel, 'POCOIRC_REGISTER', $session, 'all');
     $heap->{port} = $port;

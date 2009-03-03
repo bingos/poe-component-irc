@@ -23,9 +23,9 @@ use Test::More tests => 17;
     }
 }
 
-my $bot = SubclassIRC->spawn();
+my $bot = SubclassIRC->spawn(Flood => 1);
 my $ircd = POE::Component::Server::IRC->spawn(
-    Auth => 0,
+    Auth      => 0,
     AntiFlood => 0,
 );
 
@@ -82,7 +82,6 @@ sub _shutdown {
 sub _config_ircd {
     my ($kernel, $port) = @_[KERNEL, ARG0];
 
-    $ircd->yield('add_i_line');
     $ircd->yield(add_listener => Port => $port);
 
     $bot->yield(register => 'all');

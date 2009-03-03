@@ -12,7 +12,7 @@ my $ircd = POE::Component::Server::IRC->spawn(
     AntiFlood => 0,
 );
 
-my $bot = POE::Component::IRC->spawn();
+my $bot = POE::Component::IRC->spawn(Flood => 1);
 
 isa_ok($ircd, 'POE::Component::Server::IRC');
 isa_ok($bot, 'POE::Component::IRC');
@@ -51,9 +51,9 @@ sub _start {
 
     if ($wheel) {
         my $port = ( unpack_sockaddr_in( $wheel->getsockname ) )[0];
-        $kernel->yield(_config_ircd => $port );
+        $kernel->yield(_config_ircd => $port);
         $wheel = undef;
-        $kernel->delay(_shutdown => 60 );
+        $kernel->delay(_shutdown => 60);
         return;
     }
     
@@ -62,7 +62,6 @@ sub _start {
 
 sub _config_ircd {
     my ($kernel, $heap, $port) = @_[KERNEL, HEAP, ARG0];
-    $ircd->yield('add_i_line');
     $ircd->yield(add_listener => Port => $port);
 
     $bot->yield(register => 'all');

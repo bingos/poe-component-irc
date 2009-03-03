@@ -8,8 +8,14 @@ use POE::Component::IRC::Plugin::BotAddressed;
 use POE::Component::Server::IRC;
 use Test::More tests => 9;
 
-my $bot1 = POE::Component::IRC->spawn( plugin_debug => 1 );
-my $bot2 = POE::Component::IRC->spawn( plugin_debug => 1 );
+my $bot1 = POE::Component::IRC->spawn(
+    Flood        => 1,
+    plugin_debug => 1,
+);
+my $bot2 = POE::Component::IRC->spawn(
+    Flood        => 1,
+    plugin_debug => 1,
+);
 my $ircd = POE::Component::Server::IRC->spawn(
     Auth      => 0,
     AntiFlood => 0,
@@ -50,7 +56,7 @@ sub _start {
         $kernel->yield(_config_ircd => $port);
         $heap->{count} = 0;
         $wheel = undef;
-        $kernel->delay(_shutdown => 60 );
+        $kernel->delay(_shutdown => 60);
         return;
     }
 
@@ -60,7 +66,6 @@ sub _start {
 sub _config_ircd {
     my ($kernel, $port) = @_[KERNEL, ARG0];
 
-    $ircd->yield('add_i_line');
     $ircd->yield(add_listener => Port => $port);
     
     $bot1->yield(register => 'all');

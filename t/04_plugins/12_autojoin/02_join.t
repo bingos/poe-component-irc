@@ -8,7 +8,10 @@ use POE::Component::Server::IRC;
 use Socket;
 use Test::More tests => 4;
 
-my $irc = POE::Component::IRC::State->spawn( plugin_debug => 1 );
+my $irc = POE::Component::IRC::State->spawn(
+    Flood        => 1,
+    plugin_debug => 1,
+);
 my $ircd = POE::Component::Server::IRC->spawn(
     Alias     => 'ircd',
     Auth      => 0,
@@ -45,7 +48,7 @@ sub _start {
 
     if ($wheel) {
         my $port = ( unpack_sockaddr_in( $wheel->getsockname ) )[0];
-        $kernel->yield(_config_ircd => $port );
+        $kernel->yield(_config_ircd => $port);
         $heap->{count} = 0;
         $wheel = undef;
         $kernel->delay(_shutdown => 60);
@@ -58,7 +61,6 @@ sub _start {
 sub _config_ircd {
     my ($kernel, $port) = @_[KERNEL, ARG0];
     
-    $kernel->post( 'ircd' => 'add_i_line' );
     $kernel->post( 'ircd' => 'add_listener' => Port => $port);
     
     $irc->yield(register => 'all');

@@ -6,9 +6,12 @@ use POE::Component::IRC;
 use POE::Component::IRC::Plugin::BotCommand;
 use POE::Component::Server::IRC;
 use Socket;
-use Test::More tests => 17;
+use Test::More tests => 18;
 
-my $bot1 = POE::Component::IRC->spawn(plugin_debug => 1);
+my $bot1 = POE::Component::IRC->spawn(
+    Flood        => 1,
+    plugin_debug => 1,
+);
 my $bot2 = POE::Component::IRC->spawn(plugin_debug => 1);
 my $ircd = POE::Component::Server::IRC->spawn(
     Auth      => 0,
@@ -64,7 +67,6 @@ sub _shutdown {
 sub _config_ircd {
     my ($kernel, $port) = @_[KERNEL, ARG0];
     
-    $ircd->yield('add_i_line');
     $ircd->yield(add_listener => Port => $port);
     
     $bot1->yield(register => 'all');
@@ -137,10 +139,13 @@ sub irc_botcmd_cmd2 {
     is($chan, '#testchannel', 'cmd2 channel');
     ok(!defined $args, 'cmd1 arguments');
 
-    $irc->yield('quit');
+    $bot1->yield('quit');
+    $bot2->yield('quit');
 }
 
 sub irc_disconnected {
+    my ($kernel, $heap) = @_[KERNEL, HEAP];
     pass('irc_disconnected');
-    $poe_kernel->yield('_shutdown');
+    $heap->{count}++;
+    $poe_kernel->yield('_shutdown') if $heap->{count} == 2;
 }

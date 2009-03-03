@@ -7,8 +7,14 @@ use POE::Component::IRC;
 use POE::Component::Server::IRC;
 use Test::More tests => 9;
 
-my $bot1 = POE::Component::IRC->spawn( plugin_debug => 1 );
-my $bot2 = POE::Component::IRC->spawn( plugin_debug => 1 );
+my $bot1 = POE::Component::IRC->spawn(
+    Flood        => 1,
+    plugin_debug => 1,
+);
+my $bot2 = POE::Component::IRC->spawn(
+    Flood        => 1,
+    plugin_debug => 1,
+);
 my $ircd = POE::Component::Server::IRC->spawn(
     Auth      => 0,
     AntiFlood => 0,
@@ -64,7 +70,6 @@ sub _shutdown {
 sub _config_ircd {
     my ($kernel, $port) = @_[KERNEL, ARG0];
     
-    $ircd->yield('add_i_line');
     $ircd->yield(add_listener => Port => $port);
     
     $bot1->yield(register => 'all');
@@ -102,7 +107,7 @@ sub irc_join {
         is($where,'#testchannel', 'Joined Channel Test');
     }
     else {
-        $irc->yield(dcc => $nick => CHAT => '' => '' => 15 );
+        $irc->yield(dcc => $nick => CHAT => '' => '' => 10);
     }
 }
 
