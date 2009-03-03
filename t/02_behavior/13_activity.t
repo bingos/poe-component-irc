@@ -5,7 +5,7 @@ use POE::Component::IRC;
 use POE::Component::Server::IRC;
 use POE qw(Wheel::SocketFactory);
 use Socket;
-use Test::More tests => 12;
+use Test::More tests => 15;
 
 my $bot1 = POE::Component::IRC->spawn(plugin_debug => 1);
 my $bot2 = POE::Component::IRC->spawn(plugin_debug => 1);
@@ -22,16 +22,18 @@ POE::Session->create(
             _shutdown 
             irc_001 
             irc_join
+            irc_invite
             irc_mode
             irc_public
+            irc_notice
             irc_ctcp_action
+            irc_nick
             irc_topic
             irc_kick
             irc_msg
             irc_disconnected
         )],
     ],
-    #options => { trace=>1},
 );
 
 $poe_kernel->run();
@@ -84,7 +86,7 @@ sub _config_ircd {
 sub irc_001 {
     my $irc = $_[SENDER]->get_heap();
     pass('Logged in');
-    $irc->yield(join => '#testchannel');
+    $irc->yield(join => '#testchannel') if $irc == $bot1;
 }
 
 sub irc_join {
@@ -94,7 +96,16 @@ sub irc_join {
     
     if ($nick eq $irc->nick_name()) {
         is($where, '#testchannel', 'Joined Channel Test');
+
+        if ($irc == $bot1) {
+            $irc->yield(invite => $bot2->nick_name(), $where);
+        }
     }
+}
+
+sub irc_invite {
+    pass('irc_invite');
+    $_[SENDER]->get_heap()->yield(join => $_[ARG1]);
 }
 
 sub irc_mode {
@@ -104,7 +115,7 @@ sub irc_mode {
     return if $irc != $bot1;
 
     if ($mode =~ /\+[nt]/) {
-        $bot1->yield(mode    => $where, '+m');
+        $bot1->yield(mode => $where, '+m');
     }
     else {
         is($mode, '+m', 'irc_mode');
@@ -118,7 +129,16 @@ sub irc_public {
     return if $irc != $bot2;
 
     is($msg, 'Test message 1', 'irc_public');
-    $bot1->yield(ctcp => $where->[0], 'ACTION Test message 2');
+    $bot1->yield(notice => $where->[0], 'Test message 2');
+}
+
+sub irc_notice {
+    my ($sender, $where, $msg) = @_[SENDER, ARG1, ARG2];
+    my $irc = $sender->get_heap();
+    return if $irc != $bot2;
+
+    is($msg, 'Test message 2', 'irc_notice');
+    $bot1->yield(ctcp => $where->[0], 'ACTION Test message 3');
 }
 
 sub irc_ctcp_action {
@@ -126,7 +146,7 @@ sub irc_ctcp_action {
     my $irc = $sender->get_heap();
     return if $irc != $bot2;
 
-    is($msg, 'Test message 2', 'irc_ctcp_action');
+    is($msg, 'Test message 3', 'irc_ctcp_action');
     $bot1->yield(topic => $where->[0], 'Test topic');
 }
 
@@ -136,7 +156,14 @@ sub irc_topic {
     return if $irc != $bot2;
 
     is($msg, 'Test topic', 'irc_topic');
-    $bot1->yield(kick => $chan, $bot2->nick_name(), 'Good bye');
+    $bot1->yield(nick => 'NewNick');
+}
+
+sub irc_nick {
+    my $irc = $_[SENDER]->get_heap();
+    return if $irc != $bot2;
+    pass('irc_nick');
+    $bot1->yield(kick => '#testchannel', $bot2->nick_name(), 'Good bye');
 }
 
 sub irc_kick {
