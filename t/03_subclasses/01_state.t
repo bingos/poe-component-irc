@@ -20,15 +20,15 @@ POE::Session->create(
     package_states => [
         main => [qw(
             _start
-            _config_ircd 
-            _shutdown 
-            irc_registered 
-            irc_connected 
-            irc_001 
+            _config_ircd
+            _shutdown
+            irc_registered
+            irc_connected
+            irc_001
             irc_221
             irc_305
             irc_306
-            irc_whois 
+            irc_whois
             irc_join
             irc_topic
             irc_chan_sync
