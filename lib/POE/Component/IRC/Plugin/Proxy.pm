@@ -123,7 +123,7 @@ sub S_raw {
     my $line = ${ $_[0] };
 
     return PCI_EAT_NONE if !defined $line;
-    return PCI_EAT_ALL if $line =~ /^PING */;
+    return PCI_EAT_ALL if $line =~ /^PING/;
     
     for my $wheel_id ( keys %{ $self->{wheels} } ) {
         $self->_send_to_client( $wheel_id, $line );
