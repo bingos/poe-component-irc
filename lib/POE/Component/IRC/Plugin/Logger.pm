@@ -88,9 +88,7 @@ sub PCI_register {
         topic_is     => sub { my ($chan, $topic) = @_;           "--- Topic for $chan is: $topic" },
         topic_change => sub { my ($nick, $topic) = @_;           "--- $nick changes the topic to: $topic" },
         privmsg      => sub { my ($nick, $msg) = @_;             "<$nick> $msg" },
-        dcc_privmsg  => sub { my ($nick, $msg) = @_;             "<$nick> $msg" },
         action       => sub { my ($nick, $action) = @_;          "* $nick $action" },
-        dcc_action   => sub { my ($nick, $action) = @_;          "* $nick $action" },
         dcc_start    => sub { my ($nick, $address) = @_;         "--> Opened DCC chat connection with $nick ($address)" },
         dcc_done     => sub { my ($nick, $address) = @_;         "<-- Closed DCC chat connection with $nick ($address)" },
         join         => sub { my ($nick, $userhost, $chan) = @_; "--> $nick ($userhost) joins $chan" },
@@ -314,10 +312,10 @@ sub S_dcc_chat {
     my $msg  = ${ $_[3] };
 
     if (my ($action) = $msg =~ /\001ACTION (.*?)\001/) {
-        $self->_log_entry("=$nick", dcc_action => $nick, $action);
+        $self->_log_entry("=$nick", action => $nick, $action);
     }
     else {
-        $self->_log_entry("=$nick", dcc_privmsg => $nick, $msg);
+        $self->_log_entry("=$nick", privmsg => $nick, $msg);
     }
     return PCI_EAT_NONE;
 }
@@ -334,10 +332,10 @@ sub U_dcc_chat {
    
     for my $msg (@lines) { 
         if (my ($action) = $msg =~ /\001ACTION (.*?)\001/) {
-            $self->_log_entry("=$nick", dcc_action => $me, $action);
+            $self->_log_entry("=$nick", action => $me, $action);
         }
         else {
-            $self->_log_entry("=$nick", dcc_privmsg => $me, $msg);
+            $self->_log_entry("=$nick", privmsg => $me, $msg);
         }
     }
 }
