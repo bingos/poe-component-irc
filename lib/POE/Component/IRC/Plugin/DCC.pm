@@ -81,6 +81,23 @@ sub nataddr {
     return;
 }
 
+# returns information about a connection
+sub dcc_info {
+    my ($self, $id) = @_;
+    
+    if (!$self->{dcc}->{$id}) {
+        warn "dcc_info: Unknown wheel ID: $id\n";
+        return;
+    }
+
+    my %info;
+    @info{qw(nick type port file size done peeraddr)}
+        = @{ $self->{dcc}->{$id} }{qw(
+            nick type port file size done peeraddr
+        )};
+    return \%info;
+}
+
 sub S_disconnected {
     my ($self) = $_;
     # clean up old cookies for any ignored RESUME requests 
@@ -666,6 +683,12 @@ an arrayref containing the port numbers.
 
 Sets the public NAT address to be used for DCC sends.
 
+=head2 C<dcc_info>
+
+Takes one argument, a DCC connection id (see below). Returns a hash of
+information about the connection. The keys are: B<'nick'>, B<'type'>,
+B<'port'>, B<'file'>, B<'size'>, B<'done,'>, and B<'peeradr'>.
+
 =head1 COMMANDS
 
 The plugin responds to the following
@@ -718,7 +741,7 @@ you wish to send (it'll be separated with newlines for you).
 Terminates a DCC SEND or GET connection prematurely, and causes DCC CHAT
 connections to close gracefully. Takes one argument: the wheel id of the
 connection which you got from an L<C<irc_dcc_start>|/"irc_dcc_start">
-event.
+(or similar) event.
 
 =head1 OUTPUT
 

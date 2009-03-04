@@ -26,30 +26,19 @@ $bot2->plugin_add(Logger => POE::Component::IRC::Plugin::Logger->new(
     Path => 'logger_test',
 ));
 
-my $file = catfile('logger_test', '#testchannel.log');
+my $file = catfile('logger_test', '=testbot1.log');
 unlink $file if -e $file;
 
 my @correct = (
-    qr/^--> TestBot2 \(\S+@\S+\) joins #testchannel$/,
+    qr/^--> Opened DCC chat connection with TestBot1 \(\S+:\d+\)$/,
     '<TestBot1> Oh hi',
-    '--- TestBot1 disables topic protection',
-    '--- TestBot1 enables secret channel status',
-    '--- TestBot1 enables channel moderation',
-    '--- TestBot1 sets channel keyword to foo',
-    '--- TestBot1 removes channel keyword',
-    '--- TestBot1 sets channel user limit to 10',
-    '--- TestBot1 removes channel user limit',
-    '--- TestBot1 sets ban on TestBot2!*@*',
-    '--- TestBot1 removes ban on TestBot2!*@*',
-    '--- TestBot1 gives channel operator status to TestBot2',
-    '--- TestBot1 changes the topic to: Testing, 1 2 3',
-    '--- TestBot1 is now known as NewNick',
-    qr/^<-- NewNick \(\S+@\S+\) leaves #testchannel \(NewNick\)$/,
-    qr/^--> NewNick \(\S+@\S+\) joins #testchannel$/,
-    '<-- TestBot2 kicks NewNick from #testchannel (Bye bye)',
+    '* TestBot1 does something',
+    '<TestBot1> Hi yourself',
+    '* TestBot1 does something as well',
+    qr/^<-- Closed DCC chat connection with TestBot1 \(\S+:\d+\)$/,
 );
 
-plan tests => 9 + @correct;
+plan tests => 7 + @correct;
 
 POE::Session->create(
     package_states => [
@@ -58,9 +47,9 @@ POE::Session->create(
             _config_ircd
             _shutdown
             irc_001
-            irc_join
-            irc_part
-            irc_kick
+            irc_dcc_request
+            irc_dcc_start
+            irc_dcc_chat
             irc_disconnected
         )],
     ],
@@ -124,60 +113,44 @@ sub irc_001 {
     my $irc = $_[SENDER]->get_heap();
     
     pass($irc->nick_name() . ' logged in');
-    $irc->yield(join => '#testchannel');
+    if ($irc == $bot2) {
+        $irc->yield(dcc => $bot1->nick_name() => CHAT => undef, undef, 5);
+    }
 }
 
-sub irc_join {
-    my ($sender, $heap, $who, $where) = @_[SENDER, HEAP, ARG0, ARG1];
-    my $nick = (split /!/, $who)[0];
+sub irc_dcc_request {
+    my ($sender, $cookie) = @_[SENDER, ARG3];
+    my $irc = $sender->get_heap();
+    pass($irc->nick_name() . ' got dcc request');
+    $irc->yield(dcc_accept => $cookie);
+}
+
+sub irc_dcc_start {
+    my ($sender, $heap, $id) = @_[SENDER, HEAP, ARG0];
+    my $irc = $sender->get_heap();
+    pass($irc->nick_name() . ' got irc_dcc_started');
+
+    $heap->{started}++;
+    if ($heap->{started} == 2) {
+        $irc->yield(dcc_chat => $id, 'Oh hi');
+        $irc->yield(dcc_chat => $id, "\001ACTION does something\001");
+    }
+}
+
+sub irc_dcc_chat {
+    my ($heap, $sender, $id, $msg) = @_[HEAP, SENDER, ARG0, ARG3];
     my $irc = $sender->get_heap();
 
-    return if $nick ne $irc->nick_name();
-    pass("$nick joined channel");
-
-    if ($irc == $bot2) {
-        $bot1->yield(mode => $where, '-t');
-        $bot1->yield(mode => $where, '+s');
-        $bot1->yield(mode => $where, '+m');
-        $bot1->yield(mode => $where, '+k foo');
-        $bot1->yield(mode => $where, '-k');
-        $bot1->yield(mode => $where, '+l 10');
-        $bot1->yield(mode => $where, '-l');
-        $bot1->yield(mode => $where, '+b TestBot2!*@*');
-        $bot1->yield(mode => $where, '-b TestBot2!*@*');
-        $bot1->yield(mode => $where, '+o TestBot2');
-
-        $bot1->yield(topic => $where, 'Testing, 1 2 3');
-        $bot1->yield(privmsg => $where, 'Oh hi');
-        $bot1->yield(notice => $where, 'Hello');
-        $bot1->yield(nick => 'NewNick');
-        $bot1->yield(part => $where);
-
-        $heap->{bulk} = 1;
+    $heap->{msgs}++;
+    if ($heap->{msgs} == 2) {
+        $irc->yield(dcc_chat => $id, 'Hi yourself');
+        $irc->yield(dcc_chat => $id, "\001ACTION does something as well\001");
     }
-    elsif ($irc == $bot1 && $heap->{bulk}) {
-        $bot2->yield(kick => $where, $bot1->nick_name(), 'Bye bye');
+    elsif ($heap->{msgs} == 4) {
+        $irc->yield(dcc_close => $id);
+        $bot1->yield('quit');
+        $bot2->yield('quit');
     }
-}
-
-sub irc_part {
-    my $irc = $_[SENDER]->get_heap();
-    my $nick = (split /!/, $_[ARG0])[0];
-
-    if ($nick eq $irc->nick_name()) {
-        pass("$nick parted channel");
-        $irc->yield(join => $_[ARG1]);
-    }
-}
-
-sub irc_kick {
-    my $irc = $_[SENDER]->get_heap();
-    my $nick = $_[ARG2];
-    return if $nick ne $irc->nick_name(); 
-    pass($nick . ' kicked');
-
-    $bot1->yield('quit');
-    $bot2->yield('quit');
 }
 
 sub irc_disconnected {

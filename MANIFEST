@@ -112,6 +112,7 @@ t/04_plugins/13_botcommand/01_load.t
 t/04_plugins/13_botcommand/02_commands.t
 t/04_plugins/14_logger/01_load.t
 t/04_plugins/14_logger/02_public.t
+t/04_plugins/14_logger/04_dcc_chat.t
 t/04_plugins/15_nickservid/01_load.t
 t/04_plugins/16_whois/01_load.t
 t/04_plugins/16_whois/02_whois.t

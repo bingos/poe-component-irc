@@ -122,6 +122,7 @@ sub PCI_register {
     $irc->plugin_register($self, 'SERVER', qw(001 332 333 chan_mode 
         ctcp_action bot_ctcp_action bot_msg bot_public join kick msg nick part 
         public quit topic dcc_start dcc_chat dcc_done));
+    $irc->plugin_register($self, 'USER', 'dcc_chat');
     return 1;
 }
 
@@ -319,6 +320,26 @@ sub S_dcc_chat {
         $self->_log_entry("=$nick", dcc_privmsg => $nick, $msg);
     }
     return PCI_EAT_NONE;
+}
+
+sub U_dcc_chat {
+    my ($self, $irc) = splice @_, 0, 2;
+    my ($id, @lines) = @_;
+    $_ = $$_ for @lines;
+    my $me = $irc->nick_name();
+
+    my ($dcc) = grep { $_->isa('POE::Component::IRC::Plugin::DCC') } values %{ $irc->plugin_list() };
+    my $info = $dcc->dcc_info($$id);
+    my $nick = $info->{nick};
+   
+    for my $msg (@lines) { 
+        if (my ($action) = $msg =~ /\001ACTION (.*?)\001/) {
+            $self->_log_entry("=$nick", dcc_action => $nick, $action);
+        }
+        else {
+            $self->_log_entry("=$nick", dcc_privmsg => $nick, $msg);
+        }
+    }
 }
 
 sub S_dcc_done {
