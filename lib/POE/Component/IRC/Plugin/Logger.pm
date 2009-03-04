@@ -118,7 +118,7 @@ sub PCI_register {
     } if !defined $self->{Format};
 
     $irc->plugin_register($self, 'SERVER', qw(001 332 333 chan_mode 
-        ctcp_action bot_ctcp_action bot_msg bot_public join kick msg nick part 
+        ctcp_action bot_action bot_msg bot_public join kick msg nick part 
         public quit topic dcc_start dcc_chat dcc_done));
     $irc->plugin_register($self, 'USER', 'dcc_chat');
     return 1;
@@ -169,14 +169,20 @@ sub S_ctcp_action {
     my $sender     = parse_user(${ $_[0] });
     my $recipients = ${ $_[1] };
     my $msg        = ${ $_[2] };
+    my $me         = $irc->nick_name();
 
     for my $recipient (@{ $recipients }) {
-        $self->_log_entry($recipient, action => $sender, $msg);
+        if ($recipient eq $me) {
+            $self->_log_entry($sender, action => $sender, $msg);
+        }
+        else {
+            $self->_log_entry($recipient, action => $sender, $msg);
+        }
     }
     return PCI_EAT_NONE;
 }
 
-sub S_bot_ctcp_action {
+sub S_bot_action {
     my ($self, $irc) = splice @_, 0, 2;
     my $recipients = ${ $_[0] };
     my $msg        = ${ $_[1] };

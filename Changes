@@ -1,7 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 6.00
-    - Logger.pm: Also log own messages in DCC chats. Add test for it. (Hinrik)
+    - Logger.pm: Fix bug with logging some CTCP ACTIONs (Hinrik)
+    - Logger.pm: Also log own messages in DCC chats. Add test for it (Hinrik)
     - Added more tests for general IRC activity, and for State.pm (Hinrik)
     - Added tests for BotCommand and Logger plugin (Hinrik)
     - Turned off flood control in all the tests, and removed or adjusted many
