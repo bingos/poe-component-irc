@@ -6,7 +6,7 @@ use POE::Component::IRC;
 use POE::Component::IRC::Plugin::BotCommand;
 use POE::Component::Server::IRC;
 use Socket;
-use Test::More tests => 18;
+use Test::More tests => 19;
 
 my $bot1 = POE::Component::IRC->spawn(
     Flood        => 1,
@@ -96,11 +96,15 @@ sub irc_001 {
     return if $irc != $bot1;
 
     my $plugin = POE::Component::IRC::Plugin::BotCommand->new(
-        Commands => { cmd1 => 'First test command' },
+        Commands => {
+            cmd1 => 'First test command',
+            foo  => 'This will get removed',
+        },
     );
 
-    ok($irc->plugin_add(BotCommand => $plugin), 'Add plugin with one command');
+    ok($irc->plugin_add(BotCommand => $plugin), 'Add plugin with two commands');
     ok($plugin->add(cmd2 => 'Second test command'), 'Add another command');
+    ok($plugin->remove('foo'), 'Remove command');
 
     my %cmds = $plugin->list();
     is(keys %cmds, 2, 'Correct number of commands');
