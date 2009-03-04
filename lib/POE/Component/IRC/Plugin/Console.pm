@@ -191,8 +191,7 @@ __END__
 =head1 NAME
 
 POE::Component::IRC::Plugin::Console - A PoCo-IRC plugin that provides a
-lightweight debugging and control console for
-your bot
+lightweight debugging and control console for your bot
 
 =head1 SYNOPSIS
 
@@ -267,7 +266,7 @@ your bot
 POE::Component::IRC::Plugin::Console is a L<POE::Component::IRC|POE::Component::IRC>
 plugin that provides an interactive console running over the loopback network.
 One connects to the listening socket using a telnet client (or equivalent),
-authenticateusing the applicable password. Once authed one will receive all
+authenticate using the applicable password. Once authed one will receive all
 events that are processed through the component. One may also issue all the
 documented component commands.
 
