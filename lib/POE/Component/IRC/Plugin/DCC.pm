@@ -674,12 +674,12 @@ L<POE::Component::IRC|POE::Component::IRC> commands.
 =head2 C<dcc>
 
 Send a DCC SEND or CHAT request to another person. Takes at least two
-arguments: the nick!user@host of the person to send the request to and the
-type of DCC request (SEND or CHAT). For SEND requests, be sure to add
-a third argument for the filename you want to send. Optionally, you
-can add a fourth argument for the DCC transfer blocksize, but the
-default of 1024 should usually be fine. The fifth (and optional) argument
-is the request timeout value in seconds (default: 300).
+arguments: the nickname of the person to send the request to and the type
+of DCC request (SEND or CHAT). For SEND requests, be sure to add a third
+argument for the filename you want to send. Optionally, you can add a fourth
+argument for the DCC transfer blocksize, but the default of 1024 should
+usually be fine. The fifth (and optional) argument is the request timeout
+value in seconds (default: 300).
 
 Incidentally, you can send other weird nonstandard kinds of DCCs too;
 just put something besides 'SEND' or 'CHAT' (say, 'FOO') in the type
