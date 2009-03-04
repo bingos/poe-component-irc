@@ -83,11 +83,15 @@ sub _config_ircd {
 sub irc_001 {
     my $irc = $_[SENDER]->get_heap();
     pass('Logged in');
-    $irc->yield(join => '#testchannel') if $irc == $bot1;
+
+    $_[HEAP]->{logged_in}++;
+    if ($_[HEAP]->{logged_in} == 2) {
+        $bot1->yield(join => '#testchannel');
+    }
 }
 
 sub irc_join {
-    my ($sender, $heap, $who, $where) = @_[SENDER, HEAP, ARG0, ARG1];
+    my ($sender, $who, $where) = @_[SENDER, ARG0, ARG1];
     my $nick = ( split /!/, $who )[0];
     my $irc = $sender->get_heap();
     
@@ -106,7 +110,7 @@ sub irc_invite {
 }
 
 sub irc_mode {
-    my ($sender, $heap, $where, $mode) = @_[SENDER, HEAP, ARG1, ARG2];
+    my ($sender, $where, $mode) = @_[SENDER, ARG1, ARG2];
     my $irc = $sender->get_heap();
     return if $where !~ /^[#&!]/;
     return if $irc != $bot1;
