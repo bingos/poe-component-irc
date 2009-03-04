@@ -4,8 +4,8 @@ Revision history for Perl extension POE::Component::IRC.
     - Added more tests for general IRC activity, and for State.pm (Hinrik)
     - Added tests for BotCommand and Logger plugin (Hinrik)
     - Turned off flood control in all the tests, and removed or adjusted many
-      of the delays in the tests This shaves about 3 minutes off an entire
-      tests suite run (Hinrik)
+      of the delays used. This shaves 70% off the time needed for a full test
+      suite run (Hinrik)
 
 5.98 Mon Mar  2 22:51:27 GMT 2009
     - Parse some IRC protocol messages more strictly. Always split on ASCII
