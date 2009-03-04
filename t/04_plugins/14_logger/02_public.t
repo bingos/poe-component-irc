@@ -47,9 +47,11 @@ my @correct = (
     qr/^<-- NewNick \(\S+@\S+\) leaves #testchannel \(NewNick\)$/,
     qr/^--> NewNick \(\S+@\S+\) joins #testchannel$/,
     '<-- TestBot2 kicks NewNick from #testchannel (Bye bye)',
+    qr/^--> NewNick \(\S+@\S+\) joins #testchannel$/,
+    qr/^<-- NewNick \(\S+@\S+\) quits \(.*\)$/,
 );
 
-plan tests => 9 + @correct;
+plan tests => 10 + @correct;
 
 POE::Session->create(
     package_states => [
@@ -135,6 +137,11 @@ sub irc_join {
     return if $nick ne $irc->nick_name();
     pass("$nick joined channel");
 
+    if ($heap->{done}) {
+        $bot1->yield('quit');
+        return;
+    }
+
     if ($irc == $bot2) {
         $bot1->yield(mode => $where, '-t');
         $bot1->yield(mode => $where, '+s');
@@ -171,21 +178,24 @@ sub irc_part {
 }
 
 sub irc_kick {
+    my ($heap, $chan, $nick) = @_[HEAP, ARG1, ARG2];
     my $irc = $_[SENDER]->get_heap();
-    my $nick = $_[ARG2];
     return if $nick ne $irc->nick_name(); 
-    pass($nick . ' kicked');
 
-    $bot1->yield('quit');
-    $bot2->yield('quit');
+    pass($nick . ' kicked');
+    $irc->yield(join => $chan);
+    $heap->{done} = 1;
 }
 
 sub irc_disconnected {
-    my ($kernel, $heap) = @_[KERNEL, HEAP];
+    my ($kernel, $sender) = @_[KERNEL, SENDER];
+    my $irc = $sender->get_heap();
     pass('irc_disconnected');
-    $heap->{count}++;
 
-    if ($heap->{count} == 2) {
+    if ($irc == $bot1) {
+        $bot2->yield('quit');
+    }
+    else {
         verify_log();
         $kernel->yield('_shutdown');
     }
@@ -201,6 +211,7 @@ sub verify_log {
         next if $line =~ /^\*{3}/;
         chomp $line;
         $line = substr($line, 20);
+        last if !defined $correct[$check];
 
         if (ref $correct[$check] eq 'Regexp') {
             like($line, $correct[$check], 'Line ' . ($check+1));
@@ -210,5 +221,5 @@ sub verify_log {
         }
         $check++;
     }
-    fail('Log too short') if $check < @correct;
+    fail('Log too short') if $check > @correct;
 }

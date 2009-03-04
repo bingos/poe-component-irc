@@ -174,6 +174,7 @@ sub verify_log {
         next if $line =~ /^\*{3}/;
         chomp $line;
         $line = substr($line, 20);
+        last if !defined $correct[$check];
 
         if (ref $correct[$check] eq 'Regexp') {
             like($line, $correct[$check], 'Line ' . ($check+1));
@@ -183,5 +184,5 @@ sub verify_log {
         }
         $check++;
     }
-    fail('Log too short') if $check < @correct;
+    fail('Log too short') if $check > @correct;
 }
