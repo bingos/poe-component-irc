@@ -81,7 +81,6 @@ sub _start {
     if ($wheel) {
         my $port = ( unpack_sockaddr_in( $wheel->getsockname ) )[0];
         $kernel->yield(_config_ircd => $port);
-        $wheel = undef;
         $kernel->delay(_shutdown => 60);
         return;
     }
@@ -199,7 +198,7 @@ sub verify_log {
 
     my $check = 0;
     for my $line (@lines) {
-        next if $line =~ /^\*/;
+        next if $line =~ /^\*{3}/;
         chomp $line;
         $line = substr($line, 20);
 
@@ -211,4 +210,5 @@ sub verify_log {
         }
         $check++;
     }
+    fail('Log too short') if $check < @correct;
 }
