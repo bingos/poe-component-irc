@@ -334,10 +334,10 @@ sub U_dcc_chat {
    
     for my $msg (@lines) { 
         if (my ($action) = $msg =~ /\001ACTION (.*?)\001/) {
-            $self->_log_entry("=$nick", dcc_action => $nick, $action);
+            $self->_log_entry("=$nick", dcc_action => $me, $action);
         }
         else {
-            $self->_log_entry("=$nick", dcc_privmsg => $nick, $msg);
+            $self->_log_entry("=$nick", dcc_privmsg => $me, $msg);
         }
     }
 }

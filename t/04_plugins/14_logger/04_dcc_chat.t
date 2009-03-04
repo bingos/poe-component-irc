@@ -33,8 +33,8 @@ my @correct = (
     qr/^--> Opened DCC chat connection with TestBot1 \(\S+:\d+\)$/,
     '<TestBot1> Oh hi',
     '* TestBot1 does something',
-    '<TestBot1> Hi yourself',
-    '* TestBot1 does something as well',
+    '<TestBot2> Hi yourself',
+    '* TestBot2 does something as well',
     qr/^<-- Closed DCC chat connection with TestBot1 \(\S+:\d+\)$/,
 );
 
