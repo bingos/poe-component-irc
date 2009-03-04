@@ -12,7 +12,7 @@ use POE::Component::IRC::Plugin::BotTraffic;
 use POE::Component::IRC::Common qw( l_irc parse_user strip_color strip_formatting );
 use POSIX qw(strftime);
 
-our $VERSION = '5.98';
+our $VERSION = '6.00';
 
 sub new {
     my ($package) = shift;
