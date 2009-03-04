@@ -5,7 +5,7 @@ use POE qw(Wheel::SocketFactory);
 use POE::Component::IRC;
 use POE::Component::Server::IRC;
 use Socket;
-use Test::More tests => 4;
+use Test::More tests => 12;
 
 my $bot = POE::Component::IRC->spawn(
     Flood        => 1, 
@@ -76,7 +76,11 @@ sub irc_whois {
     my $irc = $sender->get_heap();
 
     pass('irc_whois');
-    ok(keys %$whois, 'Got whois info');
+    is(keys %$whois, 8, 'Got whois info');
+    
+    for my $key qw(actually nick idle host user server real signon) {
+        ok(defined $whois->{$key}, "$key key present");
+    }
     $irc->yield('quit');
 }
 
