@@ -344,7 +344,7 @@ sub U_dcc_chat {
             $self->_log_entry("=$nick", privmsg => $me, $msg);
         }
     }
-    return;
+    return PCI_EAT_NONE;
 }
 
 sub S_dcc_done {
