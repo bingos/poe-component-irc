@@ -98,6 +98,16 @@ sub dcc_info {
     return \%info;
 }
 
+sub _quote_file {
+    my ($file) = @_;
+
+    if ($file =~ /[\s"]/) {
+        $file =~ s|"|\\"|g;
+        $file = qq{"$file"};
+    }
+    return $file;
+}
+
 sub S_disconnected {
     my ($self) = $_;
     # clean up old cookies for any ignored RESUME requests 
@@ -119,6 +129,7 @@ sub S_dcc_request {
         for my $cookie (values %{ $self->{dcc} }) {
             next if $cookie->{nick} ne $nick;
             next if $cookie->{port} ne $port;
+            $file = _quote_file($file);
             $irc->yield(ctcp => $nick => "DCC ACCEPT $file $port $size");
             last;
         }
@@ -234,10 +245,7 @@ sub _event_dcc {
     $addr = unpack 'N', $addr;
 
     my $basename = fileparse($file);
-    if ($basename =~ /[\s"]/) {
-        $basename =~ s/"/\\"/g;
-        $basename = qq{"$basename"};
-    }
+    $basename = _quote_file($basename);
 
     # Tell the other end that we're waiting for them to connect.
     $irc->yield(ctcp => $nick => "DCC $type $basename $addr $port" . ($size ? " $size" : ''));
@@ -375,7 +383,7 @@ sub _event_dcc_resume {
     my ($self, $cookie, $myfile) = @_[OBJECT, ARG0, ARG1];
     my $irc = $self->{irc};
 
-    my $sender_file = $cookie->{file};
+    my $sender_file = _quote_file($cookie->{file});
     $cookie->{file} = $myfile if defined $myfile;
     my $size = -s $cookie->{file};
     my $fraction = $size % IN_BLOCKSIZE;
