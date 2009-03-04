@@ -757,6 +757,29 @@ to the peer explaining why you're not going to accept.
 
 =back
 
+=head2 C<irc_dcc_start>
+
+This event notifies you that a DCC connection has been successfully
+established.
+
+=over 4
+
+=item * C<ARG0>: the connection's wheel id
+
+=item * C<ARG1>: the peer's nickname
+
+=item * C<ARG2>: the DCC type
+
+=item * C<ARG3>: the port number
+
+=item * C<ARG4>: the file name
+
+=item * C<ARG5>: the file size
+
+=item * C<ARG6>: the peer's IP address
+
+=back
+
 =head2 C<irc_dcc_chat>
 
 Notifies you that one line of text has been received from the
@@ -773,6 +796,53 @@ client on the other end of a DCC CHAT connection.
 =item * C<ARG3>: the text they sent
 
 =item * C<ARG4>: the peer's IP address
+
+=back
+
+=head2 C<irc_dcc_get>
+
+Notifies you that another block of data has been successfully
+transferred from the client on the other end of your DCC GET connection.
+
+=over 4
+
+=item * C<ARG0>: the connection's wheel id
+
+=item * C<ARG1>: the peer's nickname
+
+=item * C<ARG2>: the port number
+
+=item * C<ARG3>: the file name
+
+=item * C<ARG4>: the file size
+
+=item * C<ARG5>: transferred file size
+
+=item * C<ARG6>: the peer's IP address
+
+=back
+
+=head2 C<irc_dcc_send>
+
+Notifies you that another block of data has been successfully
+transferred from you to the client on the other end of a DCC SEND
+connection.
+
+=over 4
+
+=item * C<ARG0>: the connection's wheel id
+
+=item * C<ARG1>: the peer's nickname
+
+=item * C<ARG2>: the port number
+
+=item * C<ARG3>: the file name
+
+=item * C<ARG4>: the file size
+
+=item * C<ARG5>: transferred file size
+
+=item * C<ARG6>: the peer's IP address
 
 =back
 
@@ -827,76 +897,6 @@ the connection/attempt failed.
 =item * C<ARG7>: transferred file size in bytes
 
 =item * C<ARG8>: the peer's IP address
-
-=back
-
-=head2 C<irc_dcc_get>
-
-Notifies you that another block of data has been successfully
-transferred from the client on the other end of your DCC GET connection.
-
-=over 4
-
-=item * C<ARG0>: the connection's wheel id
-
-=item * C<ARG1>: the peer's nickname
-
-=item * C<ARG2>: the port number
-
-=item * C<ARG3>: the file name
-
-=item * C<ARG4>: the file size
-
-=item * C<ARG5>: transferred file size
-
-=item * C<ARG6>: the peer's IP address
-
-=back
-
-=head2 C<irc_dcc_send>
-
-Notifies you that another block of data has been successfully
-transferred from you to the client on the other end of a DCC SEND
-connection.
-
-=over 4
-
-=item * C<ARG0>: the connection's wheel id
-
-=item * C<ARG1>: the peer's nickname
-
-=item * C<ARG2>: the port number
-
-=item * C<ARG3>: the file name
-
-=item * C<ARG4>: the file size
-
-=item * C<ARG5>: transferred file size
-
-=item * C<ARG6>: the peer's IP address
-
-=back
-
-=head2 C<irc_dcc_start>
-
-This event notifies you that a DCC connection has been successfully
-established.
-
-=over 4
-
-=item * C<ARG0>: the connection's wheel id
-
-=item * C<ARG1>: the peer's nickname
-
-=item * C<ARG2>: the DCC type
-
-=item * C<ARG3>: the port number
-
-=item * C<ARG4>: the file name
-
-=item * C<ARG5>: the file size
-
-=item * C<ARG6>: the peer's IP address
 
 =back
 
