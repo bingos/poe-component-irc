@@ -749,9 +749,9 @@ to the peer explaining why you're not going to accept.
 
 =item * C<ARG3>: this connection's "magic cookie"
 
-=item * C<ARG4>: the file name
+=item * C<ARG4>: the file name (SEND only)
 
-=item * C<ARG5>: the file size
+=item * C<ARG5>: the file size (SEND only)
 
 =item * C<ARG6>: the IP address which the peer is listening on
 
@@ -772,9 +772,9 @@ established.
 
 =item * C<ARG3>: the port number
 
-=item * C<ARG4>: the file name
+=item * C<ARG4>: the file name (SEND only)
 
-=item * C<ARG5>: the file size
+=item * C<ARG5>: the file size (SEND only)
 
 =item * C<ARG6>: the peer's IP address
 
@@ -861,11 +861,11 @@ Abnormal terminations are reported by L<C<irc_dcc_error>|/"irc_dcc_error">.
 
 =item * C<ARG3>: the port number
 
-=item * C<ARG4>: the filename
+=item * C<ARG4>: the filename (SEND only)
 
-=item * C<ARG5>: file size
+=item * C<ARG5>: file size (SEND only)
 
-=item * C<ARG6>: transferred file size
+=item * C<ARG6>: transferred file size (SEND only)
 
 =item * C<ARG7>: the peer's IP address
 
