@@ -101,7 +101,6 @@ sub _shutdown {
 sub _config_ircd {
     my ($kernel, $port) = @_[KERNEL, ARG0];
     
-    $ircd->yield('add_i_line');
     $ircd->yield(add_listener => Port => $port);
     
     $bot1->yield(register => 'all');
@@ -126,7 +125,10 @@ sub irc_001 {
     my $irc = $_[SENDER]->get_heap();
     
     pass($irc->nick_name() . ' logged in');
-    $irc->yield(join => '#testchannel');
+    $heap->{logged_in}++;
+    if ($heap->{logged_in} == 2) {
+        $bot1->yield(join => '#testchannel');
+    }
 }
 
 sub irc_join {
@@ -137,12 +139,19 @@ sub irc_join {
     return if $nick ne $irc->nick_name();
     pass("$nick joined channel");
 
+    $heap->{joined}++;
+    if ($heap->{joined} == 1) {
+        $bot2->yield(join => $where);
+        return;
+    }
+
     if ($heap->{done}) {
         $bot1->yield('quit');
         return;
     }
 
     if ($irc == $bot2) {
+        $bot1->yield(privmsg => $where, 'Oh hi');
         $bot1->yield(mode => $where, '-t');
         $bot1->yield(mode => $where, '+s');
         $bot1->yield(mode => $where, '+m');
@@ -155,14 +164,11 @@ sub irc_join {
         $bot1->yield(mode => $where, '+o TestBot2');
 
         $bot1->yield(topic => $where, 'Testing, 1 2 3');
-        $bot1->yield(privmsg => $where, 'Oh hi');
         $bot1->yield(notice => $where, 'Hello');
         $bot1->yield(nick => 'NewNick');
         $bot1->yield(part => $where);
-
-        $heap->{bulk} = 1;
     }
-    elsif ($irc == $bot1 && $heap->{bulk}) {
+    else {
         $bot2->yield(kick => $where, $bot1->nick_name(), 'Bye bye');
     }
 }
