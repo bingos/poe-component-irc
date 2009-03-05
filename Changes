@@ -2,6 +2,7 @@ Revision history for Perl extension POE::Component::IRC.
 
 6.02
     - Fix RT #43856, variable name typo in PlugMan.pm reported by barnaclebob
+    - Add new test for PlugMan plugin (Hinrik)
     - Amend a few tests that were failing (Hinrik)
 
 6.00 Wed Mar  4 23:12:57 GMT 2009
