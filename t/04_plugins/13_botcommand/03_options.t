@@ -6,7 +6,7 @@ use POE::Component::IRC;
 use POE::Component::IRC::Plugin::BotCommand;
 use POE::Component::Server::IRC;
 use Socket;
-use Test::More tests => 19;
+use Test::More tests => 18;
 
 my $bot1 = POE::Component::IRC->spawn(
     Flood        => 1,
@@ -135,6 +135,7 @@ sub irc_join {
     my $nick = (split /!/, $who)[0];
     my $irc = $sender->get_heap();
 
+    return if $nick ne $irc->nick_name();
     pass('Joined channel');
     return if $irc != $bot2;
 
