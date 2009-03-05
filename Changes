@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+6.02
+    - Fix RT #43856, variable name typo in PlugMan.pm reported by barnaclebob
+
 6.00 Wed Mar  4 23:12:57 GMT 2009
     - Logger.pm: Fix bug with logging some CTCP ACTIONs (Hinrik)
     - Logger.pm: Also log own messages in DCC chats. Add test for it (Hinrik)
