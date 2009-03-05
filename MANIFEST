@@ -86,8 +86,8 @@ t/02_behavior/13_activity.t
 t/03_subclasses/01_state.t
 t/03_subclasses/02_qnet.t
 t/03_subclasses/03_qnet_state.t
-t/04_plugins/01_plugman/01_load.t
-t/04_plugins/01_plugman/02_add.t
+t/04_plugins/01_ctcp/01_load.t
+t/04_plugins/01_ctcp/02_replies.t
 t/04_plugins/02_connector/01_load.t
 t/04_plugins/02_connector/02_reconnect.t
 t/04_plugins/03_botaddressed/01_load.t
@@ -96,8 +96,9 @@ t/04_plugins/04_bottraffic/01_load.t
 t/04_plugins/04_bottraffic/02_output.t
 t/04_plugins/05_isupport/01_load.t
 t/04_plugins/05_isupport/02_isupport.t
-t/04_plugins/06_ctcp/01_load.t
-t/04_plugins/06_ctcp/02_replies.t
+t/04_plugins/06_plugman/01_load.t
+t/04_plugins/06_plugman/02_add.t
+t/04_plugins/06_plugman/03_irc_interface.t
 t/04_plugins/07_console/01_load.t
 t/04_plugins/08_proxy/01_load.t
 t/04_plugins/09_nickreclaim/01_load.t
