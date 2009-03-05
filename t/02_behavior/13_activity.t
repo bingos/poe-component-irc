@@ -5,7 +5,7 @@ use POE::Component::IRC;
 use POE::Component::Server::IRC;
 use POE qw(Wheel::SocketFactory);
 use Socket;
-use Test::More tests => 15;
+use Test::More tests => 16;
 
 my $bot1 = POE::Component::IRC->spawn(Flood => 1);
 my $bot2 = POE::Component::IRC->spawn(Flood => 1);
@@ -72,12 +72,12 @@ sub _config_ircd {
     });
   
     $bot2->yield(register => 'all');
-    $bot2->delay([connect => {
+    $bot2->yield(connect => {
         nick    => 'TestBot2',
         server  => '127.0.0.1',
         port    => $port,
         ircname => 'Test test bot',
-    }], 2 );
+    });
 }
 
 sub irc_001 {
@@ -99,7 +99,10 @@ sub irc_join {
         is($where, '#testchannel', 'Joined Channel Test');
 
         if ($irc == $bot1) {
-            $irc->yield(invite => $bot2->nick_name(), $where);
+            $bot1->yield(invite => $bot2->nick_name(), $where);
+        }
+        else {
+            $bot1->yield(mode => $where, '+m');
         }
     }
 }
@@ -116,7 +119,7 @@ sub irc_mode {
     return if $irc != $bot1;
 
     if ($mode =~ /\+[nt]/) {
-        $bot1->yield(mode => $where, '+m');
+        pass('Got initial channel modes');
     }
     else {
         is($mode, '+m', 'irc_mode');
@@ -173,7 +176,7 @@ sub irc_kick {
     return if $irc != $bot2;
 
     is($reason, 'Good bye', 'irc_kick');
-    $bot1->yield(privmsg => $bot2->nick_name(), 'Test message 3');
+    $bot1->yield(privmsg => $bot2->nick_name(), 'Test message 4');
 }
 
 sub irc_msg {
@@ -181,7 +184,7 @@ sub irc_msg {
     my $irc = $sender->get_heap();
     return if $irc != $bot2;
 
-    is($msg, 'Test message 3', 'irc_msg');
+    is($msg, 'Test message 4', 'irc_msg');
     $bot1->yield('quit');
     $bot2->yield('quit');
 }
