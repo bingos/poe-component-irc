@@ -139,6 +139,8 @@ t/inc/POE/Component/Server/IRC/OperServ.pm
 t/inc/POE/Component/Server/IRC/Pipeline.pm
 t/inc/POE/Component/Server/IRC/Plugin.pm
 xt/perl_critic.t
+xt/perl_critic_t.t
 xt/perlcriticrc
+xt/perlcriticrc_t
 xt/pod.t
 xt/pod_coverage.t
