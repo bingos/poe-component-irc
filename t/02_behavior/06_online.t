@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 use POE qw(Wheel::SocketFactory);
 use POE::Component::IRC;
 use Socket;
