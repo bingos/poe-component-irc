@@ -4,6 +4,8 @@ Revision history for Perl extension POE::Component::IRC.
     - Fix RT #43856, variable name typo in PlugMan.pm reported by barnaclebob
     - Add new test for PlugMan plugin (Hinrik)
     - Amend a few tests that were failing (Hinrik)
+    - State.pm: Avoid a warning when setting a mode on a channel on which all
+      previous modes have been unset (Hinrik)
 
 6.00 Wed Mar  4 23:12:57 GMT 2009
     - Logger.pm: Fix bug with logging some CTCP ACTIONs (Hinrik)

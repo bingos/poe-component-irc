@@ -348,9 +348,6 @@ sub S_mode {
         if ( $self->{STATE}->{Chans}->{ $uchan }->{Mode} ) {
             $self->{STATE}->{Chans}->{ $uchan }->{Mode} = join('', sort {uc $a cmp uc $b} ( split( //, $self->{STATE}->{Chans}->{ $uchan }->{Mode} ) ) );
         }
-        else {
-            delete $self->{STATE}->{Chans}->{ $uchan }->{Mode};
-        }
     }
     else {
         my $parsed_mode = parse_mode_line( @modes );
