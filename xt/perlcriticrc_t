@@ -18,3 +18,10 @@ verbose  = 3
 
 [-ErrorHandling::RequireCarping]
 [-ErrorHandling::RequireCheckingReturnValueOfEval]
+
+# more policies we don't care about in tests
+[-InputOutput::RequireBriefOpen]
+[-Modules::RequireEndWithOne]
+[-Modules::RequireExplicitPackage]
+[-Modules::RequireFilenameMatchesPackage]
+[-Subroutines::RequireFinalReturn]

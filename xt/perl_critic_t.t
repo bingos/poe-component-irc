@@ -20,6 +20,6 @@ elsif ($Perl::Critic::VERSION lt 1.097) {
     plan( skip_all => $msg );
 }
 
-my $rcfile = File::Spec->catfile( 'xt', 'perlcriticrc' );
+my $rcfile = File::Spec->catfile( 'xt', 'perlcriticrc_t' );
 Test::Perl::Critic->import( -profile => $rcfile );
-all_critic_ok();
+all_critic_ok(glob 't/0*');
