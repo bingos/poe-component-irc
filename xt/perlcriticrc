@@ -17,4 +17,4 @@ verbose  = 3
 [-Subroutines::RequireArgUnpacking]
 
 [-ErrorHandling::RequireCarping]
-[-ErrorHandling::RequireCheckingReturnValueOfEval]
+#[-ErrorHandling::RequireCheckingReturnValueOfEval]

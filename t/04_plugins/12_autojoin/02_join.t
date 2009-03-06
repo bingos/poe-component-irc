@@ -8,7 +8,7 @@ use POE::Component::Server::IRC;
 use Socket;
 use Test::More tests => 4;
 
-my $irc = POE::Component::IRC::State->spawn(
+my $bot = POE::Component::IRC::State->spawn(
     Flood        => 1,
     plugin_debug => 1,
 );
@@ -17,7 +17,7 @@ my $ircd = POE::Component::Server::IRC->spawn(
     Auth      => 0,
     AntiFlood => 0,
 );
-$irc->plugin_add(AutoJoin => POE::Component::IRC::Plugin::AutoJoin->new(
+$bot->plugin_add(AutoJoin => POE::Component::IRC::Plugin::AutoJoin->new(
     Channels => ['#chan1', '#chan2'],
 ));
 
@@ -61,8 +61,8 @@ sub _config_ircd {
     
     $kernel->post( 'ircd' => 'add_listener' => Port => $port);
     
-    $irc->yield(register => 'all');
-    $irc->yield(connect => {
+    $bot->yield(register => 'all');
+    $bot->yield(connect => {
         nick    => 'TestBot1',
         server  => '127.0.0.1',
         port    => $port,
@@ -98,6 +98,6 @@ sub _shutdown {
     my ($kernel) = $_[KERNEL];
     $kernel->alarm_remove_all();
     $kernel->post(ircd => 'shutdown');
-    $irc->yield('shutdown');
+    $bot->yield('shutdown');
 }
 
