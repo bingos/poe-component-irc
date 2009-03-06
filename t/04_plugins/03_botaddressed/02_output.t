@@ -21,7 +21,7 @@ my $ircd = POE::Component::Server::IRC->spawn(
     AntiFlood => 0,
 );
 
-$bot1->plugin_add(BotAddressed => POE::Component::IRC::Plugin::BotAddressed->new());
+$bot2->plugin_add(BotAddressed => POE::Component::IRC::Plugin::BotAddressed->new());
 
 POE::Session->create(
     package_states => [
@@ -54,11 +54,11 @@ sub _start {
     if ($wheel) {
         my $port = ( unpack_sockaddr_in( $wheel->getsockname ) )[0];
         $kernel->yield(_config_ircd => $port);
-        $kernel->delay(_shutdown => 60);
+        $kernel->delay(_shutdown => 60, 'Timed out');
         return;
     }
 
-    $kernel->yield('_shutdown');
+    $kernel->yield('_shutdown', "Couldn't bind to an unused port on localhost");
 }
 
 sub _config_ircd {
@@ -75,12 +75,12 @@ sub _config_ircd {
     });
   
     $bot2->yield(register => 'all');
-    $bot2->delay([ connect => {
+    $bot2->yield(connect => {
         nick    => 'TestBot2',
         server  => '127.0.0.1',
         port    => $port,
         ircname => 'Test test bot',
-    }], 3);
+    });
 }
 
 sub irc_001 {
@@ -99,10 +99,9 @@ sub irc_join {
     pass($irc->nick_name() . ' joined channel');
     return if $heap->{joined} != 2;
     
-    my $target = $irc->nick_name() eq 'TestBot1' ? 'TestBot2' : 'TestBot1';
-    $irc->yield(privmsg => $where, "$target: y halo thar");
-    $irc->yield(privmsg => $where, "y halo thar, $target");
-    $irc->yield(ctcp => $where, "ACTION greets $target");
+    $bot1->yield(privmsg => $where, $bot2->nick_name . ': y halo thar');
+    $bot1->yield(privmsg => $where, 'y halo thar, ' . $bot2->nick_name());
+    $bot1->yield(ctcp => $where, 'ACTION greets ' . $bot2->nick_name());
 }
 
 sub irc_bot_addressed {
@@ -137,7 +136,8 @@ sub irc_disconnected {
 }
 
 sub _shutdown {
-    my ($kernel) = $_[KERNEL];
+    my ($kernel, $reason) = @_[KERNEL, ARG0];
+    fail($reason) if defined $reason;
     
     $kernel->alarm_remove_all();
     $ircd->yield('shutdown');
