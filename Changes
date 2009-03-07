@@ -7,6 +7,7 @@ Revision history for Perl extension POE::Component::IRC.
       requests (Hinrik)
     - State.pm: Document the extra parameters to irc_disconnected, irc_error,
       and irc_socketerr. (Hinrik)
+    - Fixed race condition in some tests (Hinrik)
 
 6.02 Fri Mar  6 10:54:22 GMT 2009
     - Fix RT #43856, variable name typo in PlugMan.pm reported by barnaclebob

@@ -86,16 +86,16 @@ sub irc_001 {
 }
 
 sub irc_join {
-    my ($sender, $who, $where) = @_[SENDER, ARG0, ARG1];
+    my ($heap, $sender, $who, $where) = @_[HEAP, SENDER, ARG0, ARG1];
     my $nick = ( split /!/, $who )[0];
     my $irc = $sender->get_heap();
     
-    if ($nick eq $irc->nick_name()) {
-        is($where, '#testchannel', 'Joined Channel Test');
-    }
-    else {
-        $irc->yield(dcc => $nick => CHAT => undef, undef, 5);
-    }
+    return if $nick ne $irc->nick_name();
+    is($where, '#testchannel', 'Joined Channel Test');
+
+    $heap->{joined}++;
+    return if $heap->{joined} != 2;
+    $bot1->yield(dcc => $bot2->nick_name() => CHAT => undef, undef, 5);
 }
 
 sub irc_dcc_request {

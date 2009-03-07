@@ -31,6 +31,7 @@ POE::Session->create(
             irc_disconnected
             irc_dcc_request
             irc_dcc_done
+            irc_dcc_error
         )],
     ],
 );
@@ -98,17 +99,16 @@ sub irc_001 {
 }
 
 sub irc_join {
-    my ($sender, $who, $where) = @_[SENDER, ARG0, ARG1];
-    
+    my ($heap, $sender, $who, $where) = @_[HEAP, SENDER, ARG0, ARG1];
     my $nick = ( split /!/, $who )[0];
     my $irc = $sender->get_heap();
 
-    if ( $nick eq $irc->nick_name() ) {
-        is($where,'#testchannel', 'Joined Channel Test');
-    }
-    else {
-        $irc->yield(dcc => $nick => CHAT => undef, undef, 5);
-    }
+    return if $nick ne $irc->nick_name();
+    is($where,'#testchannel', 'Joined Channel Test');
+    
+    $heap->{joined}++;
+    return if $heap->{joined} != 2;
+    $bot1->yield(dcc => $bot2->nick_name() => CHAT => undef, undef, 5);
 }
 
 sub irc_dcc_request {
@@ -122,6 +122,13 @@ sub irc_dcc_request {
 sub irc_dcc_done {
     pass('Got dcc timeout');
     $_[SENDER]->get_heap()->yield('quit');
+}
+
+sub irc_dcc_error {
+    my ($sender, $error) = @_[SENDER, ARG1];
+    my $irc = $sender->get_heap();
+    fail('('. $irc->nick_name() .") DCC failed: $error");
+    $sender->get_heap()->yield('quit');
 }
 
 sub irc_disconnected {
