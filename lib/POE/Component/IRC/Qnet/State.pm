@@ -1,12 +1,3 @@
-# $Id: State.pm,v 1.4 2005/04/28 14:18:20 chris Exp $
-#
-# POE::Component::IRC::Qnet::State, by Chris Williams
-#
-# This module may be used, modified, and distributed under the same
-# terms as Perl itself. Please see the license that came with your Perl
-# distribution for details.
-#
-
 package POE::Component::IRC::Qnet::State;
 
 use strict;
