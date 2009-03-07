@@ -138,7 +138,7 @@ sub S_quit {
     my $mapping = $irc->isupport('CASEMAPPING');
     my $nick = ( split /!/, ${ $_[0] } )[0];
     my $msg = ${ $_[1] };
-    push @{ $_[2] }, [ $self->nick_channels( $nick ) ];
+    push @{ $_[-1] }, [ $self->nick_channels( $nick ) ];
     my $unick = u_irc $nick, $mapping;
 
     # Check if it is a netsplit
@@ -205,7 +205,7 @@ sub S_nick {
     my $mapping = $irc->isupport('CASEMAPPING');
     my $nick = ( split /!/, ${ $_[0] } )[0];
     my $new = ${ $_[1] };
-    push @{ $_[2] }, [ $self->nick_channels( $nick ) ];
+    push @{ $_[-1] }, [ $self->nick_channels( $nick ) ];
     my $unick = u_irc $nick, $mapping;
     my $unew = u_irc $new, $mapping;
 
@@ -1354,65 +1354,106 @@ channel in the state, a false value will be returned.
 
 =head1 OUTPUT
 
+=head2 Augmented events
+
+New paramater are added to the following L<POE::Component::IRC|POE::Component::IRC>
+events.
+
+=head3 C<irc_quit>
+
+See also C<irc_quit|POE::Component::IRC/"irc_quit"> in
+L<POE::Component::IRC|POE::Component::IRC>.
+
+Additional paramater C<ARG2> contains an arrayref of channel names that are
+common to the quitting client and the component.
+
+=head3 C<irc_nick>
+
+See also C<irc_nick|POE::Component::IRC/"irc_nick"> in
+L<POE::Component::IRC|POE::Component::IRC>.
+
+Additional paramter C<ARG2> contains an arrayref of channel names that are
+common to the nick hanging client and the component.
+
+=head3 C<irc_kick>
+
+See also C<irc_kick|POE::Component::IRC/"irc_kick"> in
+L<POE::Component::IRC|POE::Component::IRC>.
+
+Additional parameter C<ARG4> contains the full nick!user@host of the kicked
+individual.
+
+=head3 C<irc_disconnected>
+
+=head3 C<irc_error>
+
+=head3 C<irc_socketerr>
+
+These three all have two additional parameters. ARG1 is a hash of information
+about your IRC user (see L<C<nick_info>|/"nick_info">, while ARG2 is a hash
+of the channels you were on (see L<C<channels>|/"channels">).
+
+=head2 New events
+
 As well as all the usual L<POE::Component::IRC|POE::Component::IRC> C<irc_*>
 events, there are the following events you can register for:
 
-=head2 C<irc_away_sync_start>
+=head3 C<irc_away_sync_start>
 
 Sent whenever the component starts to synchronise the away statuses of channel
 members. C<ARG0> is the channel name. You will only receive this event if you
 specified a value for B<'AwayPoll'> in L<C<spawn>|POE::Component::IRC/"spawn">.
 
-=head2 C<irc_away_sync_end>
+=head3 C<irc_away_sync_end>
 
 Sent whenever the component has completed synchronising the away statuses of
 channel members. C<ARG0> is the channel name. You will only receive this event if
 you specified a value for B<'AwayPoll'> in L<C<spawn>|POE::Component::IRC/"spawn">.
 
-=head2 C<irc_chan_sync>
+=head3 C<irc_chan_sync>
 
 Sent whenever the component has completed synchronising a channel that it has
 joined. C<ARG0> is the channel name and C<ARG1> is the time in seconds that
 the channel took to synchronise.
 
-=head2 C<irc_chan_sync_invex>
+=head3 C<irc_chan_sync_invex>
 
 Sent whenever the component has completed synchronising a channel's INVEX
 (invite list). Usually triggered by the component being opped on a channel.
 C<ARG0> is the channel name.
 
-=head2 C<irc_chan_sync_excepts>
+=head3 C<irc_chan_sync_excepts>
 
 Sent whenever the component has completed synchronising a channel's EXCEPTS
 (ban exemption list). Usually triggered by the component being opped on a
 channel. C<ARG0> is the channel.
 
-=head2 C<irc_nick_sync>
+=head3 C<irc_nick_sync>
 
 Sent whenever the component has completed synchronising a user who has joined
 a channel the component is on. C<ARG0> is the user's nickname and C<ARG1> the
 channel they have joined.
 
-=head2 C<irc_chan_mode>
+=head3 C<irc_chan_mode>
 
 This is almost identical to L<C<irc_mode>|POE::Component::IRC/"irc_mode">,
 except that it's sent once for each individual mode with it's respective
 argument if it has one (ie. the banmask if it's +b or -b). However, this
 event is only sent for channel modes.
 
-=head2 C<irc_user_mode>
+=head3 C<irc_user_mode>
 
 This is almost identical to L<C<irc_mode>|POE::Component::IRC/"irc_mode">,
 except it is sent for each individual umode that is being set.
 
-=head2 C<irc_user_away>
+=head3 C<irc_user_away>
 
 Sent when an IRC user sets his/her status to away. C<ARG0> is the nickname,
 C<ARG1> is an arrayref of channel names that are common to the nickname
 and the component. You will only receive this event if you specified a value
 for B<'AwayPoll'> in L<C<spawn>|POE::Component::IRC/"spawn">.
 
-=head2 C<irc_user_back>
+=head3 C<irc_user_back>
 
 Sent when an IRC user unsets his/her away status. C<ARG0> is the nickname,
 C<ARG1> is an arrayref of channel names that are common to the nickname and
@@ -1422,21 +1463,6 @@ B<'AwayPoll'> in L<C<spawn>|POE::Component::IRC/"spawn">.
 The following two C<irc_*> events are the same as their
 L<POE::Component::IRC|POE::Component::IRC> counterparts, with the additional
 parameters:
-
-=head2 C<irc_quit>
-
-C<ARG2> contains an arrayref of channel names that are common to the quitting
-client and the component.
-
-=head2 C<irc_nick>
-
-C<ARG2> contains an arrayref of channel names that are common to the nick
-hanging client and the component.
-
-=head2 C<irc_kick>
-
-Additional parameter C<ARG4> contains the full nick!user@host of the kicked
-individual.
 
 =head1 CAVEATS
 

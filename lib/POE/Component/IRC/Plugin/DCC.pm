@@ -138,42 +138,15 @@ sub S_dcc_request {
     return PCI_EAT_NONE;
 }
 
-# the U_* handlers are stubs which call our POE event handlers
-# so that we can do stuff related to our POE session, e.g.
+# this is a stub handler for all U_dcc* events which redispatches them as
+# events to our own POE session so that we can do stuff related to it,
 # create wheels and set alarms/delays
-
-sub U_dcc {
-    my ($self, $irc) = splice @_, 0, 2;
-    my @args = map { ref =~ /REF|SCALAR/ && ${ $_ } } @_;
-    $poe_kernel->call($self->{session_id}, _event_dcc => @args);
-    return PCI_EAT_NONE;
-}
-
-sub U_dcc_accept {
-    my ($self, $irc) = splice @_, 0, 2;
-    my @args = map { ref =~ /REF|SCALAR/ && ${ $_ } } @_;
-    $poe_kernel->call($self->{session_id}, _event_dcc_accept => @args);
-    return PCI_EAT_NONE;
-}
-
-sub U_dcc_chat {
-    my ($self, $irc) = splice @_, 0, 2;
-    my @args = map { ref =~ /REF|SCALAR/ && ${ $_ } } @_;
-    $poe_kernel->call($self->{session_id}, _event_dcc_chat => @args);
-    return PCI_EAT_NONE;
-}
-
-sub U_dcc_close {
-    my ($self, $irc) = splice @_, 0, 2;
-    my @args = map { ref =~ /REF|SCALAR/ && ${ $_ } } @_;
-    $poe_kernel->call($self->{session_id}, _event_dcc_close => @args);
-    return PCI_EAT_NONE;
-}
-
-sub U_dcc_resume {
-    my ($self, $irc) = splice @_, 0, 2;
-    my @args = map { ref && ${ $_ } } @_;
-    $poe_kernel->call($self->{session_id}, _event_dcc_resume => @args);
+sub _default {
+    my ($self, $irc, $event) = splice @_, 0, 3;
+    return if $event !~ /^U_dcc(_accept|_chat|_close|_resume)?$/;
+    $event =~ s/^U_//;
+    my @args = map { $$_ } @_;
+    $poe_kernel->call($self->{session_id}, "_event_$event" => @args);
     return PCI_EAT_NONE;
 }
 
