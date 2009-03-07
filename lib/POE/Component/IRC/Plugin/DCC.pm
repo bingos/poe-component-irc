@@ -225,17 +225,17 @@ sub _event_dcc {
 
     # Store the state for this connection.
     $self->{dcc}->{ $factory->ID } = {
-        open       => 0,
-        nick       => $nick,
-        type       => $type,
-        file       => $file,
-        size       => $size,
-        port       => $port,
-        addr       => $addr,
-        done       => 0,
-        blocksize  => ($blocksize || OUT_BLOCKSIZE),
-        listener   => 1,
-        factory    => $factory,
+        open      => 0,
+        nick      => $nick,
+        type      => $type,
+        file      => $file,
+        size      => $size,
+        port      => $port,
+        addr      => $addr,
+        done      => 0,
+        blocksize => ($blocksize || OUT_BLOCKSIZE),
+        listener  => 1,
+        factory   => $factory,
     };
     
     $kernel->alarm(
@@ -668,7 +668,7 @@ Sets the public NAT address to be used for DCC sends.
 
 Takes one argument, a DCC connection id (see below). Returns a hash of
 information about the connection. The keys are: B<'nick'>, B<'type'>,
-B<'port'>, B<'file'>, B<'size'>, B<'done,'>, and B<'peeradr'>.
+B<'port'>, B<'file'>, B<'size'>, B<'done,'>, and B<'peeraddr'>.
 
 =head1 COMMANDS
 
