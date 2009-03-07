@@ -9,7 +9,7 @@ use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::IRCD
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Common qw( :ALL );
 
-our $VERSION = '6.02';
+our $VERSION = '6.04';
 
 sub new {
     my ($package) = shift;

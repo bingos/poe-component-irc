@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-6.04
+6.04 Sat Mar  7 23:31:11 GMT 2009
     - Logger.pm: Only use portable strftime parameters. Fixes log timestamps
       on Solaris and Windows (Hinrik)
     - CTCP.pm: Use portable strftime parameters when responding to CTCP TIME

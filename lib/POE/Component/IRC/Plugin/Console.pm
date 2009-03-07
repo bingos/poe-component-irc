@@ -6,7 +6,7 @@ use Carp;
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::IRCD Filter::Line Filter::Stackable);
 use POE::Component::IRC::Plugin qw( :ALL );
 
-our $VERSION = '6.02';
+our $VERSION = '6.04';
 
 sub new {
     my $package = shift;
