@@ -361,7 +361,7 @@ sub S_dcc_done {
 
 sub _log_entry {
     my ($self, $context, $type, @args) = @_;
-    my ($date, $time) = split / /, (strftime '%F %T', localtime);
+    my ($date, $time) = split / /, (strftime '%Y-%m-%d %H:%M:%S ', localtime);
     $context = l_irc $context, $self->{irc}->isupport('CASEMAPPING');
 
     if ($context =~ /^[#&+!]/) {

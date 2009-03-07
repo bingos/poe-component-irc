@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 6.04
+    - Logger.pm: Only use portable strftime parameters. Fixes log timestamps
+      on Solaris and Windows (Hinrik)
     - State.pm: Document the extra parameters to irc_disconnected, irc_error,
       and irc_socketerr. (Hinrik)
 
