@@ -94,9 +94,8 @@ sub irc_join {
     my $nick = ( split /!/, $who )[0];
     my $irc = $sender->get_heap();
     
-    if ( $nick eq $irc->nick_name() ) {
-        is($where, '#testchannel', 'Joined Channel Test');
-    }
+    return if $nick ne $irc->nick_name();
+    is($where, '#testchannel', 'Joined Channel Test');
 
     $heap->{joined}++;
     if ($heap->{joined} == 2) {
