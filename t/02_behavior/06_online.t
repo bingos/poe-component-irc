@@ -54,7 +54,7 @@ sub _success {
 
     $kernel->delay('_time_out');
     delete $heap->{sockfactory};
-    $kernel->yield(_irc_connect => 5);
+    $kernel->yield('_irc_connect');
 }
 
 sub _failure {

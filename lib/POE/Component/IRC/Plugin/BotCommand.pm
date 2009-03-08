@@ -223,8 +223,8 @@ B<'Prefix'>, if B<'Addressed'> is false, all commands must be prefixed with this
 string. Default is '!'. You can set it to '' to allow bare commands.
 
 B<'Eat'>, set to true to make the plugin hide
-C<irc_public|POE::Component::IRC/"irc_public"> events from other plugins if they
-contain a valid command. Default is false.
+L<C<irc_public>|POE::Component::IRC/"irc_public"> events from other plugins if
+they contain a valid command. Default is false.
 
 Returns a plugin object suitable for feeding to
 L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
