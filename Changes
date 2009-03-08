@@ -1,5 +1,11 @@
 Revision history for Perl extension POE::Component::IRC.
 
+6.06
+    - Compat.pm: Don't emit an extra event or print a misleading debug message
+      for CTCP ACTIONs on FreeNode (Hinrik)
+    - AutoJoin.pm: Only join channels after we have asked the server if it
+      supports FreeNode's CAPAB IDENTIFY-MSG (Hinrik)
+
 6.04 Sat Mar  7 23:31:11 GMT 2009
     - Logger.pm: Only use portable strftime parameters. Fixes log timestamps
       on Solaris and Windows (Hinrik)

@@ -1519,14 +1519,18 @@ sub S_nick {
 sub S_290 {
     my ($self, $irc) = splice @_, 0, 2;
     my $text = ${ $_[1] };
-    $self->{ircd_compat}->identifymsg(1) if $text eq 'IDENTIFY-MSG';
+    if ($text eq 'IDENTIFY-MSG') {
+        $self->{ircd_compat}->identifymsg(1);
+        warn "enabled niggers\n";
+    }
     return PCI_EAT_NONE;
 }
 
 sub S_isupport {
     my ($self, $irc) = splice @_, 0, 2;
-    $self->{ircd_compat}->chantypes( $self->{isupport}->isupport('CHANTYPES') || [ '#', '&' ] );
-    $irc->yield(quote => 'CAPAB IDENTIFY-MSG') if $self->{isupport}->isupport('CAPAB');
+    my $isupport = ${ $_[0] };
+    $self->{ircd_compat}->chantypes( $isupport->isupport('CHANTYPES') || [ '#', '&' ] );
+    $irc->yield(sl_login => 'CAPAB IDENTIFY-MSG') if $isupport->isupport('CAPAB');
     return PCI_EAT_NONE;
 }
 

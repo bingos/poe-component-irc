@@ -359,15 +359,18 @@ sub _get_ctcp {
         }
     }
 
-    if ($text && @$text) {
-        my $what;
-        ($what) = $line->{raw_line} =~ /^(:[^ ]+ +\w+ +[^ ]+ +)/
-            or warn "What the heck? '".$line->{raw_line}."'\n" if $self->{debug};
-        $text = (defined $what ? $what : '') . ':' . join '', @$text;
-        $text =~ s/\cP/^P/g;
-        warn "CTCP: $text\n" if $self->{debug};
-        push @$events, @{ $self->{_ircd}->get([$text]) };
-    }
+    # XXX: I'm not quite sure what this is for, but on FreeNode it adds an
+    # extra bogus event and displays a debug message, so I have disabled it.
+    # FreeNode precedes PRIVMSG and CTCP ACTION messages with '+' or '-'.
+    #if ($text && @$text) {
+    #    my $what;
+    #    ($what) = $line->{raw_line} =~ /^(:[^ ]+ +\w+ +[^ ]+ +)/
+    #        or warn "What the heck? '".$line->{raw_line}."'\n" if $self->{debug};
+    #    $text = (defined $what ? $what : '') . ':' . join '', @$text;
+    #    $text =~ s/\cP/^P/g;
+    #    warn "CTCP: $text\n" if $self->{debug};
+    #    push @$events, @{ $self->{_ircd}->get([$text]) };
+    #}
     
     return $events;
 }
