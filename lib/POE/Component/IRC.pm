@@ -1519,10 +1519,7 @@ sub S_nick {
 sub S_290 {
     my ($self, $irc) = splice @_, 0, 2;
     my $text = ${ $_[1] };
-    if ($text eq 'IDENTIFY-MSG') {
-        $self->{ircd_compat}->identifymsg(1);
-        warn "enabled niggers\n";
-    }
+    $self->{ircd_compat}->identifymsg(1) if $text eq 'IDENTIFY-MSG';
     return PCI_EAT_NONE;
 }
 
