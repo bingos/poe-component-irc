@@ -17,7 +17,6 @@ use Socket;
 use base qw(POE::Component::Pluggable);
 
 our $VERSION = '6.04';
-our $REVISION = do {my@r=(q$Revision$=~/\d+/g);sprintf"%d"."%04d"x$#r,@r};
 our ($GOT_SSL, $GOT_CLIENT_DNS, $GOT_SOCKET6, $GOT_ZLIB);
 
 BEGIN {
