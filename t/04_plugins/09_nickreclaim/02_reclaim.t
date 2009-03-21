@@ -94,10 +94,8 @@ sub irc_001 {
 
 sub irc_433 {
     my $irc = $_[SENDER]->get_heap();
-    my $other = $irc == $bot1 ? $bot2 : $bot1;
-
     pass($irc->session_alias . ' nick collision');
-    $other->yield('quit');
+    $bot1->yield('quit');
 }
 
 sub irc_nick {
