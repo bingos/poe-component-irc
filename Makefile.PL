@@ -15,13 +15,6 @@ BEGIN {
 print <<NOTICE;
 
 ---------------------------------------------------------------
-POE::Component::IRC now features an online test as part of the
-testsuite. Whilst I have tried to make it as robust as I can
-the last test may take up to 40 seconds or so to complete.
-Please be patient while it does it's thing.
----------------------------------------------------------------
-
----------------------------------------------------------------
 A lot of the tests make use of the loopback interface. If this
 is firewalled then these tests will fail. 
 ---------------------------------------------------------------
@@ -35,7 +28,6 @@ license 'perl';
 author 'Chris Williams <chris@bingosnet.co.uk>';
 version_from 'lib/POE/Component/IRC.pm';
 abstract_from 'lib/POE/Component/IRC.pm';
-build_requires 'Test::More' => '0.47';
 perl_version '5.006';
 requires 'POE'    => 0.3202;
 requires 'POE::Component::Pluggable' => '1.12';
@@ -48,6 +40,7 @@ requires 'POE::Filter::Stackable' => 0;
 requires 'POE::Filter::IRCD' => 1.7;
 requires 'Encode' => 0;
 requires 'Encode::Guess' => 0;
+test_requires 'Test::More' => '0.47';
 tests 't/*.t t/*/*.t t/*/*/*.t';
 author_tests 'xt';
 clean_files 'README.send Changes.resume followtail logger_test';
@@ -58,7 +51,7 @@ sub _no_dns {
   print <<NO_DNS;
 
 ----------------------------------------------------------------
-Hmmm. POE::Component::Client::DNS 0.99 isn't installed. It's use
+Hmmm. POE::Component::Client::DNS 0.99 isn't installed. Its use
 is recommended but not necessary. Consider installing it. Thanks
 ----------------------------------------------------------------
 
