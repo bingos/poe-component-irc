@@ -125,7 +125,7 @@ sub irc_dcc_error {
     my ($sender, $error) = @_[SENDER, ARG1];
     my $irc = $sender->get_heap();
     fail('('. $irc->nick_name() .") DCC failed: $error");
-    $sender->get_heap()->yield('quit');
+    $irc->yield('quit');
 }
 
 sub irc_disconnected {
