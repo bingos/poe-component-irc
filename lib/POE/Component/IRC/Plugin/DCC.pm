@@ -37,11 +37,11 @@ sub PCI_register {
                 _dcc_failed
                 _dcc_timeout
                 _dcc_up
-                _event_dcc
-                _event_dcc_accept
-                _event_dcc_chat
-                _event_dcc_close
-                _event_dcc_resume
+                _U_dcc
+                _U_dcc_accept
+                _U_dcc_chat
+                _U_dcc_close
+                _U_dcc_resume
             )],
         ],
     );
@@ -140,23 +140,23 @@ sub S_dcc_request {
 
 # this is a stub handler for all U_dcc* events which redispatches them as
 # events to our own POE session so that we can do stuff related to it,
-# create wheels and set alarms/delays
+# namely create wheels and set alarms/delays
 sub _default {
     my ($self, $irc, $event) = splice @_, 0, 3;
     return if $event !~ /^U_dcc(_accept|_chat|_close|_resume)?$/;
-    $event =~ s/^U_//;
+    $event =~ s/^U_/_U_/;
     my @args = map { $$_ } @_;
-    $poe_kernel->call($self->{session_id}, "_event_$event" => @args);
+    $poe_kernel->call($self->{session_id}, $event, @args);
     return PCI_EAT_NONE;
 }
 
 # Attempt to initiate a DCC SEND or CHAT connection with another person.
-sub _event_dcc {
+sub _U_dcc {
     my ($kernel, $self, $nick, $type, $file, $blocksize, $timeout)
         = @_[KERNEL, OBJECT, ARG0..$#_];
     
     if (!defined $type) {
-        warn "The 'dcc' event requires at least two arguments\n";
+        warn "The 'dcc' command requires at least two arguments\n";
         return;
     }
 
@@ -169,7 +169,7 @@ sub _event_dcc {
     }
     elsif ($type eq 'SEND') {
         if (!defined $file) {
-            warn "Event 'dcc' requires three arguments for a SEND\n";
+            warn "The 'dcc' command requires three arguments for a SEND\n";
             return;
         }
         $size = (stat $file)[7];
@@ -249,11 +249,11 @@ sub _event_dcc {
 
 # Accepts a proposed DCC connection to another client. See '_dcc_up' for
 # the rest of the logic for this.
-sub _event_dcc_accept {
+sub _U_dcc_accept {
     my ($self, $cookie, $myfile) = @_[OBJECT, ARG0, ARG1];
 
     if (!defined $cookie) {
-        warn "The 'dcc_accept' event requires at least one argument\n";
+        warn "The 'dcc_accept' command requires at least one argument\n";
         return;
     }
 
@@ -276,11 +276,11 @@ sub _event_dcc_accept {
 }
 
 # Send data over a DCC CHAT connection.
-sub _event_dcc_chat {
+sub _U_dcc_chat {
     my ($self, $id, @data) = @_[OBJECT, ARG0..$#_];
     
     if (!defined $id || !@data) {
-        warn "The 'dcc_chat' event requires at least two arguments\n";
+        warn "The 'dcc_chat' command requires at least two arguments\n";
         return;
     }
 
@@ -304,12 +304,12 @@ sub _event_dcc_chat {
 }
 
 # Terminate a DCC connection manually.
-sub _event_dcc_close {
+sub _U_dcc_close {
     my ($kernel, $self, $id) = @_[KERNEL, OBJECT, ARG0];
     my $irc = $self->{irc};
     
     if (!defined $id) {
-        warn "The 'dcc_close' event requires an id argument\n";
+        warn "The 'dcc_close' command requires an id argument\n";
         return;
     }
 
@@ -325,7 +325,7 @@ sub _event_dcc_close {
 
     # pending data, wait till it has been flushed
     if ($self->{dcc}->{$id}->{wheel}->get_driver_out_octets()) {
-        $kernel->delay_set(_event_dcc_close => 2, $id);
+        $kernel->delay_set(_U_dcc_close => 2, $id);
         return;
     }
 
@@ -352,7 +352,7 @@ sub _event_dcc_close {
 }
 
 ## no critic (InputOutput::RequireBriefOpen)
-sub _event_dcc_resume {
+sub _U_dcc_resume {
     my ($self, $cookie, $myfile) = @_[OBJECT, ARG0, ARG1];
     my $irc = $self->{irc};
 
