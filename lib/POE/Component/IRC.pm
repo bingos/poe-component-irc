@@ -2808,6 +2808,14 @@ A few have turned up in the past and they are sure to again. Please use
 L<http://rt.cpan.org/> to report any. Alternatively, email the current
 maintainer.
 
+=head1 DEVELOPMENT
+
+You can find the latest source on github:
+L<http://github.com/bingos/poe-component-irc>
+
+The project's developers usually hang out in the C<#poe> IRC channel on
+irc.freenode.org. Do drop us a line.
+
 =head1 MAINTAINERS
 
 Chris C<BinGOs> Williams <chris@bingosnet.co.uk>
@@ -2861,7 +2869,5 @@ Some good examples reside in the POE cookbook which has a whole section
 devoted to IRC programming L<http://poe.perl.org/?POE_Cookbook>.
 
 The examples/ folder of this distribution.
-
-The C<#poe> channel on irc.freenode.org.
 
 =cut

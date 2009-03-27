@@ -22,7 +22,7 @@ my %irc_cmds = (
         }
         $event->{args}->[2] = $line->{params};
     },
-    qr/notice/ => sub {
+    qr/^notice$/ => sub {
         my ($self, $event, $line) = @_;
 
         if ($line->{prefix}) {
@@ -40,7 +40,7 @@ my %irc_cmds = (
             $event->{args}->[0] = $line->{params}->[1];
         }
     },
-    qr/privmsg/ => sub {
+    qr/^privmsg$/ => sub {
         my ($self, $event, $line) = @_;
         if ( grep { index( $line->{params}->[0], $_ ) >= 0 } @{ $self->{chantypes} } ) {
             $event->{args} = [
@@ -65,7 +65,7 @@ my %irc_cmds = (
             $event->{name} = 'msg';
         }
     },
-    qr/invite/ => sub {
+    qr/^invite$/ => sub {
         my ($self, $event, $line) = @_;
         shift( @{ $line->{params} } );
         unshift( @{ $line->{params} }, _decolon( $line->{prefix} || '' ) ) if $line->{prefix};
@@ -75,7 +75,7 @@ my %irc_cmds = (
 
 # the magic cookie jar
 my %dcc_types = (
-    qr/CHAT|SEND/ => sub {
+    qr/^(?:CHAT|SEND)$/ => sub {
         my ($nick, $type, $args) = @_;
         my ($file, $addr, $port, $size);
         return if !(($file, $addr, $port, $size) = $args =~ /^(".+"|[^ ]+) +(\d+) +(\d+)(?: +(\d+))?/);
@@ -101,7 +101,7 @@ my %dcc_types = (
             $addr,
         );
     },
-    qr/ACCEPT|RESUME/ => sub {
+    qr/^(?:ACCEPT|RESUME)$/ => sub {
         my ($nick, $type, $args) = @_;
         my ($file, $port, $position);
         return if !(($file, $port, $position) = $args =~ /^(".+"|[^ ]+) +(\d+) +(\d+)/);
@@ -238,7 +238,7 @@ sub _ctcp_dequote {
     # CHUNG! CHUNG! CHUNG!
 
     if (!defined $msg) {
-        croak 'Not enough arguments to POE::Filter::IRC::Compat->_ctcp_dequote';
+        croak 'Not enough arguments to POE::Filter::IRC::Compat::_ctcp_dequote';
     }
 
     # Strip out any low-level quoting in the text.
