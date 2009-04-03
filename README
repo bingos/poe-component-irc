@@ -32,7 +32,7 @@ The latest stable version of POE::Component::IRC will be available on
 CPAN, in the directory /authors/id/B/BI/BINGOS/
 
 The real bleeding-edge stuff is in the PoCo-IRC svn repository, which is
-available at https://www.bingosnet.net/svn/pocoirc/
+available at git://github.com/bingos/poe-component-irc.git
 
 
 3. PREREQUISITES
