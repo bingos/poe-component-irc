@@ -148,22 +148,20 @@ sub irc_join {
 sub irc_botcmd_cmd1 {
     my ($sender, $user, $where, $args) = @_[SENDER, ARG0..ARG2];
     my $nick = (split /!/, $user)[0];
-    my $chan = $where->[0];
     my $irc = $sender->get_heap();
 
     is($nick, $bot2->nick_name(), 'cmd1 user');
-    is($chan, '#testchannel', 'cmd1 channel');
+    is($where, '#testchannel', 'cmd1 channel');
     is($args, 'foo bar', 'cmd1 arguments');
 }
 
 sub irc_botcmd_cmd2 {
     my ($sender, $user, $where, $args) = @_[SENDER, ARG0..ARG2];
     my $nick = (split /!/, $user)[0];
-    my $chan = $where->[0];
     my $irc = $sender->get_heap();
 
     is($nick, $bot2->nick_name(), 'cmd2 user');
-    is($chan, '#testchannel', 'cmd2 channel');
+    is($where, '#testchannel', 'cmd2 channel');
     ok(!defined $args, 'cmd1 arguments');
 
     $bot1->yield('quit');

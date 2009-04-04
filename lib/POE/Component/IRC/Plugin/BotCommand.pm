@@ -24,6 +24,10 @@ sub PCI_register {
     
     $self->{Addressed} = 1 if !defined $self->{Addressed};
     $self->{Prefix} = '!' if !defined $self->{Prefix};
+    $self->{In_channels} = 1 if !defined $self->{In_channels};
+    $self->{In_private} = 1 if !defined $self->{In_private};
+    $self->{irc} = $irc;
+    
     $irc->plugin_register( $self, 'SERVER', qw(msg public) );
     return 1;
 }
@@ -34,39 +38,33 @@ sub PCI_unregister {
 
 sub S_msg {
     my ($self, $irc) = splice @_, 0, 2;
-    my $who = parse_user( ${ $_[0] } );
-    my $what = ${ $_[2] };
+    my $who   = ${ $_[0] };
+    my $where = parse_user($who);
+    my $what  = ${ $_[2] };
     
-    my $cmd;
-    if (!(($cmd) = $what =~ /^\s*HELP\s*(\w+)?/i)) {
+    return PCI_EAT_NONE if !$self->{In_private};
+    
+    my ($cmd, $args);
+    if (!(($cmd, $args) = $what =~ /^(\w+)(?:\s+(.+))?$/)) {
         return PCI_EAT_NONE;
     }
     
-    if (defined $cmd) {
-        if (exists $self->{Commands}->{lc $cmd}) {
-            my @help_lines = split /\015?\012/, $self->{Commands}->{lc $cmd};
-            $irc->yield(notice => $who => $_) for @help_lines;
-        }
-        else {
-            $irc->yield(notice => $who, "Unknown command: $cmd");
-            $irc->yield(notice => $who, 'To get a list of commands, do: /msg '
-                . $irc->nick_name() . ' help');
-        }
-    }
-    else {
-        $irc->yield(notice => $who, 'Commands: ' . join ', ', keys %{ $self->{Commands} });
-        $irc->yield(notice => $who, 'You can do: /msg ' . $irc->nick_name() . ' help <command>');
-    }
+    my $handled = $self->_handle_cmd($who, $where, $cmd, $args);
     
+    if ($self->{Eat} && $handled) {
+        return PCI_EAT_PLUGIN;
+    }
     return PCI_EAT_NONE;
 }
 
 sub S_public {
     my ($self, $irc) = splice @_, 0, 2;
-    my $who = ${ $_[0] };
-    my $channel = ${ $_[1] };
-    my $what = ${ $_[2] };
-    my $me = $irc->nick_name();
+    my $who   = ${ $_[0] };
+    my $where = ${ $_[1] }->[0];
+    my $what  = ${ $_[2] };
+    my $me    = $irc->nick_name();
+
+    return PCI_EAT_NONE if !$self->{In_channels};
 
     if ($self->{Addressed}) {
         return PCI_EAT_NONE if !(($what) = $what =~ m/^\s*\Q$me\E[:,;.!?~]?\s*(.*)$/);
@@ -79,13 +77,54 @@ sub S_public {
     if (!(($cmd, $args) = $what =~ /^(\w+)(?:\s+(.+))?$/)) {
         return PCI_EAT_NONE;
     }
+ 
+    my $handled = $self->_handle_cmd($who, $where, $cmd, $args);
     
-    $cmd = lc $cmd;
-    if (exists $self->{Commands}->{$cmd}) {
-        $irc->send_event("irc_botcmd_$cmd" => $who, $channel, $args);
+    if ($self->{Eat} && $handled) {
+        return PCI_EAT_PLUGIN;
     }
+    return PCI_EAT_NONE;
+}
+
+sub _handle_cmd {
+    my ($self, $who, $where, $cmd, $args) = @_;
+    my $irc = $self->{irc};
+    $cmd = lc $cmd;
+
+    if ($cmd =~ /^help$/i) {
+        my @help = $self->_get_help($cmd);
+        $irc->yield(notice => $where => $_) for @help;
+    }
+    elsif (exists $self->{Commands}->{$cmd}) {
+        $irc->send_event("irc_botcmd_$cmd" => $who, $where, $args);
+    }
+    else {
+        return;
+    }
+
+    return 1;
+}
+
+sub _get_help {
+    my ($self, $cmd) = @_;
+    my $irc = $self->{irc};
     
-    return $self->{Eat} ? PCI_EAT_PLUGIN : PCI_EAT_NONE;
+    my @help;
+    if (defined $cmd) {
+        if (exists $self->{Commands}->{$cmd}) {
+            @help = split /\015?\012/, $self->{Commands}->{$cmd};
+        }
+        else {
+            push @help, "Unknown command: $cmd";
+            push @help, 'To get a list of commands, do: /msg '. $irc->nick_name() . ' help';
+        }
+    }
+    else {
+        push @help, 'Commands: ' . join ', ', keys %{ $self->{Commands} };
+        push @help, 'You can do: /msg ' . $irc->nick_name() . ' help <command>';
+    }
+
+    return @help;
 }
 
 sub add {
@@ -159,15 +198,15 @@ commands issued to your bot
  # the good old slap
  sub irc_botcmd_slap {
      my $nick = (split /!/, $_[ARG0])[0];
-     my ($channel, $arg) = @_[ARG1, ARG2];
-     $irc->yield(ctcp => $channel, "ACTION slaps $arg");
+     my ($where, $arg) = @_[ARG1, ARG2];
+     $irc->yield(ctcp => $where, "ACTION slaps $arg");
      return;
  }
 
  # non-blocking dns lookup
  sub irc_botcmd_lookup {
      my $nick = (split /!/, $_[ARG0])[0];
-     my ($channel, $arg) = @_[ARG1, ARG2];
+     my ($where, $arg) = @_[ARG1, ARG2];
      my ($type, $host) = $arg =~ /^(?:(\w+) )?(\S+)/;
      
      my $res = $dns->resolve(
@@ -175,8 +214,8 @@ commands issued to your bot
          host => $host,
          type => $type,
          context => {
-             channel => $channel,
-             nick    => $nick,
+             where => $where,
+             nick  => $nick,
          },
      );
      $poe_kernel->yield(dns_response => $res) if $res;
@@ -189,7 +228,7 @@ commands issued to your bot
      
      $irc->yield(
          'notice',
-         $res->{context}->{channel},
+         $res->{context}->{where},
          $res->{context}->{nick} . (@answers
              ? ": @answers"
              : ': no answers for "' . $res->{host} . '"')
@@ -202,9 +241,9 @@ commands issued to your bot
 
 POE::Component::IRC::Plugin::BotCommand is a L<POE::Component::IRC|POE::Component::IRC>
 plugin. It provides you with a standard interface to define bot commands and
-lets you know when they are issued. Commands are accepted as channel messages.
-However, if someone does C</msg YourBot help>, they will receive a list of
-available commands, and information on how to use them.
+lets you know when they are issued. Commands are accepted as channel or private
+messages. A 'help' command is automatically defined, which will elicit a
+response listing available commands, and information on how to use them.
 
 =head1 METHODS
 
@@ -212,15 +251,22 @@ available commands, and information on how to use them.
 
 Four optional arguments:
 
-B<'Commands'>, a hash reference, with your commands as keys, and usage information
-as values. If the usage string contains newlines, the component will send one
-message for each line.
+B<'Commands'>, a hash reference, with your commands as keys, and usage
+information as values. If the usage string contains newlines, the component
+will send one message for each line.
+
+B<'In_channels'>, a boolean value indicating whether to accept commands in
+channels. Default is true.
+
+B<'In_private'>, a boolean value indicating whether to accept commands in
+private. Default is true.
 
 B<'Addressed'>, requires users to address the bot by name in order
 to issue commands. Default is true.
 
-B<'Prefix'>, if B<'Addressed'> is false, all commands must be prefixed with this
-string. Default is '!'. You can set it to '' to allow bare commands.
+B<'Prefix'>, if B<'Addressed'> is false, all channel commands must be prefixed
+with this string. Default is '!'. You can set it to '' to allow bare channel
+commands.
 
 B<'Eat'>, set to true to make the plugin hide
 L<C<irc_public>|POE::Component::IRC/"irc_public"> events from other plugins if
@@ -253,8 +299,9 @@ You will receive an event like this for every valid command issued. E.g. if
 'slap' were a valid command, you would receive an C<irc_botcmd_slap> event
 every time someone issued that command. C<ARG0> is the nick!hostmask of the
 user who issued the command. C<ARG1> is the name of the channel in which the
-command was issued. If the command was followed by any arguments, C<ARG2>
-will be a string containing them, otherwise C<ARG2> will be undefined.
+command was issued, or the sender's nickname if this was a private message.
+If the command was followed by any arguments, C<ARG2> will be a string
+containing them, otherwise it will be undefined.
 
 =head1 AUTHOR
 

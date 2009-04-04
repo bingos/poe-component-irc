@@ -5,6 +5,7 @@ Revision history for Perl extension POE::Component::IRC.
       for CTCP ACTIONs on FreeNode (Hinrik)
     - AutoJoin.pm: Only join channels after we have asked the server if it
       supports FreeNode's CAPAB IDENTIFY-MSG (Hinrik)
+    - BotCommand.pm: Accept commands in private too (Hinrik)
 
 6.04 Sat Mar  7 23:31:11 GMT 2009
     - Logger.pm: Only use portable strftime parameters. Fixes log timestamps
