@@ -91,12 +91,12 @@ sub _handle_cmd {
     my $irc = $self->{irc};
     $cmd = lc $cmd;
 
-    if ($cmd =~ /^help$/i) {
+    if (defined $self->{Commands}->{$cmd}) {
+        $irc->send_event("irc_botcmd_$cmd" => $who, $where, $args);
+    }
+    elsif ($cmd =~ /^help$/i) {
         my @help = $self->_get_help($cmd);
         $irc->yield(notice => $where => $_) for @help;
-    }
-    elsif (exists $self->{Commands}->{$cmd}) {
-        $irc->send_event("irc_botcmd_$cmd" => $who, $where, $args);
     }
     else {
         return;
@@ -239,11 +239,14 @@ commands issued to your bot
 
 =head1 DESCRIPTION
 
-POE::Component::IRC::Plugin::BotCommand is a L<POE::Component::IRC|POE::Component::IRC>
-plugin. It provides you with a standard interface to define bot commands and
-lets you know when they are issued. Commands are accepted as channel or private
-messages. A 'help' command is automatically defined, which will elicit a
-response listing available commands, and information on how to use them.
+POE::Component::IRC::Plugin::BotCommand is a
+L<POE::Component::IRC|POE::Component::IRC> plugin. It provides you with a
+standard interface to define bot commands and lets you know when they are
+issued. Commands are accepted as channel or private messages.
+
+The plugin will respond to the 'help' command by default, listing available
+commands and information on how to use them. However, if you add a help
+command yourself, that one will be used instead.
 
 =head1 METHODS
 
