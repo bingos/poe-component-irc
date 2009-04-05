@@ -3,6 +3,8 @@ package POE::Component::IRC::Common;
 use strict;
 use warnings;
 
+use Encode qw(decode);
+use Encode::Guess;
 our $VERSION = '6.04';
 
 require Exporter;
@@ -12,7 +14,7 @@ our @EXPORT_OK = qw(
     parse_user irc_ip_get_version irc_ip_is_ipv4 irc_ip_is_ipv6 has_color
     has_formatting strip_color strip_formatting NORMAL BOLD UNDERLINE REVERSE
     WHITE BLACK DARK_BLUE DARK_GREEN RED BROWN PURPLE ORANGE YELLOW LIGHT_GREEN
-    TEAL CYAN LIGHT_BLUE MAGENTA DARK_GREY LIGHT_GREY
+    TEAL CYAN LIGHT_BLUE MAGENTA DARK_GREY LIGHT_GREY irc_to_utf8
 );
 our %EXPORT_TAGS = ( ALL => [@EXPORT_OK] );
 
@@ -223,6 +225,12 @@ sub strip_formatting {
     my $string = shift;
     $string =~ s/[\x0f\x02\x1f\x16\x1d\x11]//g;
     return $string;
+}
+
+sub irc_to_utf8 {
+    my ($line) = @_;
+    my $utf8 = guess_encoding($line, 'utf8');
+    return ref $utf8 ? decode('utf8', $line) : decode('cp1252', $line);
 }
 
 #------------------------------------------------------------------------------
@@ -550,6 +558,19 @@ IRC formatting codes. Due to the fact that both color and formatting codes can
 be cancelled with the same character, this might strip more than you hoped for
 if the string contains both color and formatting codes. Stripping both will
 always do what you expect it to.
+
+=head2 C<irc_to_utf8>
+
+The text you get from L<POE::Component::IRC|POE::Component::IRC> is a raw
+byte string that has no inherent encoding. Most popular clients (mIRC, xchat,
+certain irssi configurations) encode their messages in Microsoft's CP1252
+encoding (their version of Latin-1) when the message fits only contains
+Latin-1 characters, otherwise falling back to UTF-8. Writing something like
+this to a file or a terminal is a recipe for disaster.
+
+This function takes a byte string (e.g. a message from an
+L<C<irc_public>|POE::Component::IRC/"irc_public"> handler) in "IRC encoding"
+and returns a UTF-8 encoded text string.
 
 =head2 C<irc_ip_get_version>
 

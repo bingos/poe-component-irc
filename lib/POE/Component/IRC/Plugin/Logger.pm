@@ -9,7 +9,7 @@ use Fcntl qw(O_WRONLY O_APPEND O_CREAT);
 use File::Spec::Functions qw(catdir catfile);
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Plugin::BotTraffic;
-use POE::Component::IRC::Common qw( l_irc parse_user strip_color strip_formatting );
+use POE::Component::IRC::Common qw( l_irc parse_user strip_color strip_formatting irc_to_utf8);
 use POSIX qw(strftime);
 
 our $VERSION = '6.04';
@@ -412,8 +412,7 @@ sub _open_log {
 
 sub _normalize {
     my ($self, $line) = @_;
-    my $utf8 = guess_encoding($line, 'utf8');
-    $line = ref $utf8 ? decode('utf8', $line) : decode('cp1252', $line);
+    $line = irc_to_utf8($line);
     $line = strip_color($line) if $self->{Strip_color};
     $line = strip_formatting($line) if $self->{Strip_formatting};
     return $line;

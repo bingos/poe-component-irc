@@ -7,6 +7,7 @@ Revision history for Perl extension POE::Component::IRC.
       supports FreeNode's CAPAB IDENTIFY-MSG (Hinrik)
     - BotCommand.pm: Accept commands in private too (Hinrik)
     - CTCP.pm: Handle CLIENTINFO as well (Hinrik)
+    - Common.pm: Added irc_to_utf8 to decode IRC messages (Hinrik)
 
 6.04 Sat Mar  7 23:31:11 GMT 2009
     - Logger.pm: Only use portable strftime parameters. Fixes log timestamps

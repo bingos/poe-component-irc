@@ -2802,6 +2802,17 @@ poco-ircs simultaneously.
 Any additional parameters passed to the signal will become your quit messages
 on each IRC network.
 
+=head1 ENCODING AND CHARACTER SETS
+
+The only requirement the IRC protocol places on its messages is that they be
+8-bits, and in ASCII. This has resulted in most of the Western world settling
+on ASCII-compatible Latin-1 as a convention. Recently, popular clients have
+begun sending a mixture of Latin-1 and UTF-8 over the wire to allow more
+characters without breaking backward compatability (too much). To decode such
+messages reliably, see
+L<C<irc_to_utf8>|POE::Component::IRC::Common/"irc_to_utf8"> in
+L<POE::Component::IRC::Common|POE::Component::IRC::Common>.
+
 =head1 BUGS
 
 A few have turned up in the past and they are sure to again. Please use
