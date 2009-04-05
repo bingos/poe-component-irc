@@ -22,7 +22,7 @@ sub PCI_register {
     my ($self,$irc) = splice @_, 0, 2;
 
     $self->{irc} = $irc;
-    $irc->plugin_register( $self, 'SERVER', qw(ctcp_version ctcp_userinfo ctcp_time ctcp_ping ctcp_source) );
+    $irc->plugin_register( $self, 'SERVER', qw(ctcp_version ctcp_clientinfo ctcp_userinfo ctcp_time ctcp_ping ctcp_source) );
 
     return 1;
 }
@@ -60,6 +60,19 @@ sub S_ctcp_ping {
     
     $irc->yield( ctcpreply => $nick => "PING " . time() );
     
+    return PCI_EAT_CLIENT if $self->eat();
+    return PCI_EAT_NONE;
+}
+
+sub S_ctcp_clientinfo {
+    my ($self, $irc) = splice @_, 0, 2;
+    my $nick = ( split /!/, ${ $_[0] } )[0];
+
+    $irc->yield(ctcpreply => $nick => 'CLIENTINFO ' . ($self->{clientinfo}
+        ? $self->{clientinfo}
+        : 'http://search.cpan.org/perldoc?POE::Component::IRC::Plugin::CTCP'
+    ));
+
     return PCI_EAT_CLIENT if $self->eat();
     return PCI_EAT_NONE;
 }
@@ -156,14 +169,17 @@ Takes a number of optional arguments:
 B<'version'>, a string to send in response to C<irc_ctcp_version>. Default is
 PoCo-IRC and version;
 
-B<'userinfo'>, a string to send in response to C<irc_ctcp_userinfo>. Default is
-'m33p';
+B<'clientinfo'>, a string to send in response to C<irc_ctcp_clientinfo>.
+Default is L<http://search.cpan.org/perldoc?POE::Component::IRC::Plugin::CTCP>.
+
+B<'userinfo'>, a string to send in response to C<irc_ctcp_userinfo>. Default
+is 'm33p';
 
 B<'source'>, a string to send in response to C<irc_ctcp_source>. Default is
 L<http://search.cpan.org/dist/POE-Component-IRC>.
 
-B<'eat'>, by default the plugin uses PCI_EAT_CLIENT, set this to 0 to disable this
-behaviour;
+B<'eat'>, by default the plugin uses PCI_EAT_CLIENT, set this to 0 to disable
+this behaviour;
 
 Returns a plugin object suitable for feeding to
 L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
