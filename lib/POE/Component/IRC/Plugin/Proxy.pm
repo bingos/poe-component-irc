@@ -22,6 +22,10 @@ sub new {
 sub PCI_register {
     my ($self, $irc) = splice @_, 0, 2;
 
+    if (!$irc->isa('POE::Component::IRC::State')) {
+        die __PACKAGE__ . ' requires PoCo::IRC::State or a subclass thereof';
+    }
+
     $irc->raw_events(1);
     $self->{irc} = $irc;
     $irc->plugin_register(
@@ -31,10 +35,6 @@ sub PCI_register {
             S_connected
             S_disconnected
             S_001
-            S_msg
-            S_join
-            S_part
-            S_kick
             S_error
             S_socketerr
             S_raw
@@ -68,7 +68,6 @@ sub PCI_unregister {
 
 sub S_connected {
     my ($self, $irc) = splice @_, 0, 2;
-    delete $self->{iamthis};
     $self->{stashed} = 0;
     $self->{stash} = [ ];
     return PCI_EAT_NONE;
@@ -77,48 +76,7 @@ sub S_connected {
 sub S_001 {
     my ($self, $irc) = splice @_, 0, 2;
     $poe_kernel->post( $self->{SESSION_ID} => '_shutdown' );
-    $irc->yield( 'privmsg' => $irc->nick_name() => "Who am I?" );
-    return PCI_EAT_NONE;
-}
-
-sub S_msg {
-    my ($self ,$irc) = splice @_, 0, 2;
-    my ($who, $userhost) = split /!/, ${ $_[0] };
-
-    return PCI_EAT_NONE if $who ne $irc->nick_name() || $self->{iamthis};
-    $self->{iamthis} = $userhost;
     $poe_kernel->post( $self->{SESSION_ID} => '_spawn_listener' );
-    return PCI_EAT_ALL;
-}
-
-sub S_join {
-    my ($self, $irc) = splice @_, 0, 2;
-    my $joiner = ( split /!/, ${ $_[0] } )[0];
-    my $channel = ${ $_[1] };
-
-    return PCI_EAT_NONE if $joiner ne $irc->nick_name();
-    delete $self->{current_channels}->{ u_irc $channel };
-    $self->{current_channels}->{ u_irc $channel } = $channel;
-    return PCI_EAT_NONE;
-}
-
-sub S_part {
-    my ($self, $irc) = splice @_, 0, 2;
-    my $partee = ( split /!/, ${ $_[0] } )[0];
-    my $channel = u_irc ${ $_[1] };
-
-    return PCI_EAT_NONE if $partee ne $irc->nick_name();
-    delete $self->{current_channels}->{ $channel };
-    return PCI_EAT_NONE;
-}
-
-sub S_kick {
-    my ($self, $irc) = splice @_, 0, 2;
-    my $kicked = u_irc( ${ $_[2] } );
-    my $channel = u_irc ${ $_[1] };
-
-    return PCI_EAT_NONE if $kicked ne u_irc $irc->nick_name(); 
-    delete $self->{current_channels}->{ $channel };
     return PCI_EAT_NONE;
 }
 
@@ -312,14 +270,14 @@ sub _client_input {
                 last SWITCH;
             }
             my $nickname = $self->{irc}->nick_name();
-            my $fullnick = join('!', $nickname, $self->{iamthis} );
+            my $fullnick = $self->{irc}->nick_long_form($nickname);
             if ( $nickname ne $self->{wheels}->{ $wheel_id }->{nick} ) {
                 $self->_send_to_client( $wheel_id, $self->{wheels}->{ $wheel_id }->{nick} . " NICK :$nickname" );
             }
             for my $line ( @{ $self->{stash} } ) {
                 $self->_send_to_client( $wheel_id, $line );
             }
-            for my $channel ( $self->current_channels() ) {
+            for my $channel ( $self->{irc}->nick_channels($nickname) ) {
                 $self->_send_to_client( $wheel_id, ":$fullnick JOIN $channel" );
                 $self->{irc}->yield( 'names' => $channel );
                 $self->{irc}->yield( 'topic' => $channel );
@@ -360,7 +318,6 @@ sub _shutdown {
 
     my $irc = $self->{irc} || $_[ARG0];
 
-    delete $self->{current_channels};
     my $mysockaddr = $self->getsockname();
     delete $self->{listener};
     
@@ -389,12 +346,6 @@ sub wheel_info {
     return if !defined $self->{wheels}->{ $wheel_id };
     return $self->{wheels}->{ $wheel_id }->{start} if !wantarray();
     return map { $self->{wheels}->{ $wheel_id }->{$_} } qw(peer port start lag);
-}
-
-sub current_channels {
-    my ($self) = @_;
-    return if !defined $self->{current_channels} || !keys %{ $self->{current_channels} };
-    return ( map { $self->{current_channels}->{ $_ } } keys %{ $self->{current_channels} } );
 }
 
 1;
@@ -447,6 +398,9 @@ multiple IRC clients to connect.
 
 Neat, huh? >;o)
 
+This plugin requires the IRC component to be
+L<POE::Component::IRC::State|POE::Component::IRC::State> or a subclass thereof.
+
 =head1 METHODS
 
 =head2 C<new>
@@ -461,11 +415,6 @@ B<'bindport'>, what port to bind to, default is 0, ie. randomly allocated by OS;
 
 Returns an object suitable for passing to
 L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
-
-=head2 C<current_channels>
-
-Takes no arguments, returns a list of the channels that the component is
-currently a member of.
 
 =head2 C<getsockname>
 
