@@ -120,7 +120,6 @@ sub S_raw {
     my ($self, $irc) = splice @_, 0, 2;
     my $line = ${ $_[0] };
 
-    return PCI_EAT_NONE if !defined $line;
     return PCI_EAT_ALL if $line =~ /^PING/;
     
     for my $wheel_id ( keys %{ $self->{wheels} } ) {
@@ -132,7 +131,6 @@ sub S_raw {
 
 sub _stash_line {
     my ($self, $line) = splice @_, 0, 2;
-    return if !defined $line;
     return if $self->{stashed};
     
     my ($prefix, $numeric) = ( split / /, $line )[0..1];
