@@ -22,8 +22,7 @@ sub new {
 sub PCI_register {
     my ($self, $irc) = splice @_, 0, 2;
 
-    $self->{raw_events} = $irc->raw_events();
-    $irc->raw_events( '1' );
+    $irc->raw_events(1);
     $self->{irc} = $irc;
     $irc->plugin_register( $self, 'SERVER', qw(all) );
 
@@ -38,7 +37,6 @@ sub PCI_register {
 
 sub PCI_unregister {
     my ($self, $irc) = splice @_, 0, 2;
-    $irc->raw_events( $self->{raw_events} );
     $poe_kernel->post( $self->{SESSION_ID} => '_shutdown' => delete $self->{irc} );
     $poe_kernel->refcount_decrement( $self->{SESSION_ID}, __PACKAGE__ );
     return 1;
