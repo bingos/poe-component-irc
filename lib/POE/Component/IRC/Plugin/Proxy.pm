@@ -7,7 +7,6 @@ use Socket;
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::IRCD 
            Filter::Line Filter::Stackable);
 use POE::Component::IRC::Plugin qw(:ALL);
-use POE::Component::IRC::Common qw(u_irc);
 
 our $VERSION = '6.04';
 
