@@ -205,7 +205,7 @@ sub irc_user_mode {
     
     $mode =~ s/\+//g;
     ok($irc->is_user_mode_set($mode), "User Mode Set: $mode");
-    is($irc->umode(), $mode, 'Corrent user mode in state');
+    is($irc->umode(), $mode, 'Correct user mode in state');
 }
 
 sub irc_mode {
