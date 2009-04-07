@@ -10,6 +10,8 @@ Revision history for Perl extension POE::Component::IRC.
     - Common.pm: Added irc_to_utf8 to decode IRC messages (Hinrik)
     - Proxy.pm: General cleanup. Also fix a bug introduced in 5.66 that caused
       it to keep too many welcome messages (Hinrik)
+    - State.pm: General cleanup. Fixed a bug with the order of irc_nick_sync's
+      arguments being reversed (Hinrik)
 
 6.04 Sat Mar  7 23:31:11 GMT 2009
     - Logger.pm: Only use portable strftime parameters. Fixes log timestamps
