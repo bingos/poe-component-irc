@@ -60,8 +60,8 @@ sub PCI_register {
 
 sub PCI_unregister {
     my ($self, $irc) = splice @_, 0, 2;
-    $poe_kernel->post( $self->{SESSION_ID} => '_shutdown' => delete $self->{irc} );
-    $poe_kernel->refcount_decrement( $self->{SESSION_ID}, __PACKAGE__ );
+    $poe_kernel->post($self->{SESSION_ID} => _shutdown => delete $self->{irc});
+    $poe_kernel->refcount_decrement($self->{SESSION_ID}, __PACKAGE__);
     return 1;
 }
 
@@ -74,26 +74,26 @@ sub S_connected {
 
 sub S_001 {
     my ($self, $irc) = splice @_, 0, 2;
-    $poe_kernel->post( $self->{SESSION_ID} => '_shutdown' );
-    $poe_kernel->post( $self->{SESSION_ID} => '_spawn_listener' );
+    $poe_kernel->post($self->{SESSION_ID} => '_shutdown');
+    $poe_kernel->post($self->{SESSION_ID} => '_spawn_listener');
     return PCI_EAT_NONE;
 }
 
 sub S_disconnected {
     my ($self, $irc) = splice @_, 0, 2;
-    $poe_kernel->post( $self->{SESSION_ID} => '_shutdown' );
+    $poe_kernel->post($self->{SESSION_ID} => '_shutdown');
     return PCI_EAT_NONE;
 }
 
 sub S_socketerr {
     my ($self, $irc) = splice @_, 0, 2;
-    $poe_kernel->post( $self->{SESSION_ID} => '_shutdown' );
+    $poe_kernel->post($self->{SESSION_ID} => '_shutdown');
     return PCI_EAT_NONE;
 }
 
 sub S_error {
     my ($self, $irc) = splice @_, 0, 2;
-    $poe_kernel->post( $self->{SESSION_ID} => '_shutdown' );
+    $poe_kernel->post($self->{SESSION_ID} => '_shutdown');
     return PCI_EAT_NONE;
 }
 
@@ -123,8 +123,8 @@ sub _send_to_client {
     return if !defined $self->{wheels}->{ $wheel_id }->{wheel};
     return if !$self->{wheels}->{ $wheel_id }->{reg};
     
-    $self->{wheels}->{ $wheel_id }->{wheel}->put( $line );
-    return 1;
+    $self->{wheels}->{ $wheel_id }->{wheel}->put($line);
+    return;
 }
 
 sub _close_wheel {
@@ -132,7 +132,7 @@ sub _close_wheel {
     return if !defined $self->{wheels}->{ $wheel_id };
 
     delete $self->{wheels}->{ $wheel_id };
-    $self->{irc}->send_event( 'irc_proxy_close' => $wheel_id );
+    $self->{irc}->send_event(irc_proxy_close => $wheel_id);
     return;
 }
 
@@ -140,21 +140,24 @@ sub _start {
     my ($kernel, $self) = @_[KERNEL, OBJECT];
 
     $self->{SESSION_ID} = $_[SESSION]->ID();
-    $kernel->refcount_increment( $self->{SESSION_ID}, __PACKAGE__ );
+    $kernel->refcount_increment($self->{SESSION_ID}, __PACKAGE__);
+
     $self->{irc_filter} = POE::Filter::IRCD->new();
-    $self->{ircd_filter} = POE::Filter::Stackable->new( Filters => [
-        POE::Filter::Line->new(),
-        $self->{irc_filter}
-    ]);
+    $self->{ircd_filter} = POE::Filter::Stackable->new(
+        Filters => [
+            POE::Filter::Line->new(),
+            $self->{irc_filter},
+        ],
+    );
     
-    if ( $self->{irc}->connected() ) {
-        $kernel->yield( '_spawn_listener' );
+    if ($self->{irc}->connected()) {
+        $kernel->yield('_spawn_listener');
     }
     return;
 }
 
 sub _spawn_listener {
-    my ($kernel, $self) = @_[KERNEL, OBJECT];
+    my $self = $_[OBJECT];
 
     $self->{listener} = POE::Wheel::SocketFactory->new(
         BindAddress  => $self->{bindaddress} || 'localhost',
@@ -170,13 +173,12 @@ sub _spawn_listener {
         return;
     }
     
-    $self->{irc}->send_event( 'irc_proxy_up' => $self->{listener}->getsockname() );
+    $self->{irc}->send_event(irc_proxy_up => $self->{listener}->getsockname());
     return;
 }
 
 sub _listener_accept {
-    my ($kernel, $self, $socket, $peeradr, $peerport)
-        = @_[KERNEL, OBJECT, ARG0 .. ARG2];
+    my ($self, $socket, $peeradr, $peerport) = @_[OBJECT, ARG0 .. ARG2];
 
     my $wheel = POE::Wheel::ReadWrite->new(
         Handle       => $socket,
@@ -187,18 +189,18 @@ sub _listener_accept {
         FlushedEvent => '_client_flush',
     );
 
-    if ( $wheel ) {
+    if ($wheel) {
         my $wheel_id = $wheel->ID();
         $self->{wheels}->{ $wheel_id }->{wheel} = $wheel;
         $self->{wheels}->{ $wheel_id }->{port} = $peerport;
         $self->{wheels}->{ $wheel_id }->{peer} = inet_ntoa( $peeradr );
-        $self->{wheels}->{ $wheel_id }->{start} = time();
+        $self->{wheels}->{ $wheel_id }->{start} = time;
         $self->{wheels}->{ $wheel_id }->{reg} = 0;
         $self->{wheels}->{ $wheel_id }->{register} = 0;
-        $self->{irc}->send_event( 'irc_proxy_connect' => $wheel_id );
+        $self->{irc}->send_event(irc_proxy_connect => $wheel_id);
     }
     else {
-        $self->{irc}->send_event( 'irc_proxy_rw_fail' => inet_ntoa( $peeradr ) => $peerport );
+        $self->{irc}->send_event(irc_proxy_rw_fail => inet_ntoa( $peeradr ) => $peerport);
     }
     
     return;
@@ -210,17 +212,17 @@ sub _listener_failed {
 }
 
 sub _client_flush {
-    my ($kernel, $self, $wheel_id) = @_[KERNEL, OBJECT, ARG0];
+    my ($self, $wheel_id) = @_[OBJECT, ARG0];
 
     return if !defined $self->{wheels}->{ $wheel_id } || !$self->{wheels}->{ $wheel_id }->{quiting};
-    $self->_close_wheel( $wheel_id );
+    $self->_close_wheel($wheel_id);
     return;
 }
 
 # this code needs refactoring
 ## no critic (Subroutines::ProhibitExcessComplexity)
 sub _client_input {
-    my ($kernel, $self, $input, $wheel_id) = @_[KERNEL, OBJECT, ARG0, ARG1];
+    my ($self, $input, $wheel_id) = @_[OBJECT, ARG0, ARG1];
 
     SWITCH: {
         if ( $self->{wheels}->{ $wheel_id }->{quiting} ) {
@@ -289,14 +291,12 @@ sub _client_input {
 sub _client_error {
     my ($self, $wheel_id) = @_[OBJECT, ARG3];
 
-    $self->_close_wheel( $wheel_id );
+    $self->_close_wheel($wheel_id);
     return;
 }
 
 sub _shutdown {
-    my ($kernel, $self) = @_[KERNEL, OBJECT];
-
-    my $irc = $self->{irc} || $_[ARG0];
+    my $self = $_[OBJECT];
 
     my $mysockaddr = $self->getsockname();
     delete $self->{listener};
@@ -305,26 +305,26 @@ sub _shutdown {
         $self->_close_wheel( $wheel_id );
     }
     delete $self->{wheels};
-    $irc->send_event( 'irc_proxy_down' => $mysockaddr );
+    $self->{irc}->send_event(irc_proxy_down => $mysockaddr);
     
     return;
 }
 
 sub getsockname {
-    my $self = shift;
+    my ($self) = @_;
     return if !$self->{listener};
     return $self->{listener}->getsockname();
 }
 
 sub list_wheels {
-    my $self = shift;
+    my ($self) = @_;
     return keys %{ $self->{wheels} };
 }
 
 sub wheel_info {
     my ($self, $wheel_id) = @_;
     return if !defined $self->{wheels}->{ $wheel_id };
-    return $self->{wheels}->{ $wheel_id }->{start} if !wantarray();
+    return $self->{wheels}->{ $wheel_id }->{start} if !wantarray;
     return map { $self->{wheels}->{ $wheel_id }->{$_} } qw(peer port start lag);
 }
 
