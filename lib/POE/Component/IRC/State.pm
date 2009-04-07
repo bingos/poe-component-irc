@@ -15,7 +15,7 @@ our $VERSION = '6.04';
 # RPL_WELCOME
 # Make sure we have a clean STATE when we first join the network and if we inadvertently get disconnected
 sub S_001 {
-    my $self = shift;
+    my ($self) = @_;
     delete $self->{STATE};
     $self->{STATE}->{usermode} = '';
     $self->yield(mode => $self->{RealNick} );
@@ -23,7 +23,7 @@ sub S_001 {
 }
 
 sub S_disconnected {
-    my $self = shift;
+    my ($self) = @_;
     my $nickinfo = $self->nick_info( $self->{RealNick} );
     my $channels = $self->channels();
     push @{ $_[-1] }, $nickinfo, $channels;
@@ -32,7 +32,7 @@ sub S_disconnected {
 }
 
 sub S_error {
-    my $self = shift;
+    my ($self) = @_;
     my $nickinfo = $self->nick_info( $self->{RealNick} );
     my $channels = $self->channels();
     push @{ $_[-1] }, $nickinfo, $channels;
@@ -41,7 +41,7 @@ sub S_error {
 }
 
 sub S_socketerr {
-    my $self = shift;
+    my ($self) = @_;
     my $nickinfo = $self->nick_info( $self->{RealNick} );
     my $channels = $self->channels();
     push @{ $_[-1] }, $nickinfo, $channels;
@@ -542,7 +542,7 @@ sub S_347 {
 
 # RPL_EXCEPTLIST
 sub S_348 {
-    my ($self,$irc) = splice @_, 0, 2;
+    my ($self, $irc) = splice @_, 0, 2;
     
     my $mapping = $irc->isupport('CASEMAPPING');
     #my @args = split / /, ${ $_[1] };
@@ -649,14 +649,14 @@ sub S_333 {
 #
 
 sub umode {
-    my $self = shift;
+    my ($self) = @_;
     return $self->{STATE}->{usermode};
 }
 
 sub is_user_mode_set {
-    my $self = shift;
+    my ($self, $mode) = @_;
     
-    my $mode = ( split //, $_[0] )[0] || return;
+    $mode = (split //, $mode)[0] || return;
     $mode =~ s/[^A-Za-z]//g;
     return if !$mode;
     
