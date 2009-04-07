@@ -99,42 +99,23 @@ sub S_error {
 
 sub S_raw {
     my ($self, $irc) = splice @_, 0, 2;
-    my $line = ${ $_[0] };
+    my $line  = ${ $_[0] };
+    my $input = $self->{irc_filter}->get( [$line] )->[0];
 
-    return PCI_EAT_ALL if $line =~ /^PING/;
+    return PCI_EAT_ALL if $input->{command} eq 'PING';
     
-    for my $wheel_id ( keys %{ $self->{wheels} } ) {
-        $self->_send_to_client( $wheel_id, $line );
+    for my $wheel_id (keys %{ $self->{wheels} }) {
+        $self->_send_to_client($wheel_id, $line);
     }
-    $self->_stash_line( $line );
+
+    return PCI_EAT_ALL if $self->{stashed};
+    
+    if ($input->{command} =~ /^(?:NOTICE|\d{3})$/) {
+        push @{ $self->{stash} }, $line;
+    }
+    
+    $self->{stashed} = 1 if $input->{command} =~ /^(?:376|422)$/;
     return PCI_EAT_ALL;
-}
-
-sub _stash_line {
-    my ($self, $line) = splice @_, 0, 2;
-    return if $self->{stashed};
-    
-    my ($prefix, $numeric) = ( split / /, $line )[0..1];
-    if ( $prefix eq 'NOTICE' ) {
-        push @{ $self->{stash} }, $line;
-        return;
-    }
-    
-    $prefix =~ s/^://;
-    if ( defined $self->{irc}->server_name and $numeric eq 'NOTICE' and $prefix eq $self->{irc}->server_name() ) {
-        push @{ $self->{stash} }, $line;
-        return;
-    }
-
-    return if !$numeric || $numeric =~ /^\d{3,3}$/;
-    if ( $numeric eq '376' or $numeric eq '422' ) {
-        push @{ $self->{stash} }, $line;
-        $self->{stashed} = 1;
-        return;
-    }
-
-    push @{ $self->{stash} }, $line;
-    return;
 }
 
 sub _send_to_client {
