@@ -31,7 +31,7 @@ and over until it makes some sense.
 The latest stable version of POE::Component::IRC will be available on
 CPAN, in the directory /authors/id/B/BI/BINGOS/
 
-The real bleeding-edge stuff is in the PoCo-IRC svn repository, which is
+The real bleeding-edge stuff is in the PoCo-IRC git repository, which is
 available at git://github.com/bingos/poe-component-irc.git
 
 
@@ -41,7 +41,7 @@ available at git://github.com/bingos/poe-component-irc.git
 POE. (Duh. :-)  Specifically, version 0.3202 or better.
 Perl 5.6.0 or later is required.
 
-POE::Component::Pluggable 1.06 or later is also needed.
+POE::Component::Pluggable 1.12 or later is also needed.
 
 If the module finds POE::Component::Client::DNS installed it
 will use it to resolve the IP address of the servername given to connect.

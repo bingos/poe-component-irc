@@ -776,9 +776,9 @@ established.
 
 =item * C<ARG3>: the port number
 
-=item * C<ARG4>: the file name (SEND only)
+=item * C<ARG4>: the file name (SEND/GET only)
 
-=item * C<ARG5>: the file size (SEND only)
+=item * C<ARG5>: the file size (SEND/GET only)
 
 =item * C<ARG6>: the peer's IP address
 
@@ -865,11 +865,11 @@ Abnormal terminations are reported by L<C<irc_dcc_error>|/"irc_dcc_error">.
 
 =item * C<ARG3>: the port number
 
-=item * C<ARG4>: the filename (SEND only)
+=item * C<ARG4>: the filename (SEND/GET only)
 
-=item * C<ARG5>: file size (SEND only)
+=item * C<ARG5>: file size (SEND/GET only)
 
-=item * C<ARG6>: transferred file size (SEND only)
+=item * C<ARG6>: transferred file size (SEND/GET only)
 
 =item * C<ARG7>: the peer's IP address
 
