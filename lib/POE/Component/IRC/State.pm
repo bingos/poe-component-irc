@@ -19,13 +19,13 @@ sub S_001 {
     my ($self) = @_;
     delete $self->{STATE};
     $self->{STATE}->{usermode} = '';
-    $self->yield(mode => $self->{RealNick} );
+    $self->yield(mode => $self->nick_name());
     return PCI_EAT_NONE;
 }
 
 sub S_disconnected {
     my ($self) = @_;
-    my $nickinfo = $self->nick_info( $self->{RealNick} );
+    my $nickinfo = $self->nick_info($self->nick_name());
     my $channels = $self->channels();
     push @{ $_[-1] }, $nickinfo, $channels;
     delete $self->{STATE};
@@ -34,7 +34,7 @@ sub S_disconnected {
 
 sub S_error {
     my ($self) = @_;
-    my $nickinfo = $self->nick_info( $self->{RealNick} );
+    my $nickinfo = $self->nick_info($self->nick_name());
     my $channels = $self->channels();
     push @{ $_[-1] }, $nickinfo, $channels;
     delete $self->{STATE};
@@ -43,7 +43,7 @@ sub S_error {
 
 sub S_socketerr {
     my ($self) = @_;
-    my $nickinfo = $self->nick_info( $self->{RealNick} );
+    my $nickinfo = $self->nick_info($self->nick_name());
     my $channels = $self->channels();
     push @{ $_[-1] }, $nickinfo, $channels;
     delete $self->{STATE};
@@ -207,6 +207,7 @@ sub S_nick {
 
     push @{ $_[-1] }, [ $self->nick_channels( $nick ) ];
 
+    # what the baseclass would have done
     $self->{RealNick} = $new if $nick eq $self->{RealNick};
 
     if ($unick eq $unew) {
@@ -289,7 +290,7 @@ sub S_mode {
     my $alwaysarg = join '', $statmodes,  @{ $chanmodes }[0 .. 1];
 
     # Do nothing if it is UMODE
-    if ($uchan ne u_irc($self->{RealNick}, $map)) {
+    if ($uchan ne u_irc($irc->nick_name(), $map)) {
         my $parsed_mode = parse_mode_line( $prefix, $chanmodes, @modes );
         for my $mode (@{ $parsed_mode->{modes} }) {
             my $arg;
@@ -703,14 +704,13 @@ sub _nick_has_channel_mode {
 # whether it has operator, halfop or voice.
 sub channels {
     my ($self) = @_;
-    
-    my $map = $self->isupport('CASEMAPPING');
-    my %result;
-    my $realnick = u_irc($self->{RealNick}, $map);
+    my $map    = $self->isupport('CASEMAPPING');
+    my $unick  = u_irc($self->nick_name(), $map);
 
-    if ($self->_nick_exists($realnick)) {
-        for my $uchan ( keys %{ $self->{STATE}->{Nicks}->{ $realnick }->{CHANS} } ) {
-            $result{ $self->{STATE}->{Chans}->{ $uchan }->{Name} } = $self->{STATE}->{Nicks}->{ $realnick }->{CHANS}->{ $uchan };
+    my %result;
+    if (defined $unick && $self->_nick_exists($unick)) {
+        for my $uchan ( keys %{ $self->{STATE}->{Nicks}->{ $unick }->{CHANS} } ) {
+            $result{ $self->{STATE}->{Chans}->{ $uchan }->{Name} } = $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan };
         }
     }
     
@@ -771,7 +771,7 @@ sub is_away {
     my $map   = $self->isupport('CASEMAPPING');
     my $unick = u_irc($nick, $map);
 
-    if ($unick eq u_irc($self->{RealNick})) {
+    if ($unick eq u_irc($self->nick_name())) {
         # more accurate
         return 1 if $self->{STATE}->{away};
         return;
