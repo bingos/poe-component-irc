@@ -3,8 +3,8 @@ package POE::Component::IRC::State;
 use strict;
 use warnings;
 use POE;
-use POE::Component::IRC::Common qw(:ALL);
-use POE::Component::IRC::Plugin qw(:ALL);
+use POE::Component::IRC::Common qw(u_irc parse_mode_line parse_ban_mask);
+use POE::Component::IRC::Plugin qw(PCI_EAT_NONE);
 use base qw(POE::Component::IRC);
 
 our $VERSION = '6.04';
