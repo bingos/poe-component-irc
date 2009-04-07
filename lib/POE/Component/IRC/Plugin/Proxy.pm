@@ -297,6 +297,7 @@ sub _client_error {
 
 sub _shutdown {
     my $self = $_[OBJECT];
+    my $irc = $self->{irc} || $_[ARG0];
 
     my $mysockaddr = $self->getsockname();
     delete $self->{listener};
@@ -305,7 +306,7 @@ sub _shutdown {
         $self->_close_wheel( $wheel_id );
     }
     delete $self->{wheels};
-    $self->{irc}->send_event(irc_proxy_down => $mysockaddr);
+    $irc->send_event(irc_proxy_down => $mysockaddr);
     
     return;
 }
