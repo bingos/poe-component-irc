@@ -23,7 +23,7 @@ NOTICE
 
 _no_dns() unless $GOT_DNS;
 
-auto_set_repository;
+eval "auto_set_repository()";
 name 'POE-Component-IRC';
 license 'perl';
 author 'Chris Williams <chris@bingosnet.co.uk>';

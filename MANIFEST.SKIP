@@ -1,0 +1,3 @@
+^inc/Module/Install/Repository.pm
+^MANIFEST.SKIP
+^.git
