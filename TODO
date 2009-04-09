@@ -1,8 +1,11 @@
 Test failures
 --------------------------
 
-These tests fail on 6.04, but only on non-Linux systems, so I can't reproduce
-the failures myself (Hinrik):
+These tests fail on 6.04.
+
+I haven't been able to reproduce these FAILs on my machines. Maybe that's
+because I only have Linux ones, and all these failures were reported on
+non-Linux machines. -- Hinrik
 
 ~~~~~~~~
 * FAIL  3478590 5.10.0 on Netbsd 4.0.1 (alpha-netbsd)
