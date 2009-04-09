@@ -62,7 +62,7 @@ messages. Weird.
     Dubious, test returned 2 (wstat 512, 0x200)
     Failed 2/13 subtests 
 
-t/04_plugins/17_dcc/03_send.t passes on this machine, so maybe the FAIL it has
+t/04_plugins/17_dcc/03_send.t passes on this machine, so maybe the FAIL has
 something to do with spaces in filenames on Windows?
 
 
