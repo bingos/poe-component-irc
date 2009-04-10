@@ -379,6 +379,10 @@ multiple IRC clients to connect.
 
 Neat, huh? >;o)
 
+This plugin will activate L<POE::Component::IRC|POE::Component::IRC>'s raw
+events (L<C<irc_raw>|POE::Component::IRC/"irc_raw">) by calling
+C<< $irc->raw_events(1) >>.
+
 This plugin requires the IRC component to be
 L<POE::Component::IRC::State|POE::Component::IRC::State> or a subclass thereof.
 

@@ -2651,9 +2651,9 @@ Similar to the above, except some keys will be missing.
 =head3 C<irc_raw>
 
 Enabled by passing C<< Raw => 1 >> to L<C<spawn>|/"spawn"> or
-L<C<connect>|/"connect">, C<ARG0> is the raw IRC string received by the
-component from the IRC server, before it has been mangled by filters and
-such like.
+L<C<connect>|/"connect">, or by calling L<C<raw_events>|/"raw_events"> with
+a true argument. C<ARG0> is the raw IRC string received by the component from
+the IRC server, before it has been mangled by filters and such like.
 
 =head3 C<irc_registered>
 
