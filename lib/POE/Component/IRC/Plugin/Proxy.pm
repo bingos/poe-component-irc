@@ -6,7 +6,7 @@ use Carp;
 use Socket;
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::IRCD 
            Filter::Line Filter::Stackable);
-use POE::Component::IRC::Plugin qw(:ALL);
+use POE::Component::IRC::Plugin qw(PCI_EAT_NONE);
 
 our $VERSION = '6.04';
 
@@ -102,20 +102,20 @@ sub S_raw {
     my $line  = ${ $_[0] };
     my $input = $self->{irc_filter}->get( [$line] )->[0];
 
-    return PCI_EAT_ALL if $input->{command} eq 'PING';
+    return PCI_EAT_NONE if $input->{command} eq 'PING';
     
     for my $wheel_id (keys %{ $self->{wheels} }) {
         $self->_send_to_client($wheel_id, $line);
     }
 
-    return PCI_EAT_ALL if $self->{stashed};
+    return PCI_EAT_NONE if $self->{stashed};
     
     if ($input->{command} =~ /^(?:NOTICE|\d{3})$/) {
         push @{ $self->{stash} }, $line;
     }
     
     $self->{stashed} = 1 if $input->{command} =~ /^(?:376|422)$/;
-    return PCI_EAT_ALL;
+    return PCI_EAT_NONE;
 }
 
 sub _send_to_client {
