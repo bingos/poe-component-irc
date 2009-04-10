@@ -223,68 +223,81 @@ sub _client_flush {
 ## no critic (Subroutines::ProhibitExcessComplexity)
 sub _client_input {
     my ($self, $input, $wheel_id) = @_[OBJECT, ARG0, ARG1];
+    my ($irc, $wheels) = ($self->{irc}, $self->{wheels});
 
-    SWITCH: {
-        if ( $self->{wheels}->{ $wheel_id }->{quiting} ) {
-            last SWITCH;
-        }
-        if ( $input->{command} eq 'QUIT' ) {
-            $self->_close_wheel( $wheel_id );
-            last SWITCH;
-        }
-        if ( $input->{command} eq 'PASS' and $self->{wheels}->{ $wheel_id }->{reg} < 2 ) {
-            $self->{wheels}->{ $wheel_id }->{pass} = $input->{params}->[0];
-        }
-        if ( $input->{command} eq 'NICK' and $self->{wheels}->{ $wheel_id }->{reg} < 2 ) {
-            $self->{wheels}->{ $wheel_id }->{nick} = $input->{params}->[0];
-            $self->{wheels}->{ $wheel_id }->{register}++;
-        }
-        if ( $input->{command} eq 'USER' and $self->{wheels}->{ $wheel_id }->{reg} < 2 ) {
-            $self->{wheels}->{ $wheel_id }->{user} = $input->{params}->[0];
-            $self->{wheels}->{ $wheel_id }->{register}++;
-        }
-        if ( ( not $self->{wheels}->{ $wheel_id }->{reg} ) and $self->{wheels}->{ $wheel_id }->{register} >= 2 ) {
-            my $password = delete $self->{wheels}->{ $wheel_id }->{pass};
-            $self->{wheels}->{ $wheel_id }->{reg} = 1;
-            if ( !$password || $password ne $self->{password} ) {
-                $self->_send_to_client( $wheel_id => 'ERROR :Closing Link: * [' . ( $self->{wheels}->{ $wheel_id }->{user} || "unknown" ) . '@' . $self->{wheels}->{ $wheel_id }->{peer} . '] (Unauthorised connection)' );
-                $self->{wheels}->{ $wheel_id }->{quiting}++;
-                last SWITCH;
-            }
-            my $nickname = $self->{irc}->nick_name();
-            my $fullnick = $self->{irc}->nick_long_form($nickname);
-            if ( $nickname ne $self->{wheels}->{ $wheel_id }->{nick} ) {
-                $self->_send_to_client( $wheel_id, $self->{wheels}->{ $wheel_id }->{nick} . " NICK :$nickname" );
-            }
-            for my $line ( @{ $self->{stash} } ) {
-                $self->_send_to_client( $wheel_id, $line );
-            }
-            for my $channel ( $self->{irc}->nick_channels($nickname) ) {
-                $self->_send_to_client( $wheel_id, ":$fullnick JOIN $channel" );
-                $self->{irc}->yield( 'names' => $channel );
-                $self->{irc}->yield( 'topic' => $channel );
-            }
-            $self->{irc}->send_event( 'irc_proxy_authed' => $wheel_id );
-            last SWITCH;
-        }
-    
-        if ( !$self->{wheels}->{ $wheel_id }->{reg} ) {
-            last SWITCH;
-        }
-        if ( $input->{command} eq 'NICK' or $input->{command} eq 'USER' or $input->{command} eq 'PASS' ) {
-            last SWITCH;
-        }
-        if ( $input->{command} eq 'PING' ) {
-            $self->_send_to_client( $wheel_id, 'PONG ' . $input->{params}->[0] );
-            last SWITCH;
-        }
-        if ( $input->{command} eq 'PONG' and $input->{params}->[0] =~ /^[0-9]+$/ ) {
-            $self->{wheels}->{ $wheel_id }->{lag} = time() - $input->{params}->[0];
-            last SWITCH;
-        }
-        $self->{irc}->yield( lc ( $input->{command} ) => @{ $input->{params} } );
+    return if $wheels->{$wheel_id}{quiting};
+
+    if ($input->{command} eq 'QUIT') {
+        $self->_close_wheel($wheel_id);
+        return;
     }
 
+    if ($input->{command} eq 'PASS' && $wheels->{$wheel_id}{reg} < 2) {
+        $wheels->{$wheel_id}{pass} = $input->{params}[0];
+    }
+
+    if ($input->{command} eq 'NICK' && $wheels->{$wheel_id}{reg} < 2) {
+        $wheels->{$wheel_id}{nick} = $input->{params}[0];
+        $wheels->{$wheel_id}{register}++;
+    }
+
+    if ($input->{command} eq 'USER' && $wheels->{$wheel_id}{reg} < 2) {
+        $wheels->{$wheel_id}{user} = $input->{params}[0];
+        $wheels->{$wheel_id}{register}++;
+    }
+
+    if (!$wheels->{$wheel_id}{reg} && $wheels->{$wheel_id}{register} >= 2) {
+        my $password = delete $wheels->{$wheel_id}{pass};
+        $wheels->{$wheel_id}{reg} = 1;
+
+        if (!$password || $password ne $self->{password}) {
+            $self->_send_to_client($wheel_id,
+                'ERROR :Closing Link: * ['
+                . ($wheels->{$wheel_id}{user} || 'unknown')
+                . '@' . $wheels->{$wheel_id}{peer}
+                . '] (Unauthorised connection)'
+            );
+            $wheels->{$wheel_id}{quiting}++;
+            return;
+        }
+
+        my $nickname = $irc->nick_name();
+        my $fullnick = $irc->nick_long_form($nickname);
+        if ($nickname ne $wheels->{$wheel_id}{nick}) {
+            $self->_send_to_client($wheel_id, "$wheels->{$wheel_id}{nick} NICK :$nickname");
+        }
+
+        for my $line (@{ $self->{stash} }) {
+            $self->_send_to_client($wheel_id, $line);
+        }
+
+        for my $channel ($irc->nick_channels($nickname)) {
+            $self->_send_to_client($wheel_id, ":$fullnick JOIN $channel");
+            $irc->yield(names => $channel);
+            $irc->yield(topic => $channel);
+        }
+
+        $irc->send_event(irc_proxy_authed => $wheel_id);
+        return;
+    }
+
+    return if !$wheels->{$wheel_id}{reg};
+
+    if ($input->{command} =~ /^(?:NICK|USER|PASS)$/) {
+        return;
+    }
+
+    if ($input->{command} eq 'PING') {
+        $self->_send_to_client($wheel_id, "PONG $input->{params}[0]");
+        return;
+    }
+
+    if ($input->{command} eq 'PONG' and $input->{params}[0] =~ /^[0-9]+$/) {
+        $wheels->{$wheel_id}{lag} = time() - $input->{params}[0];
+        return;
+    }
+
+    $irc->yield(quote => $input->{raw_line});
     return;
 }
 
