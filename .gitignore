@@ -1,5 +1,6 @@
 Changes.resume
 Makefile
+Makefile.old
 POE-Component-IRC-*
 README.send
 blib
