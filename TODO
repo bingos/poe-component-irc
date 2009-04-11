@@ -39,8 +39,20 @@ verbose test output, so I'd know which test ran more often than it should have.
     Dubious, test returned 1 (wstat 256, 0x100)
     Failed 5/12 subtests 
 
-Timeout after 7 tests. That means the plugman bot didn't receive any channel
-messages. Weird.
+Additional diagnostics reveal this:
+
+  # Logged in
+  # Logged in
+  # Joined Channel Test
+  # Joined Channel Test
+  # Got command
+  # Got command
+  # Got command
+
+That means the plugman bot receives the commands, but doesn't output anything
+to the channel. So the plugin_add/plugin_reload/plugin/del commands failed.
+Maybe PlugMan->load() doesn't work on Darwin/Solaris, causing PlugMan to raise
+an exception in for every command before outputing anything.
 
 
 ~~~~~~~~
