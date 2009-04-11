@@ -213,6 +213,7 @@ sub verify_log {
     open my $log, '<', $file or die "Can't open log file '$file': $!";
     my @lines = <$log>;
     close $log;
+    diag($_) for @lines;
 
     my $check = 0;
     for my $line (@lines) {
