@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+6.06
+    - NickServID.pm: Update a paragraph in the Pod (Hinrik)
+
 6.05_01 Sat Apr 11 09:18:28 GMT 2009
     - Compat.pm: Don't emit an extra event or print a misleading debug message
       for CTCP ACTIONs on FreeNode (Hinrik)
