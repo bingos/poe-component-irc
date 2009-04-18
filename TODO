@@ -80,6 +80,7 @@ something to do with spaces in filenames on Windows?
 
 ~~~~~~~~
 * FAIL  3420198 5.10.0 on Darwin 9.1.0 (darwin-thread-multi-2level)
+* FAIL  3712547 5.8.9 on Linux 2.6.18-92.1.18.el5 (s390x-linux)
 ~~~~~~~~
 
     #   Failed test 'Line 14'
