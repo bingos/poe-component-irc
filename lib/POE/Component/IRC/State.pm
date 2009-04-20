@@ -28,7 +28,6 @@ sub S_disconnected {
     my $nickinfo = $self->nick_info($self->nick_name());
     my $channels = $self->channels();
     push @{ $_[-1] }, $nickinfo, $channels;
-    delete $self->{STATE};
     return PCI_EAT_NONE;
 }
 
@@ -37,7 +36,6 @@ sub S_error {
     my $nickinfo = $self->nick_info($self->nick_name());
     my $channels = $self->channels();
     push @{ $_[-1] }, $nickinfo, $channels;
-    delete $self->{STATE};
     return PCI_EAT_NONE;
 }
 
@@ -46,7 +44,6 @@ sub S_socketerr {
     my $nickinfo = $self->nick_info($self->nick_name());
     my $channels = $self->channels();
     push @{ $_[-1] }, $nickinfo, $channels;
-    delete $self->{STATE};
     return PCI_EAT_NONE;
 }
 
