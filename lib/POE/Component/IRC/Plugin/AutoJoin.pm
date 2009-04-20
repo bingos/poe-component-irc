@@ -3,8 +3,8 @@ package POE::Component::IRC::Plugin::AutoJoin;
 use strict;
 use warnings;
 use Carp;
-use POE::Component::IRC::Plugin qw( :ALL );
-use POE::Component::IRC::Common qw( parse_user );
+use POE::Component::IRC::Plugin qw(:ALL);
+use POE::Component::IRC::Common qw(parse_user l_irc);
 
 our $VERSION = '6.05_01';
 
@@ -24,22 +24,45 @@ sub PCI_register {
     
     if (!$self->{Channels}) {
         for my $chan (keys %{ $irc->channels() }) {
-            $self->{Channels}->{$chan} = $irc->channel_key($chan);
+            my $lchan = l_irc($chan, $irc->isupport('MAPPING'));
+            my $key = $irc->is_channel_mode_set($chan, 'k')
+                ? $irc->channel_key($chan)
+                : ''
+            ;
+
+            $self->{Channels}->{$lchan} = $key;
         }
     }
     elsif (ref $self->{Channels} eq 'ARRAY') {
-        my $channels;
-        $channels->{$_} = '' for @{ $self->{Channels} };
-        $self->{Channels} = $channels;
+        my %channels;
+        $channels{l_irc($_, $irc->isupport('MAPPING'))} = '' for @{ $self->{Channels} };
+        $self->{Channels} = \%channels;
     }
 
+    $self->{tried_keys} = { };
     $self->{Rejoin_delay} = 5 if !defined $self->{Rejoin_delay};
-    $irc->plugin_register($self, 'SERVER', qw(474 isupport chan_mode join kick part));
+    $irc->plugin_register($self, 'SERVER', qw(001 004 474 isupport chan_mode join_sync kick part));
+    $irc->plugin_register($self, 'USER', qw(join));
     return 1;
 }
 
 sub PCI_unregister {
     return 1;
+}
+
+sub S_001 {
+    my ($self, $irc) = splice @_, 0, 2;
+    delete $self->{masked_key};
+}
+
+# RPL_MYINFO
+sub S_004 {
+    my ($self, $irc) = splice @_, 0, 2;
+    my $version = ${ $_[2] }->[1];
+
+    # ircu returns '*' to non-ops instead of the real channel key
+    $self->{masked_key} = 1 if $version =~ /^u\d/;
+    return PCI_EAT_NONE;
 }
 
 # we join channels after irc_isupport for two reasons:
@@ -59,32 +82,43 @@ sub S_isupport {
 # ERR_BANNEDFROMCHAN
 sub S_474 {
     my ($self, $irc) = splice @_, 0, 2;
-    my $chan = ${ $_[2] }->[0];
+    my $chan  = ${ $_[2] }->[0];
+    my $lchan = l_irc($chan, $irc->isupport('MAPPING'));
     return if !$self->{Retry_when_banned};
 
-    my $pass = defined $self->{Channels}->{$chan} ? $self->{Channels}->{$chan} : '';
-    $irc->delay([join => $chan => $pass ], $self->{Retry_when_banned});
+    my $key = $self->{tried_keys}->{$lchan};
+    $irc->delay([join => $chan => $key], $self->{Retry_when_banned});
     return PCI_EAT_NONE;
 }
 
 sub S_chan_mode {
     my ($self, $irc) = splice @_, 0, 2;
-    my $chan = ${ $_[1] };
-    my $mode = ${ $_[2] };
-    my $arg  = ${ $_[3] };
+    my $chan  = ${ $_[1] };
+    my $mode  = ${ $_[2] };
+    my $arg   = ${ $_[3] };
+    my $lchan = l_irc($chan, $irc->isupport('MAPPING'));
 
-    $self->{Channels}->{$chan} = $arg if $mode eq '+k';
-    $self->{Channels}->{$chan} = '' if $mode eq '-k';
+    $self->{Channels}->{$lchan} = $arg if $mode eq '+k';
+    $self->{Channels}->{$lchan} = '' if $mode eq '-k';
     return PCI_EAT_NONE;
 }
 
-sub S_join {
+sub S_join_sync {
     my ($self, $irc) = splice @_, 0, 2;
     my $joiner = parse_user(${ $_[0] });
     my $chan   = ${ $_[1] };
+    my $lchan  = l_irc($chan, $irc->isupport('MAPPING'));
 
+    my $key = $irc->channel_key($chan);
     if ($joiner eq $irc->nick_name()) {
-        $self->{Channels}->{$chan} = $irc->channel_key($chan);
+        if (defined $key) {
+            $key = $self->{tried_keys}->{$lchan} if $self->{masked_key};
+            delete $self->{tried_keys}->{$lchan};
+            $self->{Channels}->{$lchan} = $key;
+        }
+        else {
+            $self->{Channels}->{$lchan} = '';
+        }
     }
     return PCI_EAT_NONE;
 }
@@ -93,12 +127,13 @@ sub S_kick {
     my ($self, $irc) = splice @_, 0, 2;
     my $chan   = ${ $_[1] };
     my $victim = ${ $_[2] };
+    my $lchan  = l_irc($chan, $irc->isupport('MAPPING'));
 
     if ($victim eq $irc->nick_name()) {
         if ($self->{RejoinOnKick}) {
-            $irc->delay([join => $chan => $self->{Channels}->{$chan}], $self->{Rejoin_delay});
+            $irc->delay([join => $chan => $self->{Channels}->{$lchan}], $self->{Rejoin_delay});
         }
-        delete $self->{Channels}->{$chan};
+        delete $self->{Channels}->{$lchan};
     }
     return PCI_EAT_NONE;
 }
@@ -107,8 +142,19 @@ sub S_part {
     my ($self, $irc) = splice @_, 0, 2;
     my $parter = parse_user(${ $_[0] });
     my $chan   = ${ $_[1] };
+    my $lchan  = l_irc($chan, $irc->isupport('MAPPING'));
 
-    delete $self->{Channels}->{$chan} if $parter eq $irc->nick_name();
+    delete $self->{Channels}->{$lchan} if $parter eq $irc->nick_name();
+    return PCI_EAT_NONE;
+}
+
+sub U_join {
+    my ($self, $irc) = splice @_, 0, 2;
+    my (undef, $chan, $key) = split /\s/, ${ $_[0] }, 3;
+    my $lchan = l_irc($chan, $irc->isupport('MAPPING'));
+    $key = '' if !defined $key;
+
+    $self->{tried_keys}->{$lchan} = $key;
     return PCI_EAT_NONE;
 }
 

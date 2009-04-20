@@ -4,6 +4,7 @@ Revision history for Perl extension POE::Component::IRC.
     - NickServID.pm: Update a paragraph in the Pod (Hinrik)
     - State.pm: Don't delete all state in S_(error|socketerr|disconnected)
       handlers, removes some warnings (Hinrik)
+    - AutoJoin.pm: Fixed some bugs, added more tests (Hinrik)
 
 6.05_01 Sat Apr 11 09:18:28 GMT 2009
     - Compat.pm: Don't emit an extra event or print a misleading debug message
