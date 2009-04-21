@@ -11,12 +11,10 @@ use Test::More tests => 6;
 my $bot1 = POE::Component::IRC->spawn(
     Flood        => 1,
     plugin_debug => 1,
-    alias        => 'bot1',
 );
 my $bot2 = POE::Component::IRC->spawn(
     Flood        => 1,
     plugin_debug => 1,
-    alias        => 'bot2',
 );
 my $ircd = POE::Component::Server::IRC->spawn(
     Auth      => 0,
@@ -80,8 +78,8 @@ sub _config_ircd {
 
 sub irc_001 {
     my $irc = $_[SENDER]->get_heap();
-    pass($irc->session_alias() . ' logged in');
-    diag($irc->session_alias() . ' logged in');
+    pass($irc->nick_name() . ' logged in');
+    diag($irc->nick_name() . ' logged in');
     return if $irc != $bot1;
     
     $bot2->yield(register => 'all');
@@ -95,8 +93,8 @@ sub irc_001 {
 
 sub irc_433 {
     my $irc = $_[SENDER]->get_heap();
-    pass($irc->session_alias . ' nick collision');
-    diag($irc->session_alias . ' nick collision');
+    pass($irc->nick_name . ' nick collision');
+    diag($irc->nick_name . ' nick collision');
     $bot1->yield('quit');
 }
 
@@ -104,8 +102,8 @@ sub irc_nick {
     my ($sender, $new_nick) = @_[SENDER, ARG1];
     my $irc = $sender->get_heap();
 
-    is($new_nick, 'TestBot1', $irc->session_alias . ' nick reclaimed');
-    diag($irc->session_alias . ' nick reclaimed');
+    is($new_nick, 'TestBot1', $irc->nick_name . ' nick reclaimed');
+    diag($irc->nick_name . ' nick reclaimed');
     $irc->yield('quit');
 }
 
@@ -113,8 +111,8 @@ sub irc_disconnected {
     my ($kernel, $sender, $heap) = @_[KERNEL, SENDER, HEAP];
     my $irc = $sender->get_heap();
     
-    pass($irc->session_alias() . ' disconnected');
-    diag($irc->session_alias() . ' disconnected');
+    pass($irc->nick_name() . ' disconnected');
+    diag($irc->nick_name() . ' disconnected');
     $heap->{count}++;
     $kernel->yield('_shutdown') if $heap->{count} == 2;
 }
