@@ -32,7 +32,7 @@ POE::Session->create(
             _config_ircd 
             _shutdown 
             irc_001 
-            irc_join
+            irc_chan_sync
             irc_public
             irc_disconnected
         )],
@@ -90,12 +90,8 @@ sub irc_001 {
     $irc->yield(join => '#testchannel');
 }
 
-sub irc_join {
-    my ($heap, $sender, $who, $where) = @_[HEAP, SENDER, ARG0, ARG1];
-    my $nick = ( split /!/, $who )[0];
-    my $irc = $sender->get_heap();
-    
-    return if $nick ne $irc->nick_name();
+sub irc_chan_sync {
+    my ($heap, $where) = @_[HEAP, ARG0];
     is($where, '#testchannel', 'Joined Channel Test');
     diag('Joined Channel Test');
 
