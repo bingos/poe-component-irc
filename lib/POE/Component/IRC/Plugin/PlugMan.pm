@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
-use POE::Component::IRC::Common qw( :ALL );
+use POE::Component::IRC::Common qw( matches_mask parse_user );
 
 our $VERSION = '6.05_01';
 
@@ -32,10 +32,6 @@ sub new {
 
 sub PCI_register {
     my ($self, $irc) = @_;
-
-    if (defined $self->{botowner} && !$irc->isa('POE::Component::IRC::State') ) {
-        die __PACKAGE__ . ' requires PoCo::IRC::State or a subclass thereof';
-    }
 
     $self->{irc} = $irc;
     $irc->plugin_register( $self, 'SERVER', qw(public msg) );
@@ -85,13 +81,13 @@ sub PCI_unregister {
 
 sub S_public {
     my ($self, $irc) = splice @_, 0 , 2;
-    my $nick = parse_user( ${ $_[0] } );
+    my $who     = ${ $_[0] };
     my $channel = ${ $_[1] }->[0];
-    my $what = ${ $_[2] };
-    my $me = $irc->nick_name();
+    my $what    = ${ $_[2] };
+    my $me      = $irc->nick_name();
 
     my ($command) = $what =~ m/^\s*\Q$me\E[:,;.!?~]?\s*(.*)$/i;
-    return PCI_EAT_NONE if !$command || !$self->_bot_owner($nick);
+    return PCI_EAT_NONE if !$command || !matches_mask($self->{botowner}, $who);
 
     my (@cmd) = split(/ +/, $command);
     my $cmd = uc (shift @cmd);
@@ -105,30 +101,20 @@ sub S_public {
 
 sub S_msg {
     my ($self, $irc) = splice @_, 0 , 2;
-    my $nick = parse_user( ${ $_[0] } );
+    my $who     = ${ $_[0] };
+    my $nick    = parse_user($who);
     my $channel = ${ $_[1] }->[0];
     my $command = ${ $_[2] };
-    my (@cmd) = split(/ +/,$command);
-    my $cmd = uc (shift @cmd);
+    my (@cmd)   = split(/ +/,$command);
+    my $cmd     = uc (shift @cmd);
     
-    return PCI_EAT_NONE if !$self->_bot_owner($nick);
+    return PCI_EAT_NONE if !matches_mask($self->{botowner}, $who);
     
     if (defined $self->{commands}->{$cmd}) {
         $self->{commands}->{$cmd}->($self, 'notice', $nick, @cmd);
     }
 
     return PCI_EAT_NONE;
-}
-
-#########################
-# Trust related methods #
-#########################
-
-sub _bot_owner {
-    my ($self, $nick) = @_;
-    $nick = $self->{irc}->nick_long_form($nick) if $nick !~ /!/;
-    return 1 if matches_mask( $self->{botowner}, $nick );
-    return;
 }
 
 ###############################
