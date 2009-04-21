@@ -54,6 +54,8 @@ to the channel. So the plugin_add/plugin_reload/plugin/del commands failed.
 Maybe PlugMan->load() doesn't work on Darwin/Solaris, causing PlugMan to raise
 an exception in for every command before outputing anything.
 
+RESOLVED: Timing issues. Changed to irc_join to irc_chan_sync event.
+
 
 ~~~~~~~~
 * FAIL  3425997 5.10.0 on MSWin32 5.1 (MSWin32-x86-multi-thread)
