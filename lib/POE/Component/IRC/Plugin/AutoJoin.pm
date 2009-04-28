@@ -53,6 +53,7 @@ sub PCI_unregister {
 sub S_001 {
     my ($self, $irc) = splice @_, 0, 2;
     delete $self->{masked_key};
+    return PCI_EAT_NONE;
 }
 
 # RPL_MYINFO
