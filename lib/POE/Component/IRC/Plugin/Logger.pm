@@ -375,6 +375,9 @@ sub _log_entry {
     }
 
     return if !defined $self->{Format}->{$type};
+
+    # slash is problematic in a filename, replace it with underscore
+    $context =~ s!/!_!g;
     
     my $log_file;
     if ($self->{Sort_by_date}) {

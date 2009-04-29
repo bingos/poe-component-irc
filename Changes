@@ -10,6 +10,8 @@ Revision history for Perl extension POE::Component::IRC.
       synced (Hinrik)
     - In jailed environments we can't assume that 127.0.0.1 will be that.
       reported by Jase Thew (Bazerka).
+    - Logger.pm: Replace slashes with underscores before logging to disk,
+      spotted by Sebastian Mair.
 
 6.05_01 Sat Apr 11 09:18:28 GMT 2009
     - Compat.pm: Don't emit an extra event or print a misleading debug message
