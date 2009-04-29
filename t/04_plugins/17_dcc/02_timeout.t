@@ -48,7 +48,9 @@ sub _start {
     );
 
     if ($wheel) {
-        my $port = ( unpack_sockaddr_in( $wheel->getsockname ) )[0];
+	
+        my ($port,$address) = unpack_sockaddr_in( $wheel->getsockname );
+	$heap->{_addr} = unpack 'N', $address;
         $kernel->yield(_config_ircd => $port);
         $kernel->delay(_shutdown => 60, 'Timed out');
         return;
@@ -99,10 +101,10 @@ sub irc_join {
 }
 
 sub irc_dcc_request {
-    my ($sender, $cookie) = @_[SENDER, ARG3];
+    my ($sender, $heap, $cookie) = @_[SENDER, HEAP, ARG3];
 
     pass('Got dcc request');
-    is($cookie->{addr}, '2130706433', 'Correct Address Test');
+    is($cookie->{addr}, $heap->{_addr}, 'Correct Address Test');
     $sender->get_heap()->yield('quit');
 }
 
