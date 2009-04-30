@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-6.06
+6.06 Thu Apr 30 12:05:04 GMT 2009
     - NickServID.pm: Update a paragraph in the Pod (Hinrik)
     - State.pm: Don't delete all state in S_(error|socketerr|disconnected)
       handlers, removes some warnings (Hinrik)

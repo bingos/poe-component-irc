@@ -16,7 +16,7 @@ use POE::Component::IRC::Plugin::Whois;
 use Socket;
 use base qw(POE::Component::Pluggable);
 
-our $VERSION = '6.05_01';
+our $VERSION = '6.06';
 our ($GOT_SSL, $GOT_CLIENT_DNS, $GOT_SOCKET6, $GOT_ZLIB);
 
 BEGIN {

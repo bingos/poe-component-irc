@@ -6,7 +6,7 @@ use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POSIX qw(strftime);
 
-our $VERSION = '6.05_01';
+our $VERSION = '6.06';
 
 sub new {
     my ($package) = shift;
