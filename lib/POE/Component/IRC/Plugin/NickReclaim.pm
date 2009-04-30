@@ -54,7 +54,7 @@ sub PCI_register {
 ##############
 sub U_nick {
     my $self = shift;
-    my ($nick) = $ {$_[1 ]} =~ /^NICK +(.+)/i;
+    my ($nick) = ${ $_[1 ] } =~ /^NICK +(.+)/i;
     
     return PCI_EAT_NONE if exists $self->{_claims}{ $nick };
 
