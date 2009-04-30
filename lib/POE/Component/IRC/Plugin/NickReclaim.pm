@@ -83,7 +83,7 @@ sub S_001 {
     return PCI_EAT_NONE;
 }
 
-
+# ERR_NICKNAMEINUSE
 sub S_433 {
     my ($self,$irc) = splice @_, 0, 2;
     
