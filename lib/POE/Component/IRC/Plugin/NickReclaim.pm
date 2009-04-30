@@ -132,7 +132,7 @@ your nickname
  use strict;
  use warnings;
  use POE qw(Component::IRC Component::IRC::Plugin::NickReclaim);
-i
+
  my $nickname = 'Flibble' . $$;
  my $ircname = 'Flibble the Sailor Bot';
  my $ircserver = 'irc.blahblahblah.irc';
