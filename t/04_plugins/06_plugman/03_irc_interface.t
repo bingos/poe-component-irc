@@ -86,14 +86,12 @@ sub _config_ircd {
 sub irc_001 {
     my $irc = $_[SENDER]->get_heap();
     pass('Logged in');
-    diag('Logged in');
     $irc->yield(join => '#testchannel');
 }
 
 sub irc_chan_sync {
     my ($heap, $where) = @_[HEAP, ARG0];
     is($where, '#testchannel', 'Joined Channel Test');
-    diag('Joined Channel Test');
 
     $heap->{joined}++;
     if ($heap->{joined} == 2) {
@@ -107,11 +105,9 @@ sub irc_public {
     my $irc = $_[SENDER]->get_heap();
     if ($irc == $bot1) {
         pass('Got command');
-        diag('Got command');
     }
     else {
         pass('Got response');
-        diag('Got response');
         $_[HEAP]->{response}++;
         if ($_[HEAP]->{response} == 3) {
             $bot1->yield('quit');
@@ -123,7 +119,6 @@ sub irc_public {
 sub irc_disconnected {
     my ($kernel, $heap) = @_[KERNEL, HEAP];
     pass('irc_disconnected');
-    diag('irc_disconnected');
     $heap->{count}++;
     $kernel->yield('_shutdown') if $heap->{count} == 2;
 }
