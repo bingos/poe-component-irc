@@ -52,7 +52,7 @@ sub _create {
         key
         welcome
         voice
-        );
+    );
 
 
   $self->{OBJECT_STATES_HASHREF}->{'qbot_' . $_} = '_qnet_bot_commands' for @qbot_commands;
