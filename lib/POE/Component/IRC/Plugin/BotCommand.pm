@@ -22,10 +22,11 @@ sub new {
 sub PCI_register {
     my ($self, $irc) = splice @_, 0, 2;
     
-    $self->{Addressed} = 1 if !defined $self->{Addressed};
-    $self->{Prefix} = '!' if !defined $self->{Prefix};
-    $self->{In_channels} = 1 if !defined $self->{In_channels};
-    $self->{In_private} = 1 if !defined $self->{In_private};
+    $self->{Addressed}     = 1 if !defined $self->{Addressed};
+    $self->{Prefix}        = '!' if !defined $self->{Prefix};
+    $self->{In_channels}   = 1 if !defined $self->{In_channels};
+    $self->{In_private}    = 1 if !defined $self->{In_private};
+    $self->{Handle_unkown} = 1 if !defined $self->{In_private};
     $self->{irc} = $irc;
     
     $irc->plugin_register( $self, 'SERVER', qw(msg public) );
@@ -95,22 +96,25 @@ sub _handle_cmd {
         $irc->send_event("irc_botcmd_$cmd" => $who, $where, $args);
     }
     elsif ($cmd =~ /^help$/i) {
-        my @help = $self->_get_help($cmd);
+        my @help = $self->_get_help($args);
         $irc->yield(notice => $where => $_) for @help;
     }
     else {
-        return;
+        return if !$self->{Handle_unknown};
+        my @help = $self->_get_help($cmd);
+        $irc->yield(notice => $where => $_) for @help;
     }
 
     return 1;
 }
 
 sub _get_help {
-    my ($self, $cmd) = @_;
+    my ($self, $args) = @_;
     my $irc = $self->{irc};
     
     my @help;
-    if (defined $cmd) {
+    if (defined $args) {
+        my $cmd = (split /\s+/, $args, 2)[0];
         if (exists $self->{Commands}->{$cmd}) {
             @help = split /\015?\012/, $self->{Commands}->{$cmd};
         }
@@ -120,8 +124,13 @@ sub _get_help {
         }
     }
     else {
-        push @help, 'Commands: ' . join ', ', keys %{ $self->{Commands} };
-        push @help, 'You can do: /msg ' . $irc->nick_name() . ' help <command>';
+        if (keys %{ $self->{Commands} }) {
+            push @help, 'Commands: ' . join ', ', keys %{ $self->{Commands} };
+            push @help, 'You can do: /msg ' . $irc->nick_name() . ' help <command>';
+        }
+        else {
+            push @help, 'No commands are defined';
+        }
     }
 
     return @help;
@@ -270,6 +279,9 @@ to issue commands. Default is true.
 B<'Prefix'>, if B<'Addressed'> is false, all channel commands must be prefixed
 with this string. Default is '!'. You can set it to '' to allow bare channel
 commands.
+
+B<'Handle_unknown'>, if true, a help message will be printed when an unknown
+command is issued. Default is true.
 
 B<'Eat'>, set to true to make the plugin hide
 L<C<irc_public>|POE::Component::IRC/"irc_public"> events from other plugins if

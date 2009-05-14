@@ -116,6 +116,7 @@ t/04_plugins/12_autojoin/06_kick_ban_password.t
 t/04_plugins/13_botcommand/01_load.t
 t/04_plugins/13_botcommand/02_commands.t
 t/04_plugins/13_botcommand/03_options.t
+t/04_plugins/13_botcommand/04_help.t
 t/04_plugins/14_logger/01_load.t
 t/04_plugins/14_logger/02_public.t
 t/04_plugins/14_logger/03_private.t

@@ -2,6 +2,7 @@ Revision history for Perl extension POE::Component::IRC.
 
 6.08
     - CTCP.pm: Return an RFC822 date in response to CTCP TIME (Hinrik)
+    - BotCommand.pm: Fix RT #46065, help message wasn't being printed (Hinrik)
 
 6.06 Thu Apr 30 12:05:04 GMT 2009
     - NickServID.pm: Update a paragraph in the Pod (Hinrik)
