@@ -435,6 +435,7 @@ logs public, private, and DCC chat messages to disk
 
  $irc->plugin_add('Logger', POE::Component::IRC::Plugin::Logger->new(
      Path    => '/home/me/irclogs',
+     DCC     => 0,
      Private => 0,
      Public  => 1,
  ));
