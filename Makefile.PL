@@ -45,6 +45,7 @@ test_requires 'Test::More' => '0.47';
 tests 't/*.t t/*/*.t t/*/*/*.t';
 author_tests 'xt';
 clean_files 'README.send Changes.resume followtail logger_test';
+auto_provides;
 WriteAll();
 exit 0;
 
