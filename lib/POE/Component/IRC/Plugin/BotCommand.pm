@@ -317,6 +317,36 @@ command was issued, or the sender's nickname if this was a private message.
 If the command was followed by any arguments, C<ARG2> will be a string
 containing them, otherwise it will be undefined.
 
+=head1 TODO
+
+Add permissions/authorization. E.g. allow the user to specify if commands are
+only available ops, or only to users matching some IRC masks, etc.
+
+It would have to support permissions/auth on a per-command level, so that
+a bot can get by with a single BotCommand plugin, with respect to easily
+listing the available commands in a help message. Maybe augmenting the
+C<add()> method to accept an optional hash reference argument detailing
+authorization requirements is appropriate here. I suppose plugins that call
+C<add()> to add new commands should accept a hash reference like that as an
+B<'auth'> argument to their constructor.
+
+I considered having the auth settings apply to all commands, and using
+multiple BotCommand plugins to group commands by who is allowed to issue them,
+but this approach is more complex if we want the bot to complain about
+undefined commands, or when someone wants a list of all commands. Plugins
+which define new commands would accept a B<'botcmd'> parameter to choose which
+BotCommand plugin they should call C<add()>/C<remove()> on.
+
+Some prior art to consider:
+
+=over 4
+
+=item L<POE::Component::IRC::Plugin::BaseWrap|POE::Component::IRC::PluginBaseWrap>
+
+=item L<Bot::BasicBot::Pluggable::Module::Auth|Bot::BasicBot::Pluggable::Module::Auth> 
+
+=back
+
 =head1 AUTHOR
 
 Hinrik E<Ouml>rn SigurE<eth>sson, hinrik.sig@gmail.com
