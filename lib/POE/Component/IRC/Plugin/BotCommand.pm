@@ -26,7 +26,6 @@ sub PCI_register {
     $self->{Prefix}        = '!' if !defined $self->{Prefix};
     $self->{In_channels}   = 1 if !defined $self->{In_channels};
     $self->{In_private}    = 1 if !defined $self->{In_private};
-    $self->{Handle_unkown} = 1 if !defined $self->{In_private};
     $self->{irc} = $irc;
     
     $irc->plugin_register( $self, 'SERVER', qw(msg public) );
@@ -100,7 +99,7 @@ sub _handle_cmd {
         $irc->yield(notice => $where => $_) for @help;
     }
     else {
-        return if !$self->{Handle_unknown};
+        return if $self->{Ignore_unknown};
         my @help = $self->_get_help($cmd);
         $irc->yield(notice => $where => $_) for @help;
     }
@@ -280,8 +279,8 @@ B<'Prefix'>, if B<'Addressed'> is false, all channel commands must be prefixed
 with this string. Default is '!'. You can set it to '' to allow bare channel
 commands.
 
-B<'Handle_unknown'>, if true, a help message will be printed when an unknown
-command is issued. Default is true.
+B<'Ignore_unknown'>, if true, the plugin will ignore undefined commands,
+rather than printing a help message upon receiving them. Default is false.
 
 B<'Eat'>, set to true to make the plugin hide
 L<C<irc_public>|POE::Component::IRC/"irc_public"> events from other plugins if
