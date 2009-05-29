@@ -26,6 +26,7 @@ inc/Module/Install/Makefile.pm
 inc/Module/Install/Metadata.pm
 inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
+inc/Module/Install/GithubMeta.pm
 lib/POE/Component/IRC.pm
 lib/POE/Component/IRC/Common.pm
 lib/POE/Component/IRC/Constants.pm
