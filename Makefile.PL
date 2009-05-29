@@ -23,7 +23,6 @@ NOTICE
 
 _no_dns() unless $GOT_DNS;
 
-eval "auto_set_repository()";
 name 'POE-Component-IRC';
 license 'perl';
 author 'Chris Williams <chris@bingosnet.co.uk>';
@@ -46,6 +45,7 @@ tests 't/*.t t/*/*.t t/*/*/*.t';
 author_tests 'xt';
 clean_files 'README.send Changes.resume followtail logger_test';
 auto_provides;
+githubmeta;
 WriteAll();
 exit 0;
 
