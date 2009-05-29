@@ -6,9 +6,10 @@ use POE::Component::IRC;
 use POE::Component::IRC::Plugin::BotCommand;
 use POE::Component::Server::IRC;
 use Socket;
-use Test::More tests => 16;
+use Test::More tests => 14;
 
 my $bot1 = POE::Component::IRC->spawn(
+    debug => 1,
     Flood        => 1,
     plugin_debug => 1,
 );
@@ -114,25 +115,29 @@ sub irc_join {
 }
 
 sub irc_notice {
-    my ($sender, $heap, $who, $where, $what) = @_[SENDER, HEAP, ARG0, ARG1, ARG2];
+    my ($sender, $heap, $who, $where, $what) = @_[SENDER, HEAP, ARG0..ARG2];
     my $irc = $sender->get_heap();
     my $nick = (split /!/, $who)[0];
 
     return if $irc != $bot2;
-    is($nick, $bot1->nick_name(), 'Bot nickname');
 
     $heap->{replies}++;
     if ($heap->{replies} == 1) {
+        is($nick, $bot1->nick_name(), 'Bot nickname');
         like($what, qr/^No commands/, 'Bot reply');
     }
     elsif ($heap->{replies} == 2) {
+        is($nick, $bot1->nick_name(), 'Bot nickname');
         like($what, qr/^Unknown command:/, 'Bot reply');
         my ($p) = grep { $_->isa('POE::Component::IRC::Plugin::BotCommand') } values %{ $bot1->plugin_list() };
         ok($p->add(foo => 'Test command'), 'Add command foo');
         $irc->yield(privmsg => $where, "TestBot1: help");
     }
     elsif ($heap->{replies} == 4) {
+        is($nick, $bot1->nick_name(), 'Bot nickname');
         like($what, qr/^Commands: foo/, 'Bot reply');
+    }
+    elsif ($heap->{replies} == 5) {
         $bot1->yield('quit');
         $bot2->yield('quit');
     }
