@@ -178,7 +178,7 @@ sub unload {
 
 sub _unload_subs {
     my $self = shift;
-    my $file = shift;
+    my $file = shift || return;
 
     for my $sym ( grep { index( $_, "$file:" ) == 0 } keys %DB::sub ) {
         eval { undef &$sym };
@@ -186,7 +186,7 @@ sub _unload_subs {
         delete $DB::sub{$sym};
     }
 
-    return $self;
+    return 1;
 }
 
 sub reload {
