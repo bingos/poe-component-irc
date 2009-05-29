@@ -5,6 +5,7 @@ Revision history for Perl extension POE::Component::IRC.
     - BotCommand.pm: Fix RT #46065, help message wasn't being printed (Hinrik)
     - Connector.pm: Make the traffic-noticing code more accurate (Hinrik)
     - PlugMan.pm: Allow custom auth checks for the IRC interface (Hinrik)
+    - PlugMan.pm: Silence some warnings (bingos)
 
 6.06 Thu Apr 30 12:05:04 GMT 2009
     - NickServID.pm: Update a paragraph in the Pod (Hinrik)
