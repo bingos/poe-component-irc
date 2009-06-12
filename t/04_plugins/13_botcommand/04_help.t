@@ -122,6 +122,7 @@ sub irc_notice {
     return if $irc != $bot2;
 
     $heap->{replies}++;
+    ## no critic (ControlStructures::ProhibitCascadingIfElse)
     if ($heap->{replies} == 1) {
         is($nick, $bot1->nick_name(), 'Bot nickname');
         like($what, qr/^No commands/, 'Bot reply');
