@@ -394,7 +394,7 @@ L<POE::Component::IRC|POE::Component::IRC> suite
  if ( matches_mask( $full_banmask, 'stalin!joe@kremlin.ru' ) ) {
      print "EEK!";
  }
-  
+
  if ( has_color($message) ) {
     print 'COLOR CODE ALERT!";
  }
@@ -561,16 +561,36 @@ always do what you expect it to.
 
 =head2 C<irc_to_utf8>
 
-The text you get from L<POE::Component::IRC|POE::Component::IRC> is a raw
-byte string that has no inherent encoding. Most popular clients (mIRC, xchat,
-certain irssi configurations) encode their messages in Microsoft's CP1252
-encoding (their version of Latin-1) when the message fits only contains
-Latin-1 characters, otherwise falling back to UTF-8. Writing something like
-this to a file or a terminal is a recipe for disaster.
+The IRC messages you get from L<POE::Component::IRC|POE::Component::IRC> are
+raw byte strings that have no inherent encoding. Most popular clients (mIRC,
+xchat, certain irssi configurations) encode their messages in Microsoft's
+CP1252 encoding (their version of Latin-1) if the message only contains
+characters which fit into Latin-1, otherwise falling back to UTF-8 encoding.
+Writing something like this to a file, terminal, or database is a recipe for
+disaster.
 
 This function takes a byte string (e.g. a message from an
 L<C<irc_public>|POE::Component::IRC/"irc_public"> handler) in "IRC encoding"
-and returns a UTF-8 encoded text string.
+and returns a text string. Since the source encoding might have been UTF-8,
+you should encode/store it in UTF-8 or some other Unicode encoding in your
+file/database/whatever.
+
+ use POE::Component::IRC::Common qw(irc_to_utf8);
+
+ sub irc_public {
+     my ($who, $where, $what) = @_[ARG0..ARG2];
+
+     # not wise, $what is either CP1252 or UTF-8
+     print $what, "\n";
+
+     $what = irc_to_utf8($what);
+
+     # good, $what is always UTF-8
+     print $what, "\n";
+ }
+
+See also L<Encode|Encode>, L<perluniintro>, L<perlunitut>, L<perlunicode>,
+and L<perlunifaq>.
 
 =head2 C<irc_ip_get_version>
 
