@@ -7,7 +7,7 @@ use POE;
 use POE::Component::IRC::Constants qw(:ALL);
 use base qw(POE::Component::IRC);
 
-our $VERSION = '6.08';
+our $VERSION = '6.09_01';
 
 sub _create {
     my $self = shift;

@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+6.09_01 Thu Jul  9 21:06:22 BST 2009
+    - Implemented netsplit detection and handling of state on netjoin (bingos)
+
 6.08 Fri May 29 11:46:45 GMT 2009
     - CTCP.pm: Return an RFC822 date in response to CTCP TIME (Hinrik)
     - BotCommand.pm: Fix RT #46065, help message wasn't being printed (Hinrik)
