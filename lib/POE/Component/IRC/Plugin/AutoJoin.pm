@@ -6,7 +6,7 @@ use Carp;
 use POE::Component::IRC::Plugin qw(:ALL);
 use POE::Component::IRC::Common qw(parse_user l_irc);
 
-our $VERSION = '6.09_02';
+our $VERSION = '6.09_03';
 
 sub new {
     my ($package) = shift;

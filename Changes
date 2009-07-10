@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+6.09_03 Fri Jul 10 15:09:05 BST 2009
+    - Added testcase for netsplit handling (bingos)
+
 6.09_02 Fri Jul 10 10:04:18 BST 2009
     - Refactored the netsplit code for robustness and sanity (bingos)
 
