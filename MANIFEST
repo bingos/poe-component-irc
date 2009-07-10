@@ -88,6 +88,7 @@ t/02_behavior/13_activity.t
 t/03_subclasses/01_state.t
 t/03_subclasses/02_qnet.t
 t/03_subclasses/03_qnet_state.t
+t/03_subclasses/04_netsplit.t
 t/04_plugins/01_ctcp/01_load.t
 t/04_plugins/01_ctcp/02_replies.t
 t/04_plugins/02_connector/01_load.t
