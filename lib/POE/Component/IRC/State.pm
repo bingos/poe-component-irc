@@ -18,6 +18,7 @@ our $VERSION = '6.09_01';
 sub S_001 {
     my ($self) = @_;
     delete $self->{STATE};
+    delete $self->{NETSPLIT};
     $self->{STATE}->{usermode} = '';
     $self->yield(mode => $self->nick_name());
     return PCI_EAT_NONE;
@@ -77,15 +78,17 @@ sub S_join {
         }
     }
     else {
-        if ( exists $self->{NETSPLIT}->{Chans}->{ $uchan }->{NICKS}->{ $unick } ) {
-            # restore state from NETSPLIT
-            $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick } = 
-              delete $self->{NETSPLIT}->{Chans}->{ $uchan }->{NICKS}->{ $unick };
-            $self->{STATE}->{Nicks}->{ $unick } = 
-              delete $self->{NETSPLIT}->{Nicks}->{ $unick }
-              if exists $self->{NETSPLIT}->{Nicks}->{ $unick };
+      SWITCH: {
+        my $netsplit = "$unick!$user\@$host";
+        if ( exists $self->{NETSPLIT}->{Users}->{ $netsplit } ) {
+            # restore state from NETSPLIT if it hasn't expired.
+            my $nuser = delete $self->{NETSPLIT}->{Users}->{ $netsplit };
+            if ( ( time - $nuser->{stamp} ) < ( 60 * 60 ) ) {
+              $self->{STATE}->{Nicks}->{ $unick } = $nuser->{meta};
+              last SWITCH;
+            }
         }
-        elsif ( (!exists $self->{whojoiners} || $self->{whojoiners})
+        if ( (!exists $self->{whojoiners} || $self->{whojoiners})
             && !exists $self->{STATE}->{Nicks}->{ $unick }->{Real}) {
                 $self->yield(who => $nick);
                 push @{ $self->{NICK_SYNCH}->{ $unick } }, $chan;
@@ -94,6 +97,7 @@ sub S_join {
             # Fake 'irc_nick_sync'
             $self->_send_event(irc_nick_sync => $nick, $chan);
         }
+      }
     }
 
     $self->{STATE}->{Nicks}->{ $unick }->{Nick} = $nick;
@@ -150,16 +154,22 @@ sub S_quit {
 
     if ($unick eq u_irc($self->nick_name(), $map)) {
         delete $self->{STATE};
+        delete $self->{NETSPLIT};
     }
     else {
         for my $uchan ( keys %{ $self->{STATE}->{Nicks}->{ $unick }->{CHANS} } ) {
-            my $chanstate = delete $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick };
-            $self->{NETSPLIT}->{Chans}->{ $uchan }->{NICKS}->{ $unick } = $chanstate
-              if $netsplit;
+            delete $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick };
+            # No don't stash the channel state.
+            #$self->{NETSPLIT}->{Chans}->{ $uchan }->{NICKS}->{ $unick } = $chanstate
+            #  if $netsplit;
         }
         
         my $nickstate = delete $self->{STATE}->{Nicks}->{ $unick };
-        $self->{NETSPLIT}->{Nicks}->{ $unick } = $nickstate if $netsplit;
+        if ( $netsplit ) {
+          delete $nickstate->{CHANS};
+          $self->{NETSPLIT}->{Users}->{ "$unick!" . join '@', @{$nickstate}{qw(User Host)} } = 
+             { meta => $nickstate, stamp => time };
+        }
     }
 
     return PCI_EAT_NONE;
