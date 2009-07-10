@@ -6,7 +6,7 @@ use POE::Filter::Stackable;
 use POE::Filter::IRCD;
 use POE::Filter::IRC::Compat;
 
-our $VERSION = '6.09_01';
+our $VERSION = '6.09_02';
 
 sub new {
     my ($package, %opts) = @_;
