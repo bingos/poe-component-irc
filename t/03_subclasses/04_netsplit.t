@@ -6,7 +6,7 @@ use POE::Component::IRC::Common qw(parse_user);
 use POE::Component::IRC::State;
 use POE::Component::Server::IRC;
 use Socket;
-use Test::More tests => 48;
+use Test::More tests => 51;
 
 my $bot = POE::Component::IRC::State->spawn(Flood => 1);
 my $ircd1 = POE::Component::Server::IRC->spawn(
@@ -41,6 +41,7 @@ POE::Session->create(
             irc_join
             irc_topic
             irc_chan_sync
+            irc_nick_sync
             irc_user_mode
             irc_chan_mode
             irc_mode
@@ -176,6 +177,14 @@ sub join_after_split {
       local $TODO = 'Sometimes there is a race condition';
       ok(!$irc->is_channel_operator($where, $nick), 'Is Not Channel Operator');
     }
+}
+
+sub irc_nick_sync {
+    my ($nick,$chan) = @_[ARG0,ARG1];
+    pass($_[STATE]);
+    is($nick,'oper','Oper user was synced');
+    is($chan,'#testchannel','The channel synced was #testchannel');
+    return;
 }
 
 sub irc_topic {
