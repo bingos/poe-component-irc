@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+6.09_05 Thu Jul 16 15:09:38 BST 2009
+    - Netsplit restoration now triggers irc_nick_sync event
+
 6.09_04 Sun Jul 12 21:41:30 BST 2009
     - Markup test in netsplit as todo due to race condition
 
