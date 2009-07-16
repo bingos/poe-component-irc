@@ -85,6 +85,7 @@ sub S_join {
             my $nuser = delete $self->{NETSPLIT}->{Users}->{ $netsplit };
             if ( ( time - $nuser->{stamp} ) < ( 60 * 60 ) ) {
               $self->{STATE}->{Nicks}->{ $unick } = $nuser->{meta};
+              $self->_send_event(irc_nick_sync => $nick, $chan);
               last SWITCH;
             }
         }
