@@ -213,6 +213,20 @@ sub S_join {
 
     }
     else {
+        my $netsplit = "$unick!$user\@$host";
+        if ( exists $self->{NETSPLIT}->{Users}->{ $netsplit } ) {
+            # restore state from NETSPLIT if it hasn't expired.
+            my $nuser = delete $self->{NETSPLIT}->{Users}->{ $netsplit };
+            if ( ( time - $nuser->{stamp} ) < ( 60 * 60 ) ) {
+              $self->{STATE}->{Nicks}->{ $unick } = $nuser->{meta};
+              $self->_send_event(irc_nick_sync => $nick, $channel);
+            }
+            return PCI_EAT_NONE;
+        }
+        if ( exists $self->{STATE}->{Nicks}->{ $unick }->{Real} ) {
+            $self->_send_event(irc_nick_sync => $nick, $channel);
+            return PCI_EAT_NONE;
+        }
         $self->yield ( 'sl' => "WHO $nick $flags,102" );
         $self->{STATE}->{Nicks}->{ $unick }->{Nick} = $nick;
         $self->{STATE}->{Nicks}->{ $unick }->{User} = $user;
@@ -286,16 +300,10 @@ sub S_quit {
     push @{ $_[2] }, [ $self->nick_channels( $nick ) ];
     push @{ $_[2] }, $self->is_nick_authed( $nick );
     my $unick = u_irc $nick, $mapping;
+    my $netsplit = 0;
 
     # Check if it is a netsplit
-#    if ( $msg ) {
-#        SWITCH: {
-#            my @args = split /\x20/, $msg;
-#            if ( @args != 2 ) {
-#                last SWITCH;
-#            }
-#        }
-#    }
+    $netsplit = 1 if _is_netsplit( $msg );
 
     if ( $unick eq u_irc ( $self->nick_name(), $mapping ) ) {
         delete $self->{STATE};
@@ -304,10 +312,21 @@ sub S_quit {
         for my $channel ( keys %{ $self->{STATE}->{Nicks}->{ $unick }->{CHANS} } ) {
                 delete $self->{STATE}->{Chans}->{ $channel }->{Nicks}->{ $unick };
         }
-        delete $self->{STATE}->{Nicks}->{ $unick };
+        my $nickstate = delete $self->{STATE}->{Nicks}->{ $unick };
+        if ( $netsplit ) {
+          delete $nickstate->{CHANS};
+          $self->{NETSPLIT}->{Users}->{ "$unick!" . join '@', @{$nickstate}{qw(User Host)} } =
+             { meta => $nickstate, stamp => time };
+        }
     }
     
     return PCI_EAT_NONE;
+}
+
+sub _is_netsplit {
+  my $msg = shift || return;
+  return 1 if $msg =~ /^\s*\S+\.[a-z]{2,} \S+\.[a-z]{2,}$/i;
+  return 0;
 }
 
 sub S_kick {
