@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+6.09_06 Fri Jul 17 11:02:45 BST 2009
+    - Added netsplit detection code to Qnet::State subclass.
+
 6.09_05 Thu Jul 16 15:09:38 BST 2009
     - Netsplit restoration now triggers irc_nick_sync event
 
