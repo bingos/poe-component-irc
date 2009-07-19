@@ -89,7 +89,6 @@ sub _config_ircd {
 sub irc_001 {
     my $irc = $_[SENDER]->get_heap();
     pass('Logged in');
-    diag('Logged in');
     $irc->yield(join => '#testchannel');
 }
 
@@ -100,7 +99,6 @@ sub irc_join {
     
     return if $nick ne $irc->nick_name();
     is($where, '#testchannel', 'Joined Channel Test');
-    diag('Joined Channel Test');
 
     $heap->{joined}++;
     return if $heap->{joined} != 2;
@@ -110,27 +108,17 @@ sub irc_join {
 sub irc_dcc_request {
     my ($sender, $cookie) = @_[SENDER, ARG3];
     pass("Got dcc request");
-    diag("Got dcc request");
-    diag("    dcc type: $_[ARG1]");
-    diag("    filename: $_[ARG4]");
-    diag("    filesize: $_[ARG5] bytes");
     $sender->get_heap()->yield(dcc_accept => $cookie => "$space_file.send");
 }
 
 sub irc_dcc_start {
     pass('DCC started');
-    diag('DCC started');
-    diag("    dcc type: $_[ARG2]");
-    diag("    filename: $_[ARG4]");
-    diag("    filesize: $_[ARG5] bytes");
 }
 
 sub irc_dcc_done {
     my ($sender, $size1, $size2) = @_[SENDER, ARG5, ARG6];
     pass('Got dcc close');
-    diag('Got dcc close');
     is($size1, $size2, 'Send test results');
-    diag('Send test results');
     $sender->get_heap()->yield('quit');
 }
 
@@ -144,7 +132,6 @@ sub irc_dcc_error {
 sub irc_disconnected {
     my ($kernel, $heap) = @_[KERNEL, HEAP];
     pass('irc_disconnected');
-    diag('irc_disconnected');
     $heap->{count}++;
 
     if ($heap->{count} == 2) {

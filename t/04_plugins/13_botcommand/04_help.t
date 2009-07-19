@@ -9,7 +9,6 @@ use Socket;
 use Test::More tests => 14;
 
 my $bot1 = POE::Component::IRC->spawn(
-    debug => 1,
     Flood        => 1,
     plugin_debug => 1,
 );
