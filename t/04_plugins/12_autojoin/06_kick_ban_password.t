@@ -6,7 +6,7 @@ use Socket;
 use POE::Component::IRC::State;
 use POE::Component::IRC::Plugin::AutoJoin;
 use POE::Component::Server::IRC;
-use Test::More tests => 12;
+use Test::More tests => 17;
 
 my $bot1 = POE::Component::IRC::State->spawn(
     Flood        => 1,
@@ -87,6 +87,7 @@ sub irc_001 {
     
     if ($irc == $bot1) {
         $irc->yield(join => '#testchannel');
+        $irc->yield(join => '#testchannel2');
     }
 }
 
@@ -96,15 +97,29 @@ sub irc_join {
     my $irc = $sender->get_heap();
     return if $nick ne $irc->nick_name();
     
-    is($where, '#testchannel', "$nick joined $where");
+    like($where, qr/#testchannel2?/, "$nick joined $where");
 
     if ($nick eq 'TestBot1') {
-        $bot1->yield(mode => $where, '+k secret');
+        if ($where eq '#testchannel') {
+            $bot1->yield(mode => $where, '+k secret');
+        }
+        else {
+            $bot1->yield(mode => $where, '+k secret2');
+        }
     }
-    else {
+    elsif ($where eq '#testchannel') {
         $heap->{bot2_joined}++;
         if ($heap->{bot2_joined} == 1) {
             $bot1->yield(mode => $where, '+k topsecret');
+        }
+        else {
+            $bot2->yield(join => '#testchannel2', 'secret2');
+        }
+    }
+    else {
+        $heap->{bot2_joined_2}++;
+        if ($heap->{bot2_joined_2} == 1) {
+            $bot1->yield(kick => $where, 'TestBot2');
         }
         else {
             $bot1->yield('quit');
@@ -121,7 +136,7 @@ sub irc_chan_mode {
         pass("$where key set");
         $heap->{key_set}++;
 
-        if ($heap->{key_set} == 1) {
+        if ($heap->{key_set} == 2) {
             $bot2->yield(register => 'all');
             $bot2->yield(connect => {
                 nick    => 'TestBot2',
@@ -130,7 +145,7 @@ sub irc_chan_mode {
                 ircname => 'Test test bot',
             });
         }
-        else {
+        elsif ($heap->{key_set} == 3) {
             $bot1->yield(mode => $where, '+b TestBot2!*@*');
             $bot1->yield(kick => $where, 'TestBot2');
         }

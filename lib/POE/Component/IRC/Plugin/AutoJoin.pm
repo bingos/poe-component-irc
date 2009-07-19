@@ -41,7 +41,7 @@ sub PCI_register {
 
     $self->{tried_keys} = { };
     $self->{Rejoin_delay} = 5 if !defined $self->{Rejoin_delay};
-    $irc->plugin_register($self, 'SERVER', qw(001 004 474 isupport chan_mode join_sync kick part));
+    $irc->plugin_register($self, 'SERVER', qw(001 004 474 isupport chan_mode join kick part));
     $irc->plugin_register($self, 'USER', qw(join));
     return 1;
 }
@@ -83,11 +83,12 @@ sub S_isupport {
 # ERR_BANNEDFROMCHAN
 sub S_474 {
     my ($self, $irc) = splice @_, 0, 2;
-    my $chan  = ${ $_[2] }->[0];
+    my $chan = ${ $_[2] }->[0];
     my $lchan = l_irc($chan, $irc->isupport('MAPPING'));
     return if !$self->{Retry_when_banned};
 
-    my $key = $self->{tried_keys}->{$lchan};
+    my $key = $self->{Channels}{$lchan};
+    $key = $self->{tried_keys}{$lchan} if defined $self->{tried_keys}{$lchan};
     $irc->delay([join => $chan => $key], $self->{Retry_when_banned});
     return PCI_EAT_NONE;
 }
@@ -104,23 +105,22 @@ sub S_chan_mode {
     return PCI_EAT_NONE;
 }
 
-sub S_join_sync {
+sub S_join {
     my ($self, $irc) = splice @_, 0, 2;
     my $joiner = parse_user(${ $_[0] });
     my $chan   = ${ $_[1] };
     my $lchan  = l_irc($chan, $irc->isupport('MAPPING'));
 
-    my $key = $irc->channel_key($chan);
-    if ($joiner eq $irc->nick_name()) {
-        if (defined $key) {
-            $key = $self->{tried_keys}->{$lchan} if $self->{masked_key};
-            delete $self->{tried_keys}->{$lchan};
-            $self->{Channels}->{$lchan} = $key;
-        }
-        else {
-            $self->{Channels}->{$lchan} = '';
-        }
+    return if $joiner ne $irc->nick_name();
+
+    if (defined $self->{tried_keys}{$lchan}) {
+        $self->{Channels}->{$lchan} = $self->{tried_keys}{$lchan};
+        delete $self->{tried_keys}{$lchan};
     }
+    else {
+        $self->{Channels}->{$lchan} = '';
+    }
+
     return PCI_EAT_NONE;
 }
 
@@ -153,9 +153,8 @@ sub U_join {
     my ($self, $irc) = splice @_, 0, 2;
     my (undef, $chan, $key) = split /\s/, ${ $_[0] }, 3;
     my $lchan = l_irc($chan, $irc->isupport('MAPPING'));
-    $key = '' if !defined $key;
 
-    $self->{tried_keys}->{$lchan} = $key;
+    $self->{tried_keys}->{$lchan} = $key if defined $key;
     return PCI_EAT_NONE;
 }
 

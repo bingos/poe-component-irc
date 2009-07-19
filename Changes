@@ -1,5 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
+6.09_07
+    - AutoJoin.pm: Fixed problem with rejoining password-protected channels
+      that were not passed to the plugin constructor (Hinrik)
+
 6.09_06 Fri Jul 17 11:02:45 BST 2009
     - Added netsplit detection code to Qnet::State subclass.
 
