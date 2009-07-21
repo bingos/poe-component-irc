@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use POE::Component::IRC::Plugin qw(:ALL);
 
-our $VERSION = '6.09_06';
+our $VERSION = '6.09_07';
 
 sub new {
     return bless { }, shift;

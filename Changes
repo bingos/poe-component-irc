@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-6.09_07
+6.09_07 Tue Jul 21 07:07:16 BST 2009
     - AutoJoin.pm: Fixed problem with rejoining password-protected channels
       that were not passed to the plugin constructor (Hinrik)
     - Removed extended debug output from some tests, they've been behaving
