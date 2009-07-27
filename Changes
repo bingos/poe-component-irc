@@ -1,5 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
+6.09_08
+    - State and subclasses will use NAMES replies to synchronise
+      channel state as well now. Should help RT #46825 (bingos).
+
 6.09_07 Tue Jul 21 07:07:16 BST 2009
     - AutoJoin.pm: Fixed problem with rejoining password-protected channels
       that were not passed to the plugin constructor (Hinrik)
@@ -7,13 +11,13 @@ Revision history for Perl extension POE::Component::IRC.
       for a while (Hinrik)
 
 6.09_06 Fri Jul 17 11:02:45 BST 2009
-    - Added netsplit detection code to Qnet::State subclass.
+    - Added netsplit detection code to Qnet::State subclass. (bingos)
 
 6.09_05 Thu Jul 16 15:09:38 BST 2009
-    - Netsplit restoration now triggers irc_nick_sync event
+    - Netsplit restoration now triggers irc_nick_sync event (bingos)
 
 6.09_04 Sun Jul 12 21:41:30 BST 2009
-    - Markup test in netsplit as todo due to race condition
+    - Markup test in netsplit as todo due to race condition (bingos)
 
 6.09_03 Fri Jul 10 15:09:05 BST 2009
     - Added testcase for netsplit handling (bingos)

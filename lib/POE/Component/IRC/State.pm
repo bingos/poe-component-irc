@@ -400,6 +400,38 @@ sub S_topic {
     return PCI_EAT_NONE;  
 }
 
+# RPL_NAMES
+sub S_353 {
+    my ($self, $irc) = splice @_, 0, 2;
+    my @data = @{ ${ $_[2] } };
+    shift @data if $data[0] =~ /^(\x40|\x2A|\x3D)$/;
+    my $chan = shift @data;
+    my @nicks = split /\s+/, shift @data;
+    my $map   = $irc->isupport('CASEMAPPING');
+    my $uchan = u_irc($chan, $map);
+    my $prefix = $irc->isupport('PREFIX') || { o => '@', v => '+' };
+    my $search = join '|', map { quotemeta } values %$prefix;
+    foreach my $user ( @nicks ) {
+       my $status;
+       if ( ($status) = $user =~ /^($search)/ ) {
+          $user =~ s/^($search)//g;
+       }
+       $status = '' unless $status;
+       my $whatever = '';
+       my $unick = u_irc($user,$map);
+       my $existing = $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan } || '';
+       for my $mode ( keys %{ $prefix } ) {
+         if ($status =~ /\Q$prefix->{$mode}/ && $existing !~ /\Q$prefix->{$mode}/ ) {
+           $whatever .= $mode;
+         }
+       }
+       $existing .= $whatever if !$existing || $existing !~ /$whatever/;
+       $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan } = $existing;
+       $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick } = $existing;
+    }
+    return PCI_EAT_NONE;  
+}
+
 # RPL_WHOREPLY
 sub S_352 {
     my ($self, $irc) = splice @_, 0, 2;
@@ -427,7 +459,7 @@ sub S_352 {
     if ( exists $self->{STATE}->{Chans}->{ $uchan } ) {
         my $whatever = '';
         my $existing = $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan } || '';    
-        my $prefix = $irc->isupport('PREFIX') || { o =>, '@', v => '+' };
+        my $prefix = $irc->isupport('PREFIX') || { o => '@', v => '+' };
 
         for my $mode ( keys %{ $prefix } ) {
             if ($status =~ /\Q$prefix->{$mode}/ && $existing !~ /\Q$prefix->{$mode}/ ) {
