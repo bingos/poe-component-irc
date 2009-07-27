@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-6.09_08
+6.09_08 Mon Jul 27 12:40:19 BST 2009
     - State and subclasses will use NAMES replies to synchronise
       channel state as well now. Should help RT #46825 (bingos).
 

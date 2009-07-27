@@ -5,7 +5,7 @@ use warnings;
 use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 
-our $VERSION = '6.09_07';
+our $VERSION = '6.09_08';
 
 sub new {
     my ($package) = shift;
