@@ -6,7 +6,7 @@ use POE::Component::IRC::Common qw(parse_user);
 use POE::Component::IRC::State;
 use POE::Component::Server::IRC;
 use Socket;
-use Test::More tests => 51;
+use Test::More tests => 42;
 
 my $bot = POE::Component::IRC::State->spawn(Flood => 1);
 my $ircd1 = POE::Component::Server::IRC->spawn(
@@ -34,21 +34,14 @@ POE::Session->create(
             irc_registered
             irc_connected
             irc_001
-            irc_221
-            irc_305
-            irc_306
-            irc_whois
             irc_join
-            irc_topic
             irc_chan_sync
             irc_nick_sync
-            irc_user_mode
-            irc_chan_mode
-            irc_mode
             irc_error
             irc_quit
             irc_disconnected
             ircd_daemon_nick
+            ircd_daemon_eob
         )],
     ],
 );
@@ -96,6 +89,8 @@ sub _config_ircd {
     $ircd2->yield( 'add_spoofed_nick', nick => 'oper', umode => 'o', );
 
     $bot->yield(register => 'all');
+    $_[HEAP]->{listening_port} = $port;
+    return;
     $bot->delay([connect => {
         nick    => 'TestBot',
         server  => '127.0.0.1',
@@ -124,27 +119,8 @@ sub irc_001 {
 
     ok(!$irc->is_operator($irc->nick_name()), 'We are not an IRC op');
     ok(!$irc->is_away($irc->nick_name()), 'We are not away');
-    #return;
-    $irc->yield(away => 'Gone for now');
-
-    $irc->yield(whois => 'TestBot');
-}
-
-sub irc_305 {
-    my $irc = $_[SENDER]->get_heap();
-    ok(!$irc->is_away($irc->nick_name()), 'We are back');
-}
-
-sub irc_306 {
-    my $irc = $_[SENDER]->get_heap();
-    ok($irc->is_away($irc->nick_name()), 'We are away now');
-    $irc->yield('away');
-}
-
-sub irc_whois {
-    my ($sender, $whois) = @_[SENDER, ARG0];
-    is($whois->{nick}, 'TestBot', 'Whois hash test');
-    $sender->get_heap()->yield(join => '#testchannel');
+    $irc->yield('join','#testchannel');
+    return;
 }
 
 sub irc_join {
@@ -161,7 +137,7 @@ sub irc_join {
     is((keys %$chans)[0], $where, 'Correct channel name');
 
     my @nicks = $irc->nicks();
-    is(@nicks, 1, 'Only one nick known');
+    is(@nicks, 2, 'Two nicks known');
     is($nicks[0], $nick, 'Nickname correct');
 }
 
@@ -177,6 +153,7 @@ sub join_after_split {
       local $TODO = 'Sometimes there is a race condition';
       ok(!$irc->is_channel_operator($where, $nick), 'Is Not Channel Operator');
     }
+    $poe_kernel->yield( '_shutdown' );
 }
 
 sub irc_nick_sync {
@@ -187,18 +164,12 @@ sub irc_nick_sync {
     return;
 }
 
-sub irc_topic {
-    my ($sender, $chan, $topic) = @_[SENDER, ARG1, ARG2];
-    my $irc = $sender->get_heap();
-    is($topic, $irc->channel_topic($chan)->{Value}, 'Channel topic set');
-}
-
 sub irc_chan_sync {
     my ($sender, $heap, $chan) = @_[SENDER, HEAP, ARG0];
     my $irc = $sender->get_heap();
     my ($nick, $user, $host) = parse_user($irc->nick_long_form($irc->nick_name()));
     my ($occupant) = $irc->channel_list($chan);
-    
+
     is($occupant, 'TestBot', 'Channel Occupancy Test');
     ok($irc->channel_creation_time($chan), 'Got channel creation time');
     ok(!$irc->channel_limit($chan), 'There is no channel limit');
@@ -224,35 +195,6 @@ sub irc_chan_sync {
     ok(!$info->{IRCop}, 'nick_info() - IRCop');
     
     $ircd2->_daemon_cmd_squit( 'oper', 'ircd1.poco.server.irc' );
-}
-
-sub irc_chan_mode {
-    my ($sender, $heap, $who, $chan, $mode, $what) = @_[SENDER, HEAP, ARG0..ARG3];
-    my $irc = $sender->get_heap();
-    return if !$heap->{netjoin};
-
-    ok($irc->is_channel_operator($chan, $what), 'Is Channel Operator');
-    $irc->yield('quit');
-}
-
-sub irc_user_mode {
-    my ($sender, $who, $mode) = @_[SENDER, ARG0, ARG2];
-    my $irc = $sender->get_heap();
-    
-    $mode =~ s/\+//g;
-    ok($irc->is_user_mode_set($mode), "User Mode Set: $mode");
-    is($irc->umode(), $mode, 'Correct user mode in state');
-}
-
-sub irc_mode {
-    my $irc = $_[SENDER]->get_heap();
-    return if $_[ARG1] !~ /^\#/;
-}
-
-sub irc_221 {
-    my $irc = $_[SENDER]->get_heap();
-    pass('State did a MODE query');
-    $irc->yield(mode => $irc->nick_name(), '+iw');
 }
 
 sub irc_error {
@@ -285,6 +227,24 @@ sub ircd_daemon_nick {
   my $nickname = $_[ARG0];
   return unless $nickname eq 'oper';
   $ircd2->yield( daemon_cmd_join => $nickname => '#testchannel' );
+  return;
+}
+
+sub ircd_daemon_server {
+  diag(join ' ', @_[ARG0..$#_]);
+  return;
+}
+
+sub ircd_daemon_eob {
+  my ($heap,$server) = @_[HEAP,ARG0];
+  return if $heap->{second};
+  $heap->{second}++;
+  $bot->delay([connect => {
+        nick    => 'TestBot',
+        server  => '127.0.0.1',
+        port    => $heap->{listening_port},
+        ircname => 'Test test bot',
+  }], 5);
   return;
 }
 

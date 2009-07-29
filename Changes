@@ -1,5 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
+Wed Jul 29 12:02:13 BST 2009
+    - Refactored the netsplit test slightly to try and eliminate 
+      race conditions (bingos)
+
 6.09_08 Mon Jul 27 12:40:19 BST 2009
     - State and subclasses will use NAMES replies to synchronise
       channel state as well now. Should help RT #46825 (bingos).
