@@ -3,7 +3,7 @@ package POE::Component::IRC::Constants;
 use strict;
 use warnings;
 
-our $VERSION = '6.09_09';
+our $VERSION = '6.09_10';
 
 require Exporter;
 use base qw(Exporter);
