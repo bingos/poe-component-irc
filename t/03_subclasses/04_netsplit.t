@@ -137,7 +137,13 @@ sub irc_join {
     is((keys %$chans)[0], $where, 'Correct channel name');
 
     my @nicks = $irc->nicks();
-    is(@nicks, 2, 'Two nicks known');
+    use Data::Dumper;
+    $Data::Dumper::Indent=1;
+    diag(Dumper($irc->{STATE}));
+    #TODO: {
+    #  local $TODO = 'Sometimes there is a race condition';
+      is(@nicks, 2, 'Two nicks known');
+    #}
     is($nicks[0], $nick, 'Nickname correct');
 }
 
