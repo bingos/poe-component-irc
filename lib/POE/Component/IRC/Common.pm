@@ -5,7 +5,7 @@ use warnings;
 
 use Encode qw(decode);
 use Encode::Guess;
-our $VERSION = '6.09_11';
+our $VERSION = '6.10';
 
 require Exporter;
 use base qw(Exporter);
