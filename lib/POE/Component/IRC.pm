@@ -374,11 +374,18 @@ sub _sock_up {
     # Remember what IP address we're connected through, for multihomed boxes.
     my $localaddr;
     if ($GOT_SOCKET6) {
-        eval { $localaddr = (unpack_sockaddr_in6( getsockname $socket ))[1] };
+        eval { 
+                $localaddr = (unpack_sockaddr_in6( getsockname $socket ))[1];
+                $localaddr = inet_ntop( AF_INET6, $localaddr );
+        };
     }
 
-    $localaddr = (unpack_sockaddr_in( getsockname $socket ))[1] if !$localaddr;
-    $self->{localaddr} = inet_ntoa($localaddr);
+    if ( !$localaddr ) {
+        $localaddr = (unpack_sockaddr_in( getsockname $socket ))[1];
+        $localaddr = inet_ntoa($localaddr);
+    }
+
+    $self->{localaddr} = $localaddr;
 
     if ( $self->{socks_proxy} ) {
         $self->{socket} = new POE::Wheel::ReadWrite(
