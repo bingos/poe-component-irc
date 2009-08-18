@@ -188,9 +188,6 @@ sub _U_dcc {
     }
     
     $bindaddr = $irc->localaddr();
-    if ($bindaddr && $bindaddr =~ tr/a-zA-Z.//) {
-        $bindaddr = inet_aton($bindaddr);
-    }
 
     if ($self->{dccports}) {
         $bindport = shift @{ $self->{dccports} };

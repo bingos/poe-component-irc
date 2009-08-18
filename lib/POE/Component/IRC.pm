@@ -378,7 +378,7 @@ sub _sock_up {
     }
 
     $localaddr = (unpack_sockaddr_in( getsockname $socket ))[1] if !$localaddr;
-    $self->{localaddr} = $localaddr;
+    $self->{localaddr} = inet_ntoa($localaddr);
 
     if ( $self->{socks_proxy} ) {
         $self->{socket} = new POE::Wheel::ReadWrite(
