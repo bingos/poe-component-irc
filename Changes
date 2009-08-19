@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-6.11
+6.11_01 Wed Aug 19 10:06:07 BST 2009
     - Fix localaddr() issue reported in RT #48791 by Michael Andreen
 
 6.10 Fri Aug 14 21:19:07 BST 2009

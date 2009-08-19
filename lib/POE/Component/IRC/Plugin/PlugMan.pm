@@ -6,7 +6,7 @@ use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Common qw( matches_mask parse_user );
 
-our $VERSION = '6.10';
+our $VERSION = '6.11_01';
 
 BEGIN { 
     # Turn on the debugger's symbol source tracing
