@@ -30,7 +30,7 @@ version_from 'lib/POE/Component/IRC.pm';
 abstract_from 'lib/POE/Component/IRC.pm';
 perl_version '5.006';
 requires 'POE'    => 0.3202;
-requires 'POE::Component::Pluggable' => '1.12';
+requires 'POE::Component::Pluggable' => '1.24';
 requires 'POE::Wheel::SocketFactory' => 0;
 requires 'POE::Wheel::ReadWrite' => 0;
 requires 'POE::Driver::SysRW' => 0;
