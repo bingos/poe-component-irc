@@ -91,12 +91,12 @@ sub _config_ircd {
     $bot->yield(register => 'all');
     $_[HEAP]->{listening_port} = $port;
     return;
-    $bot->delay([connect => {
-        nick    => 'TestBot',
-        server  => '127.0.0.1',
-        port    => $port,
-        ircname => 'Test test bot',
-    }], 5);
+    #$bot->delay([connect => {
+    #    nick    => 'TestBot',
+    #    server  => '127.0.0.1',
+    #    port    => $port,
+    #    ircname => 'Test test bot',
+    #}], 5);
 }
 
 sub irc_registered {
