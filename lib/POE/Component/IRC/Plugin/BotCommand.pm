@@ -3,7 +3,7 @@ package POE::Component::IRC::Plugin::BotCommand;
 use strict;
 use warnings;
 use Carp;
-use POE::Component::IRC::Common qw( parse_user );
+use POE::Component::IRC::Common qw( parse_user strip_color strip_formatting );
 use POE::Component::IRC::Plugin qw( :ALL );
 
 our $VERSION = '6.11_01';
@@ -43,6 +43,7 @@ sub S_msg {
     my $what  = ${ $_[2] };
     
     return PCI_EAT_NONE if !$self->{In_private};
+    $what = $self->_normalize($what);
     
     my ($cmd, $args);
     if (!(($cmd, $args) = $what =~ /^(\w+)(?:\s+(.+))?$/)) {
@@ -65,6 +66,7 @@ sub S_public {
     my $me    = $irc->nick_name();
 
     return PCI_EAT_NONE if !$self->{In_channels};
+    $what = $self->_normalize($what);
 
     if ($self->{Addressed}) {
         return PCI_EAT_NONE if !(($what) = $what =~ m/^\s*\Q$me\E[:,;.!?~]?\s*(.*)$/);
@@ -84,6 +86,13 @@ sub S_public {
         return PCI_EAT_PLUGIN;
     }
     return PCI_EAT_NONE;
+}
+
+sub _normalize {
+    my ($self, $line) = @_;
+    $line = strip_color($line);
+    $line = strip_formatting($line);
+    return $line;
 }
 
 sub _handle_cmd {

@@ -123,8 +123,11 @@ sub irc_join {
     pass('Joined channel');
     return if $irc != $bot2;
 
+    # try command
     $irc->yield(privmsg => $where, "TestBot1: cmd1 foo bar");
-    $irc->yield(privmsg => $where, "TestBot1: cmd2");
+
+    # and one with color
+    $irc->yield(privmsg => $where, "\x0302TestBot1\x0f: \x02cmd2\x0f");
 }
 
 sub irc_botcmd_cmd1 {
@@ -132,9 +135,9 @@ sub irc_botcmd_cmd1 {
     my $nick = (split /!/, $user)[0];
     my $irc = $sender->get_heap();
 
-    is($nick, $bot2->nick_name(), 'cmd1 user');
-    is($where, '#testchannel', 'cmd1 channel');
-    is($args, 'foo bar', 'cmd1 arguments');
+    is($nick, $bot2->nick_name(), 'Normal command (user)');
+    is($where, '#testchannel', 'Normal command (channel)');
+    is($args, 'foo bar', 'Normal command (arguments)');
 }
 
 sub irc_botcmd_cmd2 {
@@ -142,9 +145,9 @@ sub irc_botcmd_cmd2 {
     my $nick = (split /!/, $user)[0];
     my $irc = $sender->get_heap();
 
-    is($nick, $bot2->nick_name(), 'cmd2 user');
-    is($where, '#testchannel', 'cmd2 channel');
-    ok(!defined $args, 'cmd1 arguments');
+    is($nick, $bot2->nick_name(), 'Colored command (user)');
+    is($where, '#testchannel', 'Colored command (channel)');
+    ok(!defined $args, 'Colored command (arguments)');
 
     $bot1->yield('quit');
     $bot2->yield('quit');

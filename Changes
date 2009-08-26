@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+6.13
+    - BotCommand.pm: Strip colors/formatting before processing (Hinrik)
+
 6.12
     - Depend on latest (1.24) POE::Component::Pluggable (Hinrik)
 
