@@ -2,16 +2,6 @@ use 5.006;
 use strict;
 use inc::Module::Install;
 
-my $GOT_DNS;
-
-BEGIN {
-   $GOT_DNS = 0;
-   eval {
-	require POE::Component::Client::DNS;
-	$GOT_DNS = 1 if $POE::Component::Client::DNS::VERSION >= 0.99;
-   };
-}
-
 print <<NOTICE;
 
 ---------------------------------------------------------------
@@ -21,7 +11,7 @@ is firewalled then these tests will fail.
 
 NOTICE
 
-_no_dns() unless $GOT_DNS;
+_no_dns() unless can_use('POE::Component::Client::DNS',0.99);
 
 name 'POE-Component-IRC';
 license 'perl';
@@ -41,7 +31,6 @@ requires 'POE::Filter::IRCD' => 1.7;
 requires 'Encode' => 0;
 requires 'Encode::Guess' => 0;
 test_requires 'Test::More' => '0.47';
-#tests 't/*.t t/*/*.t t/*/*/*.t';
 tests_recursive;
 author_tests 'xt';
 clean_files 'README.send Changes.resume followtail logger_test';
