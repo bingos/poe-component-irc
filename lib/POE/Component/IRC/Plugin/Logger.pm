@@ -307,7 +307,7 @@ sub S_dcc_start {
     my $port = ${ $_[3] };
     my $addr = ${ $_[6] };
 
-    return if $type ne 'CHAT';
+    return PCI_EAT_NONE if $type ne 'CHAT';
     $self->_log_entry("=$nick", dcc_start => $nick, "$addr:$port");
     return PCI_EAT_NONE;
 }
@@ -354,7 +354,7 @@ sub S_dcc_done {
     my $port = ${ $_[3] };
     my $addr = ${ $_[7] };
 
-    return if $type ne 'CHAT';
+    return PCI_EAT_NONE if $type ne 'CHAT';
     $self->_log_entry("=$nick", dcc_done => $nick, "$addr:$port");
     return PCI_EAT_NONE;
 }

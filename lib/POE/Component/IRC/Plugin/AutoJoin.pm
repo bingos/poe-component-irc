@@ -85,7 +85,7 @@ sub S_474 {
     my ($self, $irc) = splice @_, 0, 2;
     my $chan = ${ $_[2] }->[0];
     my $lchan = l_irc($chan, $irc->isupport('MAPPING'));
-    return if !$self->{Retry_when_banned};
+    return PCI_EAT_NONE if !$self->{Retry_when_banned};
 
     my $key = $self->{Channels}{$lchan};
     $key = $self->{tried_keys}{$lchan} if defined $self->{tried_keys}{$lchan};
