@@ -388,7 +388,7 @@ sub _sock_up {
     $self->{localaddr} = $localaddr;
 
     if ( $self->{socks_proxy} ) {
-        $self->{socket} = new POE::Wheel::ReadWrite(
+        $self->{socket} = POE::Wheel::ReadWrite->new(
             Handle       => $socket,
             Driver       => POE::Driver::SysRW->new(),
             Filter       => POE::Filter::Stream->new(),
@@ -438,7 +438,7 @@ sub _sock_up {
     }
     
     # Create a new ReadWrite wheel for the connected socket.
-    $self->{socket} = new POE::Wheel::ReadWrite(
+    $self->{socket} = POE::Wheel::ReadWrite->new(
         Handle       => $socket,
         Driver       => POE::Driver::SysRW->new(),
         InputFilter  => $self->{srv_filter},
