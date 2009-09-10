@@ -111,7 +111,7 @@ sub S_join {
     my $chan   = ${ $_[1] };
     my $lchan  = l_irc($chan, $irc->isupport('MAPPING'));
 
-    return if $joiner ne $irc->nick_name();
+    return PCI_EAT_NONE if $joiner ne $irc->nick_name();
 
     if (defined $self->{tried_keys}{$lchan}) {
         $self->{Channels}->{$lchan} = $self->{tried_keys}{$lchan};
