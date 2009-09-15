@@ -1174,13 +1174,13 @@ POE::Component::IRC::State's constructors, and its C<connect> event, all
 take the same arguments as L<POE::Component::IRC|POE::Component::IRC> does, as
 well as two additional ones:
 
-'AwayPoll', the interval (in seconds) in which to poll (i.e. C<WHO #channel>)
+B<'AwayPoll'>, the interval (in seconds) in which to poll (i.e. C<WHO #channel>)
 the away status of channel members. Defaults to 0 (disabled). If enabled, you
 will receive C<irc_away_sync_*> / L<C<irc_user_away>|/"irc_user_away"> /
 L<C<irc_user_back>|/"irc_user_back"> events, and will be able to use the
 L<C<is_away>|/"is_away"> method for users other than yourself.
 
-'WhoJoiners', a boolean indicating whether the component should send a
+B<'WhoJoiners'>, a boolean indicating whether the component should send a
 C<WHO nick> for every person which joins a channel. Defaults to on
 (the C<WHO> is sent). If you turn this off, L<C<is_operator>|/"is_operator">
 will not work and L<C<nick_info>|/"nick_info"> will only return the keys
@@ -1373,12 +1373,12 @@ Takes no parameters. Returns the current user mode set for the bot.
 
 =head2 Augmented events
 
-New paramater are added to the following L<POE::Component::IRC|POE::Component::IRC>
-events.
+New paramaters are added to the following
+L<POE::Component::IRC|POE::Component::IRC> events.
 
 =head3 C<irc_quit>
 
-See also L<C<irc_quit>|POE::Component::IRC/"irc_quit">> in
+See also L<C<irc_quit>|POE::Component::IRC/"irc_quit"> in
 L<POE::Component::IRC|POE::Component::IRC>.
 
 Additional paramater C<ARG2> contains an arrayref of channel names that are
@@ -1407,7 +1407,7 @@ individual.
 =head3 C<irc_socketerr>
 
 These three all have two additional parameters. C<ARG1> is a hash of
-information about your IRC user (see L<C<nick_info>|/"nick_info">, while
+information about your IRC user (see L<C<nick_info>|/"nick_info">), while
 C<ARG2> is a hash of the channels you were on (see 
 L<C<channels>|/"channels">).
 
