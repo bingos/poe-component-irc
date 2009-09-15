@@ -71,11 +71,6 @@ sub S_join {
         $self->yield(who => $chan);
         $self->yield(mode => $chan);
         $self->yield(mode => $chan => 'b');
-        
-        if ($self->{awaypoll}) {
-            $poe_kernel->state(_away_sync => $self);
-            $poe_kernel->delay_add(_away_sync => $self->{awaypoll} => $chan);
-        }
     }
     else {
       SWITCH: {
@@ -107,6 +102,18 @@ sub S_join {
     $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan } = '';
     $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick } = '';
     
+    return PCI_EAT_NONE;
+}
+
+sub S_chan_sync {
+    my ($self, $irc) = splice @_, 0, 2;
+    my $chan = ${ $_[0] };
+
+    if ($self->{awaypoll}) {
+        $poe_kernel->state(_away_sync => $self);
+        $poe_kernel->delay_add(_away_sync => $self->{awaypoll} => $chan);
+    }
+
     return PCI_EAT_NONE;
 }
 
@@ -452,10 +459,6 @@ sub S_352 {
         $self->{STATE}->{Nicks}->{ $unick }->{IRCop} = 1 if $status =~ /\*/;
     }
     
-    if ($self->{awaypoll}) {
-        $self->{STATE}->{Nicks}->{ $unick }->{Away} = $status =~ /G/ ? 1 : 0;
-    }
-    
     if ( exists $self->{STATE}->{Chans}->{ $uchan } ) {
         my $whatever = '';
         my $existing = $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan } || '';    
@@ -474,11 +477,15 @@ sub S_352 {
 
         if ($self->{STATE}->{Chans}->{ $uchan }->{AWAY_SYNCH} && $unick ne u_irc($irc->nick_name(), $map)) {
             if ( $status =~ /G/ && !$self->{STATE}->{Nicks}->{ $unick }->{Away} ) {
-                $self->yield(irc_user_away => $nick, [ $self->nick_channels( $nick ) ] );
+                $self->_send_event(irc_user_away => $nick, [ $self->nick_channels( $nick ) ] );
             }
             elsif ($status =~ /H/ && $self->{STATE}->{Nicks}->{ $unick }->{Away} ) {
-                $self->yield(irc_user_back => $nick, [ $self->nick_channels( $nick ) ] );
+                $self->_send_event(irc_user_back => $nick, [ $self->nick_channels( $nick ) ] );
             }
+        }
+
+        if ($self->{awaypoll}) {
+            $self->{STATE}->{Nicks}->{ $unick }->{Away} = $status =~ /G/ ? 1 : 0;
         }
     }
     
@@ -1178,7 +1185,10 @@ B<'AwayPoll'>, the interval (in seconds) in which to poll (i.e. C<WHO #channel>)
 the away status of channel members. Defaults to 0 (disabled). If enabled, you
 will receive C<irc_away_sync_*> / L<C<irc_user_away>|/"irc_user_away"> /
 L<C<irc_user_back>|/"irc_user_back"> events, and will be able to use the
-L<C<is_away>|/"is_away"> method for users other than yourself.
+L<C<is_away>|/"is_away"> method for users other than yourself. This can cause
+a lot of increase in traffic, especially if you are on big channels, so if you
+do use this, you probably don't want to set it too low. For reference, X-Chat
+uses 300 seconds (5 minutes).
 
 B<'WhoJoiners'>, a boolean indicating whether the component should send a
 C<WHO nick> for every person which joins a channel. Defaults to on
@@ -1466,6 +1476,9 @@ C<ARG1> is an arrayref of channel names that are common to the nickname
 and the component. You will only receive this event if you specified a value
 for B<'AwayPoll'> in L<C<spawn>|POE::Component::IRC/"spawn">.
 
+B<Note:> This above is only for users I<other than yourself>. To know when you
+change your own away status, register for the C<irc_305> and C<irc_306> events.
+
 =head3 C<irc_user_back>
 
 Sent when an IRC user unsets his/her away status. C<ARG0> is the nickname,
@@ -1473,9 +1486,8 @@ C<ARG1> is an arrayref of channel names that are common to the nickname and
 the component. You will only receive this event if you specified a value for
 B<'AwayPoll'> in L<C<spawn>|POE::Component::IRC/"spawn">.
 
-The following two C<irc_*> events are the same as their
-L<POE::Component::IRC|POE::Component::IRC> counterparts, with the additional
-parameters:
+B<Note:> This above is only for users I<other than yourself>. To know when you
+change your own away status, register for the C<irc_305> and C<irc_306> events.
 
 =head3 C<irc_user_mode>
 
