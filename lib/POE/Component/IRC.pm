@@ -1792,7 +1792,9 @@ L<C<register>|/"register"> and L<C<irc_registered>|/"irc_registered">.
 
 =head2 C<spawn>
 
-Takes a number of arguments, all of which are optional: 
+Takes a number of arguments, all of which are optional. All the options
+below may be supplied to the L<C<connect>|/"connect"> input event as well,
+except for B<'alias'>, B<'options'>, B<'NoDNS'>, and B<'plugin_debug'>.
 
 B<'alias'>, a name (kernel alias) that this instance will be known by;
 
@@ -1861,10 +1863,6 @@ B<'useipv6'>, enable the use of IPv6 for connections.
 
 C<spawn> will supply reasonable defaults for any of these attributes which are
 missing, so don't feel obliged to write them all out.
-
-All the above options may be supplied to L<C<connect>|/"connect"> input
-event as well, except for the following options: B<'alias'>, B<'options'>,
-B<'NoDNS'>, and B<'plugin_debug'>.
 
 If the component finds that L<POE::Component::Client::DNS|POE::Component::Client::DNS>
 is installed it will use that to resolve the server name passed. Disable this
