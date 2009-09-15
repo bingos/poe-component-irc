@@ -1863,7 +1863,8 @@ C<spawn> will supply reasonable defaults for any of these attributes which are
 missing, so don't feel obliged to write them all out.
 
 All the above options may be supplied to L<C<connect>|/"connect"> input
-event as well.
+event as well, except for the following options: B<'alias'>, B<'options'>,
+B<'NoDNS'>, and B<'plugin_debug'>.
 
 If the component finds that L<POE::Component::Client::DNS|POE::Component::Client::DNS>
 is installed it will use that to resolve the server name passed. Disable this

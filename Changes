@@ -6,6 +6,8 @@ Revision history for Perl extension POE::Component::IRC.
     - State.pm: Fix AwayPoll, which wasn't working at all. Also added a
       test for it and made the documentation clearer. Thanks to David E.
       Wheeler for spotting that one. (Hinrik)
+    - IRC.pm: Document which spawn() options can not be passed to the
+      'connect' event. (Hinrik)
 
 6.12  Thu Sep 10 09:25:02 BST 2009
     - Fix localaddr() issue reported in RT #48791 by Michael Andreen
