@@ -1,7 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 6.14
-    - AutoJoin.pm: More "return" -> "return PCI_EAT_NONE" fixes (Hinrik)
+    - More "return" -> "return PCI_EAT_NONE" fixes. This eliminates some
+      harmless (but annoying) warnings. (Hinrik)
     - State.pm: Fix AwayPoll, which wasn't working at all. Also added a
       test for it and made the documentation clearer. Thanks to David E.
       Wheeler for spotting that one. (Hinrik)
