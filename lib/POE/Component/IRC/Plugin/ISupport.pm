@@ -140,7 +140,7 @@ sub _default {
 
     return PCI_EAT_NONE if $self->{done_005};
     
-    if ($event =~ /^S_0*(\d+)/ and $1 > 5) {
+    if ($event =~ /^S_(\d+)/ and $1 > 5) {
         $irc->send_event(irc_isupport => $self);
         $self->{done_005} = 1;
     }
