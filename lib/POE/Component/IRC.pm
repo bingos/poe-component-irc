@@ -1437,7 +1437,7 @@ sub _delay {
     return if !defined $time;
     my $event = shift @{ $arrayref };
     my $alarm_id = $kernel->delay_set( $event => $time => @{ $arrayref } );
-    $self->send_event(irc_delay_set => $alarm_id, $event, @{ $arrayref } ) if $alarm_id;
+    $self->_send_event(irc_delay_set => $alarm_id, $event, @{ $arrayref } ) if $alarm_id;
     return $alarm_id;
 }
 
@@ -1454,7 +1454,7 @@ sub _delay_remove {
     my @old_alarm_list = $kernel->alarm_remove( $alarm_id );
     if (@old_alarm_list) {
         splice @old_alarm_list, 1, 1;
-        $self->send_event(irc_delay_removed => $alarm_id, @old_alarm_list );
+        $self->_send_event(irc_delay_removed => $alarm_id, @old_alarm_list );
         return \@old_alarm_list;
     }
     
