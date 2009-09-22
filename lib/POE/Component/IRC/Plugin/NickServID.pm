@@ -45,10 +45,11 @@ sub S_nick {
     my ($self, $irc) = splice @_, 0, 2;
     my $mapping = $irc->isupport('CASEMAPPING');
     my $new_nick = u_irc( ${ $_[1] }, $mapping );
+
     if ( $new_nick eq u_irc($self->{nick}, $mapping) ) {
         $irc->yield(nickserv => "IDENTIFY $self->{Password}");
-        return PCI_EAT_NONE;
     }
+    return PCI_EAT_NONE;
 }
 
 1;
