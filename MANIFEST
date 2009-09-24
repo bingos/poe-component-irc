@@ -147,7 +147,6 @@ t/inc/POE/Component/Server/IRC/Common.pm
 t/inc/POE/Component/Server/IRC/OperServ.pm
 t/inc/POE/Component/Server/IRC/Pipeline.pm
 t/inc/POE/Component/Server/IRC/Plugin.pm
-TODO
 xt/perl_critic.t
 xt/perl_critic_t.t
 xt/perlcriticrc
