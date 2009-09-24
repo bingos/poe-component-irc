@@ -98,9 +98,8 @@ sub irc_join {
     my $nick = ( split /!/, $who )[0];
     my $irc = $sender->get_heap();
     
-    if ($nick eq $irc->nick_name()) {
-        is($where, '#testchannel', 'Joined Channel Test');
-    }
+    return if $nick ne $irc->nick_name();
+    is($where, '#testchannel', 'Joined Channel Test');
 
     if ($nick eq 'TestBot1') {
         $irc->yield(mode => $where, '+b TestBot2!*@*');
