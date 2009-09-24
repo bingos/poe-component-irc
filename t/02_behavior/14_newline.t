@@ -6,7 +6,7 @@ use Socket;
 use POE::Component::IRC::State;
 use POE::Component::IRC::Plugin::AutoJoin;
 use POE::Component::Server::IRC;
-use Test::More tests => 10;
+use Test::More tests => 9;
 
 my $bot1 = POE::Component::IRC::State->spawn(
     Flood        => 1,
