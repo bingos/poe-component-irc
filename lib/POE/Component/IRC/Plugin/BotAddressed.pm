@@ -32,12 +32,13 @@ sub S_ctcp_action {
     my $recipients = ${ $_[1] };
     my $what = ${ $_[2] };
     my $me = $irc->nick_name();
+    my $chantypes = join('', @{ $irc->isupport('CHANTYPES') || ['#', '&']});
 
     my $eat = PCI_EAT_NONE;
     return $eat if $what !~ /$me/i;
     
     for my $recipient (@{ $recipients }) {
-        if ($recipient =~ /^[#&+!]/) {
+        if ($recipient =~ /^[$chantypes]/) {
             $eat = PCI_EAT_ALL if $self->{eat};
             $irc->send_event(irc_bot_mentioned_action => $who => [$recipient] => $what);
         }

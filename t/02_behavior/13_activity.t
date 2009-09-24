@@ -115,7 +115,8 @@ sub irc_invite {
 sub irc_mode {
     my ($sender, $where, $mode) = @_[SENDER, ARG1, ARG2];
     my $irc = $sender->get_heap();
-    return if $where !~ /^[#&!]/;
+    my $chantypes = join('', @{ $irc->isupport('CHANTYPES') || ['#', '&']});
+    return if $where !~ /^[$chantypes]/;
     return if $irc != $bot1;
 
     if ($mode =~ /\+[nt]/) {

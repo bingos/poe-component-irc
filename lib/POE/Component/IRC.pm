@@ -647,7 +647,7 @@ sub commasep {
         $args .= ' ' . join ',', @args;
     }
     elsif ( $state eq 'part' and @args > 1 ) {
-        my $chantypes = join('', @{ $self->isupport('CHANTYPES') }) || '#&';
+        my $chantypes = join('', @{ $self->isupport('CHANTYPES') || ['#', '&']});
         my $message;
         if ($args[-1] =~ / +/ || $args[-1] !~ /^[$chantypes]/) {
             $message = pop @args;

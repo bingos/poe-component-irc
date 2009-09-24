@@ -50,7 +50,7 @@ sub U_privmsg {
         $irc->send_event(irc_bot_action => @{ $ctcp_event->{args} }[1..2]);
     }
     else {
-        my $chantypes = join('', @{ $irc->isupport('CHANTYPES') }) || '#&';
+        my $chantypes = join('', @{ $irc->isupport('CHANTYPES') || ['#', '&']});
         for my $recipient ( split(/,/, $line->{params}->[0]) ) {
             my $event = 'irc_bot_msg';
             $event = 'irc_bot_public' if $recipient =~ /^[$chantypes]/;
