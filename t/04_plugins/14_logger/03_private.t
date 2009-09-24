@@ -24,6 +24,7 @@ my $ircd = POE::Component::Server::IRC->spawn(
 
 $bot2->plugin_add(Logger => POE::Component::IRC::Plugin::Logger->new(
     Path => 'logger_test',
+    Notices => 1,
 ));
 
 my $file = catfile('logger_test', 'testbot1.log');
@@ -34,6 +35,8 @@ my @correct = (
     '<TestBot2> Hi yourself',
     '* TestBot1 is talking',
     '* TestBot2 is too',
+    '>TestBot1< This is a notice',
+    '>TestBot2< So is this',
 );
 
 plan tests => 8 + @correct;
@@ -47,6 +50,7 @@ POE::Session->create(
             irc_001
             irc_msg
             irc_ctcp_action
+            irc_notice
             irc_disconnected
         )],
     ],
@@ -141,6 +145,19 @@ sub irc_ctcp_action {
         $heap->{msg}++;
     }
     elsif ($heap->{msg} == 4) {
+        $bot1->yield(notice => $bot2->nick_name(), 'This is a notice');
+        $heap->{msg}++;
+    }
+}
+
+sub irc_notice {
+    my $heap = $_[HEAP];
+
+    if ($heap->{msg} == 5) {
+        $bot2->yield(notice => $bot1->nick_name(), 'So is this');
+        $heap->{msg}++;
+    }
+    elsif ($heap->{msg} == 6) {
         $bot1->yield('quit');
         $bot2->yield('quit');
     }

@@ -88,6 +88,7 @@ sub PCI_register {
         topic_is     => sub { my ($chan, $topic) = @_;           "--- Topic for $chan is: $topic" },
         topic_change => sub { my ($nick, $topic) = @_;           "--- $nick changes the topic to: $topic" },
         privmsg      => sub { my ($nick, $msg) = @_;             "<$nick> $msg" },
+        notice       => sub { my ($nick, $msg) = @_;             ">$nick< $msg" },
         action       => sub { my ($nick, $action) = @_;          "* $nick $action" },
         dcc_start    => sub { my ($nick, $address) = @_;         "--> Opened DCC chat connection with $nick ($address)" },
         dcc_done     => sub { my ($nick, $address) = @_;         "<-- Closed DCC chat connection with $nick ($address)" },
@@ -118,8 +119,8 @@ sub PCI_register {
     } if !defined $self->{Format};
 
     $irc->plugin_register($self, 'SERVER', qw(001 332 333 chan_mode 
-        ctcp_action bot_action bot_msg bot_public join kick msg nick part 
-        public quit topic dcc_start dcc_chat dcc_done));
+        ctcp_action bot_action bot_msg bot_public bot_notice join kick msg
+        nick part public notice quit topic dcc_start dcc_chat dcc_done));
     $irc->plugin_register($self, 'USER', 'dcc_chat');
     return 1;
 }
@@ -169,10 +170,9 @@ sub S_ctcp_action {
     my $sender     = parse_user(${ $_[0] });
     my $recipients = ${ $_[1] };
     my $msg        = ${ $_[2] };
-    my $me         = $irc->nick_name();
 
     for my $recipient (@{ $recipients }) {
-        if ($recipient eq $me) {
+        if ($recipient eq $irc->nick_name()) {
             $self->_log_entry($sender, action => $sender, $msg);
         }
         else {
@@ -181,6 +181,24 @@ sub S_ctcp_action {
     }
     return PCI_EAT_NONE;
 }
+
+sub S_notice {
+    my ($self, $irc) = splice @_, 0, 2;
+    my $sender  = parse_user(${ $_[0] });
+    my $targets = ${ $_[1] };
+    my $msg     = ${ $_[2] };
+
+    for my $target (@{ $targets }) {
+        if ($target eq $irc->nick_name()) {
+            $self->_log_entry($sender, notice => $sender, $msg);
+        }
+        else {
+            $self->_log_entry($target, notice => $sender, $msg);
+        }
+    }
+    return PCI_EAT_NONE;
+}
+
 
 sub S_bot_action {
     my ($self, $irc) = splice @_, 0, 2;
@@ -211,6 +229,17 @@ sub S_bot_public {
 
     for my $chan (@{ $channels }) {
         $self->_log_entry($chan, privmsg => $irc->nick_name(), $msg);
+    }
+    return PCI_EAT_NONE;
+}
+
+sub S_bot_notice {
+    my ($self, $irc) = splice @_, 0, 2;
+    my $targets = ${ $_[0] };
+    my $msg     = ${ $_[1] };
+
+    for my $target (@{ $targets }) {
+        $self->_log_entry($target, notice => $irc->nick_name(), $msg);
     }
     return PCI_EAT_NONE;
 }
@@ -374,6 +403,7 @@ sub _log_entry {
         return if !$self->{Private};
     }
 
+    return if $type eq 'notice' && !$self->{Notices};
     return if !defined $self->{Format}->{$type};
 
     # slash is problematic in a filename, replace it with underscore
@@ -470,6 +500,8 @@ B<'Private'>, whether or not to log private messages. Defaults to 1.
 B<'Public'>, whether or not to log public messages. Defaults to 1.
 
 B<'DCC'>, whether or not to log DCC chats. Defaults to 1.
+
+B<'Notices'>, whether or not to log NOTICEs. Defaults to 0.
 
 B<'Sort_by_date'>, whether or not to split log files by date, i.e.
 F<#channel/YYYY-MM-DD.log> instead of F<#channel.log>. If enabled, the date

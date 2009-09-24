@@ -24,6 +24,7 @@ my $ircd = POE::Component::Server::IRC->spawn(
 
 $bot2->plugin_add(Logger => POE::Component::IRC::Plugin::Logger->new(
     Path => 'logger_test',
+    Notices => 1,
 ));
 
 my $file = catfile('logger_test', '#testchannel.log');
@@ -32,6 +33,7 @@ unlink $file if -e $file;
 my @correct = (
     qr/^--> TestBot2 \(\S+@\S+\) joins #testchannel$/,
     '<TestBot1> Oh hi',
+    '>TestBot1< Hello',
     '--- TestBot1 disables topic protection',
     '--- TestBot1 enables secret channel status',
     '--- TestBot1 enables channel moderation',
@@ -154,6 +156,7 @@ sub irc_join {
 
     if ($irc == $bot2) {
         $bot1->yield(privmsg => $where, 'Oh hi');
+        $bot1->yield(notice => $where, 'Hello');
         $bot1->yield(mode => $where, '-t');
         $bot1->yield(mode => $where, '+s');
         $bot1->yield(mode => $where, '+m');
@@ -166,7 +169,6 @@ sub irc_join {
         $bot1->yield(mode => $where, '+o TestBot2');
 
         $bot1->yield(topic => $where, 'Testing, 1 2 3');
-        $bot1->yield(notice => $where, 'Hello');
         $bot1->yield(nick => 'NewNick');
         $bot1->yield(part => $where);
     }
