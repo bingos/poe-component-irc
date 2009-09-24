@@ -6,7 +6,7 @@ use POE::Component::IRC;
 use POE::Component::IRC::Plugin::BotTraffic;
 use POE::Component::Server::IRC;
 use Socket;
-use Test::More tests => 6;
+use Test::More tests => 7;
 
 my $bot = POE::Component::IRC->spawn(
     Flood        => 1,
@@ -30,6 +30,7 @@ POE::Session->create(
             irc_bot_public
             irc_bot_msg
             irc_bot_action
+            irc_bot_notice
         )],
     ],
 );
@@ -82,11 +83,11 @@ sub irc_join {
     my $irc = $sender->get_heap();
 
     pass('Joined channel');
-    $irc->yield(privmsg => '#testchannel', 'A public message');
+    $irc->yield(privmsg => $where, 'A public message');
 }
 
 sub irc_bot_public {
-    my ($sender, $targets, $text) = @_[SENDER, ARG0, ARG1];
+    my ($sender, $text) = @_[SENDER, ARG1];
     my $irc = $sender->get_heap();
 
     is($text, 'A public message', 'irc_bot_public');
@@ -94,7 +95,7 @@ sub irc_bot_public {
 }
 
 sub irc_bot_msg {
-    my ($sender, $targets, $text) = @_[SENDER, ARG0, ARG1];
+    my ($sender, $text) = @_[SENDER, ARG1];
     my $irc = $sender->get_heap();
 
     is($text, 'A private message', 'irc_bot_msg');
@@ -102,10 +103,18 @@ sub irc_bot_msg {
 }
 
 sub irc_bot_action {
-    my ($sender, $targets, $text) = @_[SENDER, ARG0, ARG1];
+    my ($sender, $text) = @_[SENDER, ARG1];
     my $irc = $sender->get_heap();
 
     is($text, 'some action', 'irc_bot_action');
+    $irc->yield(notice => 'TestBot1', 'some notice');
+}
+
+sub irc_bot_notice {
+    my ($sender, $text) = @_[SENDER, ARG1];
+    my $irc = $sender->get_heap();
+
+    is($text, 'some notice', 'irc_bot_action');
     $irc->yield('quit');
 }
 

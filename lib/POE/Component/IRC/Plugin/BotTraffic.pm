@@ -10,11 +10,7 @@ our $VERSION = '6.14';
 
 sub new {
     my ($package) = @_;
-    return bless {
-        PrivEvent => 'irc_bot_msg',
-        PubEvent => 'irc_bot_public',
-        ActEvent => 'irc_bot_action',
-    }, $package;
+    return bless { }, $package;
 }
 
 sub PCI_register {
@@ -22,7 +18,7 @@ sub PCI_register {
 
     $self->{filter} = POE::Filter::IRCD->new();
     $self->{compat} = POE::Filter::IRC::Compat->new();
-    $irc->plugin_register( $self, 'USER', qw(privmsg) );
+    $irc->plugin_register( $self, 'USER', qw(privmsg notice) );
     return 1;
 }
 
@@ -30,25 +26,35 @@ sub PCI_unregister {
     return 1;
 }
 
+sub U_notice {
+    my ($self, $irc) = splice @_, 0, 2;
+    my $output  = ${ $_[0] };
+    my $line    = $self->{filter}->get([ $output ])->[0];
+    my $text    = $line->{params}->[1];
+    my $targets = [ split(/,/, $line->{params}->[0]) ];
+
+    $irc->send_event(irc_bot_notice => $targets => $text);
+
+    return PCI_EAT_NONE;
+}
+
 sub U_privmsg {
     my ($self, $irc) = splice @_, 0, 2;
     my $output = ${ $_[0] };
-    my ($lines) = $self->{filter}->get([ $output ]);
+    my $line   = $self->{filter}->get([ $output ])->[0];
+    my $text   = $line->{params}->[1];
 
-    for my $line ( @{ $lines } ) {
-        my $text = $line->{params}->[1];
-        if ($text =~ /^\001/) {
-            my $ctcp_event = shift( @{ $self->{compat}->get([$line]) } );
-            next if $ctcp_event->{name} ne 'ctcp_action';
-            my $event = $self->{ActEvent};
-            $irc->send_event( $event => @{ $ctcp_event->{args} }[1..2] );
-        }
-        else {
-            for my $recipient ( split(/,/,$line->{params}->[0]) ) {
-                my $event = $self->{PrivEvent};
-                $event = $self->{PubEvent} if ( $recipient =~ /^(\x23|\x26|\x2B)/ );
-                $irc->send_event( $event => [ $recipient ] => $text );
-            }
+    if ($text =~ /^\001/) {
+        my $ctcp_event = $self->{compat}->get([$line])->[0];
+        return PCI_EAT_NONE if $ctcp_event->{name} ne 'ctcp_action';
+        $irc->send_event(irc_bot_action => @{ $ctcp_event->{args} }[1..2]);
+    }
+    else {
+        my $chantypes = join('', @{ $irc->isupport('CHANTYPES') }) || '#&';
+        for my $recipient ( split(/,/, $line->{params}->[0]) ) {
+            my $event = 'irc_bot_msg';
+            $event = 'irc_bot_public' if $recipient =~ /^[$chantypes]/;
+            $irc->send_event($event => [ $recipient ] => $text);
         }
     }
 
@@ -81,10 +87,8 @@ events when you send messages
 =head1 DESCRIPTION
 
 POE::Component::IRC::Plugin::BotTraffic is a L<POE::Component::IRC|POE::Component::IRC>
-plugin. It watches for when your bot sends privmsgs to the server. If your bot
-sends a privmsg to a channel (ie. the recipient is prefixed with '#', '&', or
-'+') it generates an C<irc_bot_public> event, otherwise it will generate an
-C<irc_bot_msg> event.
+plugin. It watches for when your bot sends PRIVMSGs and NOTICEs to the server
+and generates the appropriate events.
 
 These events are useful for logging what your bot says.
 
@@ -109,6 +113,10 @@ C<ARG0> will be an arrayref of recipients. C<ARG1> will be the text sent.
 C<ARG0> will be an arrayref of recipients. C<ARG1> will be the text sent.
 
 =head2 C<irc_bot_action>
+
+C<ARG0> will be an arrayref of recipients. C<ARG1> will be the text sent.
+
+=head2 C<irc_bot_notice>
 
 C<ARG0> will be an arrayref of recipients. C<ARG1> will be the text sent.
 

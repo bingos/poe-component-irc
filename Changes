@@ -1,5 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
+6.16
+    - BotTraffic.pm: Emit 'irc_bot_notice' events for bot notices (Hinrik)
+
 6.14  Thu Sep 24 15:07:05 GMT 2009
     - More "return" -> "return PCI_EAT_NONE" fixes. This eliminates some
       harmless (but annoying) warnings. (Hinrik)
