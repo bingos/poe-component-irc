@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-6.14
+6.14  Thu Sep 24 15:07:05 GMT 2009
     - More "return" -> "return PCI_EAT_NONE" fixes. This eliminates some
       harmless (but annoying) warnings. (Hinrik)
     - State.pm: Fix AwayPoll, which wasn't working at all. Also added a
