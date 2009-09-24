@@ -84,6 +84,7 @@ t/02_behavior/10_signal.t
 t/02_behavior/11_multi_signal.t
 t/02_behavior/12_delays.t
 t/02_behavior/13_activity.t
+t/02_behavior/14_newline.t
 t/03_subclasses/01_state.t
 t/03_subclasses/02_qnet.t
 t/03_subclasses/03_qnet_state.t

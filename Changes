@@ -8,6 +8,9 @@ Revision history for Perl extension POE::Component::IRC.
       Wheeler for spotting that one. (Hinrik)
     - IRC.pm: Document which spawn() options can not be passed to the
       'connect' event. (Hinrik)
+    - IRC.pm: Split PRIVMSGs with newlines into multiple messages. For other
+      commands, don't pass user-supplied newlines through to the IRC server
+      as it allows the user to submit raw IRC commands. (Hinrik)
 
 6.12  Thu Sep 10 09:25:02 BST 2009
     - Fix localaddr() issue reported in RT #48791 by Michael Andreen

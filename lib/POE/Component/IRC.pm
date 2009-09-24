@@ -1040,6 +1040,7 @@ sub onlytwoargs {
 sub privandnotice {
     my ($kernel, $state, $to) = @_[KERNEL, STATE, ARG0];
     my $message = join ' ', @_[ARG1 .. $#_];
+    my @messages = split /\n/, $message;
     my $pri = $_[OBJECT]->{IRC_CMDS}->{$state}->[CMD_PRI];
 
     $state =~ s/privmsglo/privmsg/;
@@ -1054,8 +1055,10 @@ sub privandnotice {
 
     $to = join ',', @$to if ref $to eq 'ARRAY';
     $state = uc $state;
-    $state .= " $to :$message";
-    $kernel->yield(sl_prioritized => $pri, $state);
+
+    for my $msg (@messages) {
+        $kernel->yield(sl_prioritized => $pri, "$state $to :$msg");
+    }
     return;
 }
 
@@ -1215,6 +1218,9 @@ sub sl_prioritized {
     if (bytes::length($msg) > $self->{msg_length} - bytes::length($self->nick_name())) {
         $msg = bytes::substr($msg, 0, $self->{msg_length} - bytes::length($self->nick_name()));
     }
+
+    # if we find a newline in the message, take that to be the end of it
+    $msg =~ s/\n.*//gm;
     
     if (@{ $self->{send_queue} }) {
         my $i = @{ $self->{send_queue} };
@@ -2182,7 +2188,8 @@ it will be treated as a PART message and dealt with accordingly.
 Sends a public or private message to the nick(s) or channel(s) which
 you specify. Takes 2 arguments: the nick or channel to send a message
 to (use an array reference here to specify multiple recipients), and
-the text of the message to send.
+the text of the message to send. If the message contains newlines, it
+will be split up into multiple messages.
 
 Have a look at the constants in
 L<POE::Component::IRC::Common|POE::Component::IRC::Common> if you would
