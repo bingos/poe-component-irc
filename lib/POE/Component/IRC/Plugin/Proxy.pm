@@ -31,12 +31,12 @@ sub PCI_register {
         $self,
         'SERVER',
         qw(
-            S_connected
-            S_disconnected
-            S_001
-            S_error
-            S_socketerr
-            S_raw
+            connected
+            disconnected
+            001
+            error
+            socketerr
+            raw
         )
     );
 

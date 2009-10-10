@@ -106,6 +106,7 @@ t/04_plugins/06_plugman/03_irc_interface.t
 t/04_plugins/06_plugman/04_auth_sub.t
 t/04_plugins/07_console/01_load.t
 t/04_plugins/08_proxy/01_load.t
+t/04_plugins/08_proxy/02_connect.t
 t/04_plugins/09_nickreclaim/01_load.t
 t/04_plugins/09_nickreclaim/02_reclaim.t
 t/04_plugins/10_followtail/01_load.t

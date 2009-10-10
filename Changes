@@ -3,6 +3,9 @@ Revision history for Perl extension POE::Component::IRC.
 6.16
     - BotTraffic.pm: Emit 'irc_bot_notice' events for bot notices (Hinrik)
     - Logger.pm: Log NOTICEs if requested (Hinrik)
+    - Proxy.pm: Fix a regression introduced in 6.05_01. This was causing it
+      to be completely broken. Added a test so it won't happen again
+      unnoticed (Hinrik)
 
 6.14  Thu Sep 24 15:07:05 GMT 2009
     - More "return" -> "return PCI_EAT_NONE" fixes. This eliminates some
