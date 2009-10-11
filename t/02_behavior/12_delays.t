@@ -32,7 +32,6 @@ sub irc_registered {
         nick    => 'TestBot',
         server  => '127.0.0.1',
         port    => 6667,
-        ircname => 'Test test bot',
     } ], 25 );
 
     ok($heap->{alarm_id}, 'Set alarm');

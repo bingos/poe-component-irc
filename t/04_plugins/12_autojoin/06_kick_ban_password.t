@@ -46,8 +46,14 @@ POE::Session->create(
 $poe_kernel->run();
 
 sub _start {
-    my ($kernel, $heap) = @_[KERNEL, HEAP];
+    my ($kernel) = $_[KERNEL];
 
+    my $ircd_port = get_port() or $kernel->yield(_shutdown => 'No free port');
+    $kernel->yield(_config_ircd => $ircd_port);
+    $kernel->delay(_shutdown => 60, 'Timed out');
+}
+
+sub get_port {
     my $wheel = POE::Wheel::SocketFactory->new(
         BindAddress  => '127.0.0.1',
         BindPort     => 0,
@@ -55,14 +61,8 @@ sub _start {
         FailureEvent => '_fake_failure',
     );
 
-    if ($wheel) {
-        my $port = ( unpack_sockaddr_in( $wheel->getsockname ) )[0];
-        $kernel->yield(_config_ircd => $port);
-        $kernel->delay(_shutdown => 60);
-        return;
-    }
-
-    $kernel->yield('_shutdown');
+    return (unpack_sockaddr_in($wheel->getsockname))[0] if $wheel;
+    return;
 }
 
 sub _config_ircd {
@@ -76,7 +76,6 @@ sub _config_ircd {
         nick    => 'TestBot1',
         server  => '127.0.0.1',
         port    => $port,
-        ircname => 'Test test bot',
     });
   
 }
@@ -142,7 +141,6 @@ sub irc_chan_mode {
                 nick    => 'TestBot2',
                 server  => '127.0.0.1',
                 port    => $heap->{port},
-                ircname => 'Test test bot',
             });
         }
         elsif ($heap->{key_set} == 3) {
@@ -174,7 +172,8 @@ sub irc_disconnected {
 }
 
 sub _shutdown {
-    my ($kernel) = $_[KERNEL];
+    my ($kernel, $error) = @_[KERNEL, ARG0];
+    fail($error) if defined $error;
     
     $kernel->alarm_remove_all();
     $ircd->yield('shutdown');

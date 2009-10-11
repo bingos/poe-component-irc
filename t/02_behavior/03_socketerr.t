@@ -41,8 +41,8 @@ sub _start {
 }
 
 sub _shutdown {
-    my ($kernel, $reason) = @_[KERNEL, ARG0];
-    fail($reason) if defined $reason;
+    my ($kernel, $error) = @_[KERNEL, ARG0];
+    fail($error) if defined $error;
     
     $kernel->alarm_remove_all();
     $bot->yield(unregister => 'socketerr');
@@ -57,7 +57,6 @@ sub _try_connect {
         nick => 'TestBot',
         server => '127.0.0.1',
         port => $port,
-        ircname => 'Test test bot',
     });
 }
 

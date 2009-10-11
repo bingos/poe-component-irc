@@ -69,7 +69,6 @@ sub _config_ircd {
         nick    => 'TestBot1',
         server  => '127.0.0.1',
         port    => $port,
-        ircname => 'Test test bot',
     });
 
     $bot2->yield(register => 'all');
@@ -77,7 +76,6 @@ sub _config_ircd {
         nick    => 'TestBot2',
         server  => '127.0.0.1',
         port    => $port,
-        ircname => 'Test test bot',
     });
 }
 
@@ -121,8 +119,8 @@ sub irc_disconnected {
 }
 
 sub _shutdown {
-    my ($kernel, $reason) = @_[KERNEL, ARG0];
-    fail($reason) if defined $reason;
+    my ($kernel, $error) = @_[KERNEL, ARG0];
+    fail($error) if defined $error;
     
     $kernel->alarm_remove_all();
     $ircd->yield('shutdown');

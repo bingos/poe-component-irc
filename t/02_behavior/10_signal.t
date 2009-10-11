@@ -34,6 +34,12 @@ $poe_kernel->run();
 sub _start {
     my ($kernel) = $_[KERNEL];
 
+    my $ircd_port = get_port() or $kernel->yield(_shutdown => 'No free port');
+    $kernel->yield(_config_ircd => $ircd_port);
+    $kernel->delay(_shutdown => 60, 'Timed out');
+}
+
+sub get_port {
     my $wheel = POE::Wheel::SocketFactory->new(
         BindAddress  => '127.0.0.1',
         BindPort     => 0,
@@ -41,14 +47,8 @@ sub _start {
         FailureEvent => '_fake_failure',
     );
 
-    if ($wheel) {
-        my $port = ( unpack_sockaddr_in( $wheel->getsockname ) )[0];
-        $kernel->yield(_config_ircd => $port);
-        $kernel->delay(_shutdown => 60, 'Timed out');
-        return;
-    }
-
-    $kernel->yield('_shutdown', "Couldn't bind to an unused port on localhost");
+    return (unpack_sockaddr_in($wheel->getsockname))[0] if $wheel;
+    return;
 }
 
 sub _config_ircd {
@@ -67,7 +67,6 @@ sub irc_registered {
         nick    => 'TestBot',
         server  => '127.0.0.1',
         port    => $heap->{port},
-        ircname => 'Test test bot',
     });
 }
 
@@ -92,8 +91,8 @@ sub irc_disconnected {
 }
 
 sub _shutdown {
-    my ($kernel, $reason) = @_[KERNEL, ARG0];
-    fail($reason) if defined $reason;
+    my ($kernel, $error) = @_[KERNEL, ARG0];
+    fail($error) if defined $error;
     
     $kernel->alarm_remove_all();
     $ircd->yield('shutdown');

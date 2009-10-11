@@ -52,7 +52,7 @@ sub _start {
     ));
     $heap->{proxy_port} = $prx_port;
 
-    $kernel->delay(_shutdown => 60);
+    $kernel->delay(_shutdown => 60, 'Timed out');
 }
 
 sub get_port {
@@ -140,8 +140,8 @@ sub irc_disconnected {
 }
 
 sub _shutdown {
-    my ($kernel, $reason) = @_[KERNEL, ARG0];
-    fail($reason) if defined $reason;
+    my ($kernel, $error) = @_[KERNEL, ARG0];
+    fail($error) if defined $error;
     
     $kernel->alarm_remove_all();
     $ircd->yield('shutdown');
