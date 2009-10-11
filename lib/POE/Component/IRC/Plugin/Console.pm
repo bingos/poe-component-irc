@@ -23,11 +23,11 @@ sub PCI_register {
     $irc->plugin_register( $self, 'SERVER', qw(all) );
     $irc->plugin_register( $self, 'USER', qw(all) );
 
-    $self->{SESSION_ID} = POE::Session->create(
+    POE::Session->create(
         object_states => [
             $self => [ qw(_client_error _client_flush _client_input _listener_accept _listener_failed _start _shutdown) ],
         ],
-    )->ID();
+    );
 
     return 1;
 }

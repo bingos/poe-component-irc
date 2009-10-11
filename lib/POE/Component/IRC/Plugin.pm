@@ -244,11 +244,11 @@ Below is a template for a plugin which does just that.
 
      $irc->plugin_register( $self, 'SERVER', qw(blah blah blah) );
 
-     $self->{SESSION_ID} = POE::Session->create(
+     POE::Session->create(
          object_states => [
              $self => [qw(_start _shutdown)],
          ],
-     )->ID();
+     );
 
      return 1;
  }

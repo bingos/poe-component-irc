@@ -24,11 +24,11 @@ sub new {
 sub PCI_register {
     my ($self, $irc) = splice @_, 0, 2;
     $self->{irc} = $irc;
-    $self->{session_id} = POE::Session->create(
+    POE::Session->create(
         object_states => [
             $self => [ qw(_start _shutdown _input _error _reset) ],
         ],
-    )->ID();
+    );
 
     return 1;
 }
@@ -43,6 +43,10 @@ sub PCI_unregister {
 
 sub _start {
     my ($kernel, $self) = @_[KERNEL, OBJECT];
+    
+    $self->{session_id} = $_[SESSION]->ID();
+    $kernel->refcount_increment( $self->{session_id}, __PACKAGE__ );
+    
     $self->{wheel} = POE::Wheel::FollowTail->new(
         Filename     => $self->{filename},
         InputEvent   => '_input',
