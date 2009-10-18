@@ -109,6 +109,8 @@ t/04_plugins/08_proxy/01_load.t
 t/04_plugins/08_proxy/02_connect.t
 t/04_plugins/09_nickreclaim/01_load.t
 t/04_plugins/09_nickreclaim/02_reclaim.t
+t/04_plugins/09_nickreclaim/03_immediate_change.t
+t/04_plugins/09_nickreclaim/04_immediate_quit.t
 t/04_plugins/10_followtail/01_load.t
 t/04_plugins/11_cycleempty/01_load.t
 t/04_plugins/11_cycleempty/02_cycle.t

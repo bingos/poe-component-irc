@@ -3,7 +3,8 @@ package POE::Component::IRC::Plugin::NickReclaim;
 use strict;
 use warnings;
 use Carp;
-use POE::Component::IRC::Plugin qw(:ALL);
+use POE::Component::IRC::Common qw(parse_user);
+use POE::Component::IRC::Plugin qw(PCI_EAT_NONE);
 
 our $VERSION = '6.16';
 
@@ -27,13 +28,13 @@ sub new {
 
 sub PCI_register {
     my ($self, $irc) = @_;
-    $irc->plugin_register( $self, 'SERVER', qw(433 001) );
+    $irc->plugin_register( $self, 'SERVER', qw(433 001 nick quit) );
     $irc->plugin_register( $self, 'USER', qw(nick) );
     
     # we will store the original nickname so we would know...
     #...what we need to reclaim, without sending dozens of...
     #...requests to reclaim foo_, foo__, foo___ etc.
-    $self->{_nick} = $irc->{nick};
+    $self->{_nick} = $irc->nick_name();
     
     return 1;
 }
@@ -119,6 +120,30 @@ sub S_433 {
   return PCI_EAT_NONE;
 }
 
+sub S_quit {
+    my ($self, $irc) = splice @_, 0, 2;
+    my $who = parse_user(${ $_[0] });
+
+    if ($who eq $self->{_nick}) {
+        $irc->delay_remove( $self->{_alarm_id} );
+        $irc->yield(nick => $self->{_nick});
+    }
+
+    return PCI_EAT_NONE;
+}
+
+sub S_nick {
+    my ($self, $irc) = splice @_, 0, 2;
+    my $old_nick = parse_user(${ $_[0] });
+
+    if ($old_nick eq $self->{_nick}) {
+        $irc->delay_remove( $self->{_alarm_id} );
+        $irc->yield(nick => $self->{_nick});
+    }
+
+    return PCI_EAT_NONE;
+}
+
 1;
 __END__
 
@@ -174,7 +199,9 @@ again.
 It registers and handles 'irc_433' events. On receiving a 433 event it will
 reset the nickname to the 'nick' specified with C<spawn> or C<connect>,
 appendedwith an underscore, and then poll to try and change it to the
-original nickname. 
+original nickname. If someone in your channel who has the nickname you're
+after quits or changes nickname, the plugin will try to reclaim it
+immediately.
 
 =head1 METHODS
 
