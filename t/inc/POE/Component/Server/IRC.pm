@@ -1349,6 +1349,13 @@ sub _daemon_cmd_nick {
     }
     my $full = $self->state_user_full( $nick );
     my $record = $self->{state}->{users}->{ $unick };
+    my $common = { $nick => $record->{route_id} };
+    foreach my $chan ( keys %{ $record->{chans} } ) {
+      foreach my $user ( $self->state_chan_list( $chan ) ) {
+	next unless $self->_state_is_local_user( $user );
+	$common->{ $user } = $self->_state_user_route( $user );
+      }
+    }
     if ( $unick eq $unew ) {
 	$record->{nick} = $new;
 	$record->{ts} = time();
@@ -1367,13 +1374,6 @@ sub _daemon_cmd_nick {
 	}
     }
     my @peers = $self->_state_connected_peers();
-    my $common = { $nick => $record->{route_id} };
-    foreach my $chan ( keys %{ $record->{chans} } ) {
-      foreach my $user ( $self->state_chan_list( $chan ) ) {
-	next unless $self->_state_is_local_user( $user );
-	$common->{ $user } = $self->_state_user_route( $user );
-      }
-    }
     $self->{ircd}->send_output( { prefix => $nick, command => 'NICK', params => [ $new, $record->{ts} ] }, @peers );
     $self->{ircd}->send_output( { prefix => $full, command => 'NICK', params => [ $new ] }, map{ $common->{$_} } keys %{ $common } );
     $self->{ircd}->send_event( "daemon_nick", $full, $new );
