@@ -50,8 +50,9 @@ use constant {
 };
 
 sub u_irc {
-    my $value = shift || return;
-    my $type = shift || 'rfc1459';
+    my ($value, $type) = @_;
+    return if !defined $value;
+    $type = 'rfc1459' if !defined $type;
     $type = lc $type;
 
     if ( $type eq 'ascii' ) {
@@ -68,8 +69,9 @@ sub u_irc {
 }
 
 sub l_irc {
-    my $value = shift || return;
-    my $type = shift || 'rfc1459';
+    my ($value, $type) = @_;
+    return if !defined $value;
+    $type = 'rfc1459' if !defined $type;
     $type = lc $type;
 
     if ( $type eq 'ascii' ) {
@@ -131,7 +133,8 @@ sub parse_mode_line {
 }
 
 sub parse_ban_mask {
-    my $arg = shift || return;
+    my ($arg) = @_;
+    return if !defined $arg;
 
     $arg =~ s/\x2a{2,}/\x2a/g;
     my @ban;
@@ -157,7 +160,7 @@ sub parse_ban_mask {
 sub matches_mask_array {
     my ($masks, $matches, $mapping) = @_;
     
-    return if !$masks || !$matches;
+    return if !defined $masks || !defined $matches;
     return if ref $masks ne 'ARRAY';
     return if ref $matches ne 'ARRAY';
     my $ref = { };
@@ -174,9 +177,9 @@ sub matches_mask_array {
 }
 
 sub matches_mask {
-    my ($mask,$match,$mapping) = @_;
+    my ($mask, $match, $mapping) = @_;
+    return if !defined $mask || !defined $match;
 
-    return if !$mask || !$match;
     $mask = parse_ban_mask($mask);
     $mask =~ s/\x2A+/\x2A/g;
 
@@ -190,26 +193,31 @@ sub matches_mask {
 }
 
 sub parse_user {
-    my $user = shift || return;
+    my ($user) = @_;
+    return if !defined $user;
+
     my ($n, $u, $h) = split /[!@]/, $user;
     return ($n, $u, $h) if wantarray();
     return $n;
 }
 
 sub has_color {
-    my $string = shift;
+    my ($string) = @_;
+    return if !defined $string;
     return 1 if $string =~ /[\x03\x04]/;
     return;
 }
 
 sub has_formatting {
-    my $string = shift;
+    my ($string) = @_;
+    return if !defined $string;
     return 1 if $string =~/[\x02\x1f\x16\x1d\x11]/;
     return;
 }
 
 sub strip_color {
-    my $string = shift;
+    my ($string) = @_;
+    return if !defined $string;
     
     # mIRC colors
     $string =~ s/\x03(?:,\d{1,2}|\d{1,2}(?:,\d{1,2})?)?//g;
@@ -222,7 +230,8 @@ sub strip_color {
 }
 
 sub strip_formatting {
-    my $string = shift;
+    my ($string) = @_;
+    return if !defined $string;
     $string =~ s/[\x0f\x02\x1f\x16\x1d\x11]//g;
     return $string;
 }
@@ -239,7 +248,8 @@ sub irc_to_utf8 {
 # Params            : IP address
 # Returns           : 4, 6, 0(don't know)
 sub irc_ip_get_version {
-    my $ip = shift || return;
+    my ($ip) = @_;
+    return if !defined $ip;
 
     # If the address does not contain any ':', maybe it's IPv4
     return 4 if $ip !~ /:/ && irc_ip_is_ipv4($ip);
@@ -256,7 +266,8 @@ sub irc_ip_get_version {
 # Params            : IP address
 # Returns           : 1 (yes) or 0 (no)
 sub irc_ip_is_ipv4 {
-    my $ip = shift || return;
+    my ($ip) = @_;
+    return if !defined $ip;
 
     # Check for invalid chars
     if ($ip !~ /^[\d\.]+$/) {
@@ -314,7 +325,8 @@ sub irc_ip_is_ipv4 {
 # Params            : IP address
 # Returns           : 1 (yes) or 0 (no)
 sub irc_ip_is_ipv6 {
-    my $ip = shift || return;
+    my ($ip) = @_;
+    return if !defined $ip;
 
     # Count octets
     my $n = ($ip =~ tr/:/:/);
