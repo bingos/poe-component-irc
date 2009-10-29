@@ -3,7 +3,7 @@ use warnings;
 use Socket;
 use Getopt::Long;
 
-use POE qw(Component::IRC Component::IRC::Plugin::Proxy);
+use POE qw(Component::IRC::State Component::IRC::Plugin::Proxy);
 
 my $nick;
 my $user;
@@ -13,6 +13,7 @@ my $ircname;
 my $bindaddr;
 my $bindport;
 my $password;
+my $channels;
 
 GetOptions(
 "address=s" => \$bindaddr,
@@ -23,17 +24,20 @@ GetOptions(
 "user=s" => \$user,
 "port=s" => \$port,
 "ircname=s" => \$ircname,
+"channels=s" => \$channels,
 );
 
 die "Please specify a nickname and a servername\n" unless ( $nick and $server );
 
-my $poco = POE::Component::IRC->spawn(Nick => $nick, Server => $server, Port => $port, Ircname => $ircname, Username => $user);
+my @channels = split /\,/, $channels;
+
+my $poco = POE::Component::IRC::State->spawn(Nick => $nick, Server => $server, Port => $port, Ircname => $ircname, Username => $user);
 
 POE::Session->create(
   package_states => [ 
-	'main' => [ qw(_start _default irc_proxy_service irc_proxy_authed irc_proxy_close) ],
+	'main' => [ qw(_start _default irc_proxy_service irc_proxy_authed irc_proxy_close irc_001) ],
   ],
-  heap => { irc => $poco },
+  heap => { irc => $poco, channels => \@channels },
   options => { trace => 0 },
 );
 
@@ -48,6 +52,12 @@ sub _start {
   $irc->plugin_add( 'Proxy' => $heap->{proxy} );
   $irc->yield( connect => { } );
   undef;
+}
+
+sub irc_001 {
+  my ($kernel,$heap) = @_[KERNEL,HEAP];
+  $heap->{irc}->yield( join => $_ ) for @{ $heap->{channels} };
+  return;
 }
 
 sub _default {
@@ -78,12 +88,14 @@ sub irc_proxy_service {
 
 sub irc_proxy_authed {
   my ($kernel,$heap) = @_[KERNEL,HEAP];
-  $heap->{irc}->yield( ctcp => $_ => 'ACTION has attached' ) for $heap->{proxy}->current_channels();
+  $heap->{irc}->yield( ctcp => $_ => 'ACTION has attached' )
+    for keys %{ $heap->{irc}->channels() };
   undef;
 }
 
 sub irc_proxy_close {
   my ($kernel,$heap) = @_[KERNEL,HEAP];
-  $heap->{irc}->yield( ctcp => $_ => 'ACTION has detached' ) for $heap->{proxy}->current_channels();
+  $heap->{irc}->yield( ctcp => $_ => 'ACTION has detached' )
+    for keys %{ $heap->{irc}->channels() };
   undef;
 }

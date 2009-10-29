@@ -354,9 +354,9 @@ lightweight IRC proxy/bouncer
 
  use strict;
  use warnings;
- use POE qw(Component::IRC Component::IRC::Plugin::Proxy Component::IRC::Connector);
+ use POE qw(Component::IRC::State Component::IRC::Plugin::Proxy Component::IRC::Plugin::Connector);
 
- my $irc = POE::Component::IRC->spawn();
+ my $irc = POE::Component::IRC::State->spawn();
 
  POE::Session->create( 
      package_states => [ 
@@ -371,7 +371,7 @@ lightweight IRC proxy/bouncer
      my ($kernel, $heap) = @_[KERNEL, HEAP];
      $heap->{irc}->yield( register => 'all' );
      $heap->{proxy} = POE::Component::IRC::Plugin::Proxy->new( bindport => 6969, password => "m00m00" );
-     $heap->{irc}->plugin_add( 'Connector' => POE::Component::IRC::Connector->new() );
+     $heap->{irc}->plugin_add( 'Connector' => POE::Component::IRC::Plugin::Connector->new() );
      $heap->{irc}->plugin_add( 'Proxy' => $heap->{proxy} );
      $heap->{irc}->yield ( connect => { Nick => 'testbot', Server => 'someserver.com' } );
      return;
@@ -379,12 +379,12 @@ lightweight IRC proxy/bouncer
 
 =head1 DESCRIPTION
 
-POE::Component::IRC::Plugin::Proxy is a L<POE::Component::IRC|POE::Component::IRC>
+POE::Component::IRC::Plugin::Proxy is a L<POE::Component::IRC>
 plugin that provides lightweight IRC proxy/bouncer server to your
-L<POE::Component::IRC|POE::Component::IRC> bots. It enables multiple IRC
+L<POE::Component::IRC> bots. It enables multiple IRC
 clients to be hidden behind a single IRC client-server connection.
 
-Spawn a L<POE::Component::IRC|POE::Component::IRC> session and add in a
+Spawn a L<POE::Component::IRC::State> session and add in a
 POE::Component::IRC::Plugin::Proxy plugin object, specifying a bindport and a
 password the connecting IRC clients have to use. When the component is
 connected to an IRC network a listening port is opened by the plugin for
@@ -392,12 +392,12 @@ multiple IRC clients to connect.
 
 Neat, huh? >;o)
 
-This plugin will activate L<POE::Component::IRC|POE::Component::IRC>'s raw
+This plugin will activate L<POE::Component::IRC>'s raw
 events (L<C<irc_raw>|POE::Component::IRC/"irc_raw">) by calling
 C<< $irc->raw_events(1) >>.
 
 This plugin requires the IRC component to be
-L<POE::Component::IRC::State|POE::Component::IRC::State> or a subclass thereof.
+L<POE::Component::IRC::State> or a subclass thereof.
 
 =head1 METHODS
 
@@ -412,12 +412,12 @@ B<'bindaddr'>, a local address to bind the listener to, default is 'localhost';
 B<'bindport'>, what port to bind to, default is 0, ie. randomly allocated by OS;
 
 Returns an object suitable for passing to
-L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
+L<POE::Component::IRC>'s C<plugin_add> method.
 
 =head2 C<getsockname>
 
 Takes no arguments. Accesses the listeners C<getsockname> method. See
-L<POE::Wheel::SocketFactory|POE::Wheel::SocketFactory> for details of the
+L<POE::Wheel::SocketFactory> for details of the
 return value;
 
 =head2 C<list_wheels>
@@ -433,7 +433,7 @@ port, tthe connect time and the lag in seconds for that connection.
 
 =head1 OUTPUT
 
-The plugin emits the following L<POE::Component::IRC|POE::Component::IRC>
+The plugin emits the following L<POE::Component::IRC>
 events:
 
 =head2 C<irc_proxy_up>
@@ -448,7 +448,7 @@ client.
 
 =head2 C<irc_proxy_rw_fail>
 
-Emitted when the L<POE::Wheel::ReadWrite|POE::Wheel::ReadWrite> fails on a
+Emitted when the L<POE::Wheel::ReadWrite> fails on a
 connection. C<ARG0> is the wheel ID of the client.
 
 =head2 C<irc_proxy_authed>
@@ -476,6 +476,8 @@ Chris 'BinGOs' Williams
 
 =head1 SEE ALSO
 
-L<POE::Component::IRC|POE::Component::IRC>
+L<POE::Component::IRC>
+
+L<POE::Component::IRC::State>
 
 =cut
