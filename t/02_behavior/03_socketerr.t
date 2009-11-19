@@ -23,6 +23,12 @@ $poe_kernel->run();
 sub _start {
     my ($kernel) = $_[KERNEL];
 
+    my $port = get_port() or $kernel->yield(_shutdown => 'No free port');
+    $kernel->yield(_try_connect => $port);
+    $kernel->delay(_shutdown => 60, 'Timed out');
+}
+
+sub get_port {
     my $wheel = POE::Wheel::SocketFactory->new(
         BindAddress  => '127.0.0.1',
         BindPort     => 0,
@@ -30,14 +36,9 @@ sub _start {
         FailureEvent => '_fake_failure',
     );
 
-    if ($wheel) {
-        my $port = ( unpack_sockaddr_in( $wheel->getsockname ) )[0];
-        $kernel->yield(_try_connect => $port);
-        $kernel->delay(_shutdown => 60, 'Timed out');
-        return;
-    }
-
-    $kernel->yield('_shutdown', "Couldn't bind to an unused port on localhost");
+    return if !$wheel;
+    return unpack_sockaddr_in($wheel->getsockname()) if wantarray;
+    return (unpack_sockaddr_in($wheel->getsockname))[0];
 }
 
 sub _shutdown {

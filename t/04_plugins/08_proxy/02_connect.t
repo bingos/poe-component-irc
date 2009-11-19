@@ -63,8 +63,9 @@ sub get_port {
         FailureEvent => '_fake_failure',
     );
 
-    return (unpack_sockaddr_in($wheel->getsockname))[0] if $wheel;
-    return;
+    return if !$wheel;
+    return unpack_sockaddr_in($wheel->getsockname()) if wantarray;
+    return (unpack_sockaddr_in($wheel->getsockname))[0];
 }
 
 sub _config_ircd {
