@@ -57,8 +57,9 @@ sub S_ctcp_time {
 sub S_ctcp_ping {
     my ($self,$irc) = splice @_, 0, 2;
     my $nick = ( split /!/, ${ $_[0] } )[0];
+    my $timestamp = ${ $_[1] };
     
-    $irc->yield( ctcpreply => $nick => "PING " . time() );
+    $irc->yield( ctcpreply => $nick => 'PING ' . $timestamp );
     
     return PCI_EAT_CLIENT if $self->eat();
     return PCI_EAT_NONE;
