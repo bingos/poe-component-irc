@@ -98,7 +98,7 @@ as an IRC bot. Based on the configuration parameters passed to it via its
 constructor it will connect to a channel on a server and immediately send
 everyone on that channel a message privately. It will also send the same
 message to the channel itself publically at the specified interval. All users
-joining the channel thereafter will also recieve the message.
+joining the channel thereafter will also receive the message.
 
 =back
 

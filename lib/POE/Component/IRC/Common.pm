@@ -557,7 +557,7 @@ formatting codes, 0 otherwise.
 
 =head2 C<strip_color>
 
-Takes one paramter, a string of IRC text. Returns the string stripped of all
+Takes one parameter, a string of IRC text. Returns the string stripped of all
 IRC color codes. Due to the fact that both color and formatting codes can
 be cancelled with the same character, this might strip more than you hoped for
 if the string contains both color and formatting codes. Stripping both will
@@ -565,7 +565,7 @@ always do what you expect it to.
 
 =head2 C<strip_formatting>
 
-Takes one paramter, a string of IRC text. Returns the string stripped of all
+Takes one parameter, a string of IRC text. Returns the string stripped of all
 IRC formatting codes. Due to the fact that both color and formatting codes can
 be cancelled with the same character, this might strip more than you hoped for
 if the string contains both color and formatting codes. Stripping both will

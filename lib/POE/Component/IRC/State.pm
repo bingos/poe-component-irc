@@ -1399,7 +1399,7 @@ common to the quitting client and the component.
 See also L<C<irc_nick>|POE::Component::IRC/"irc_nick"> in
 L<POE::Component::IRC|POE::Component::IRC>.
 
-Additional paramter C<ARG2> contains an arrayref of channel names that are
+Additional parameter C<ARG2> contains an arrayref of channel names that are
 common to the nick hanging client and the component.
 
 =head3 C<irc_kick>

@@ -1896,7 +1896,7 @@ you do DCC.
 
 SSL support requires L<POE::Component::SSLify|POE::Component::SSLify>, as well
 as an IRC server that supports SSL connections. If you're missing
-POE::Component::SSLify, specifing B<'UseSSL'> will do nothing. The default is to
+POE::Component::SSLify, specifying B<'UseSSL'> will do nothing. The default is to
 not try to use SSL.
 
 Setting B<'Raw'> to true, will enable the component to send
@@ -2688,7 +2688,7 @@ object.
 
 =head3 C<irc_delay_set>
 
-Emitted on a succesful addition of a delayed event using the
+Emitted on a successful addition of a delayed event using the
 L<C<delay>|/"delay"> method. C<ARG0> will be the alarm_id which can be used
 later with L<C<delay_remove>|/"delay_remove">. Subsequent parameters are
 the arguments that were passed to L<C<delay>|/"delay">.
@@ -2821,7 +2821,7 @@ The only requirement the IRC protocol places on its messages is that they be
 8-bits, and in ASCII. This has resulted in most of the Western world settling
 on ASCII-compatible Latin-1 as a convention. Recently, popular clients have
 begun sending a mixture of Latin-1 and UTF-8 over the wire to allow more
-characters without breaking backward compatability (too much). To decode such
+characters without breaking backward compatibility (too much). To decode such
 messages reliably, see
 L<C<irc_to_utf8>|POE::Component::IRC::Common/"irc_to_utf8"> in
 L<POE::Component::IRC::Common|POE::Component::IRC::Common>.
