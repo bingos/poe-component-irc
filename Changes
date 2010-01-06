@@ -1,5 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
+6.19
+    - NickServID.pm: Identify correctly when switching nicks on ratbox IRC
+      servers (Hinrik)
+
 6.18  Fri Dec 11 19:23:24 GMT 2009
     - NickReclaim.pm: Reclaim nick immediately when possible (Hinrik)
     - Depend on POE::Filter::IRCD 2.42. Fixes parsing of 005 numeric replies
