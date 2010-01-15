@@ -19,7 +19,7 @@ author 'Chris Williams <chris@bingosnet.co.uk>';
 version_from 'lib/POE/Component/IRC.pm';
 abstract_from 'lib/POE/Component/IRC.pm';
 perl_version '5.008';
-requires 'POE' => 0.3202;
+requires 'POE' => '1.284';
 requires 'POE::Component::Pluggable' => '1.24';
 requires 'POE::Wheel::SocketFactory' => 0;
 requires 'POE::Wheel::ReadWrite' => 0;
