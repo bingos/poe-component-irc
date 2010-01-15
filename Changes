@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-6.20
+6.20  Fri Jan 15 18:38:44 GMT 2010
     - NickServID.pm: Identify correctly when switching nicks on ratbox IRC
       servers (Hinrik)
     - Common.pm: Encode::Guess::guess_encoding() doesn't work well with
