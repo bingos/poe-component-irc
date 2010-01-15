@@ -6,7 +6,7 @@ use Socket;
 use POE::Component::IRC;
 use POE::Component::IRC::Plugin::CTCP;
 use POE::Component::Server::IRC;
-use Test::More tests => 6;
+use Test::More tests => 8;
 
 my $bot = POE::Component::IRC->spawn(
     Flood        => 1,
@@ -36,6 +36,8 @@ POE::Session->create(
             irc_ctcpreply_userinfo
             irc_ctcpreply_clientinfo
             irc_ctcpreply_source
+            irc_ctcpreply_ping
+            irc_ctcpreply_time
         )],
     ],
 );
@@ -83,34 +85,50 @@ sub irc_001 {
     $irc->yield(ctcp => $irc->nick_name(), 'USERINFO');
     $irc->yield(ctcp => $irc->nick_name(), 'CLIENTINFO');
     $irc->yield(ctcp => $irc->nick_name(), 'SOURCE');
+    $irc->yield(ctcp => $irc->nick_name(), 'PING test');
+    $irc->yield(ctcp => $irc->nick_name(), 'TIME');
 }
 
 sub irc_ctcpreply_version {
     my ($sender, $heap, $msg) = @_[SENDER, HEAP, ARG2];
     $heap->{replies}++;
     is($msg, 'Test version', 'CTCP VERSION reply');
-    $sender->get_heap()->yield('quit') if $heap->{replies} == 4;
+    $sender->get_heap()->yield('quit') if $heap->{replies} == 6;
 }
 
 sub irc_ctcpreply_userinfo {
     my ($sender, $heap, $msg) = @_[SENDER, HEAP, ARG2];
     $heap->{replies}++;
     is($msg, 'Test userinfo', 'CTCP USERINFO reply');
-    $sender->get_heap()->yield('quit') if $heap->{replies} == 4;
+    $sender->get_heap()->yield('quit') if $heap->{replies} == 6;
 }
 
 sub irc_ctcpreply_clientinfo {
     my ($sender, $heap, $msg) = @_[SENDER, HEAP, ARG2];
     $heap->{replies}++;
     is($msg, 'Test clientinfo', 'CTCP CLIENTINFO reply');
-    $sender->get_heap()->yield('quit') if $heap->{replies} == 4;
+    $sender->get_heap()->yield('quit') if $heap->{replies} == 6;
 }
 
 sub irc_ctcpreply_source {
     my ($sender, $heap, $msg) = @_[SENDER, HEAP, ARG2];
     $heap->{replies}++;
     is($msg, 'Test source', 'CTCP SOURCE reply');
-    $sender->get_heap()->yield('quit') if $heap->{replies} == 4;
+    $sender->get_heap()->yield('quit') if $heap->{replies} == 6;
+}
+
+sub irc_ctcpreply_ping {
+    my ($sender, $heap, $msg) = @_[SENDER, HEAP, ARG2];
+    $heap->{replies}++;
+    is($msg, 'test', 'CTCP PING reply');
+    $sender->get_heap()->yield('quit') if $heap->{replies} == 6;
+}
+
+sub irc_ctcpreply_time {
+    my ($sender, $heap, $msg) = @_[SENDER, HEAP, ARG2];
+    $heap->{replies}++;
+    ok(length $msg, 'CTCP TIME reply');
+    $sender->get_heap()->yield('quit') if $heap->{replies} == 6;
 }
 
 sub irc_disconnected {
