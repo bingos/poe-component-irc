@@ -238,8 +238,8 @@ sub strip_formatting {
 
 sub irc_to_utf8 {
     my ($line) = @_;
-    my $utf8 = guess_encoding($line, 'UTF-8');
-    return ref $utf8 ? decode('UTF-8', $line) : decode('cp1252', $line);
+    my $utf8 = guess_encoding($line, 'utf8');
+    return ref $utf8 ? decode('utf8', $line) : decode('cp1252', $line);
 }
 
 #------------------------------------------------------------------------------

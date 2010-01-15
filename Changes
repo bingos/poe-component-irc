@@ -1,8 +1,10 @@
 Revision history for Perl extension POE::Component::IRC.
 
-6.19
+6.20
     - NickServID.pm: Identify correctly when switching nicks on ratbox IRC
       servers (Hinrik)
+    - Common.pm: Encode::Guess::guess_encoding() doesn't work well with
+      'UTF-8', revert back to 'utf8'. Added tests for it. (Hinrik)
 
 6.18  Fri Dec 11 19:23:24 GMT 2009
     - NickReclaim.pm: Reclaim nick immediately when possible (Hinrik)

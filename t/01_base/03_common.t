@@ -1,7 +1,8 @@
 use strict;
 use warnings;
+use Encode qw(encode);
 use POE::Component::IRC::Common qw(:ALL);
-use Test::More tests => 32;
+use Test::More tests => 34;
 
 is('SIMPLE', u_irc('simple'), 'Upper simple test');
 is('simple', l_irc('SIMPLE'), 'Lower simple test');
@@ -55,3 +56,9 @@ is($stripped, 'This is bold and this is underlined', 'Strip Formatting Test');
 is(irc_ip_get_version('100.0.0.1'), 4, 'IPv4');
 is(irc_ip_get_version('2001:0db8:0000:0000:0000:0000:1428:57ab'), 6, 'IPv6');
 ok(!irc_ip_get_version('blah'), 'Not an IP');
+
+my $string = "l\372\360i";
+my $cp1252_bytes = encode('cp1252', $string);
+my $utf8_bytes = encode('utf8', $string);
+is(irc_to_utf8($cp1252_bytes), $string, 'irc_to_utf8() works for CP1252 text');
+is(irc_to_utf8($utf8_bytes), $string, 'irc_to_utf8() works for UTF-8 text');
