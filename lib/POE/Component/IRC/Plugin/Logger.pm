@@ -37,12 +37,12 @@ sub PCI_register {
     }
     
     if ($self->{Restricted}) {
-        $self->{dir_perm} = oct 755;
-        $self->{file_perm} = oct 644;
-    }
-    else {
         $self->{dir_perm} = oct 700;
         $self->{file_perm} = oct 600;
+    }
+    else {
+        $self->{dir_perm} = oct 755;
+        $self->{file_perm} = oct 644;
 
     }
 
@@ -516,7 +516,7 @@ Defaults to 0.
 
 B<'Restricted'>, set this to 1 if you want all directories/files to be created
 without read permissions for other users (i.e. 700 for dirs and 600 for files).
-Defaults to 0.
+Defaults to 1.
 
 B<'Format'>, a hash reference representing the log format, if you want to define
 your own. See the source for details.

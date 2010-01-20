@@ -1,5 +1,10 @@
 Revision history for Perl extension POE::Component::IRC.
 
+6.22
+    - Logger.pm: The 'Restricted' switch had the opposite of the documented
+      effect. Fixed that and also changed the default to true, so nobody who
+      used the default will see a change. (Hinrik)
+
 6.20  Fri Jan 15 18:38:44 GMT 2010
     - NickServID.pm: Identify correctly when switching nicks on ratbox IRC
       servers (Hinrik)
