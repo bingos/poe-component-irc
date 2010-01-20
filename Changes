@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-6.22
+6.22  Wed Jan 20 01:50:23 GMT 2010
     - Logger.pm: The 'Restricted' switch had the opposite of the documented
       effect. Fixed that and also changed the default to true, so nobody who
       used the default will see a change. (Hinrik)
