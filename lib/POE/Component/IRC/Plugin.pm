@@ -3,7 +3,7 @@ package POE::Component::IRC::Plugin;
 use strict;
 use warnings;
 
-our $VERSION = '6.22';
+our $VERSION = '6.24';
 
 require Exporter;
 use base qw(Exporter);
