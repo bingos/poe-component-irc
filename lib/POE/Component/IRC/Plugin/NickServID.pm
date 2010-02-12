@@ -20,6 +20,7 @@ sub new {
 sub PCI_register {
     my ($self, $irc) = @_;
     $self->{nick} = $irc->{nick};
+    $self->{irc} = $irc;
     $irc->plugin_register($self, 'SERVER', qw(004 nick));
     return 1;
 }
