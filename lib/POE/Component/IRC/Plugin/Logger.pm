@@ -3,7 +3,6 @@ package POE::Component::IRC::Plugin::Logger;
 use strict;
 use warnings;
 use Carp;
-use Encode qw(decode);
 use Encode::Guess;
 use Fcntl qw(O_WRONLY O_APPEND O_CREAT);
 use File::Spec::Functions qw(catdir catfile);
