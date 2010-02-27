@@ -18,6 +18,10 @@ license          'perl';
 author           'Chris Williams <chris@bingosnet.co.uk>';
 version_from     'lib/POE/Component/IRC.pm';
 abstract_from    'lib/POE/Component/IRC.pm';
+homepage         'http://search.cpan.org/dist/POE-Component-IRC';
+githubmeta;
+bugtracker       'https://rt.cpan.org/Public/Dist/Display.html?Name=POE-Component-IRC';
+resources        'Ratings' => 'http://cpanratings.perl.org/d/POE-Component-IRC';
 perl_version     '5.008';
 requires         'POE'                       => '1.287';
 requires         'POE::Component::Pluggable' => '1.24';
@@ -35,7 +39,6 @@ tests_recursive;
 author_tests     'xt';
 clean_files 'README.send Changes.resume followtail logger_test';
 auto_provides;
-githubmeta;
 WriteAll();
 exit 0;
 
