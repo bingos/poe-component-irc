@@ -174,6 +174,8 @@ sub _time_out {
 1;
 __END__
 
+=encoding utf8
+
 =head1 NAME
 
 POE::Component::IRC::Plugin::Connector - A PoCo-IRC plugin that deals with the

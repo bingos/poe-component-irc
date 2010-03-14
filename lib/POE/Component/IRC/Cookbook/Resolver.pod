@@ -1,3 +1,5 @@
+=encoding utf8
+
 =head1 NAME
 
 POE::Component::IRC::Cookbook::Resolver - A bot that can resolve DNS records

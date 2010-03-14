@@ -1566,6 +1566,8 @@ sub _pluggable_event {
 1;
 __END__
 
+=encoding utf8
+
 =head1 NAME
 
 POE::Component::IRC - A fully event-driven IRC client module

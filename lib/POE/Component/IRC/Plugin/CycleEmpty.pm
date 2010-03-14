@@ -92,6 +92,8 @@ sub is_cycling {
 1;
 __END__
 
+=encoding utf8
+
 =head1 NAME
 
 POE::Component::IRC::Plugin::CycleEmpty - A PoCo-IRC plugin which cycles

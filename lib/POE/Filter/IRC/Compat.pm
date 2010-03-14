@@ -414,6 +414,8 @@ sub _low_dequote {
 1;
 __END__
 
+=encoding utf8
+
 =head1 NAME
 
 POE::Filter::IRC::Compat - A filter which converts L<POE::Filter::IRCD|POE::Filter::IRCD>

@@ -381,6 +381,8 @@ sub irc_ip_is_ipv6 {
 1;
 __END__
 
+=encoding utf8
+
 =head1 NAME
 
 POE::Component::IRC::Common - Provides a set of common functions for the

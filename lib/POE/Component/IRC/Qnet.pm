@@ -91,6 +91,8 @@ sub service_bots {
 1;
 __END__
 
+=encoding utf8
+
 =head1 NAME
 
 POE::Component::IRC::Qnet - A fully event-driven IRC client module for Quakenet

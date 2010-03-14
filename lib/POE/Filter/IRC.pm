@@ -22,6 +22,8 @@ sub new {
 1;
 __END__
 
+=encoding utf8
+
 =head1 NAME
 
 POE::Filter::IRC -- A POE-based parser for the IRC protocol

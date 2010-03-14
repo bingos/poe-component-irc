@@ -161,6 +161,8 @@ sub U_join {
 1;
 __END__
 
+=encoding utf8
+
 =head1 NAME
 
 POE::Component::IRC::Plugin::AutoJoin - A PoCo-IRC plugin which

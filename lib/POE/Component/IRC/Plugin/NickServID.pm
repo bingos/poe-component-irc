@@ -65,6 +65,8 @@ sub _identify {
 1;
 __END__
 
+=encoding utf8
+
 =head1 NAME
 
 POE::Component::IRC::Plugin::NickServID - A PoCo-IRC plugin

@@ -465,6 +465,8 @@ sub _normalize {
 1;
 __END__
 
+=encoding utf8
+
 =head1 NAME
 
 POE::Component::IRC::Plugin::Logger - A PoCo-IRC plugin which

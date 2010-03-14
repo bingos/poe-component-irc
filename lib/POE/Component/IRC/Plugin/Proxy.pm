@@ -345,6 +345,8 @@ sub wheel_info {
 1;
 __END__
 
+=encoding utf8
+
 =head1 NAME
 
 POE::Component::IRC::Plugin::Proxy - A PoCo-IRC plugin that provides a

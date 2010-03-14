@@ -613,6 +613,8 @@ sub _dcc_up {
 1;
 __END__
 
+=encoding utf8
+
 =head1 NAME
 
 POE::Component::IRC::Plugin::DCC - A PoCo-IRC plugin providing support for

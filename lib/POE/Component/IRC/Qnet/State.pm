@@ -428,6 +428,8 @@ sub ban_mask {
 1;
 __END__
 
+=encoding utf8
+
 =head1 NAME
 
 POE::Component::IRC::Qnet::State - A fully event-driven IRC client module

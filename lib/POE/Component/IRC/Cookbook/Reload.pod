@@ -1,3 +1,5 @@
+=encoding utf8
+
 =head1 NAME
 
 POE::Component::IRC::Cookbook::Reload - Reload your bot's code after a change
