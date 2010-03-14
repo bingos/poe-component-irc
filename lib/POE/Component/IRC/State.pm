@@ -7,7 +7,7 @@ use POE::Component::IRC::Common qw(u_irc parse_mode_line parse_ban_mask);
 use POE::Component::IRC::Plugin qw(PCI_EAT_NONE);
 use base qw(POE::Component::IRC);
 
-our $VERSION = '6.26';
+our $VERSION = '6.28';
 
 # Event handlers for tracking the STATE. $self->{STATE} is used as our
 # namespace. u_irc() is used to create unique keys.
