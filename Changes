@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-6.26
+6.26 Sun Mar 14 07:32:23 GMT 2010
     - Depend on POE 1.287 for FollowTail bugfixes
     - Updated documentation to mention advice about avoiding the double
       encoding of non-ASCII channel names

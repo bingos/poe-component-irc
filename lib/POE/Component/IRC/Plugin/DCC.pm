@@ -9,7 +9,7 @@ use POE qw(Driver::SysRW Filter::Line Filter::Stream
 use POE::Component::IRC::Plugin qw(:ALL);
 use Socket;
 
-our $VERSION = '6.24';
+our $VERSION = '6.26';
 
 use constant {
     OUT_BLOCKSIZE  => 1024,   # Send DCC data in 1k chunks

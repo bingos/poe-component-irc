@@ -6,7 +6,7 @@ use Carp;
 use POE::Component::IRC::Common qw( parse_user strip_color strip_formatting );
 use POE::Component::IRC::Plugin qw( :ALL );
 
-our $VERSION = '6.24';
+our $VERSION = '6.26';
 
 sub new {
     my ($package) = shift;
