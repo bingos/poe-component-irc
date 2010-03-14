@@ -136,8 +136,8 @@ sub S_001 {
 
 sub S_332 {
     my ($self, $irc) = splice @_, 0, 2;
-    my $chan  = ${ $_[2] }->[0];
-    my $topic = ${ $_[2] }->[1];
+    my $chan  = irc_to_utf8(${ $_[2] }->[0]);
+    my $topic = $self->_normalize(${ $_[2] }->[1]);
 
     # only log this if we were just joining the channel
     $self->_log_entry($chan, topic_is => $chan, $topic) if !$irc->channel_list($chan);
@@ -147,6 +147,7 @@ sub S_332 {
 sub S_333 {
     my ($self, $irc) = splice @_, 0, 2;
     my ($chan, $user, $time) = @{ ${ $_[2] } };
+    $chan = irc_to_utf8($chan);
 
     # only log this if we were just joining the channel
     $self->_log_entry($chan, topic_set_by => $chan, $user, $time) if !$irc->channel_list($chan);
@@ -156,7 +157,7 @@ sub S_333 {
 sub S_chan_mode {
     my ($self, $irc) = splice @_, 0, 2;
     my $nick = parse_user(${ $_[0] });
-    my $chan = ${ $_[1] };
+    my $chan = irc_to_utf8(${ $_[1] });
     my $mode = ${ $_[2] };
     my $arg  = ${ $_[3] };
 
@@ -168,13 +169,14 @@ sub S_ctcp_action {
     my ($self, $irc) = splice @_, 0, 2;
     my $sender     = parse_user(${ $_[0] });
     my $recipients = ${ $_[1] };
-    my $msg        = ${ $_[2] };
+    my $msg        = $self->_normalize(${ $_[2] });
 
     for my $recipient (@{ $recipients }) {
         if ($recipient eq $irc->nick_name()) {
             $self->_log_entry($sender, action => $sender, $msg);
         }
         else {
+            $recipient = irc_to_utf8($recipient);
             $self->_log_entry($recipient, action => $sender, $msg);
         }
     }
@@ -185,13 +187,14 @@ sub S_notice {
     my ($self, $irc) = splice @_, 0, 2;
     my $sender  = parse_user(${ $_[0] });
     my $targets = ${ $_[1] };
-    my $msg     = ${ $_[2] };
+    my $msg     = $self->_normalize(${ $_[2] });
 
     for my $target (@{ $targets }) {
         if ($target eq $irc->nick_name()) {
             $self->_log_entry($sender, notice => $sender, $msg);
         }
         else {
+            $target = irc_to_utf8($target);
             $self->_log_entry($target, notice => $sender, $msg);
         }
     }
@@ -202,9 +205,10 @@ sub S_notice {
 sub S_bot_action {
     my ($self, $irc) = splice @_, 0, 2;
     my $recipients = ${ $_[0] };
-    my $msg        = ${ $_[1] };
+    my $msg        = $self->_normalize(${ $_[1] });
 
     for my $recipient (@{ $recipients }) {
+        $recipient = irc_to_utf8($recipient);
         $self->_log_entry($recipient, action => $irc->nick_name(), $msg);
     }
     return PCI_EAT_NONE;
@@ -213,7 +217,7 @@ sub S_bot_action {
 sub S_bot_msg {
     my ($self, $irc) = splice @_, 0, 2;
     my $recipients = ${ $_[0] };
-    my $msg        = ${ $_[1] };
+    my $msg        = $self->_normalize(${ $_[1] });
 
     for my $recipient (@{ $recipients }) {
         $self->_log_entry($recipient, privmsg => $irc->nick_name(), $msg);
@@ -224,9 +228,10 @@ sub S_bot_msg {
 sub S_bot_public {
     my ($self, $irc) = splice @_, 0, 2;
     my $channels = ${ $_[0] };
-    my $msg      = ${ $_[1] };
+    my $msg      = $self->_normalize(${ $_[1] });
 
     for my $chan (@{ $channels }) {
+        $chan = irc_to_utf8($chan);
         $self->_log_entry($chan, privmsg => $irc->nick_name(), $msg);
     }
     return PCI_EAT_NONE;
@@ -235,9 +240,10 @@ sub S_bot_public {
 sub S_bot_notice {
     my ($self, $irc) = splice @_, 0, 2;
     my $targets = ${ $_[0] };
-    my $msg     = ${ $_[1] };
+    my $msg     = $self->_normalize(${ $_[1] });
 
     for my $target (@{ $targets }) {
+        $target = irc_to_utf8($target);
         $self->_log_entry($target, notice => $irc->nick_name(), $msg);
     }
     return PCI_EAT_NONE;
@@ -246,7 +252,7 @@ sub S_bot_notice {
 sub S_join {
     my ($self, $irc) = splice @_, 0, 2;
     my ($joiner, $user, $host) = parse_user(${ $_[0] });
-    my $chan = ${ $_[1] };
+    my $chan = irc_to_utf8(${ $_[1] });
 
     $self->_log_entry($chan, join => $joiner, "$user\@$host", $chan);
     return PCI_EAT_NONE;
@@ -255,9 +261,9 @@ sub S_join {
 sub S_kick {
     my ($self, $irc) = splice @_, 0, 2;
     my $kicker = parse_user(${ $_[0] });
-    my $chan   = ${ $_[1] };
+    my $chan   = irc_to_utf8(${ $_[1] });
     my $victim = ${ $_[2] };
-    my $msg    = ${ $_[3] };
+    my $msg    = $self->_normalize(${ $_[3] });
 
     $self->_log_entry($chan, kick => $kicker, $victim, $chan, $msg);
     return PCI_EAT_NONE;
@@ -266,7 +272,7 @@ sub S_kick {
 sub S_msg {
     my ($self, $irc) = splice @_, 0, 2;
     my $sender = parse_user(${ $_[0] });
-    my $msg    = ${ $_[2] };
+    my $msg    = $self->_normalize(${ $_[2] });
 
     $self->_log_entry($sender, privmsg => $sender, $msg);
     return PCI_EAT_NONE;
@@ -279,6 +285,7 @@ sub S_nick {
     my $channels = @{ $_[2] }[0];
 
     for my $chan (@{ $channels }) {
+        $chan = irc_to_utf8($chan);
         $self->_log_entry($chan, nick_change => $old_nick, $new_nick);
     }
     return PCI_EAT_NONE;
@@ -287,8 +294,9 @@ sub S_nick {
 sub S_part {
     my ($self, $irc) = splice @_, 0, 2;
     my ($parter, $user, $host) = parse_user(${ $_[0] });
-    my $chan = ${ $_[1] };
+    my $chan = irc_to_utf8(${ $_[1] });
     my $msg  = ref $_[2] eq 'SCALAR' ? ${ $_[2] } : '';
+    $msg = $self->_normalize($msg);
 
     $self->_log_entry($chan, part => $parter, "$user\@$host", $chan, $msg);
     return PCI_EAT_NONE;
@@ -298,9 +306,10 @@ sub S_public {
     my ($self, $irc) = splice @_, 0, 2;
     my $sender   = parse_user(${ $_[0] });
     my $channels = ${ $_[1] };
-    my $msg      = ${ $_[2] };
+    my $msg      = $self->_normalize(${ $_[2] });
 
     for my $chan (@{ $channels }) {
+        $chan = irc_to_utf8($chan);
         $self->_log_entry($chan, privmsg => $sender, $msg);
     }
     return PCI_EAT_NONE;
@@ -309,10 +318,11 @@ sub S_public {
 sub S_quit {
     my ($self, $irc) = splice @_, 0, 2;
     my ($quitter, $user, $host) = parse_user(${ $_[0] });
-    my $msg      = ${ $_[1] };
+    my $msg      = $self->_normalize(${ $_[1] });
     my $channels = @{ $_[2] }[0];
 
     for my $chan (@{ $channels }) {
+        $chan = irc_to_utf8($chan);
         $self->_log_entry($chan, quit => $quitter, "$user\@$host", $msg);
     }
     return PCI_EAT_NONE;
@@ -321,8 +331,8 @@ sub S_quit {
 sub S_topic {
     my ($self, $irc) = splice @_, 0, 2;
     my $changer   = parse_user(${ $_[0] });
-    my $chan      = ${ $_[1] };
-    my $new_topic = ${ $_[2] };
+    my $chan      = irc_to_utf8(${ $_[1] });
+    my $new_topic = $self->_normalize(${ $_[2] });
 
     $self->_log_entry($chan, topic_change => $changer, $new_topic);
     return PCI_EAT_NONE;
@@ -343,7 +353,7 @@ sub S_dcc_start {
 sub S_dcc_chat {
     my ($self, $irc) = splice @_, 0, 2;
     my $nick = ${ $_[1] };
-    my $msg  = ${ $_[3] };
+    my $msg  = $self->_normalize(${ $_[3] });
 
     if (my ($action) = $msg =~ /\001ACTION (.*?)\001/) {
         $self->_log_entry("=$nick", action => $nick, $action);
@@ -365,6 +375,7 @@ sub U_dcc_chat {
     my $nick = $info->{nick};
    
     for my $msg (@lines) { 
+        $msg = $self->_normalize($msg);
         if (my ($action) = $msg =~ /\001ACTION (.*?)\001/) {
             $self->_log_entry("=$nick", action => $me, $action);
         }
@@ -430,7 +441,7 @@ sub _log_entry {
     }
     my $line = "$time " . $self->{Format}->{$type}->(@args);
     $line = "$date $line" if !$self->{Sort_by_date};
-    print $log_file $self->_normalize($line) . "\n";
+    print $log_file $line, "\n";
     return;
 }
 
