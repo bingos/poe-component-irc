@@ -33,7 +33,7 @@ lib/POE/Component/IRC/Constants.pm
 lib/POE/Component/IRC/Cookbook.pod
 lib/POE/Component/IRC/Cookbook/BasicBot.pod
 lib/POE/Component/IRC/Cookbook/Disconnecting.pod
-lib/POE/Component/IRC/Cookbook/MegaHAL.pod
+lib/POE/Component/IRC/Cookbook/Hailo.pod
 lib/POE/Component/IRC/Cookbook/Reload.pod
 lib/POE/Component/IRC/Cookbook/Resolver.pod
 lib/POE/Component/IRC/Cookbook/Seen.pod
