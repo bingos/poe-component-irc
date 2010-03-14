@@ -3,6 +3,8 @@ Revision history for Perl extension POE::Component::IRC.
 6.28
     - Use utf8 encoding in all Pod
     - Cookbook: Replace the MegaHAL recipe with a Hailo one
+    - Stop using Module::Install::AuthorTests since M::I 0.94 handles it
+      automatically for us
 
 6.26 Sun Mar 14 07:32:23 GMT 2010
     - Depend on POE 1.287 for FollowTail bugfixes

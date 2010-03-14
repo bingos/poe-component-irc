@@ -2,6 +2,11 @@ use 5.008;
 use strict;
 use inc::Module::Install;
 
+my $mi = '0.94';
+if ($inc::Module::Install::VERSION lt $mi) {
+    die "Your Module::Install is older than $mi, please upgrade it";
+}
+
 print <<NOTICE;
 
 ---------------------------------------------------------------
@@ -36,7 +41,6 @@ requires         'Encode'                    => 0;
 requires         'Encode::Guess'             => 0;
 test_requires    'Test::More' => '0.47';
 tests_recursive;
-author_tests     'xt';
 clean_files 'README.send Changes.resume followtail logger_test';
 auto_provides;
 WriteAll();
