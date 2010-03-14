@@ -573,14 +573,6 @@ always do what you expect it to.
 
 =head2 C<irc_to_utf8>
 
-The IRC messages you get from L<POE::Component::IRC|POE::Component::IRC> are
-raw byte strings that have no inherent encoding. Most popular clients (mIRC,
-xchat, certain irssi configurations) encode their messages in Microsoft's
-CP1252 encoding (their version of Latin-1) if the message only contains
-characters which fit into Latin-1, otherwise falling back to UTF-8 encoding.
-Writing something like this to a file, terminal, or database is a recipe for
-disaster.
-
 This function takes a byte string (e.g. a message from an
 L<C<irc_public>|POE::Component::IRC/"irc_public"> handler) in "IRC encoding"
 and returns a text string. Since the source encoding might have been UTF-8,
@@ -600,9 +592,6 @@ file/database/whatever.
      # good, $what is always UTF-8
      print $what, "\n";
  }
-
-See also L<Encode|Encode>, L<perluniintro>, L<perlunitut>, L<perlunicode>,
-and L<perlunifaq>.
 
 =head2 C<irc_ip_get_version>
 

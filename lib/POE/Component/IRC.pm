@@ -2817,14 +2817,77 @@ on each IRC network.
 
 =head1 ENCODING AND CHARACTER SETS
 
+=head2 Messages
+
 The only requirement the IRC protocol places on its messages is that they be
 8-bits, and in ASCII. This has resulted in most of the Western world settling
-on ASCII-compatible Latin-1 as a convention. Recently, popular clients have
-begun sending a mixture of Latin-1 and UTF-8 over the wire to allow more
-characters without breaking backward compatibility (too much). To decode such
-messages reliably, see
-L<C<irc_to_utf8>|POE::Component::IRC::Common/"irc_to_utf8"> in
+on ASCII-compatible Latin-1 (usually Microsoft's CP1252, a Latin-1 variant) as
+a convention. Recently, popular IRC clients (mIRC, xchat, certain irssi
+configurations) have begun sending a mixture of CP1252 and UTF-8 over the wire
+to allow more characters without breaking backward compatibility (too much).
+They send CP1252 encoded messages if the characters fit within that encoding,
+otherwise falling back to UTF-8. Writing text with mixed encoding to a file,
+terminal, or database is rarely a good idea. To decode such messages reliably,
+see L<C<irc_to_utf8>|POE::Component::IRC::Common/"irc_to_utf8"> from
 L<POE::Component::IRC::Common|POE::Component::IRC::Common>.
+
+=head2 Channel names
+
+This matter is complicated further by the fact that some servers allow
+non-ASCII characters in channel names. The IRC component doesn't explicitly
+convert between encodings before sending your message along, but it has to
+concatenate the channel name and the message before sending them over the
+wire. So when you do C<< $irc->yield(privmsg => $chan, 'æði') >>, where
+C<$chan> is the unmodified channel name you got from the IRC component
+(i.e. it's a byte string), the channel name will end up getting
+double-encoded when concatenated with the message (which is a text string).
+If the channel name is all-ASCII, then nothing bad will happen, but if there
+are non-ASCII chars in it, you're in trouble.
+
+To prevent this, you can't simply call C<irc_to_utf8> on the channel name and
+then use it, because IRC servers don't care about encodings. C<'#æði'> in
+CP1252 is not the same channel as C<'#æði'> in UTF-8. The channel name and
+your message must therefore both be byte stirngs, or both be text strings.
+If they're text strings, the UTF-8 flag must be off for both, or on for both.
+
+A simple rule to follow is to call L<C<encode_utf8>|Encode> on the channel
+name and/or message if they are text strings. Here are some examples:
+
+ use Encode qw(encode_utf8);
+
+ sub irc_public {
+     my ($who, $where, $what) = @_[ARG0..ARG2];
+     my $irc = $_[SENDER]->get_heap();
+
+     # bad: if $where has any non-ASCII chars, they will get double-encoded
+     $irc->yield(privmsg => $where, 'æði');
+
+     # bad: if $what has any non-ASCII chars, they will get double-encoded
+     $irc->yield(privmsg => '#æði', $what);
+
+     # good: both are byte strings already, so this does what we expect
+     $irc->yield(privmsg => $where, $what);
+
+     # good: both are text strings (Latin1 as per Perl's default), so
+     # they'll be concatenated correctly
+     $irc->yield(privmsg => '#æði', 'æði');
+
+     # good: same as the last one, except now they're both in UTF-8,
+     # which means we'll be sending the message to a different channel
+     use utf8;
+     $irc->yield(privmsg => '#æði', 'æði');
+
+     # good: $where and $msg_bytes are both byte strings
+     my $msg_bytes = encode_utf8('æði');
+     $irc->yield(privmsg => $where, $msg_bytes);
+
+     # good: $chan_bytes and $what are both byte strings
+     my $chan_bytes = encode_utf8('#æði');
+     $irc->yield(privmsg => $chan_bytes, $what);
+ }
+
+See also L<Encode|Encode>, L<perluniintro>, L<perlunitut>, L<perlunicode>,
+and L<perlunifaq>.
 
 =head1 BUGS
 
