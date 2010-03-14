@@ -6,13 +6,13 @@ Revision history for Perl extension POE::Component::IRC.
     - Stop using Module::Install::AuthorTests since M::I 0.94 handles it
       automatically for us
 
-6.26 Sun Mar 14 07:32:23 GMT 2010
+6.26  Sun Mar 14 07:32:23 GMT 2010
     - Depend on POE 1.287 for FollowTail bugfixes
     - Updated documentation to mention advice about avoiding the double
       encoding of non-ASCII channel names
     - Logger.pm: Avoid double-encoding non-ASCII channel names in logs
 
-6.24 Fri Feb 12 02:45:21 GMT 2010
+6.24  Fri Feb 12 02:45:21 GMT 2010
     - NickServID.pm: Identification wasn't working after the change a couple
       of releases ago. Thanks to John O'Brien in RT #54530. (Hinrik)
 
