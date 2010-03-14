@@ -128,13 +128,13 @@ sub _get_help {
         }
         else {
             push @help, "Unknown command: $cmd";
-            push @help, 'To get a list of commands, do: /msg '. $irc->nick_name() . ' help';
+            push @help, 'To get a list of commands, use: /msg '. $irc->nick_name() . ' help';
         }
     }
     else {
         if (keys %{ $self->{Commands} }) {
             push @help, 'Commands: ' . join ', ', keys %{ $self->{Commands} };
-            push @help, 'You can do: /msg ' . $irc->nick_name() . ' help <command>';
+            push @help, 'For more details, use: /msg ' . $irc->nick_name() . ' help <command>';
         }
         else {
             push @help, 'No commands are defined';
