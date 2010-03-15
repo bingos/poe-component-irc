@@ -244,7 +244,7 @@ lightweight debugging and control console for your bot
  }
 
  sub irc_console_connect {
-     my ($peeradr, $peerport, $wheel_id) = @_[ARG0, .. ARG2];
+     my ($peeradr, $peerport, $wheel_id) = @_[ARG0 .. ARG2];
      return;
  }
 
