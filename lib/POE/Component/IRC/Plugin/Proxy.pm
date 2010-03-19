@@ -409,7 +409,7 @@ Takes a number of arguments:
 
 B<'password'>, the password to require from connecting clients;
 
-B<'bindaddr'>, a local address to bind the listener to, default is 'localhost';
+B<'bindaddress'>, a local address to bind the listener to, default is 'localhost';
 
 B<'bindport'>, what port to bind to, default is 0, ie. randomly allocated by OS;
 
