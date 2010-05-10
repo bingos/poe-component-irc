@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-6.30
+6.30  Mon May 10 14:34:54 GMT 2010
     - Proxy.pm: Fix documentation error ('bindaddr' -> 'bindaddress')
     - IRC.pm: Split long messages on \r as well as \n. Plugs a security hole.
 

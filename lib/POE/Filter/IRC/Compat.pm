@@ -7,7 +7,7 @@ use POE::Filter::IRCD;
 use File::Basename qw(fileparse);
 use base qw(POE::Filter);
 
-our $VERSION = '6.28';
+our $VERSION = '6.30';
 
 my %irc_cmds = (
     qr/^\d{3}$/ => sub {
