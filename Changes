@@ -2,6 +2,7 @@ Revision history for Perl extension POE::Component::IRC.
 
 6.30
     - Proxy.pm: Fix documentation error ('bindaddr' -> 'bindaddress')
+    - IRC.pm: Split long messages on \r as well as \n. Plugs a security hole.
 
 6.28  Sun Mar 14 10:50:43 GMT 2010
     - Use utf8 encoding in all Pod

@@ -25,3 +25,4 @@ verbose  = 3
 [-Modules::RequireExplicitPackage]
 [-Modules::RequireFilenameMatchesPackage]
 [-Subroutines::RequireFinalReturn]
+[-ControlStructures::ProhibitCascadingIfElse]

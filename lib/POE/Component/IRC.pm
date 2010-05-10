@@ -1040,7 +1040,7 @@ sub onlytwoargs {
 sub privandnotice {
     my ($kernel, $state, $to) = @_[KERNEL, STATE, ARG0];
     my $message = join ' ', @_[ARG1 .. $#_];
-    my @messages = split /\n/, $message;
+    my @messages = split /[\n\r]/, $message;
     my $pri = $_[OBJECT]->{IRC_CMDS}->{$state}->[CMD_PRI];
 
     $state =~ s/privmsglo/privmsg/;

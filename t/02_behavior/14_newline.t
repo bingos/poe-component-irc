@@ -6,7 +6,7 @@ use Socket;
 use POE::Component::IRC::State;
 use POE::Component::IRC::Plugin::AutoJoin;
 use POE::Component::Server::IRC;
-use Test::More tests => 9;
+use Test::More tests => 11;
 
 my $bot1 = POE::Component::IRC::State->spawn(
     Flood        => 1,
@@ -97,6 +97,7 @@ sub irc_join {
 
     $irc->yield(quote => "PRIVMSG $where :one\nPRIVMSG $where :two");
     $irc->yield(privmsg => $where, "foo\nbar");
+    $irc->yield(privmsg => $where, "baz\rquux");
 }
 
 sub irc_public {
@@ -111,6 +112,12 @@ sub irc_public {
     }
     elsif ($heap->{got_msg} == 3) {
         is($msg, 'bar', 'Third message');
+    }
+    elsif ($heap->{got_msg} == 4) {
+        is($msg, 'baz', 'Fourth message');
+    }
+    elsif ($heap->{got_msg} == 5) {
+        is($msg, 'quux', 'Fifth message');
         $bot1->yield('quit');
         $bot2->yield('quit');
     }
