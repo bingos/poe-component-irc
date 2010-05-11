@@ -946,6 +946,8 @@ sub noargs {
         warn "The '$state' event takes no arguments\n";
         return;
     }
+
+    $state = uc $state;
     $kernel->yield(sl_prioritized => $pri, $state);
     return;
 }
