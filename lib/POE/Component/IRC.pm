@@ -1214,14 +1214,14 @@ sub sl_prioritized {
 
     my $now = time();
     $self->{send_time} = $now if $self->{send_time} < $now;
+
+    # if we find a newline in the message, take that to be the end of it
+    $msg =~ s/[\015\012].*//s;
     
     if (bytes::length($msg) > $self->{msg_length} - bytes::length($self->nick_name())) {
         $msg = bytes::substr($msg, 0, $self->{msg_length} - bytes::length($self->nick_name()));
     }
 
-    # if we find a newline in the message, take that to be the end of it
-    $msg =~ s/\n.*//gm;
-    
     if (@{ $self->{send_queue} }) {
         my $i = @{ $self->{send_queue} };
         $i-- while ($i && $priority < $self->{send_queue}->[$i-1]->[MSG_PRI]);

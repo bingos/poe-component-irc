@@ -3,16 +3,15 @@ use warnings;
 use lib 't/inc';
 use POE qw(Wheel::SocketFactory);
 use Socket;
-use POE::Component::IRC::State;
-use POE::Component::IRC::Plugin::AutoJoin;
+use POE::Component::IRC;
 use POE::Component::Server::IRC;
-use Test::More tests => 11;
+use Test::More tests => 9;
 
-my $bot1 = POE::Component::IRC::State->spawn(
+my $bot1 = POE::Component::IRC->spawn(
     Flood        => 1,
     plugin_debug => 1,
 );
-my $bot2 = POE::Component::IRC::State->spawn(
+my $bot2 = POE::Component::IRC->spawn(
     Flood        => 1,
     plugin_debug => 1,
 );
@@ -88,7 +87,7 @@ sub irc_join {
     my ($sender, $heap, $who, $where) = @_[SENDER, HEAP, ARG0, ARG1];
     my $nick = ( split /!/, $who )[0];
     my $irc = $sender->get_heap();
-    
+
     return if $nick ne $irc->nick_name();
     is($where, '#testchannel', 'Joined Channel Test');
 
@@ -101,7 +100,9 @@ sub irc_join {
 }
 
 sub irc_public {
-    my ($heap, $msg) = @_[HEAP, ARG2];
+    my ($sender, $heap, $where, $msg) = @_[SENDER, HEAP, ARG1, ARG2];
+    my $irc = $sender->get_heap();
+    my $chan = $where->[0];
 
     $heap->{got_msg}++;
     if ($heap->{got_msg} == 1) {
@@ -111,13 +112,7 @@ sub irc_public {
         is($msg, 'foo', 'Second message');
     }
     elsif ($heap->{got_msg} == 3) {
-        is($msg, 'bar', 'Third message');
-    }
-    elsif ($heap->{got_msg} == 4) {
-        is($msg, 'baz', 'Fourth message');
-    }
-    elsif ($heap->{got_msg} == 5) {
-        is($msg, 'quux', 'Fifth message');
+        is($msg, 'baz', 'Third message');
         $bot1->yield('quit');
         $bot2->yield('quit');
     }
