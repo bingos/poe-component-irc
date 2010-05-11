@@ -1040,9 +1040,7 @@ sub onlytwoargs {
 
 # Handler for privmsg or notice events.
 sub privandnotice {
-    my ($kernel, $state, $to) = @_[KERNEL, STATE, ARG0];
-    my $message = join ' ', @_[ARG1 .. $#_];
-    my @messages = split /[\n\r]/, $message;
+    my ($kernel, $state, $to, $msg) = @_[KERNEL, STATE, ARG0, ARG1];
     my $pri = $_[OBJECT]->{IRC_CMDS}->{$state}->[CMD_PRI];
 
     $state =~ s/privmsglo/privmsg/;
@@ -1050,7 +1048,7 @@ sub privandnotice {
     $state =~ s/noticelo/notice/;
     $state =~ s/noticehi/notice/;
 
-    if (!defined $to || !defined $message) {
+    if (!defined $to || !defined $msg) {
         warn "The '$state' event requires two arguments\n";
         return;
     }
@@ -1058,9 +1056,7 @@ sub privandnotice {
     $to = join ',', @$to if ref $to eq 'ARRAY';
     $state = uc $state;
 
-    for my $msg (@messages) {
-        $kernel->yield(sl_prioritized => $pri, "$state $to :$msg");
-    }
+    $kernel->yield(sl_prioritized => $pri, "$state $to :$msg");
     return;
 }
 
@@ -2192,8 +2188,7 @@ it will be treated as a PART message and dealt with accordingly.
 Sends a public or private message to the nick(s) or channel(s) which
 you specify. Takes 2 arguments: the nick or channel to send a message
 to (use an array reference here to specify multiple recipients), and
-the text of the message to send. If the message contains newlines, it
-will be split up into multiple messages.
+the text of the message to send.
 
 Have a look at the constants in
 L<POE::Component::IRC::Common|POE::Component::IRC::Common> if you would
