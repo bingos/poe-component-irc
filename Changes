@@ -1,6 +1,6 @@
 Revision history for Perl extension POE::Component::IRC.
 
-6.32
+6.32  Tue May 11 13:43:50 GMT 2010
     - IRC.pm: Filter out \r in arguments to non-PRIVMSG commands too
     - IRC.pm: Uppercase REHASH/DIE/RESTART commands before sending them
     - IRC.pm: Simplify privmsg handler and remove undocumented behavior of
