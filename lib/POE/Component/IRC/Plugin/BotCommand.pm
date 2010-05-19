@@ -293,9 +293,9 @@ private. Default is true.
 B<'Addressed'>, requires users to address the bot by name in order
 to issue commands. Default is true.
 
-B<'Prefix'>, if B<'Addressed'> is false, all channel commands must be prefixed
-with this string. Default is '!'. You can set it to '' to allow bare channel
-commands.
+B<'Prefix'>, a string which all commands must be prefixed with (except in
+channels when B<'Addressed'> is true). Default is '!'. You can set it to ''
+to allow bare commands.
 
 B<'Ignore_unknown'>, if true, the plugin will ignore undefined commands,
 rather than printing a help message upon receiving them. Default is false.
