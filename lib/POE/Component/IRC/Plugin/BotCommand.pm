@@ -100,18 +100,20 @@ sub _normalize {
 sub _handle_cmd {
     my ($self, $who, $where, $cmd, $args) = @_;
     my $irc = $self->{irc};
+    my $chantypes = join('', @{ $irc->isupport('CHANTYPES') || ['#', '&']});
+    my $public = $where =~ /^[$chantypes]/ ? 1 : 0;
     $cmd = lc $cmd;
 
     if (defined $self->{Commands}->{$cmd}) {
         $irc->send_event("irc_botcmd_$cmd" => $who, $where, $args);
     }
     elsif ($cmd =~ /^help$/i) {
-        my @help = $self->_get_help($args);
+        my @help = $self->_get_help($args, $public);
         $irc->yield($self->{Method} => $where => $_) for @help;
     }
     else {
         return if $self->{Ignore_unknown};
-        my @help = $self->_get_help($cmd);
+        my @help = $self->_get_help($cmd, $public);
         $irc->yield($self->{Method} => $where => $_) for @help;
     }
 
@@ -119,8 +121,11 @@ sub _handle_cmd {
 }
 
 sub _get_help {
-    my ($self, $args) = @_;
+    my ($self, $args, $public) = @_;
     my $irc = $self->{irc};
+    my $p = $self->{Addressed} && $public
+        ? $irc->nick_name().': '
+        : $self->{Prefix};
     
     my @help;
     if (defined $args) {
@@ -130,13 +135,13 @@ sub _get_help {
         }
         else {
             push @help, "Unknown command: $cmd";
-            push @help, 'To get a list of commands, use: /msg '. $irc->nick_name() . ' help';
+            push @help, "To get a list of commands, use: ${p}help";
         }
     }
     else {
         if (keys %{ $self->{Commands} }) {
             push @help, 'Commands: ' . join ', ', keys %{ $self->{Commands} };
-            push @help, 'For more details, use: /msg ' . $irc->nick_name() . ' help <command>';
+            push @help, "For more details, use: ${p}help <command>";
         }
         else {
             push @help, 'No commands are defined';
