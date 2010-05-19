@@ -24,10 +24,10 @@ sub new {
 sub PCI_register {
     my ($self, $irc) = splice @_, 0, 2;
     
-    $self->{Addressed}     = 1 if !defined $self->{Addressed};
-    $self->{Prefix}        = '!' if !defined $self->{Prefix};
-    $self->{In_channels}   = 1 if !defined $self->{In_channels};
-    $self->{In_private}    = 1 if !defined $self->{In_private};
+    $self->{Addressed}   = 1   if !defined $self->{Addressed};
+    $self->{Prefix}      = '!' if !defined $self->{Prefix};
+    $self->{In_channels} = 1   if !defined $self->{In_channels};
+    $self->{In_private}  = 1   if !defined $self->{In_private};
     $self->{irc} = $irc;
     
     $irc->plugin_register( $self, 'SERVER', qw(msg public) );
@@ -48,7 +48,7 @@ sub S_msg {
     $what = $self->_normalize($what);
     
     my ($cmd, $args);
-    if (!(($cmd, $args) = $what =~ /^(\w+)(?:\s+(.+))?$/)) {
+    if (!(($cmd, $args) = $what =~ /^$self->{Prefix}(\w+)(?:\s+(.+))?$/)) {
         return PCI_EAT_NONE;
     }
     
