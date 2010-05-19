@@ -12,7 +12,9 @@ sub new {
     my ($package) = shift;
     croak "$package requires an even number of arguments" if @_ & 1;
     my %args = @_;
-    
+
+    $args{Method} = 'notice' if !defined $args{Method};
+
     for my $cmd (keys %{ $args{Commands} }) {
         $args{Commands}->{lc $cmd} = delete $args{Commands}->{$cmd};
     }
@@ -105,12 +107,12 @@ sub _handle_cmd {
     }
     elsif ($cmd =~ /^help$/i) {
         my @help = $self->_get_help($args);
-        $irc->yield(notice => $where => $_) for @help;
+        $irc->yield($self->{Method} => $where => $_) for @help;
     }
     else {
         return if $self->{Ignore_unknown};
         my @help = $self->_get_help($cmd);
-        $irc->yield(notice => $where => $_) for @help;
+        $irc->yield($self->{Method} => $where => $_) for @help;
     }
 
     return 1;
@@ -292,6 +294,9 @@ commands.
 
 B<'Ignore_unknown'>, if true, the plugin will ignore undefined commands,
 rather than printing a help message upon receiving them. Default is false.
+
+B<'Method'>, how you want help messages to be delivered. Valid options are
+'notice' (the default) and 'privmsg'.
 
 B<'Eat'>, set to true to make the plugin hide
 L<C<irc_public>|POE::Component::IRC/"irc_public"> events from other plugins if
