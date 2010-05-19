@@ -340,8 +340,9 @@ containing them, otherwise it will be undefined.
 
 =head1 TODO
 
-Add permissions/authorization. E.g. allow the user to specify if commands are
-only available ops, or only to users matching some IRC masks, etc.
+Add permissions/authorization. E.g. allow the user to specify whether
+commands are only available ops, or only to users matching some IRC masks,
+etc.
 
 It would have to support permissions/auth on a per-command level, so that
 a bot can get by with a single BotCommand plugin, with respect to easily
