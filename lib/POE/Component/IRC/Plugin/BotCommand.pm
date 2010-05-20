@@ -104,6 +104,20 @@ sub _handle_cmd {
     my $public = $where =~ /^[$chantypes]/ ? 1 : 0;
     $cmd = lc $cmd;
 
+    if (ref $self->{Auth_sub} eq 'CODE') {
+        my ($authed, $errors) = $self->{Auth_sub}->($self->{irc}, $who, $where, $cmd, $args);
+
+        if (!$authed) {
+            my @errors = ref $errors eq 'ARRAY'
+                ? @$errors
+                : 'You are not authorized to use this command.';
+            for my $error (@errors) {
+                $irc->yield($self->{Method}, $where, $error);
+            }
+            return;
+        }
+    }
+
     if (defined $self->{Commands}->{$cmd}) {
         $irc->send_event("irc_botcmd_$cmd" => $who, $where, $args);
     }
@@ -297,6 +311,37 @@ B<'Prefix'>, a string which all commands must be prefixed with (except in
 channels when B<'Addressed'> is true). Default is '!'. You can set it to ''
 to allow bare commands.
 
+=head3 Authorization
+
+B<'Auth_sub'>, a subroutine reference which, if provided, will be called
+for every command. The subroutine will be called in list context. If the
+first value returned is true the command will be processed as normal. If the
+value is false, then no events will be generated, and an error message will
+possibly be sent back to the user. You can override the default error message
+by returning an array reference of (zero or more) strings. Each string will
+be sent as a message to the user.
+
+The sub will get the following arguments:
+
+=over
+
+=item 1. The IRC component object
+
+=item 2. The nick!user@host of the user
+
+=item 3. The place where the command was issued (the nickname of the user if
+it was in private)
+
+=item 4. The name of the command
+
+=item 5. The command argument string
+
+=back
+
+B<'Ignore_unauthorized'>, if true, the plugin will ignore unauthorized
+commands, rather than printing an error message upon receiving them. This is
+only relevant if B<'Auth_sub'> is also supplied. Default is false.
+
 =head3 Miscellaneous
 
 B<'Ignore_unknown'>, if true, the plugin will ignore undefined commands,
@@ -339,37 +384,6 @@ user who issued the command. C<ARG1> is the name of the channel in which the
 command was issued, or the sender's nickname if this was a private message.
 If the command was followed by any arguments, C<ARG2> will be a string
 containing them, otherwise it will be undefined.
-
-=head1 TODO
-
-Add permissions/authorization. E.g. allow the user to specify whether
-commands are only available ops, or only to users matching some IRC masks,
-etc.
-
-It would have to support permissions/auth on a per-command level, so that
-a bot can get by with a single BotCommand plugin, with respect to easily
-listing the available commands in a help message. Maybe augmenting the
-C<add()> method to accept an optional hash reference argument detailing
-authorization requirements is appropriate here. I suppose plugins that call
-C<add()> to add new commands should accept a hash reference like that as an
-B<'auth'> argument to their constructor.
-
-I considered having the auth settings apply to all commands, and using
-multiple BotCommand plugins to group commands by who is allowed to issue them,
-but this approach is more complex if we want the bot to complain about
-undefined commands, or when someone wants a list of all commands. Plugins
-which define new commands would accept a B<'botcmd'> parameter to choose which
-BotCommand plugin they should call C<add()>/C<remove()> on.
-
-Some prior art to consider:
-
-=over 4
-
-=item L<POE::Component::IRC::Plugin::BaseWrap|POE::Component::IRC::Plugin::BaseWrap>
-
-=item L<Bot::BasicBot::Pluggable::Module::Auth|Bot::BasicBot::Pluggable::Module::Auth> 
-
-=back
 
 =head1 AUTHOR
 

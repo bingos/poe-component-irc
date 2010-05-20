@@ -4,6 +4,7 @@ Revision history for Perl extension POE::Component::IRC.
     - BotCommand.pm: Allow user to choose how help messages are delivered
     - BotCommand.pm: Require the command prefix in private messages
     - BotCommand.pm: Make the help messages more context-sensitive
+    - BotCommand.pm: Add support for custom auth checks
 
 6.32  Tue May 11 13:43:50 GMT 2010
     - IRC.pm: Filter out \r in arguments to non-PRIVMSG commands too
