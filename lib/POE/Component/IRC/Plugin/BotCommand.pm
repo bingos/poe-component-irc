@@ -278,11 +278,11 @@ command yourself, that one will be used instead.
 
 =head2 C<new>
 
-Four optional arguments:
-
 B<'Commands'>, a hash reference, with your commands as keys, and usage
 information as values. If the usage string contains newlines, the component
 will send one message for each line.
+
+=head3 Accepting commands
 
 B<'In_channels'>, a boolean value indicating whether to accept commands in
 channels. Default is true.
@@ -296,6 +296,8 @@ to issue commands. Default is true.
 B<'Prefix'>, a string which all commands must be prefixed with (except in
 channels when B<'Addressed'> is true). Default is '!'. You can set it to ''
 to allow bare commands.
+
+=head3 Miscellaneous
 
 B<'Ignore_unknown'>, if true, the plugin will ignore undefined commands,
 rather than printing a help message upon receiving them. Default is false.
