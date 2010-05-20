@@ -363,7 +363,7 @@ Some prior art to consider:
 
 =over 4
 
-=item L<POE::Component::IRC::Plugin::BaseWrap|POE::Component::IRC::PluginBaseWrap>
+=item L<POE::Component::IRC::Plugin::BaseWrap|POE::Component::IRC::Plugin::BaseWrap>
 
 =item L<Bot::BasicBot::Pluggable::Module::Auth|Bot::BasicBot::Pluggable::Module::Auth> 
 
