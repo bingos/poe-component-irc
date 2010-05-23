@@ -1996,9 +1996,9 @@ true or false argument to enable or disable this feature accordingly.
 
 =head2 C<isupport>
 
-Takes one argument, a server capability to query. Returns undef on failure or a
-value representing the applicable capability. A full list of capabilities is
-available at L<http://www.irc.org/tech_docs/005.html>.
+Takes one argument, a server capability to query. Returns C<undef> on failure
+or a value representing the applicable capability. A full list of capabilities
+is available at L<http://www.irc.org/tech_docs/005.html>.
 
 =head2 C<isupport_dump_keys>
 
@@ -2569,7 +2569,8 @@ hostmasks, channel keys, whatever).
 Sent whenever you receive a PRIVMSG command that was addressed to you
 privately. C<ARG0> is the nick!hostmask of the sender. C<ARG1> is an array
 reference containing the nick(s) of the recipients. C<ARG2> is the text
-of the message. On FreeNode there is also C<ARG3>, which will be 1 if the
+of the message. On servers supporting the CAPAB IDENTIFY-MSG feature
+(e.g. FreeNode), CTCP ACTIONs will have C<ARG3>, which will be 1 if the
 sender has identified with NickServ, 0 otherwise.
 
 =head3 C<irc_nick>
@@ -2595,9 +2596,10 @@ message.
 
 Sent whenever you receive a PRIVMSG command that was sent to a channel.
 C<ARG0> is the nick!hostmask of the sender. C<ARG1> is an array
-reference containing the channel name(s) of the recipients. C<ARG2> is
-the text of the message. On FreeNode there is also C<ARG3>, which will be
-1 if the sender has identified with NickServ, 0 otherwise.
+reference containing the channel name(s) of the recipients. C<ARG2> is the
+text of the message. On servers supporting the CAPAB IDENTIFY-MSG feature
+(e.g. FreeNode), CTCP ACTIONs will have C<ARG3>, which will be 1 if the
+sender has identified with NickServ, 0 otherwise.
 
 =head3 C<irc_quit>
 
