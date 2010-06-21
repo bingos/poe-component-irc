@@ -6,6 +6,7 @@ Revision history for Perl extension POE::Component::IRC.
     - BotCommand.pm: Make the help messages more context-sensitive
     - BotCommand.pm: Add support for custom auth checks
     - Cookbook: Add Gtk2 example by Damian Kaczmarek
+    - Logger.pm: Support a hook for custom log storage
 
 6.32  Tue May 11 13:43:50 GMT 2010
     - IRC.pm: Filter out \r in arguments to non-PRIVMSG commands too

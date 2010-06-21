@@ -18,7 +18,7 @@ sub new {
     croak "$package requires an even number of arguments" if @_ & 1;
     my %self = @_;
     
-    if (!defined $self{Path}) {
+    if (!defined $self{Path} && ref $self{Log_sub} ne 'CODE') {
         die "$package requires a Path";
     }
     return bless \%self, $package;
@@ -45,7 +45,7 @@ sub PCI_register {
 
     }
 
-    if (! -d $self->{Path}) {
+    if (defined $self->{Path} && ! -d $self->{Path}) {
         mkdir $self->{Path}, $self->{dir_perm} or die 'Cannot create directory ' . $self->{Path} . ": $!; aborted";
     }
     
@@ -54,68 +54,7 @@ sub PCI_register {
     $self->{Private} = 1 if !defined $self->{Private};
     $self->{Public} = 1 if !defined $self->{Public};
     $self->{DCC} = 1 if !defined $self->{DCC};
-    $self->{Format} = {
-        '+b'         => sub { my ($nick, $mask) = @_;            "--- $nick sets ban on $mask" },
-        '-b'         => sub { my ($nick, $mask) = @_;            "--- $nick removes ban on $mask" },
-        '+e'         => sub { my ($nick, $mask) = @_;            "--- $nick sets exempt on $mask" },
-        '-e'         => sub { my ($nick, $mask) = @_;            "--- $nick removes exempt on $mask" },
-        '+I'         => sub { my ($nick, $mask) = @_;            "--- $nick sets invite on $mask" },
-        '-I'         => sub { my ($nick, $mask) = @_;            "--- $nick removes invite on $mask" },
-        '+h'         => sub { my ($nick, $subject) = @_;         "--- $nick gives channel half-operator status to $subject" },
-        '-h'         => sub { my ($nick, $subject) = @_;         "--- $nick removes channel half-operator status from $subject" },
-        '+o'         => sub { my ($nick, $subject) = @_;         "--- $nick gives channel operator status to $subject" },
-        '-o'         => sub { my ($nick, $subject) = @_;         "--- $nick removes channel operator status from $subject" },
-        '+v'         => sub { my ($nick, $subject) = @_;         "--- $nick gives voice to $subject" },
-        '-v'         => sub { my ($nick, $subject) = @_;         "--- $nick removes voice from $subject" },
-        '+k'         => sub { my ($nick, $key) = @_;             "--- $nick sets channel keyword to $key" },
-        '-k'         => sub { my ($nick) = @_;                   "--- $nick removes channel keyword" },
-        '+l'         => sub { my ($nick, $limit) = @_;           "--- $nick sets channel user limit to $limit" },
-        '-l'         => sub { my ($nick) = @_;                   "--- $nick removes channel user limit" },
-        '+i'         => sub { my ($nick) = @_;                   "--- $nick enables invite-only channel status" },
-        '-i'         => sub { my ($nick) = @_;                   "--- $nick disables invite-only channel status" },
-        '+m'         => sub { my ($nick) = @_;                   "--- $nick enables channel moderation" },
-        '-m'         => sub { my ($nick) = @_;                   "--- $nick disables channel moderation" },
-        '+n'         => sub { my ($nick) = @_;                   "--- $nick disables external messages" },
-        '-n'         => sub { my ($nick) = @_;                   "--- $nick enables external messages" },
-        '+p'         => sub { my ($nick) = @_;                   "--- $nick enables private channel status" },
-        '-p'         => sub { my ($nick) = @_;                   "--- $nick disables private channel status" },
-        '+s'         => sub { my ($nick) = @_;                   "--- $nick enables secret channel status" },
-        '-s'         => sub { my ($nick) = @_;                   "--- $nick disables secret channel status" },
-        '+t'         => sub { my ($nick) = @_;                   "--- $nick enables topic protection" },
-        '-t'         => sub { my ($nick) = @_;                   "--- $nick disables topic protection" },
-        nick_change  => sub { my ($old_nick, $new_nick) = @_;    "--- $old_nick is now known as $new_nick" },
-        topic_is     => sub { my ($chan, $topic) = @_;           "--- Topic for $chan is: $topic" },
-        topic_change => sub { my ($nick, $topic) = @_;           "--- $nick changes the topic to: $topic" },
-        privmsg      => sub { my ($nick, $msg) = @_;             "<$nick> $msg" },
-        notice       => sub { my ($nick, $msg) = @_;             ">$nick< $msg" },
-        action       => sub { my ($nick, $action) = @_;          "* $nick $action" },
-        dcc_start    => sub { my ($nick, $address) = @_;         "--> Opened DCC chat connection with $nick ($address)" },
-        dcc_done     => sub { my ($nick, $address) = @_;         "<-- Closed DCC chat connection with $nick ($address)" },
-        join         => sub { my ($nick, $userhost, $chan) = @_; "--> $nick ($userhost) joins $chan" },
-        part         => sub {
-            my ($nick, $userhost, $chan, $msg) = @_;
-            my $line = "<-- $nick ($userhost) leaves $chan";
-            $line .= " ($msg)" if $msg ne '';
-            return $line;
-        },
-        quit         => sub {
-            my ($nick, $userhost, $msg) = @_;
-            my $line = "<-- $nick ($userhost) quits";
-            $line .= " ($msg)" if $msg ne '';
-            return $line;
-        },
-        kick         => sub {
-            my ($kicker, $victim, $chan, $msg) = @_;
-            my $line = "<-- $kicker kicks $victim from $chan";
-            $line .= " ($msg)" if $msg ne '';
-            return $line;
-        },
-        topic_set_by => sub {
-            my ($chan, $user, $time) = @_;
-            my $date = localtime $time;
-            return "--- Topic for $chan was set by $user at $date";
-        },
-    } if !defined $self->{Format};
+    $self->{Format} = $self->default_format() if !defined $self->{Format};
 
     $irc->plugin_register($self, 'SERVER', qw(001 332 333 chan_mode 
         ctcp_action bot_action bot_msg bot_public bot_notice join kick msg
@@ -415,6 +354,12 @@ sub _log_entry {
     }
 
     return if $type eq 'notice' && !$self->{Notices};
+
+    if (ref $self->{Log_sub} eq 'CODE') {
+        $self->{Log_sub}->($context, $type, @args);
+        return;
+    }
+
     return if !defined $self->{Format}->{$type};
 
     # slash is problematic in a filename, replace it with underscore
@@ -460,6 +405,71 @@ sub _normalize {
     $line = strip_color($line) if $self->{Strip_color};
     $line = strip_formatting($line) if $self->{Strip_formatting};
     return $line;
+}
+
+sub default_format {
+    return {
+        '+b'         => sub { my ($nick, $mask) = @_;            "--- $nick sets ban on $mask" },
+        '-b'         => sub { my ($nick, $mask) = @_;            "--- $nick removes ban on $mask" },
+        '+e'         => sub { my ($nick, $mask) = @_;            "--- $nick sets exempt on $mask" },
+        '-e'         => sub { my ($nick, $mask) = @_;            "--- $nick removes exempt on $mask" },
+        '+I'         => sub { my ($nick, $mask) = @_;            "--- $nick sets invite on $mask" },
+        '-I'         => sub { my ($nick, $mask) = @_;            "--- $nick removes invite on $mask" },
+        '+h'         => sub { my ($nick, $subject) = @_;         "--- $nick gives channel half-operator status to $subject" },
+        '-h'         => sub { my ($nick, $subject) = @_;         "--- $nick removes channel half-operator status from $subject" },
+        '+o'         => sub { my ($nick, $subject) = @_;         "--- $nick gives channel operator status to $subject" },
+        '-o'         => sub { my ($nick, $subject) = @_;         "--- $nick removes channel operator status from $subject" },
+        '+v'         => sub { my ($nick, $subject) = @_;         "--- $nick gives voice to $subject" },
+        '-v'         => sub { my ($nick, $subject) = @_;         "--- $nick removes voice from $subject" },
+        '+k'         => sub { my ($nick, $key) = @_;             "--- $nick sets channel keyword to $key" },
+        '-k'         => sub { my ($nick) = @_;                   "--- $nick removes channel keyword" },
+        '+l'         => sub { my ($nick, $limit) = @_;           "--- $nick sets channel user limit to $limit" },
+        '-l'         => sub { my ($nick) = @_;                   "--- $nick removes channel user limit" },
+        '+i'         => sub { my ($nick) = @_;                   "--- $nick enables invite-only channel status" },
+        '-i'         => sub { my ($nick) = @_;                   "--- $nick disables invite-only channel status" },
+        '+m'         => sub { my ($nick) = @_;                   "--- $nick enables channel moderation" },
+        '-m'         => sub { my ($nick) = @_;                   "--- $nick disables channel moderation" },
+        '+n'         => sub { my ($nick) = @_;                   "--- $nick disables external messages" },
+        '-n'         => sub { my ($nick) = @_;                   "--- $nick enables external messages" },
+        '+p'         => sub { my ($nick) = @_;                   "--- $nick enables private channel status" },
+        '-p'         => sub { my ($nick) = @_;                   "--- $nick disables private channel status" },
+        '+s'         => sub { my ($nick) = @_;                   "--- $nick enables secret channel status" },
+        '-s'         => sub { my ($nick) = @_;                   "--- $nick disables secret channel status" },
+        '+t'         => sub { my ($nick) = @_;                   "--- $nick enables topic protection" },
+        '-t'         => sub { my ($nick) = @_;                   "--- $nick disables topic protection" },
+        nick_change  => sub { my ($old_nick, $new_nick) = @_;    "--- $old_nick is now known as $new_nick" },
+        topic_is     => sub { my ($chan, $topic) = @_;           "--- Topic for $chan is: $topic" },
+        topic_change => sub { my ($nick, $topic) = @_;           "--- $nick changes the topic to: $topic" },
+        privmsg      => sub { my ($nick, $msg) = @_;             "<$nick> $msg" },
+        notice       => sub { my ($nick, $msg) = @_;             ">$nick< $msg" },
+        action       => sub { my ($nick, $action) = @_;          "* $nick $action" },
+        dcc_start    => sub { my ($nick, $address) = @_;         "--> Opened DCC chat connection with $nick ($address)" },
+        dcc_done     => sub { my ($nick, $address) = @_;         "<-- Closed DCC chat connection with $nick ($address)" },
+        join         => sub { my ($nick, $userhost, $chan) = @_; "--> $nick ($userhost) joins $chan" },
+        part         => sub {
+            my ($nick, $userhost, $chan, $msg) = @_;
+            my $line = "<-- $nick ($userhost) leaves $chan";
+            $line .= " ($msg)" if $msg ne '';
+            return $line;
+        },
+        quit         => sub {
+            my ($nick, $userhost, $msg) = @_;
+            my $line = "<-- $nick ($userhost) quits";
+            $line .= " ($msg)" if $msg ne '';
+            return $line;
+        },
+        kick         => sub {
+            my ($kicker, $victim, $chan, $msg) = @_;
+            my $line = "<-- $kicker kicks $victim from $chan";
+            $line .= " ($msg)" if $msg ne '';
+            return $line;
+        },
+        topic_set_by => sub {
+            my ($chan, $user, $time) = @_;
+            my $date = localtime $time;
+            return "--- Topic for $chan was set by $user at $date";
+        },
+    }
 }
 
 1;
@@ -533,8 +543,21 @@ Defaults to 1.
 B<'Format'>, a hash reference representing the log format, if you want to define
 your own. See the source for details.
 
+B<'Log_sub'>, a subroutine reference which can be used to override the file
+logging. Use this if you want to store logs in a database instead, for
+example. It will be called with 3 arguments: the context (a channel name or
+nickname), a type (e.g. 'privmsg' or '+b', and any arguments to that type.
+You can make use L</default_format> to create logs that match the default
+log format. B<Note:> You must take care of handling date/time and stripping
+colors/formatting codes yourself.
+
 Returns a plugin object suitable for feeding to
 L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
+
+=head2 C<default_format>
+
+Returns a hash reference of type/subroutine pairs, for formatting logs
+according to the default log format.
 
 =head1 AUTHOR
 
