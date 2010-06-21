@@ -52,12 +52,8 @@ sub S_msg {
         return PCI_EAT_NONE;
     }
     
-    my $handled = $self->_handle_cmd($who, $where, $cmd, $args);
-    
-    if ($self->{Eat} && $handled) {
-        return PCI_EAT_PLUGIN;
-    }
-    return PCI_EAT_NONE;
+    $self->_handle_cmd($who, $where, $cmd, $args);
+    return $self->{Eat} ? PCI_EAT_PLUGIN : PCI_EAT_NONE;
 }
 
 sub S_public {
@@ -81,13 +77,9 @@ sub S_public {
     if (!(($cmd, $args) = $what =~ /^(\w+)(?:\s+(.+))?$/)) {
         return PCI_EAT_NONE;
     }
- 
-    my $handled = $self->_handle_cmd($who, $where, $cmd, $args);
-    
-    if ($self->{Eat} && $handled) {
-        return PCI_EAT_PLUGIN;
-    }
-    return PCI_EAT_NONE;
+
+    $self->_handle_cmd($who, $where, $cmd, $args);
+    return $self->{Eat} ? PCI_EAT_PLUGIN : PCI_EAT_NONE;
 }
 
 sub _normalize {
@@ -125,13 +117,12 @@ sub _handle_cmd {
         my @help = $self->_get_help($args, $public);
         $irc->yield($self->{Method} => $where => $_) for @help;
     }
-    else {
-        return if $self->{Ignore_unknown};
+    elsif (!$self->{Ignore_unknown}) {
         my @help = $self->_get_help($cmd, $public);
         $irc->yield($self->{Method} => $where => $_) for @help;
     }
 
-    return 1;
+    return;
 }
 
 sub _get_help {
@@ -351,8 +342,9 @@ B<'Method'>, how you want help messages to be delivered. Valid options are
 'notice' (the default) and 'privmsg'.
 
 B<'Eat'>, set to true to make the plugin hide
-L<C<irc_public>|POE::Component::IRC/"irc_public"> events from other plugins if
-they contain a valid command. Default is false.
+L<C<irc_public>|POE::Component::IRC/"irc_public"> events from other plugins
+when they look like commands. Probably only useful when a B<'Prefix'> is
+defined. Default is false.
 
 Returns a plugin object suitable for feeding to
 L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.

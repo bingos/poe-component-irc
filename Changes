@@ -5,6 +5,7 @@ Revision history for Perl extension POE::Component::IRC.
     - BotCommand.pm: Require the command prefix in private messages
     - BotCommand.pm: Make the help messages more context-sensitive
     - BotCommand.pm: Add support for custom auth checks
+    - BotCommand.pm: If Eat == 1, we eat everything that looks like a command
     - Cookbook: Add Gtk2 example by Damian Kaczmarek
     - Logger.pm: Support a hook for custom log storage
     - IRC.pm: Remove redundant version() method
