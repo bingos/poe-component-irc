@@ -68,7 +68,7 @@ Have your bot evaluate mathematical expressions and code.
 
 =head2 Clients
 
-=head3 Gtk2
+=head3 L<Gtk2|POE::Component::IRC::Cookbook::Gtk2>
 
 A simple IRC client with a Gtk2 interface.
 
