@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.33  Mon Jun 21 20:27:42 GMT 2010
     - BotCommand.pm: Allow user to choose how help messages are delivered
     - BotCommand.pm: Require the command prefix in private messages
     - BotCommand.pm: Make the help messages more context-sensitive
