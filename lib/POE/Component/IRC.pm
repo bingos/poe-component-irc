@@ -1366,10 +1366,6 @@ sub userhost {
 
 # Non-event methods
 
-sub version {
-    return $VERSION;
-}
-
 sub server_name {
     my ($self) = @_;
     return $self->{INFO}->{ServerName};

@@ -11,7 +11,6 @@ my @methods = qw(
     server_name
     session_id
     session_alias
-    version
     send_queue
     connected
     disconnect
