@@ -3,8 +3,6 @@ package POE::Component::IRC::Plugin;
 use strict;
 use warnings;
 
-our $VERSION = '6.32';
-
 require Exporter;
 use base qw(Exporter);
 our @EXPORT_OK = qw(PCI_EAT_NONE PCI_EAT_CLIENT PCI_EAT_PLUGIN PCI_EAT_ALL);

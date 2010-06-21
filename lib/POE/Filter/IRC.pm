@@ -6,8 +6,6 @@ use POE::Filter::Stackable;
 use POE::Filter::IRCD;
 use POE::Filter::IRC::Compat;
 
-our $VERSION = '6.32';
-
 sub new {
     my ($package, %opts) = @_;
     $opts{lc $_} = delete $opts{$_} for keys %opts;
