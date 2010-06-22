@@ -47,6 +47,7 @@ present an event-driven GUI to the user.
              irc_nick_sync
              irc_join
              irc_msg
+             irc_433
          )],
      ],
  );
@@ -232,6 +233,13 @@ present an event-driven GUI to the user.
      my $nick = parse_user($user);
      $what = irc_to_utf8($what);
      push_buffer("<$nick> $what\n");
+ }
+
+ sub irc_433 {
+     my $new_nick = $irc->nick_name() . "_";
+     $irc->yield(nick => $new_nick);
+     push_buffer("433 Nick taken ... changing to $new_nick\n", "fg_orange");
+
  }
 
 =head1 AUTHOR
