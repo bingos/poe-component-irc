@@ -3,6 +3,7 @@ package POE::Component::IRC::Plugin::CTCP;
 use strict;
 use warnings;
 use Carp;
+use POE::Component::IRC;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POSIX qw(strftime);
 

@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+    - CTCP.pm: Do "use POE::Component::IRC;" to avoid weird failures when
+      this plugin is compiled by code which hasn't done the same.
 
 6.33  Mon Jun 21 20:27:42 GMT 2010
     - BotCommand.pm: Allow user to choose how help messages are delivered
