@@ -135,6 +135,7 @@ sub _shutdown {
     my ($kernel,$self) = @_[KERNEL, OBJECT];
 
     $kernel->yield( '_stop_ping' );
+    $kernel->delay('_reconnect');
     return;
 }
 
