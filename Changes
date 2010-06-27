@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.35  Sun Jun 27 09:32:22 GMT 2010
     - Disconnecting.pod: Mention when it is appropriate to use
       C<< $irc->yield('shutdown') >>.
     - Connector.pm: Clear the reconnect timer when the plugin is deleted so
