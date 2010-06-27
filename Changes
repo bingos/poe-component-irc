@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+    - Disconnecting.pod: Mention when it is appropriate to use
+      C<< $irc->yield('shutdown') >>.
 
 6.34  Fri Jun 25 18:16:40 GMT 2010
     - CTCP.pm: Do "use POE::Component::IRC;" to avoid weird failures when

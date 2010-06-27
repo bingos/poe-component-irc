@@ -35,10 +35,23 @@ Wait for C<irc_disconnected> to come back.
 
 =item *
 
+Do either of the following:
+
+=over
+
+=item *
+
 Unregister all events. This is like the C<< register => 'all' >> you probably
 posted near the C<connect> command, but replace C<register> with C<unregister>.
 Once POE::Component::IRC knows your session isn't interested, it lets you go
 and things shut down. 
+
+=item *
+
+If your session is the last/only one using this IRC component, you can call
+C<< $irc->yield('shutdown') >>. It will take care of unregistering all events.
+
+=back
 
 =back
 
