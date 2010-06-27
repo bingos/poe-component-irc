@@ -5,6 +5,7 @@ Revision history for Perl extension POE::Component::IRC.
       C<< $irc->yield('shutdown') >>.
     - Connector.pm: Clear the reconnect timer when the plugin is deleted so
       that we can actually shut down the IRC component.
+    - Depend on POE::Component::Pluggable 1.26 for irc_plugin_error
 
 6.34  Fri Jun 25 18:16:40 GMT 2010
     - CTCP.pm: Do "use POE::Component::IRC;" to avoid weird failures when
