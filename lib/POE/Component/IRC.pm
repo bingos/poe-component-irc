@@ -334,7 +334,6 @@ sub _sock_down {
 
     # Stop any delayed sends.
     $self->{send_queue} = [ ];
-    #$_[HEAP]->{send_queue} = $self->{send_queue};
     $self->{send_time}  = 0;
     $kernel->delay( sl_delayed => undef );
 
