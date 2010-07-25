@@ -329,22 +329,22 @@ Returns a list of descriptors of managed plugins.
 =head1 INPUT
 
 An IRC interface is enabled by specifying a "botowner" mask to
-L<C<new>|/"new">. Commands may be either invoked via a PRIVMSG directly to
+L<C<new>|/new>. Commands may be either invoked via a PRIVMSG directly to
 your bot or in a channel by prefixing the command with the nickname of your
 bot. One caveat, the parsing of the irc command is very rudimentary (it
 merely splits the line on spaces).
 
 =head2 C<plugin_add>
 
-Takes the same arguments as L<C<load>|/"load">.
+Takes the same arguments as L<C<load>|/load>.
 
 =head2 C<plugin_del>
 
-Takes the same arguments as L<C<unload>|/"unload">.
+Takes the same arguments as L<C<unload>|/unload>.
 
 =head2 C<plugin_reload>
 
-Takes the same arguments as L<C<reload>|/"reload">.
+Takes the same arguments as L<C<reload>|/reload>.
 
 =head2 C<plugin_loaded>
 

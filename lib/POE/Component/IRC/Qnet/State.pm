@@ -583,13 +583,13 @@ These additional events are accepted:
 
 Accepts a list of channels, will resynchronise each of those channels as if
 they have been joined for the first time. Expect to see an
-L<C<irc_chan_sync>|POE::Component::IRC::State/"irc_chan_sync"> event for each
+L<C<irc_chan_sync>|POE::Component::IRC::State/irc_chan_sync> event for each
 channel given.
 
 =item C<resync_nick>
 
 Accepts a nickname and a list of channels. Will resynchronise the given nickname
-and issue an L<C<irc_nick_sync>|POE::Component::IRC::State/"irc_nick_sync">
+and issue an L<C<irc_nick_sync>|POE::Component::IRC::State/irc_nick_sync>
 event for each of the given channels (assuming that nick is on each of those channels).
 
 =back

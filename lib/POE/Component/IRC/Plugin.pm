@@ -293,7 +293,7 @@ The only difference is instead of getting scalars, the hook will get a
 reference to the scalar, to allow it to mangle the data. This allows the plugin
 to modify data *before* they are sent out to registered sessions.
 
-They are required to return one of the L<exit codes|/"EXIT CODES"> so PoCo-IRC
+They are required to return one of the L<exit codes|/EXIT CODES> so PoCo-IRC
 will know what to do.
 
 =head3 Names of potential hooks
@@ -305,7 +305,7 @@ will know what to do.
  ...
 
 Keep in mind that they are always lowercased. Check out the
-L<OUTPUT|POE::Component::IRC/"OUTPUT"> section of POE::Component::IRC's
+L<OUTPUT|POE::Component::IRC/OUTPUT> section of POE::Component::IRC's
 documentation for the complete list of events.
 
 =head2 USER hooks
@@ -328,7 +328,7 @@ to work.
 
 The DCC hooks have it easier, as they do not interact with the server, and will
 receive references to the arguments specified in the DCC plugin
-L<documentation|POE::Component::IRC::Plugin::DCC/"COMMANDS"> regarding dcc commands.
+L<documentation|POE::Component::IRC::Plugin::DCC/COMMANDS> regarding dcc commands.
 
 =head3 Names of potential hooks
 

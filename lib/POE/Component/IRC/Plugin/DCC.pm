@@ -685,40 +685,40 @@ value in seconds (default: 300).
 Incidentally, you can send other weird nonstandard kinds of DCCs too;
 just put something besides 'SEND' or 'CHAT' (say, 'FOO') in the type
 field, and you'll get back C<irc_dcc_foo> events (with the same arguments as
-L<C<irc_dcc_chat>|/"irc_dcc_chat">) when data arrives on its DCC connection.
+L<C<irc_dcc_chat>|/irc_dcc_chat>) when data arrives on its DCC connection.
 
 If you are behind a firewall or Network Address Translation, you may want to
 consult L<POE::Component::IRC|POE::Component::IRC>'s
-L<C<connect>|POE::Component::IRC/"spawn"> for some parameters that are
+L<C<connect>|POE::Component::IRC/spawn> for some parameters that are
 useful with this command.
 
 =head2 C<dcc_accept>
 
 Accepts an incoming DCC connection from another host. First argument:
-the magic cookie from an L<C<irc_dcc_request>|/"irc_dcc_request"> event.
+the magic cookie from an L<C<irc_dcc_request>|/irc_dcc_request> event.
 In the case of a DCC GET, the second argument can optionally specify a
 new name for the destination file of the DCC transfer, instead of using
-the sender's name for it. (See the L<C<irc_dcc_request>|/"irc_dcc_request">
+the sender's name for it. (See the L<C<irc_dcc_request>|/irc_dcc_request>
 section below for more details.)
 
 =head2 C<dcc_resume>
 
 Resumes a DCC SEND file transfer. First argument: the magic cookie from an
-L<C<irc_dcc_request>|/"irc_dcc_request"> event. An optional second argument
+L<C<irc_dcc_request>|/irc_dcc_request> event. An optional second argument
 provides the name of the file to which you want to write.
 
 =head2 C<dcc_chat>
 
 Sends lines of data to the person on the other side of a DCC CHAT connection.
 The first argument should be the wheel id of the connection which you got
-from an L<C<irc_dcc_start>|/"irc_dcc_start"> event, followed by all the data
+from an L<C<irc_dcc_start>|/irc_dcc_start> event, followed by all the data
 you wish to send (it'll be separated with newlines for you).
 
 =head2 C<dcc_close>
 
 Terminates a DCC SEND or GET connection prematurely, and causes DCC CHAT
 connections to close gracefully. Takes one argument: the wheel id of the
-connection which you got from an L<C<irc_dcc_start>|/"irc_dcc_start">
+connection which you got from an L<C<irc_dcc_start>|/irc_dcc_start>
 (or similar) event.
 
 =head1 OUTPUT
@@ -731,13 +731,13 @@ to keep all the DCC documentation in one place. In case you were wondering.
 
 You receive this event when another IRC client sends you a DCC
 (e.g. SEND or CHAT) request out of the blue. You can examine the request
-and decide whether or not to accept it (with L<C<dcc_accept>|/"dcc_accept">)
+and decide whether or not to accept it (with L<C<dcc_accept>|/dcc_accept>)
 here. In the case of DCC SENDs, you can also request to resume the file with
-L<C<dcc_resume>|/"dcc_resume">.
+L<C<dcc_resume>|/dcc_resume>.
 
 B<Note:> DCC doesn't provide a way to explicitly reject requests, so if you
 don't intend to accept one, just ignore it or send a
-L<NOTICE|POE::Component::IRC/"notice"> or L<PRIVMSG|POE::Component::IRC/"privmsg">
+L<NOTICE|POE::Component::IRC/notice> or L<PRIVMSG|POE::Component::IRC/privmsg>
 to the peer explaining why you're not going to accept.
 
 =over 4
@@ -850,7 +850,7 @@ connection.
 =head2 C<irc_dcc_done>
 
 You receive this event when a DCC connection terminates normally.
-Abnormal terminations are reported by L<C<irc_dcc_error>|/"irc_dcc_error">.
+Abnormal terminations are reported by L<C<irc_dcc_error>|/irc_dcc_error>.
 
 =over 4
 
