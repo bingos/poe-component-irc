@@ -1137,6 +1137,8 @@ sub register {
 # Tell the IRC session to go away.
 sub shutdown {
     my ($kernel, $self, $sender, $session) = @_[KERNEL, OBJECT, SENDER, SESSION];
+    return if $self->{_shutdown};
+
     my $args = '';
     $args = join '', @_[ARG0..$#_] if @_[ARG0..$#_];
     $args = ":$args" if $args =~ /\x20/;
