@@ -14,7 +14,9 @@ use base qw(POE::Component::IRC);
 # Make sure we have a clean STATE when we first join the network and if we
 # inadvertently get disconnected.
 sub S_001 {
-    my ($self) = @_;
+    my ($self) = shift;
+    $self->SUPER::S_001(@_);
+
     delete $self->{STATE};
     delete $self->{NETSPLIT};
     $self->{STATE}{usermode} = '';
@@ -23,7 +25,9 @@ sub S_001 {
 }
 
 sub S_disconnected {
-    my ($self) = @_;
+    my ($self) = shift;
+    $self->SUPER::S_disconnected(@_);
+
     my $nickinfo = $self->nick_info($self->nick_name());
     my $channels = $self->channels();
     push @{ $_[-1] }, $nickinfo, $channels;
@@ -31,7 +35,9 @@ sub S_disconnected {
 }
 
 sub S_error {
-    my ($self) = @_;
+    my ($self) = shift;
+    $self->SUPER::S_error(@_);
+
     my $nickinfo = $self->nick_info($self->nick_name());
     my $channels = $self->channels();
     push @{ $_[-1] }, $nickinfo, $channels;
@@ -223,6 +229,8 @@ sub S_kick {
 
 sub S_nick {
     my ($self, $irc) = splice @_, 0, 2;
+    $self->SUPER::S_nick($irc, @_);
+
     my $nick  = (split /!/, ${ $_[0] })[0];
     my $new   = ${ $_[1] };
     my $map   = $irc->isupport('CASEMAPPING');
@@ -230,9 +238,6 @@ sub S_nick {
     my $unew  = u_irc($new, $map);
 
     push @{ $_[-1] }, [ $self->nick_channels( $nick ) ];
-
-    # what the baseclass would have done
-    $self->{RealNick} = $new if $nick eq $self->{RealNick};
 
     if ($unick eq $unew) {
         # Case Change

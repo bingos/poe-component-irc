@@ -1466,6 +1466,12 @@ sub connected {
     return $self->{connected};
 }
 
+sub logged_in {
+    my ($self) = @_;
+    return 1 if $self->{logged_in};
+    return;
+}
+
 sub _compress_uplink {
     my ($self, $value) = @_;
     
@@ -1500,6 +1506,30 @@ sub _compress_downlink {
     }
 
     return $self->{downlink};
+}
+
+sub S_001 {
+    my ($self, $irc) = splice @_, 0, 2;
+    $self->{logged_in} = 1;
+    return PCI_EAT_NONE;
+}
+
+sub S_error {
+    my ($self, $irc) = splice @_, 0, 2;
+    $self->{logged_in} = 0;
+    return PCI_EAT_NONE;
+}
+
+sub S_disconnected {
+    my ($self, $irc) = splice @_, 0, 2;
+    $self->{logged_in} = 0;
+    return PCI_EAT_NONE;
+}
+
+sub S_shutdown {
+    my ($self, $irc) = splice @_, 0, 2;
+    $self->{logged_in} = 0;
+    return PCI_EAT_NONE;
 }
 
 # Automatically replies to a PING from the server. Do not confuse this
@@ -1975,10 +2005,15 @@ The component provides anti-flood throttling. This method takes no arguments
 and returns a scalar representing the number of messages that are queued up
 waiting for dispatch to the irc server.
 
+=head2 C<logged_in>
+
+Takes no arguments. Returns true or false depending on whether the IRC
+component is logged into an IRC network.
+
 =head2 C<connected>
 
-Takes no arguments. Returns true or false depending on whether the component is
-currently connected to an IRC network or not.
+Takes no arguments. Returns true or false depending on whether the component's
+socket is currently connected.
 
 =head2 C<disconnect>
 

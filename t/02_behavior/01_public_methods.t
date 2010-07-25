@@ -14,6 +14,7 @@ my @methods = qw(
     send_queue
     connected
     disconnect
+    logged_in
     raw_events
     isupport
     isupport_dump_keys

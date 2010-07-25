@@ -79,8 +79,8 @@ sub irc_connected {
 sub irc_001 {
     my ($sender) = $_[SENDER];
     my $irc = $sender->get_heap();
-    pass('Logged in');
-    
+
+    ok($irc->logged_in(), 'Logged in');
     is($irc->server_name(), 'poco.server.irc', 'Server Name Test');
     is($irc->nick_name(), 'TestBot', 'Nick Name Test');
     is($irc->session_alias(), $irc, 'Alias Test');
