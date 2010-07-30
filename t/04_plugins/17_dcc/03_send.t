@@ -96,13 +96,13 @@ sub irc_join {
 
     $heap->{joined}++;
     return if $heap->{joined} != 2;
-    $bot1->yield(dcc => $bot2->nick_name() => SEND => 'README' => 1024 => 5);
+    $bot1->yield(dcc => $bot2->nick_name() => SEND => 'Changes' => 1024 => 5);
 }
 
 sub irc_dcc_request {
     my ($sender, $cookie) = @_[SENDER, ARG3];
     pass("Got dcc request");
-    $sender->get_heap()->yield(dcc_accept => $cookie => 'README.send');
+    $sender->get_heap()->yield(dcc_accept => $cookie => 'Changes.send');
 }
 
 sub irc_dcc_start {

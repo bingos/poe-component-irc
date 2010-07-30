@@ -2,7 +2,7 @@ Changes.resume
 Makefile
 Makefile.old
 POE-Component-IRC-*
-README.send
+Changes.send
 blib
 followtail
 logger_test
