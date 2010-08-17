@@ -8,3 +8,4 @@
 ^logger_test$
 ^pm_to_blib$
 ^cover_db/
+^utils/developer/

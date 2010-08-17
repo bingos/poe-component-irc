@@ -1,0 +1,15 @@
+#!/usr/bin/env perl
+
+# ln -s ../../utils/developer/git-pre-commit .git/hooks/pre-commit
+
+use strict;
+use warnings FATAL => 'all';
+
+my $file = 'lib/POE/Component/IRC.pm';
+my $old = qx"git rev-parse HEAD:$file 2>/dev/null";
+my $new = qx"git rev-parse :$file 2>/dev/null";
+
+if (($? >> 8) != 0 || $old ne $new || !-e 'README.pod') {
+    system qq[ack -h '^=encoding' -A 9001 $file > README.pod];
+    system "git add README.pod";
+}
