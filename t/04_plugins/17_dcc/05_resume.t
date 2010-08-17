@@ -1,11 +1,14 @@
 use strict;
 use warnings FATAL => 'all';
 use lib 't/inc';
+use File::Temp qw(tempfile);
 use POE qw(Wheel::SocketFactory);
 use Socket;
 use POE::Component::IRC;
 use POE::Component::Server::IRC;
 use Test::More tests => 13;
+
+my ($resume_fh, $resume_file) = tempfile(UNLINK => 1);
 
 my $bot1 = POE::Component::IRC->spawn(
     Flood        => 1,
@@ -106,11 +109,10 @@ sub irc_dcc_request {
 
     open (my $orig, '<', 'Changes') or die "Can't open Changes file: $!";
     sysread $orig, my $partial, 12000;
-    open (my $resume, '>', 'Changes.resume') or die "Can't open Changes.resume file: $!";
-    truncate $resume, 12000;
-    syswrite $resume, $partial;
+    truncate $resume_fh, 12000;
+    syswrite $resume_fh, $partial;
 
-    $sender->get_heap()->yield(dcc_resume => $cookie => 'Changes.resume');
+    $sender->get_heap()->yield(dcc_resume => $cookie => $resume_file);
 }
 
 sub irc_dcc_start {

@@ -1,9 +1,12 @@
 use strict;
 use warnings FATAL => 'all';
+use File::Temp qw(tempdir);
 use Test::More tests => 3;
 use POE;
 use POE::Component::IRC::State;
 use POE::Component::IRC::Plugin::Logger;
+
+my $log_dir = tempdir(CLEANUP => 1);
 
 my $bot = POE::Component::IRC::State->spawn( plugin_debug => 1 );
 
@@ -18,7 +21,7 @@ $poe_kernel->run();
 sub _start {
     $bot->yield(register => 'all');
 
-    my $plugin = POE::Component::IRC::Plugin::Logger->new( Path => 'logger_test' );
+    my $plugin = POE::Component::IRC::Plugin::Logger->new( Path => $log_dir );
     isa_ok($plugin, 'POE::Component::IRC::Plugin::Logger');
   
     if (!$bot->plugin_add('TestPlugin', $plugin )) {

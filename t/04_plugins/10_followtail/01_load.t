@@ -1,22 +1,15 @@
 use strict;
 use warnings FATAL => 'all';
+use File::Temp qw(tempfile);
 use POE qw(Filter::Line);
 use POE::Component::IRC;
 use POE::Component::IRC::Plugin::FollowTail;
-use Test::More;
+use Test::More tests => 5;
 
-my $fh;
-eval {
-    open $fh, '>', 'followtail' or die "$!\n";
-    $fh->autoflush(1);
-    print $fh "moocow\n";
-};
+my ($temp_fh, $temp_file) = tempfile(UNLINK => 1);
+$temp_fh->autoflush(1);
+print $temp_fh "moocow\n";
 
-if ($@) {
-    plan skip_all => "Couldn't create a file and write to it";
-}
-
-plan tests => 5;
 my $bot = POE::Component::IRC->spawn( plugin_debug => 1 );
 
 POE::Session->create(
@@ -31,7 +24,7 @@ sub _start {
     $bot->yield(register => 'all');
 
     my $plugin = POE::Component::IRC::Plugin::FollowTail->new( 
-        filename => 'followtail',
+        filename => $temp_file,
         filter   => POE::Filter::Line->new(),
     );
     
@@ -48,14 +41,14 @@ sub irc_plugin_add {
     return if $name ne 'TestPlugin';
     
     isa_ok($plugin, 'POE::Component::IRC::Plugin::FollowTail');
-    print $fh "Cows go moo, yes they do\n";
+    print $temp_fh "Cows go moo, yes they do\n";
 }
 
 sub irc_tail_input {
     my ($sender, $filename, $input) = @_[SENDER, ARG0, ARG1];
     my $irc = $sender->get_heap();
     
-    is($filename, 'followtail', 'Filename is okay');
+    is($filename, $temp_file, 'Filename is okay');
     is($input, 'Cows go moo, yes they do', 'Cows go moo!');
 
     if (!$irc->plugin_del('TestPlugin')) {

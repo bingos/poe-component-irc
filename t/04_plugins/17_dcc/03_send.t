@@ -1,11 +1,14 @@
 use strict;
 use warnings FATAL => 'all';
 use lib 't/inc';
+use File::Temp qw(tempfile);
 use POE qw(Wheel::SocketFactory);
 use Socket;
 use POE::Component::IRC;
 use POE::Component::Server::IRC;
 use Test::More tests => 13;
+
+my ($rcv_fh, $rcv_file) = tempfile(UNLINK => 1);
 
 my $bot1 = POE::Component::IRC->spawn(
     Flood        => 1,
@@ -102,7 +105,7 @@ sub irc_join {
 sub irc_dcc_request {
     my ($sender, $cookie) = @_[SENDER, ARG3];
     pass("Got dcc request");
-    $sender->get_heap()->yield(dcc_accept => $cookie => 'Changes.send');
+    $sender->get_heap()->yield(dcc_accept => $cookie => $rcv_file);
 }
 
 sub irc_dcc_start {

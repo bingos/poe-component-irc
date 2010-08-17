@@ -1,6 +1,7 @@
 use strict;
 use warnings FATAL => 'all';
 use lib 't/inc';
+use File::Temp qw(tempdir);
 use File::Spec::Functions qw(catfile);
 use POE qw(Wheel::SocketFactory);
 use POE::Component::IRC::State;
@@ -8,6 +9,8 @@ use POE::Component::IRC::Plugin::Logger;
 use POE::Component::Server::IRC;
 use Socket;
 use Test::More;
+
+my $log_dir = tempdir(CLEANUP => 1);
 
 my $bot1 = POE::Component::IRC::State->spawn(
     Flood        => 1,
@@ -23,11 +26,11 @@ my $ircd = POE::Component::Server::IRC->spawn(
 );
 
 $bot2->plugin_add(Logger => POE::Component::IRC::Plugin::Logger->new(
-    Path => 'logger_test',
+    Path => $log_dir,
     Notices => 1,
 ));
 
-my $file = catfile('logger_test', 'testbot1.log');
+my $file = catfile($log_dir, 'testbot1.log');
 unlink $file if -e $file;
 
 my @correct = (
