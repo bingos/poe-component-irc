@@ -1,7 +1,7 @@
 package POE::Component::IRC::Common;
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 
 use Encode qw(decode);
 use Encode::Guess;

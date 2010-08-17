@@ -1,6 +1,7 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+    - Make all warnings fatal
 
 6.36  Mon Jul 26 03:53:50 GMT 2010
     - Added a logged_in() method to see if we're logged into IRC

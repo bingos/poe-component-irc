@@ -1,7 +1,7 @@
 package POE::Component::Server::IRC::OperServ;
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use POE::Component::Server::IRC::Plugin qw(:ALL);
 use base qw(POE::Component::Server::IRC);
 

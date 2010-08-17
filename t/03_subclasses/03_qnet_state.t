@@ -1,5 +1,5 @@
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use POE;
 use POE::Component::IRC::Qnet::State;
 use Test::More tests => 1;

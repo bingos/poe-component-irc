@@ -1,7 +1,7 @@
 package POE::Filter::IRC;
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use POE::Filter::Stackable;
 use POE::Filter::IRCD;
 use POE::Filter::IRC::Compat;

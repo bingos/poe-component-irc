@@ -7,7 +7,7 @@ require Exporter;
 Exporter::export_ok_tags( 'ALL' );
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use Algorithm::Diff qw(diff);
 use Crypt::PasswdMD5;
 use vars qw($VERSION);

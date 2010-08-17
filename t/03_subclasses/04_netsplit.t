@@ -1,5 +1,5 @@
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use lib 't/inc';
 use POE qw(Wheel::SocketFactory);
 use POE::Component::IRC::Common qw(parse_user);

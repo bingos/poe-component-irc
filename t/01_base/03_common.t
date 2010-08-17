@@ -1,5 +1,5 @@
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use Encode qw(encode);
 use POE::Component::IRC::Common qw(:ALL);
 use Test::More tests => 34;

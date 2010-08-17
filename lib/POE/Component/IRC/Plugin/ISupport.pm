@@ -1,7 +1,7 @@
 package POE::Component::IRC::Plugin::ISupport;
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use POE::Component::IRC::Plugin qw(:ALL);
 
 sub new {

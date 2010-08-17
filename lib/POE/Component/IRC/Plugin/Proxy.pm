@@ -1,7 +1,7 @@
 package POE::Component::IRC::Plugin::Proxy;
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use Carp;
 use Socket;
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::IRCD 

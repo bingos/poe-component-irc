@@ -1,7 +1,7 @@
 package POE::Component::IRC::Plugin::BotTraffic;
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Filter::IRCD;
 use POE::Filter::IRC::Compat;

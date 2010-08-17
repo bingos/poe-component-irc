@@ -1,5 +1,5 @@
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use POE::Component::IRC;
 use Test::More tests => 1;
 

@@ -1,7 +1,7 @@
 package POE::Component::IRC::State;
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use POE;
 use POE::Component::IRC::Common qw(u_irc parse_mode_line parse_ban_mask);
 use POE::Component::IRC::Plugin qw(PCI_EAT_NONE);

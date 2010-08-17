@@ -1,7 +1,7 @@
 package POE::Filter::IRC::Compat;
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use Carp;
 use POE::Filter::IRCD;
 use File::Basename qw(fileparse);

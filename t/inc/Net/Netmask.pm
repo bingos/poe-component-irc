@@ -26,7 +26,7 @@ use vars qw($error $debug %quadmask2bits %quadhostmask2bits);
 $debug = 1;
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use Carp;
 use overload
 	'""' => \&desc,

@@ -1,7 +1,7 @@
 package POE::Component::IRC::Plugin::AutoJoin;
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use Carp;
 use POE::Component::IRC::Plugin qw(:ALL);
 use POE::Component::IRC::Common qw(parse_user l_irc);

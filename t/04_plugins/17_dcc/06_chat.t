@@ -1,5 +1,5 @@
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use lib 't/inc';
 use POE::Component::IRC;
 use POE::Component::Server::IRC;

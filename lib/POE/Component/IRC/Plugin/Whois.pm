@@ -1,7 +1,7 @@
 package POE::Component::IRC::Plugin::Whois;
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use POE;
 use POE::Component::IRC::Plugin qw( PCI_EAT_NONE );
 use POE::Component::IRC::Common qw(:ALL);

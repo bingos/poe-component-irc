@@ -1,7 +1,7 @@
 package POE::Component::IRC::Plugin::Console;
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use Carp;
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::IRCD Filter::Line Filter::Stackable);
 use POE::Component::IRC::Plugin qw( :ALL );

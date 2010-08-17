@@ -1,5 +1,5 @@
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use lib 't/inc';
 use File::Spec::Functions qw(catfile);
 use POE qw(Wheel::SocketFactory);

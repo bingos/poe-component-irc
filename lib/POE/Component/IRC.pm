@@ -1,7 +1,7 @@
 package POE::Component::IRC;
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use Carp;
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Driver::SysRW
            Filter::Line Filter::Stream Filter::Stackable);

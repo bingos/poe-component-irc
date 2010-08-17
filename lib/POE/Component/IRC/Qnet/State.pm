@@ -1,7 +1,7 @@
 package POE::Component::IRC::Qnet::State;
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use Carp;
 use POE;
 use POE::Component::IRC::Common qw(:ALL);

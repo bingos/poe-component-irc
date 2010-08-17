@@ -1,5 +1,5 @@
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use lib 't/inc';
 use POE qw(Wheel::SocketFactory);
 use Socket;

@@ -1,7 +1,7 @@
 package POE::Component::Server::IRC::Pipeline;
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 
 our $VERSION = '1.20';
 

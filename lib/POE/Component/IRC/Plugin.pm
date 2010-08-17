@@ -1,7 +1,7 @@
 package POE::Component::IRC::Plugin;
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 
 require Exporter;
 use base qw(Exporter);

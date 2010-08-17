@@ -1,7 +1,7 @@
 package POE::Component::IRC::Plugin::NickReclaim;
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use Carp;
 use POE::Component::IRC::Common qw(parse_user);
 use POE::Component::IRC::Plugin qw(PCI_EAT_NONE);

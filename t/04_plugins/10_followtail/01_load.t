@@ -1,5 +1,5 @@
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use POE qw(Filter::Line);
 use POE::Component::IRC;
 use POE::Component::IRC::Plugin::FollowTail;

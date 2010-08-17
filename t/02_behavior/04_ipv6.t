@@ -1,5 +1,5 @@
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Line);
 use POE::Component::IRC;
 use Socket;

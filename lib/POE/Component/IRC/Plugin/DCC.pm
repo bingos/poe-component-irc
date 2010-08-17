@@ -1,7 +1,7 @@
 package POE::Component::IRC::Plugin::DCC;
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use Carp;
 use File::Basename qw(fileparse);
 use POE qw(Driver::SysRW Filter::Line Filter::Stream

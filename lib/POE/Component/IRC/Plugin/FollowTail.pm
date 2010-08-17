@@ -1,7 +1,7 @@
 package POE::Component::IRC::Plugin::FollowTail;
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use Carp;
 use POE qw(Wheel::FollowTail);
 use POE::Component::IRC::Plugin qw( :ALL );

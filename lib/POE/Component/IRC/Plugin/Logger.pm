@@ -1,7 +1,7 @@
 package POE::Component::IRC::Plugin::Logger;
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use Carp;
 use Encode::Guess;
 use Fcntl qw(O_WRONLY O_APPEND O_CREAT);

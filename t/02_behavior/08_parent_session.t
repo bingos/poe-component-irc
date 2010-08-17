@@ -6,7 +6,7 @@
 # event indicating that the component is up and ready to go.
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use POE;
 use POE::Component::IRC;
 use Test::More tests => 2;
