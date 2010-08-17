@@ -472,7 +472,6 @@ sub default_format {
 }
 
 1;
-__END__
 
 =encoding utf8
 

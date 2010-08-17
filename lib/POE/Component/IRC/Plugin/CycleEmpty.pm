@@ -88,7 +88,6 @@ sub is_cycling {
 }
 
 1;
-__END__
 
 =encoding utf8
 

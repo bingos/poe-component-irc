@@ -341,7 +341,6 @@ sub wheel_info {
 }
 
 1;
-__END__
 
 =encoding utf8
 

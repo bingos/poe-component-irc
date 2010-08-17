@@ -1588,7 +1588,6 @@ sub _pluggable_event {
 }
 
 1;
-__END__
 
 =encoding utf8
 

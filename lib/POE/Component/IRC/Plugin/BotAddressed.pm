@@ -68,7 +68,6 @@ sub S_public {
 }
 
 1;
-__END__
 
 =encoding utf8
 

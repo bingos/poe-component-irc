@@ -172,7 +172,6 @@ sub S_369 {
 }
 
 1;
-__END__
 
 =encoding utf8
 

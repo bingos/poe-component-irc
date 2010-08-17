@@ -410,7 +410,6 @@ sub _low_dequote {
 }
 
 1;
-__END__
 
 =encoding utf8
 

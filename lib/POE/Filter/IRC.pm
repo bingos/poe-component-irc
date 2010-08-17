@@ -18,7 +18,6 @@ sub new {
 }
 
 1;
-__END__
 
 =encoding utf8
 

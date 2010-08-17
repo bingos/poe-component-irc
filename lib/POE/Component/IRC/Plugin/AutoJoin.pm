@@ -157,7 +157,6 @@ sub U_join {
 }
 
 1;
-__END__
 
 =encoding utf8
 

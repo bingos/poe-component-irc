@@ -164,7 +164,6 @@ sub isupport_dump_keys {
 }
 
 1;
-__END__
 
 =encoding utf8
 

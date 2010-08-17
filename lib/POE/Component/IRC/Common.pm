@@ -378,7 +378,6 @@ sub irc_ip_is_ipv6 {
 }
 
 1;
-__END__
 
 =encoding utf8
 
