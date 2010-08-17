@@ -1,10 +1,7 @@
 Changes.resume
-Makefile
-Makefile.old
 POE-Component-IRC-*
 Changes.send
-blib
 followtail
 logger_test
-pm_to_blib
 cover_db
+.build

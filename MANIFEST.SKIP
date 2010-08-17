@@ -1,11 +1,7 @@
 ^Changes\.resume$
-^Makefile$
-\.old$
 ^POE-Component-IRC-
 ^README\.send$
-^blib/
 ^followtail$
 ^logger_test$
-^pm_to_blib$
 ^cover_db/
 ^utils/developer/
