@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.37  Tue Aug 17 22:53:22 GMT 2010
     - Make all warnings fatal
     - Use real temp files in tests instead of littering the dist directory
 
