@@ -296,7 +296,11 @@ sub _get_ctcp {
 
     my $events = [ ];
     my ($name, $args);
-    CTCP: for my $string (@$ctcp) {
+
+    # We only process the first CTCP. The only people who send multiple ones
+    # are those who are trying to flood our outgoing queue anyway (e.g. by
+    # having us reply to 20 VERSION requests at a time).
+    CTCP: for my $string ($ctcp->[0]) {
         if (!(($name, $args) = $string =~ /^(\w+)(?: +(.*))?/)) {
             defined $nick
                 ? do { warn "Received malformed CTCP message from $nick: $string\n" if $self->{debug} }

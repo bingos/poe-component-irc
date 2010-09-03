@@ -1,6 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+    - Only process the first CTCP chunk we find in a message. This prevents
+      someone from flooding our outgoing queue by having us e.g. reply to 20
+      VERSION requests at a time.
 
 6.37  Tue Aug 17 22:53:22 GMT 2010
     - Make all warnings fatal
