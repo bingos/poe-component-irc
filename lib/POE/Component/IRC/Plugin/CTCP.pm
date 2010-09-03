@@ -35,9 +35,21 @@ sub S_ctcp_version {
     my ($self, $irc) = splice @_, 0, 2;
     my $nick = ( split /!/, ${ $_[0] } )[0];
 
+    my $our_version;
+    {
+        no strict 'vars';
+        if (defined $POE::Component::IRC::VERSION
+                && $POE::Component::IRC::VERSION ne '1, set by base.pm') {
+            $our_version = 'dev-git';
+        }
+        else {
+            $our_version = $POE::Component::IRC::VERSION;
+        }
+    }
+
     $irc->yield( ctcpreply => $nick => 'VERSION ' . ( defined $self->{version}
             ? $self->{version}
-            : "POE::Component::IRC-$POE::Component::IRC::VERSION"
+            : "POE::Component::IRC-$our_version"
     ));
     return PCI_EAT_CLIENT if $self->eat();
     return PCI_EAT_NONE;
