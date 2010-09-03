@@ -1,6 +1,7 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+    - AutoJoin.pm: Allow channel keys to be undefined
 
 6.38  Fri Sep 3 18:33:50 UTC 2010
     - Only process the first CTCP chunk we find in a message. This prevents
