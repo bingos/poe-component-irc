@@ -2023,10 +2023,6 @@ events to the component.
 Takes no arguments. Returns the session alias that has been set through
 L<C<spawn>|/spawn>'s alias argument.
 
-=head2 C<version>
-
-Takes no arguments. Returns the version number of the module.
-
 =head2 C<send_queue>
 
 The component provides anti-flood throttling. This method takes no arguments
