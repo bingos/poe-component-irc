@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.39  Sat Sep 4 02:16:28 UTC 2010
     - AutoJoin.pm: Allow channel keys to be undefined
     - Make the 'nickserv' command do the right thing on ratbox ircds
     - Add a server_version() method
