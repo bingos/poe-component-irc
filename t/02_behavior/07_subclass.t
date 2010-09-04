@@ -14,7 +14,9 @@ use Test::More tests => 17;
     my $VERSION = 1;
 
     sub S_001 {
-        my ($irc1, $irc2) = splice @_, 0, 2;
+        my $irc1 = shift;
+        $irc1->SUPER::S_001(@_);
+        my $irc2 = shift;
         pass('PoCo-IRC as subclass');
         isa_ok($irc1, 'POE::Component::IRC');
         isa_ok($irc2, 'POE::Component::IRC');

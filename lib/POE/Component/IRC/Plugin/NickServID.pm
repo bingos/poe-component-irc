@@ -29,10 +29,7 @@ sub PCI_unregister {
 
 sub S_004 {
     my ($self, $irc) = splice @_, 0, 2;
-    my $version = ${ $_[2] }->[1];
-
-    $self->{ratbox} = $version =~ /ratbox/i ? 1 : 0;
-    $self->_identify();
+    $irc->yield(nickserv => "IDENTIFY $self->{Password}");
     return PCI_EAT_NONE;
 }
 
@@ -42,22 +39,9 @@ sub S_nick {
     my $new_nick = u_irc( ${ $_[1] }, $mapping );
 
     if ( $new_nick eq u_irc($self->{nick}, $mapping) ) {
-        $self->_identify();
-    }
-    return PCI_EAT_NONE;
-}
-
-sub _identify {
-    my ($self) = @_;
-    my $irc = $self->{irc};
-
-    if ($self->{ratbox}) {
-        $irc->yield(quote => "NS IDENTIFY $self->{Password}");
-    }
-    else {
         $irc->yield(nickserv => "IDENTIFY $self->{Password}");
     }
-    return;
+    return PCI_EAT_NONE;
 }
 
 1;
