@@ -14,8 +14,9 @@ use base qw(POE::Component::IRC);
 # Make sure we have a clean STATE when we first join the network and if we
 # inadvertently get disconnected.
 sub S_001 {
-    my ($self) = shift;
+    my $self = shift;
     $self->SUPER::S_001(@_);
+    shift @_;
 
     delete $self->{STATE};
     delete $self->{NETSPLIT};
@@ -25,9 +26,7 @@ sub S_001 {
 }
 
 sub S_disconnected {
-    my ($self) = shift;
-    $self->SUPER::S_disconnected(@_);
-
+    my ($self, undef) = splice @_, 0, 2;
     my $nickinfo = $self->nick_info($self->nick_name());
     my $channels = $self->channels();
     push @{ $_[-1] }, $nickinfo, $channels;
@@ -35,8 +34,9 @@ sub S_disconnected {
 }
 
 sub S_error {
-    my ($self) = shift;
+    my $self = shift;
     $self->SUPER::S_error(@_);
+    shift @_;
 
     my $nickinfo = $self->nick_info($self->nick_name());
     my $channels = $self->channels();
@@ -45,7 +45,7 @@ sub S_error {
 }
 
 sub S_socketerr {
-    my ($self) = @_;
+    my ($self, undef) = splice @_, 0, 2;
     my $nickinfo = $self->nick_info($self->nick_name());
     my $channels = $self->channels();
     push @{ $_[-1] }, $nickinfo, $channels;
@@ -53,9 +53,9 @@ sub S_socketerr {
 }
 
 sub S_join {
-    my ($self, $irc) = splice @_, 0, 2;
+    my ($self, undef) = splice @_, 0, 2;
     my ($nick, $user, $host) = split /[!@]/, ${ $_[0] };
-    my $map   = $irc->isupport('CASEMAPPING');
+    my $map   = $self->isupport('CASEMAPPING');
     my $chan  = ${ $_[1] };
     my $uchan = u_irc($chan, $map);
     my $unick = u_irc($nick, $map);
@@ -110,7 +110,7 @@ sub S_join {
 }
 
 sub S_chan_sync {
-    my ($self, $irc) = splice @_, 0, 2;
+    my ($self, undef) = splice @_, 0, 2;
     my $chan = ${ $_[0] };
 
     if ($self->{awaypoll}) {
@@ -122,8 +122,8 @@ sub S_chan_sync {
 }
 
 sub S_part {
-    my ($self, $irc) = splice @_, 0, 2;
-    my $map   = $irc->isupport('CASEMAPPING');
+    my ($self, undef) = splice @_, 0, 2;
+    my $map   = $self->isupport('CASEMAPPING');
     my $nick  = u_irc((split /!/, ${ $_[0] } )[0], $map);
     my $uchan = u_irc(${ $_[1] }, $map);
 
@@ -152,8 +152,8 @@ sub S_part {
 }
 
 sub S_quit {
-    my ($self, $irc) = splice @_, 0, 2;
-    my $map   = $irc->isupport('CASEMAPPING');
+    my ($self, undef) = splice @_, 0, 2;
+    my $map   = $self->isupport('CASEMAPPING');
     my $nick  = (split /!/, ${ $_[0] })[0];
     my $msg   = ${ $_[1] };
     my $unick = u_irc($nick, $map);
@@ -194,10 +194,10 @@ sub _is_netsplit {
 }
 
 sub S_kick {
-    my ($self, $irc) = splice @_, 0, 2;
+    my ($self, undef) = splice @_, 0, 2;
     my $chan  = ${ $_[1] };
     my $nick  = ${ $_[2] };
-    my $map   = $irc->isupport('CASEMAPPING');
+    my $map   = $self->isupport('CASEMAPPING');
     my $unick = u_irc($nick, $map);
     my $uchan = u_irc($chan, $map);
     
@@ -228,12 +228,13 @@ sub S_kick {
 }
 
 sub S_nick {
-    my ($self, $irc) = splice @_, 0, 2;
-    $self->SUPER::S_nick($irc, @_);
+    my $self = shift;
+    $self->SUPER::S_nick(@_);
+    shift @_;
 
     my $nick  = (split /!/, ${ $_[0] })[0];
     my $new   = ${ $_[1] };
-    my $map   = $irc->isupport('CASEMAPPING');
+    my $map   = $self->isupport('CASEMAPPING');
     my $unick = u_irc($nick, $map);
     my $unew  = u_irc($new, $map);
 
@@ -259,27 +260,27 @@ sub S_nick {
 }
 
 sub S_chan_mode {
-    my ($self, $irc) = splice @_, 0, 2;
+    my ($self, undef) = splice @_, 0, 2;
     my $who  = ${ $_[0] };
     my $chan = ${ $_[1] };
     my $mode = ${ $_[2] };
     my $arg  = ${ $_[3] };
-    my $map  = $irc->isupport('CASEMAPPING');
+    my $map  = $self->isupport('CASEMAPPING');
     my $me   = u_irc($self->nick_name(), $map);
     
     return PCI_EAT_NONE if $mode !~ /\+[qoah]/ || $me ne u_irc($arg, $map);
     
-    my $excepts = $irc->isupport('EXCEPTS');
-    my $invex = $irc->isupport('INVEX');
-    $irc->yield(mode => $chan, $excepts ) if $excepts;
-    $irc->yield(mode => $chan, $invex ) if $invex;
+    my $excepts = $self->isupport('EXCEPTS');
+    my $invex = $self->isupport('INVEX');
+    $self->yield(mode => $chan, $excepts ) if $excepts;
+    $self->yield(mode => $chan, $invex ) if $invex;
     
     return PCI_EAT_NONE;
 }
 
 # RPL_UMODEIS
 sub S_221 {
-    my ($self, $irc) = splice @_, 0, 2;
+    my ($self, undef) = splice @_, 0, 2;
     my $mode = ${ $_[1] };
     $mode =~ s/^\+//;
     $self->{STATE}->{usermode} = $mode;
@@ -288,14 +289,14 @@ sub S_221 {
 
 # RPL_UNAWAY
 sub S_305 {
-    my ($self, $irc) = splice @_, 0, 2;
+    my ($self, undef) = splice @_, 0, 2;
     $self->{STATE}->{away} = 0;
     return PCI_EAT_NONE;
 }
 
 # RPL_NOWAWAY
 sub S_306 {
-    my ($self, $irc) = splice @_, 0, 2;
+    my ($self, undef) = splice @_, 0, 2;
     $self->{STATE}->{away} = 1;
     return PCI_EAT_NONE;
 }
@@ -303,8 +304,8 @@ sub S_306 {
 # this code needs refactoring
 ## no critic (Subroutines::ProhibitExcessComplexity ControlStructures::ProhibitCascadingIfElse)
 sub S_mode {
-    my ($self, $irc) = splice @_, 0, 2;
-    my $map   = $irc->isupport('CASEMAPPING');
+    my ($self, undef) = splice @_, 0, 2;
+    my $map   = $self->isupport('CASEMAPPING');
     my $who   = ${ $_[0] };
     my $chan  = ${ $_[1] };
     my $uchan = u_irc($chan, $map);
@@ -313,13 +314,13 @@ sub S_mode {
 
     # CHANMODES is [$list_mode, $always_arg, $arg_when_set, $no_arg]
     # A $list_mode always has an argument
-    my $prefix = $irc->isupport('PREFIX') || { o => '@', v => '+' };
+    my $prefix = $self->isupport('PREFIX') || { o => '@', v => '+' };
     my $statmodes = join '', keys %{ $prefix };
-    my $chanmodes = $irc->isupport('CHANMODES') || [ qw(beI k l imnpstaqr) ];
+    my $chanmodes = $self->isupport('CHANMODES') || [ qw(beI k l imnpstaqr) ];
     my $alwaysarg = join '', $statmodes,  @{ $chanmodes }[0 .. 1];
 
     # Do nothing if it is UMODE
-    if ($uchan ne u_irc($irc->nick_name(), $map)) {
+    if ($uchan ne u_irc($self->nick_name(), $map)) {
         my $parsed_mode = parse_mode_line( $prefix, $chanmodes, @modes );
         for my $mode (@{ $parsed_mode->{modes} }) {
             my $arg;
@@ -394,11 +395,11 @@ sub S_mode {
 }
 
 sub S_topic {
-    my ($self, $irc) = splice @_, 0, 2;
+    my ($self, undef) = splice @_, 0, 2;
     my $who   = ${ $_[0] };
     my $chan  = ${ $_[1] };
     my $topic = ${ $_[2] };
-    my $map   = $irc->isupport('CASEMAPPING');
+    my $map   = $self->isupport('CASEMAPPING');
     my $uchan = u_irc($chan, $map);
 
     $self->{STATE}{Chans}{ $uchan }{Topic} = {
@@ -412,14 +413,14 @@ sub S_topic {
 
 # RPL_NAMES
 sub S_353 {
-    my ($self, $irc) = splice @_, 0, 2;
+    my ($self, undef) = splice @_, 0, 2;
     my @data = @{ ${ $_[2] } };
     shift @data if $data[0] =~ /^[@=*]$/;
     my $chan = shift @data;
     my @nicks = split /\s+/, shift @data;
-    my $map   = $irc->isupport('CASEMAPPING');
+    my $map   = $self->isupport('CASEMAPPING');
     my $uchan = u_irc($chan, $map);
-    my $prefix = $irc->isupport('PREFIX') || { o => '@', v => '+' };
+    my $prefix = $self->isupport('PREFIX') || { o => '@', v => '+' };
     my $search = join '|', map { quotemeta } values %$prefix;
     foreach my $user ( @nicks ) {
        my $status;
@@ -444,10 +445,10 @@ sub S_353 {
 
 # RPL_WHOREPLY
 sub S_352 {
-    my ($self, $irc) = splice @_, 0, 2;
+    my ($self, undef) = splice @_, 0, 2;
     my ($chan, $user, $host, $server, $nick, $status, $rest) = @{ ${ $_[2] } };
     my ($hops, $real) = split /\x20/, $rest, 2;
-    my $map   = $irc->isupport('CASEMAPPING');
+    my $map   = $self->isupport('CASEMAPPING');
     my $unick = u_irc($nick, $map);
     my $uchan = u_irc($chan, $map);
 
@@ -465,7 +466,7 @@ sub S_352 {
     if ( exists $self->{STATE}{Chans}{ $uchan } ) {
         my $whatever = '';
         my $existing = $self->{STATE}{Nicks}{ $unick }{CHANS}{ $uchan } || '';
-        my $prefix = $irc->isupport('PREFIX') || { o => '@', v => '+' };
+        my $prefix = $self->isupport('PREFIX') || { o => '@', v => '+' };
 
         for my $mode ( keys %{ $prefix } ) {
             if ($status =~ /\Q$prefix->{$mode}/ && $existing !~ /\Q$prefix->{$mode}/ ) {
@@ -478,7 +479,7 @@ sub S_352 {
         $self->{STATE}{Chans}{ $uchan }{Nicks}{ $unick } = $existing;
         $self->{STATE}{Chans}{ $uchan }{Name} = $chan;
 
-        if ($self->{STATE}{Chans}{ $uchan }{AWAY_SYNCH} && $unick ne u_irc($irc->nick_name(), $map)) {
+        if ($self->{STATE}{Chans}{ $uchan }{AWAY_SYNCH} && $unick ne u_irc($self->nick_name(), $map)) {
             if ( $status =~ /G/ && !$self->{STATE}{Nicks}{ $unick }{Away} ) {
                 $self->_send_event(irc_user_away => $nick, [ $self->nick_channels( $nick ) ] );
             }
@@ -497,9 +498,9 @@ sub S_352 {
 
 # RPL_ENDOFWHO
 sub S_315 {
-    my ($self, $irc) = splice @_, 0, 2;
+    my ($self, undef) = splice @_, 0, 2;
     my $chan  = ${ $_[2] }->[0];
-    my $map   = $irc->isupport('CASEMAPPING');
+    my $map   = $self->isupport('CASEMAPPING');
     my $uchan = u_irc($chan, $map);
 
     if ( exists $self->{STATE}{Chans}{ $uchan } ) {
@@ -524,8 +525,8 @@ sub S_315 {
 
 # RPL_CREATIONTIME
 sub S_329 {
-    my ($self, $irc) = splice @_, 0, 2;
-    my $map   = $irc->isupport('CASEMAPPING');
+    my ($self, undef) = splice @_, 0, 2;
+    my $map   = $self->isupport('CASEMAPPING');
     my $chan  = ${ $_[2] }->[0];
     my $time  = ${ $_[2] }->[1];
     my $uchan = u_irc($chan, $map);
@@ -536,10 +537,10 @@ sub S_329 {
 
 # RPL_BANLIST
 sub S_367 {
-    my ($self, $irc) = splice @_, 0, 2;
+    my ($self, undef) = splice @_, 0, 2;
     my @args  = @{ ${ $_[2] } };
     my $chan  = shift @args;
-    my $map   = $irc->isupport('CASEMAPPING');
+    my $map   = $self->isupport('CASEMAPPING');
     my $uchan = u_irc($chan, $map);
     my ($mask, $who, $when) = @args;
 
@@ -552,10 +553,10 @@ sub S_367 {
 
 # RPL_ENDOFBANLIST
 sub S_368 {
-    my ($self, $irc) = splice @_, 0, 2;
+    my ($self, undef) = splice @_, 0, 2;
     my @args  = @{ ${ $_[2] } };
     my $chan  = shift @args;
-    my $map   = $irc->isupport('CASEMAPPING');
+    my $map   = $self->isupport('CASEMAPPING');
     my $uchan = u_irc($chan, $map);
 
     if ($self->_channel_sync($chan, 'BAN')) {
@@ -568,11 +569,11 @@ sub S_368 {
 
 # RPL_INVITELIST
 sub S_346 {
-    my ($self,$irc) = splice @_, 0, 2;
+    my ($self, undef) = splice @_, 0, 2;
     my ($chan, $mask, $who, $when) = @{ ${ $_[2] } };
-    my $map   = $irc->isupport('CASEMAPPING');
+    my $map   = $self->isupport('CASEMAPPING');
     my $uchan = u_irc($chan, $map);
-    my $invex = $irc->isupport('INVEX');
+    my $invex = $self->isupport('INVEX');
 
     $self->{STATE}{Chans}{ $uchan }{Lists}{ $invex }{ $mask } = {
         SetBy => $who,
@@ -584,9 +585,9 @@ sub S_346 {
 
 # RPL_ENDOFINVITELIST
 sub S_347 {
-    my ($self, $irc) = splice @_, 0, 2;
+    my ($self, undef) = splice @_, 0, 2;
     my ($chan) = @{ ${ $_[2] } };
-    my $map    = $irc->isupport('CASEMAPPING');
+    my $map    = $self->isupport('CASEMAPPING');
     my $uchan  = u_irc($chan, $map);
 
     $self->_send_event(irc_chan_sync_invex => $chan);
@@ -595,11 +596,11 @@ sub S_347 {
 
 # RPL_EXCEPTLIST
 sub S_348 {
-    my ($self, $irc) = splice @_, 0, 2;
+    my ($self, undef) = splice @_, 0, 2;
     my ($chan, $mask, $who, $when) = @{ ${ $_[2] } };
-    my $map     = $irc->isupport('CASEMAPPING');
+    my $map     = $self->isupport('CASEMAPPING');
     my $uchan   = u_irc($chan, $map);
-    my $excepts = $irc->isupport('EXCEPTS');
+    my $excepts = $self->isupport('EXCEPTS');
 
     $self->{STATE}{Chans}{ $uchan }{Lists}{ $excepts }{ $mask } = {
         SetBy => $who,
@@ -610,9 +611,9 @@ sub S_348 {
 
 # RPL_ENDOFEXCEPTLIST
 sub S_349 {
-    my ($self, $irc) = splice @_, 0, 2;
+    my ($self, undef) = splice @_, 0, 2;
     my ($chan) = @{ ${ $_[2] } };
-    my $map    = $irc->isupport('CASEMAPPING');
+    my $map    = $self->isupport('CASEMAPPING');
     my $uchan  = u_irc($chan, $map);
     
     $self->_send_event(irc_chan_sync_excepts => $chan);
@@ -621,12 +622,12 @@ sub S_349 {
 
 # RPL_CHANNELMODEIS
 sub S_324 {
-    my ($self, $irc) = splice @_, 0, 2;
+    my ($self, undef) = splice @_, 0, 2;
     my @args  = @{ ${ $_[2] } };
     my $chan  = shift @args;
-    my $map   = $irc->isupport('CASEMAPPING');
+    my $map   = $self->isupport('CASEMAPPING');
     my $uchan = u_irc($chan, $map);
-    my $modes = $irc->isupport('CHANMODES') || [ qw(beI k l imnpstaqr) ];
+    my $modes = $self->isupport('CHANMODES') || [ qw(beI k l imnpstaqr) ];
 
     my $parsed_mode = parse_mode_line( @args );
     for my $mode (@{ $parsed_mode->{modes} }) {
@@ -661,10 +662,10 @@ sub S_324 {
 
 # RPL_TOPIC
 sub S_332 {
-    my ($self, $irc) = splice @_, 0, 2;
+    my ($self, undef) = splice @_, 0, 2;
     my $chan  = ${ $_[2] }->[0];
     my $topic = ${ $_[2] }->[1];
-    my $map   = $irc->isupport('CASEMAPPING');
+    my $map   = $self->isupport('CASEMAPPING');
     my $uchan = u_irc($chan, $map);
 
     $self->{STATE}{Chans}{ $uchan }{Topic}{Value} = $topic;
@@ -673,9 +674,9 @@ sub S_332 {
 
 # RPL_TOPICWHOTIME
 sub S_333 {
-    my ($self, $irc) = splice @_, 0, 2;
+    my ($self, undef) = splice @_, 0, 2;
     my ($chan, $who, $when) = @{ ${ $_[2] } };
-    my $map   = $irc->isupport('CASEMAPPING');
+    my $map   = $self->isupport('CASEMAPPING');
     my $uchan = u_irc($chan, $map);
 
     $self->{STATE}{Chans}{ $uchan }{Topic}{SetBy} = $who;
