@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.40  Thu Sep 9 06:55:27 UTC 2010
     - AutoJoin.pm: Wait for a reply from NickServ before joining channels
       on connect
 
