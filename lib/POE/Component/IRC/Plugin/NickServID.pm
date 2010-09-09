@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
-use POE::Component::IRC::Common qw( u_irc );
+use POE::Component::IRC::Common qw( u_irc parse_user );
 
 sub new {
     my ($package) = shift;
@@ -19,7 +19,7 @@ sub PCI_register {
     my ($self, $irc) = @_;
     $self->{nick} = $irc->{nick};
     $self->{irc} = $irc;
-    $irc->plugin_register($self, 'SERVER', qw(004 nick));
+    $irc->plugin_register($self, 'SERVER', qw(isupport nick));
     return 1;
 }
 
@@ -27,7 +27,10 @@ sub PCI_unregister {
     return 1;
 }
 
-sub S_004 {
+# we identify after S_isupport so that pocoirc has a chance to turn on
+# CAPAB IDENTIFY-MSG (if the server supports it) before the AutoJoin
+# plugin joins channels
+sub S_isupport {
     my ($self, $irc) = splice @_, 0, 2;
     $irc->yield(nickserv => "IDENTIFY $self->{Password}");
     return PCI_EAT_NONE;
@@ -50,8 +53,7 @@ sub S_nick {
 
 =head1 NAME
 
-POE::Component::IRC::Plugin::NickServID - A PoCo-IRC plugin
-which identifies with FreeNode's NickServ when needed
+POE::Component::IRC::Plugin::NickServID - A PoCo-IRC plugin which identifies with NickServ when needed
 
 =head1 SYNOPSIS
 

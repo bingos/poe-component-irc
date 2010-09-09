@@ -39,7 +39,8 @@ sub PCI_register {
 
     $self->{tried_keys} = { };
     $self->{Rejoin_delay} = 5 if !defined $self->{Rejoin_delay};
-    $irc->plugin_register($self, 'SERVER', qw(001 004 474 isupport chan_mode join kick part));
+    $self->{NickServ_delay} = 5 if !defined $self->{NickServ_delay};
+    $irc->plugin_register($self, 'SERVER', qw(001 004 474 isupport chan_mode join kick part notice));
     $irc->plugin_register($self, 'USER', qw(join));
     return 1;
 }
@@ -51,6 +52,7 @@ sub PCI_unregister {
 sub S_001 {
     my ($self, $irc) = splice @_, 0, 2;
     delete $self->{masked_key};
+    delete $self->{alarm_ids};
     return PCI_EAT_NONE;
 }
 
@@ -61,19 +63,50 @@ sub S_004 {
 
     # ircu returns '*' to non-ops instead of the real channel key
     $self->{masked_key} = 1 if $version =~ /^u\d/;
+
     return PCI_EAT_NONE;
 }
 
-# we join channels after irc_isupport for two reasons:
-# a) the NickServID plugin needs to waits for irc_004 before identifying,
-# and users may want to be cloaked before joining any channels,
-# b) if the server supports CAPAB IDENTIFY-MSG (FreeNode), that will be
-# checked for after the irc_isupport (right before we try to join channels)
+# we join channels after S_isupport in case the server supports
+# CAPAB IDENTIFY-MSG, so pocoirc can turn it on before we join channels
 sub S_isupport {
     my ($self, $irc) = splice @_, 0, 2;
     
-    while (my ($chan, $key) = each %{ $self->{Channels} }) {
-        $irc->yield(join => $chan => (defined $key ? $key : ()));
+    if (!grep { $_->isa('POE::Component::IRC::Plugin::NickServID') } values %{ $irc->plugin_list() }) {
+        # we don't have to wait for NickServ, so let's join
+        while (my ($chan, $key) = each %{ $self->{Channels} }) {
+            $irc->yield(join => $chan => (defined $key ? $key : ()));
+        }
+    }
+    else {
+        while (my ($chan, $key) = each %{ $self->{Channels} }) {
+            push @{ $self->{alarm_ids} }, $irc->delay(
+                [join => $chan => (defined $key ? $key : ())],
+                $self->{NickServ_delay},
+            );
+        }
+    }
+    return PCI_EAT_NONE;
+}
+
+sub S_notice {
+    my ($self, $irc) = splice @_, 0, 2;
+    my $sender    = ${ $_[0] };
+    my $recipient = parse_user(${ $_[1] }[0]);
+
+    return PCI_EAT_NONE if $recipient ne $irc->nick_name();
+    return PCI_EAT_NONE if $sender !~ /^nickserv!\S+\@services\.$/i;
+
+    if (@{ $self->{alarm_ids} }) {
+        # We got a reply from nickserv. Even if we failed to identify, we
+        # still join the channels right away. The user will have to fix the
+        # password anyway, so there's not much sense in waiting.
+        $irc->delay_remove($_) for @{ $self->{alarm_ids} };
+        delete $self->{alarm_ids};
+
+        while (my ($chan, $key) = each %{ $self->{Channels} }) {
+            $irc->yield(join => $chan => (defined $key ? $key : ()));
+        }
     }
     return PCI_EAT_NONE;
 }
@@ -110,6 +143,7 @@ sub S_join {
     my $lchan  = l_irc($chan, $irc->isupport('MAPPING'));
 
     return PCI_EAT_NONE if $joiner ne $irc->nick_name();
+    delete $self->{alarm_ids};
 
     if (defined $self->{tried_keys}{$lchan}) {
         $self->{Channels}->{$lchan} = $self->{tried_keys}{$lchan};
@@ -215,6 +249,10 @@ on the next time it gets connected to the IRC server. It can also rejoin a
 channel if the IRC component gets kicked from it. It keeps track of channel
 keys so it will be able to rejoin keyed channels in case of reconnects/kicks.
 
+If a L<POE::Component::IRC::Plugin::NickServID|POE::Component::IRC::Plugin::NickServID>
+plugin has been added to the IRC component, then AutoJoin will wait for a
+reply from NickServ before joining channels on connect.
+
 This plugin requires the IRC component to be
 L<POE::Component::IRC::State|POE::Component::IRC::State> or a subclass thereof.
 
@@ -236,6 +274,9 @@ after being kicked (if B<'RejoinOnKick'> is on). Default is 5.
 
 B<'Retry_when_banned'>, if you can't join a channel due to a ban, set this
 to the number of seconds to wait between retries. Default is 0 (disabled).
+
+B<'NickServ_delay'>, how long (in seconds) to wait for a reply from NickServ
+before joining channels. Default is 5.
 
 Returns a plugin object suitable for feeding to
 L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
