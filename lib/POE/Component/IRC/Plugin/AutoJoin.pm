@@ -93,14 +93,14 @@ sub S_notice {
     my ($self, $irc) = splice @_, 0, 2;
     my $sender    = ${ $_[0] };
     my $recipient = parse_user(${ $_[1] }->[0]);
+    my $msg       = ${ $_[2] };
 
     return PCI_EAT_NONE if $recipient ne $irc->nick_name();
     return PCI_EAT_NONE if $sender !~ /^nickserv!\S+\@services\.$/i;
+    return PCI_EAT_NONE if $msg !~ /now identified/;
 
     if ($self->{alarm_ids}) {
-        # We got a reply from nickserv. Even if we failed to identify, we
-        # still join the channels right away. The user will have to fix the
-        # password anyway, so there's not much sense in waiting.
+        # We have identified with NickServ, so let's join some channels
         $irc->delay_remove($_) for @{ $self->{alarm_ids} };
         delete $self->{alarm_ids};
 
