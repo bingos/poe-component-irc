@@ -78,7 +78,7 @@ sub irc_whois {
     pass('irc_whois');
     is(keys %$whois, 8, 'Got whois info');
     
-    for my $key qw(actually nick idle host user server real signon) {
+    for my $key (qw(actually nick idle host user server real signon)) {
         ok(defined $whois->{$key}, "$key key present");
     }
     $irc->yield('quit');

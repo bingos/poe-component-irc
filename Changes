@@ -1,6 +1,7 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+    - Don't use qw() as parentheses, it's deprecated in 5.13.4
 
 6.40  Thu Sep 9 06:55:27 UTC 2010
     - AutoJoin.pm: Wait for a reply from NickServ before joining channels
