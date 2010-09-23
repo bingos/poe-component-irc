@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.41  Thu Sep 23 21:33:17 UTC 2010
     - Don't use qw() as parentheses, it's deprecated in 5.13.4
     - Drop CTCPs which don't have a closing delimiter
 
