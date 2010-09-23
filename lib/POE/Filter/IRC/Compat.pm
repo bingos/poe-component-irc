@@ -286,20 +286,25 @@ sub _get_ctcp {
 
     # Is this a CTCP request or reply?
     my $ctcp_type = $line->{command} eq 'PRIVMSG' ? 'ctcp' : 'ctcpreply';
-    
+
     # CAPAP IDENTIFY-MSG is only applied to ACTIONs
     my ($msg, $identified) = ($line->{params}->[1], undef);
     ($msg, $identified) = _split_idmsg($msg) if $self->{identifymsg} && $msg =~ /^.ACTION/;
-    
-    my ($ctcp, $text) = _ctcp_dequote($msg);
-    my $nick = defined $line->{prefix} ? (split /!/, $line->{prefix})[0] : undef;
 
     my $events = [ ];
-    my ($name, $args);
+    my ($ctcp, $text) = _ctcp_dequote($msg);
+
+    if (!defined $ctcp) {
+        warn "Received malformed CTCP message: $msg\n" if $self->{debug};
+        return $events;
+    }
+
+    my $nick = defined $line->{prefix} ? (split /!/, $line->{prefix})[0] : undef;
 
     # We only process the first CTCP. The only people who send multiple ones
     # are those who are trying to flood our outgoing queue anyway (e.g. by
     # having us reply to 20 VERSION requests at a time).
+    my ($name, $args);
     CTCP: for my $string ($ctcp->[0]) {
         if (!(($name, $args) = $string =~ /^(\w+)(?: +(.*))?/)) {
             defined $nick
@@ -308,10 +313,10 @@ sub _get_ctcp {
             ;
             last CTCP;
         }
-            
+
         if (lc $name eq 'dcc') {
             my ($dcc_type, $rest);
-            
+
             if (!(($dcc_type, $rest) = $args =~ /^(\w+) +(.+)/)) {
                 defined $nick
                     ? do { warn "Received malformed DCC request from $nick: $args\n" if $self->{debug} }
