@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+    - ISupport.pm: Don't send a premature irc_isupport event on networks
+      which send us numerics higher than 005 before the actual 005 (e.g Rizon)
 
 6.41  Thu Sep 23 21:33:17 UTC 2010
     - Don't use qw() as parentheses, it's deprecated in 5.13.4
