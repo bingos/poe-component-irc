@@ -19,7 +19,7 @@ sub PCI_register {
     my ($self, $irc) = @_;
     $self->{nick} = $irc->{nick};
     $self->{irc} = $irc;
-    $irc->plugin_register($self, 'SERVER', qw(isupport nick));
+    $irc->plugin_register($self, 'SERVER', qw(isupport nick notice));
     return 1;
 }
 
@@ -44,6 +44,19 @@ sub S_nick {
     if ( $new_nick eq u_irc($self->{nick}, $mapping) ) {
         $irc->yield(nickserv => "IDENTIFY $self->{Password}");
     }
+    return PCI_EAT_NONE;
+}
+
+sub S_notice {
+    my ($self, $irc) = splice @_, 0, 2;
+    my $sender    = parse_user(${ $_[0] });
+    my $recipient = parse_user(${ $_[1] }->[0]);
+    my $msg       = ${ $_[2] };
+
+    return PCI_EAT_NONE if $recipient ne $irc->nick_name();
+    return PCI_EAT_NONE if $sender !~ /^nickserv$/i;
+    return PCI_EAT_NONE if $msg !~ /now (?:identified|recognized)/;
+    $irc->send_event('irc_identified');
     return PCI_EAT_NONE;
 }
 
@@ -84,6 +97,13 @@ Arguments:
 
 Returns a plugin object suitable for feeding to
 L<POE::Component::IRC|POE::Component::IRC>'s plugin_add() method.
+
+=head1 OUTPUT
+
+=head2 C<irc_identified>
+
+This event will be sent when you have identified with NickServ. No arguments
+are passed with it.
 
 =head1 AUTHOR
 

@@ -40,7 +40,7 @@ sub PCI_register {
     $self->{tried_keys} = { };
     $self->{Rejoin_delay} = 5 if !defined $self->{Rejoin_delay};
     $self->{NickServ_delay} = 5 if !defined $self->{NickServ_delay};
-    $irc->plugin_register($self, 'SERVER', qw(001 004 474 isupport chan_mode join kick part notice));
+    $irc->plugin_register($self, 'SERVER', qw(001 004 474 isupport chan_mode join kick part identified));
     $irc->plugin_register($self, 'USER', qw(join));
     return 1;
 }
@@ -89,18 +89,10 @@ sub S_isupport {
     return PCI_EAT_NONE;
 }
 
-sub S_notice {
+sub S_identified {
     my ($self, $irc) = splice @_, 0, 2;
-    my $sender    = ${ $_[0] };
-    my $recipient = parse_user(${ $_[1] }->[0]);
-    my $msg       = ${ $_[2] };
-
-    return PCI_EAT_NONE if $recipient ne $irc->nick_name();
-    return PCI_EAT_NONE if $sender !~ /^nickserv!\S+\@services\.$/i;
-    return PCI_EAT_NONE if $msg !~ /now identified/;
 
     if ($self->{alarm_ids}) {
-        # We have identified with NickServ, so let's join some channels
         $irc->delay_remove($_) for @{ $self->{alarm_ids} };
         delete $self->{alarm_ids};
 
