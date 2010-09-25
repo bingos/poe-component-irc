@@ -31,6 +31,7 @@ sub PCI_unregister {
     return 1;
 }
 
+## no critic (TestingAndDebugging::ProhibitNoStrict)
 sub S_ctcp_version {
     my ($self, $irc) = splice @_, 0, 2;
     my $nick = ( split /!/, ${ $_[0] } )[0];
