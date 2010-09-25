@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.44  Sat Sep 25 23:34:11 GMT 2010
     - Don't fail on IRC servers where a whole class of channel modes is
       unsupported (e.g. Bitlbee).
 
