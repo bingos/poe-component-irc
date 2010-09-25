@@ -327,41 +327,43 @@ sub S_mode {
         my $parsed_mode = parse_mode_line( $prefix, $chanmodes, @modes );
         for my $mode (@{ $parsed_mode->{modes} }) {
             my $arg;
-            $arg = shift ( @{ $parsed_mode->{args} } ) if ( $mode =~ /^(.[$alwaysarg]|\+[$chanmodes->[2]])/ );
+            if (length $chanmodes->[2] && length $alwaysarg && $mode =~ /^(.[$alwaysarg]|\+[$chanmodes->[2]])/) {
+                $arg = shift @{ $parsed_mode->{args} };
+            }
 
             $self->_send_event(irc_chan_mode => $who, $chan, $mode, $arg );
             my $flag;
             
-            if (($flag) = $mode =~ /\+([$statmodes])/ ) {
+            if (length $statmodes && (($flag) = $mode =~ /\+([$statmodes])/)) {
                 $arg = u_irc($arg, $map);
                 if (!$self->{STATE}{Nicks}{ $arg }{CHANS}{ $uchan } || $self->{STATE}{Nicks}{ $arg }{CHANS}{ $uchan } !~ /$flag/) {
                     $self->{STATE}{Nicks}{ $arg }{CHANS}{ $uchan } .= $flag;
                     $self->{STATE}{Chans}{ $uchan }{Nicks}{ $arg } = $self->{STATE}{Nicks}{ $arg }{CHANS}{ $uchan };
                 }
             }
-            elsif (($flag) = $mode =~ /-([$statmodes])/ ) {
+            elsif (length $statmodes && (($flag) = $mode =~ /-([$statmodes])/)) {
                 $arg = u_irc($arg, $map);
                 if ($self->{STATE}{Nicks}{ $arg }{CHANS}{ $uchan } =~ /$flag/) {
                     $self->{STATE}{Nicks}{ $arg }{CHANS}{ $uchan } =~ s/$flag//;
                     $self->{STATE}{Chans}{ $uchan }{Nicks}{ $arg } = $self->{STATE}{Nicks}{ $arg }{CHANS}{ $uchan };
                 }
             }
-            elsif (($flag) = $mode =~ /\+([$chanmodes->[0]])/ ) {
+            elsif (length $chanmodes->[0] && (($flag) = $mode =~ /\+([$chanmodes->[0]])/)) {
                 $self->{STATE}{Chans}{ $uchan }{Lists}{ $flag }{ $arg } = {
                     SetBy => $who,
                     SetAt => time(),
                 };
             }
-            elsif (($flag) = $mode =~ /-([$chanmodes->[0]])/ ) {
+            elsif (length $chanmodes->[0] && (($flag) = $mode =~ /-([$chanmodes->[0]])/)) {
                 delete $self->{STATE}{Chans}{ $uchan }{Lists}{ $flag }{ $arg };
             }
 
             # All unhandled modes with arguments
-            elsif (($flag) = $mode =~ /\+([^$chanmodes->[3]])/ ) {
+            elsif (length $chanmodes->[3] && (($flag) = $mode =~ /\+([^$chanmodes->[3]])/)) {
                 $self->{STATE}{Chans}{ $uchan }{Mode} .= $flag if $self->{STATE}{Chans}{ $uchan }{Mode} !~ /$flag/;
                 $self->{STATE}{Chans}{ $uchan }{ModeArgs}{ $flag } = $arg;
             }
-            elsif (($flag) = $mode =~ /-([^$chanmodes->[3]])/ ) {
+            elsif (length $chanmodes->[3] && (($flag) = $mode =~ /-([^$chanmodes->[3]])/)) {
                 $self->{STATE}{Chans}{ $uchan }{Mode} =~ s/$flag//;
                 delete $self->{STATE}{Chans}{ $uchan }{ModeArgs}{ $flag };
             }
@@ -631,8 +633,9 @@ sub S_324 {
     my $map   = $self->isupport('CASEMAPPING');
     my $uchan = u_irc($chan, $map);
     my $modes = $self->isupport('CHANMODES') || [ qw(beI k l imnpstaqr) ];
+    my $prefix = $self->isupport('PREFIX') || { o => '@', v => '+' };
 
-    my $parsed_mode = parse_mode_line( @args );
+    my $parsed_mode = parse_mode_line($prefix, $modes, @args);
     for my $mode (@{ $parsed_mode->{modes} }) {
         $mode =~ s/\+//;
         my $arg = '';

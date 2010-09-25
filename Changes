@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+    - Don't fail on IRC servers where a whole class of channel modes is
+      unsupported (e.g. Bitlbee).
 
 6.43  Sat Sep 25 21:30:36 GMT 2010
     - State.pm: Don't forget to call IRC.pm's implementation of S_disconnected
