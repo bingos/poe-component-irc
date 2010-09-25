@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.43  Sat Sep 25 21:30:36 GMT 2010
     - State.pm: Don't forget to call IRC.pm's implementation of S_disconnected
       before our own. Due to this, the logged_in() method was reporting
       incorrect information after disconnecting.
