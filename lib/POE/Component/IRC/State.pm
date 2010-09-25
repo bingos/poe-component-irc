@@ -26,7 +26,10 @@ sub S_001 {
 }
 
 sub S_disconnected {
-    my ($self, undef) = splice @_, 0, 2;
+    my $self = shift;
+    $self->SUPER::S_disconnected(@_);
+    shift @_;
+
     my $nickinfo = $self->nick_info($self->nick_name());
     my $channels = $self->channels();
     push @{ $_[-1] }, $nickinfo, $channels;
