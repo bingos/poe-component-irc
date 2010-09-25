@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.42  Sat Sep 25 09:40:21 UTC 2010
     - ISupport.pm: Don't send a premature irc_isupport event on networks
       which send us numerics higher than 005 before the actual 005 (e.g Rizon)
     - NickServID.pm: Send an 'irc_identified' event when we've identified with
