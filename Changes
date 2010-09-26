@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.45  Sun Sep 26 03:41:48 GMT 2010
     - Don't create a POE::Component::Client::DNS object if the user has
       supplied one. This fixes a regression introduced by yours truly a
       couple of years ago.
