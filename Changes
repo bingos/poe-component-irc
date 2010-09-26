@@ -1,6 +1,9 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+    - Don't create a POE::Component::Client::DNS object if the user has
+      supplied one. This fixes a regression introduced by yours truly a
+      couple of years ago.
 
 6.44  Sat Sep 25 23:34:11 GMT 2010
     - Don't fail on IRC servers where a whole class of channel modes is

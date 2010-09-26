@@ -382,6 +382,10 @@ See its documentation for details.
 Takes no arguments. Returns the name of the IRC server that the component
 is currently connected to.
 
+=head2 C<server_version>
+
+Takes no arguments. Returns the IRC server version.
+
 =head2 C<nick_name>
 
 Takes no arguments. Returns a scalar containing the current nickname that the
@@ -402,10 +406,6 @@ events to the component.
 
 Takes no arguments. Returns the session alias that has been set through
 L<C<spawn>|/spawn>'s alias argument.
-
-=head2 C<version>
-
-Takes no arguments. Returns the version number of the module.
 
 =head2 C<send_queue>
 
@@ -604,9 +604,9 @@ the details anyhow.
 Allows you to change your nickname. Takes exactly one argument: the
 new username that you'd like to be known as.
 
-=head3 C<nickserv> (FreeNode only)
+=head3 C<nickserv> (FreeNode, ratbox, et al)
 
-Talks to FreeNode's NickServ. Takes any number of arguments.
+Talks to NickServ. Takes any number of arguments.
 
 =head3 C<notice>
 
