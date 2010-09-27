@@ -252,7 +252,7 @@ L<POE::Component::IRC::State|POE::Component::IRC::State> or a subclass thereof.
 
 =head2 C<new>
 
-Two optional arguments:
+Takes the following optional arguments:
 
 B<'Channels'>, either an array reference of channel names, or a hash reference
 keyed on channel name, containing the password for each channel. By default it
