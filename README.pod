@@ -292,6 +292,8 @@ and the IRC server might disconnect you with a "Request too long" message when
 you try to send a message that's too long.
 
 B<'plugin_debug'>, set to some true value to print plugin debug info, default 0.
+Plugins are processed inside an eval. When you enable this option, you will be
+notified when (and why) a plugin raises an exception.
 
 B<'socks_proxy'>, specify a SOCKS4/SOCKS4a proxy to use.
 
@@ -346,9 +348,6 @@ C<spawn>, disables the creation of the POE::Component::Client::DNS
 completely. Setting it with L<C<connect>|/connect> on the other hand
 allows the PoCo-Client-DNS session to be spawned, but will disable
 any dns lookups using it.
-
-B<'plugin_debug'>, setting to true enables plugin debug info. Plugins are processed
-inside an eval, so debugging them can be hard. This should help with that.
 
 SOCKS4 proxy support is provided by B<'socks_proxy'>, B<'socks_port'> and
 B<'socks_id'> parameters. If something goes wrong with the SOCKS connection
