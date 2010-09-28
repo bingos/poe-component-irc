@@ -234,7 +234,8 @@ L<C<register>|/register> and L<C<irc_registered>|/irc_registered>.
 
 Takes a number of arguments, all of which are optional. All the options
 below may be supplied to the L<C<connect>|/connect> input event as well,
-except for B<'alias'>, B<'options'>, B<'NoDNS'>, and B<'plugin_debug'>.
+except for B<'alias'>, B<'options'>, B<'NoDNS'>, B<'debug'>, and
+B<'plugin_debug'>.
 
 B<'alias'>, a name (kernel alias) that this instance will be known by;
 
@@ -290,6 +291,10 @@ unusually short one, you can increase this value if you want to be able to
 send as long a message as possible. Be careful though, increase it too much 
 and the IRC server might disconnect you with a "Request too long" message when
 you try to send a message that's too long.
+
+B<'debug'>, if set to a true value causes the IRC component to print every
+message sent to and from the server, as well as print some warnings when it
+receives malformed messages.
 
 B<'plugin_debug'>, set to some true value to print plugin debug info, default 0.
 Plugins are processed inside an eval. When you enable this option, you will be
