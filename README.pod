@@ -378,7 +378,7 @@ plans to make it die() >;]
 =head1 METHODS
 
 These are methods supported by the POE::Component::IRC object. It also
-inherits a few from L<POE::Component::Pluggable|POE::Component::Pluggable>.
+inherits a few from L<Object::Pluggable|Object::Pluggable>.
 See its documentation for details.
 
 =head2 C<server_name>

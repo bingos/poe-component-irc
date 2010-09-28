@@ -14,7 +14,7 @@ use POE::Component::IRC::Plugin::DCC;
 use POE::Component::IRC::Plugin::ISupport;
 use POE::Component::IRC::Plugin::Whois;
 use Socket;
-use base qw(POE::Component::Pluggable);
+use base qw(Object::Pluggable);
 
 our ($GOT_SSL, $GOT_CLIENT_DNS, $GOT_SOCKET6, $GOT_ZLIB);
 
@@ -276,16 +276,12 @@ sub _send_event {
     # any other bugger
     $kernel->call($session => $event => @args) if delete $sessions{$session};
 
-    my @extra_args;
     # Let the plugin system process this
     return 1 if $self->_pluggable_process(
         'SERVER',
         $event,
-        \( @args ),
-        \@extra_args,
+        \@args,
     ) == PCI_EAT_ALL;
-
-    push @args, @extra_args if @extra_args;
 
     # BINGOS:
     # We have a hack here, because the component used to send 'irc_connected'
@@ -806,7 +802,7 @@ sub ctcp {
 # allow plugins to respond to user commands which are not defined here
 sub __default {
     return if $_[ARG0] =~ /^_/;
-    $_[OBJECT]->_pluggable_process(USER => $_[ARG0] => \(@{ $_[ARG1] }));
+    $_[OBJECT]->_pluggable_process(USER => $_[ARG0] => [@{ $_[ARG1] }]);
     return;
 }
 
@@ -1202,21 +1198,22 @@ sub sl {
 # flood yourself off.  Thanks to Raistlin for explaining how ircd
 # throttles messages.
 sub sl_prioritized {
-    my ($kernel, $self, $priority, $msg) = @_[KERNEL, OBJECT, ARG0, ARG1];
+    my ($kernel, $self, $priority, @args) = @_[KERNEL, OBJECT, ARG0, ARG1];
 
     # Get the first word for the plugin system
-    if (my ($event) = $msg =~ /^(\w+)/ ) {
+    if (my ($event) = $args[0] =~ /^(\w+)/ ) {
         # Let the plugin system process this
         return 1 if $self->_pluggable_process(
             'USER',
             $event,
-            \$msg,
+            \@args,
         ) == PCI_EAT_ALL;
     }
     else {
-        warn "Unable to extract the event name from '$msg'\n";
+        warn "Unable to extract the event name from '$args[0]'\n";
     }
 
+    my $msg = $args[0];
     my $now = time();
     $self->{send_time} = $now if $self->{send_time} < $now;
 
@@ -1989,7 +1986,7 @@ plans to make it die() >;]
 =head1 METHODS
 
 These are methods supported by the POE::Component::IRC object. It also
-inherits a few from L<POE::Component::Pluggable|POE::Component::Pluggable>.
+inherits a few from L<Object::Pluggable|Object::Pluggable>.
 See its documentation for details.
 
 =head2 C<server_name>

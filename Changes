@@ -2,6 +2,9 @@ Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
     - Document the 'debug' parameter.
+    - Use Object::Pluggable instead of POE::Component::Pluggable. This smooths
+      out an inconsistency between plugins and normal sessions with regard to
+      events where extra arguments have been added.
 
 6.45  Sun Sep 26 03:41:48 GMT 2010
     - Don't create a POE::Component::Client::DNS object if the user has
