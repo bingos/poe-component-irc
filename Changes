@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.46  Wed Sep 29 04:57:42 UTC 2010
     - Document the 'debug' parameter.
     - Use Object::Pluggable instead of POE::Component::Pluggable. This smooths
       out an inconsistency between plugins and normal sessions with regard to
