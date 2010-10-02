@@ -1168,7 +1168,7 @@ sub shutdown {
 # must go first.
 sub sl_login {
     my ($kernel, $self) = @_[KERNEL, OBJECT];
-    my $arg = join '', @_[ARG0 .. $#_];
+    my $arg = join ' ', @_[ARG0 .. $#_];
     $kernel->yield(sl_prioritized => PRI_LOGIN, $arg );
     return;
 }
@@ -1177,7 +1177,7 @@ sub sl_login {
 # modes, kick messages, and whatever.
 sub sl_high {
     my ($kernel, $self) = @_[KERNEL, OBJECT];
-    my $arg = join '', @_[ARG0 .. $#_];
+    my $arg = join ' ', @_[ARG0 .. $#_];
     $kernel->yield(sl_prioritized => PRI_HIGH, $arg );
     return;
 }
@@ -1187,7 +1187,7 @@ sub sl_high {
 # code.
 sub sl {
     my ($kernel, $self) = @_[KERNEL, OBJECT];
-    my $arg = join '', @_[ARG0 .. $#_];
+    my $arg = join ' ', @_[ARG0 .. $#_];
     $kernel->yield(sl_prioritized => PRI_NORMAL, $arg );
     return;
 }
