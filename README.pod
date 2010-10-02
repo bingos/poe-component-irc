@@ -956,7 +956,7 @@ generates an C<irc_ctcp_action> event, blah blah, so on and so forth. C<ARG0>
 is the nick!hostmask of the sender. C<ARG1> is the channel/recipient
 name(s). C<ARG2> is the text of the CTCP message. On servers supporting the
 CAPAB IDENTIFY-MSG feature (e.g. FreeNode), CTCP ACTIONs will have C<ARG3>,
-which will be 1 if the sender has identified with NickServ, 0 otherwise.
+which will be C<1> if the sender has identified with NickServ, C<0> otherwise.
 
 Note that DCCs are handled separately -- see the
 L<DCC plugin|POE::Component::IRC::Plugin::DCC>.
@@ -1013,8 +1013,8 @@ Sent whenever you receive a PRIVMSG command that was addressed to you
 privately. C<ARG0> is the nick!hostmask of the sender. C<ARG1> is an array
 reference containing the nick(s) of the recipients. C<ARG2> is the text
 of the message. On servers supporting the CAPAB IDENTIFY-MSG feature
-(e.g. FreeNode), CTCP ACTIONs will have C<ARG3>, which will be 1 if the
-sender has identified with NickServ, 0 otherwise.
+(e.g. FreeNode), there will be an additional argument, C<ARG3>, will be C<1>
+if the sender has identified with NickServ, C<0> otherwise.
 
 =head3 C<irc_nick>
 
@@ -1041,8 +1041,8 @@ Sent whenever you receive a PRIVMSG command that was sent to a channel.
 C<ARG0> is the nick!hostmask of the sender. C<ARG1> is an array
 reference containing the channel name(s) of the recipients. C<ARG2> is the
 text of the message. On servers supporting the CAPAB IDENTIFY-MSG feature
-(e.g. FreeNode), CTCP ACTIONs will have C<ARG3>, which will be 1 if the
-sender has identified with NickServ, 0 otherwise.
+(e.g. FreeNode), there will be an additional argument, C<ARG3>, will be C<1>
+if the sender has identified with NickServ, C<0> otherwise.
 
 =head3 C<irc_quit>
 
