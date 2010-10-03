@@ -5,6 +5,8 @@ Revision history for Perl extension POE::Component::IRC.
       send commands with multiple arguments through the Console plugin.
     - Add support for CAP command/replies. We use it to enable the server's
       identify-msg feature when we connect.
+    - State.pm: In disconnected/error/socketerr events when no info is
+      available, make ARG1 an empty hash reference instead of undef.
 
 6.46  Wed Sep 29 04:57:42 UTC 2010
     - Document the 'debug' parameter.
