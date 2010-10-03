@@ -3,6 +3,8 @@ Revision history for Perl extension POE::Component::IRC.
 {{$NEXT}}
     - State.pm: Don't send an undefined value with irc_chan_mode when the
       mode has no argument
+    - Console.pm: Improve the readability of the output, and show undef
+    - Deliver irc_plugin_error immediately, bypassing the event queue
 
 6.47  Sun Oct 3 15:28:50 GMT 2010
     - Join arguments to the 'quote' command with spaces. This allows us to

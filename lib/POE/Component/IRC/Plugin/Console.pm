@@ -40,30 +40,32 @@ sub PCI_unregister {
 }
 
 sub _default {
-    my ($self, $irc) = splice @_, 0, 2;
-    my $event = shift;
+    my ($self, $irc, $event) = splice @_, 0, 3;
     return PCI_EAT_NONE if $event eq 'S_raw';
-    
-    pop @_ if ref $_[-1] eq 'ARRAY';
-    my @args = map { $$_ } @_;
-    my @output = ( "$event: " );
 
-    for my $arg ( @args ) {
-        if ( ref($arg) eq 'ARRAY' ) {
-            push( @output, '[' . join(', ', @$arg ) . ']' );
+    pop @_;
+    my @args = map { $$_ } @_;
+    my @output;
+
+    for my $arg (@args) {
+        if (ref $arg eq 'ARRAY') {
+            push @output, '['. join(', ', map { "'$_'" } @$arg) .']';
         }
         elsif (ref $arg eq 'HASH') {
-            push @output, '{'. join(', ', map { "$_ => \"$arg->{$_}\"" } keys %$arg) .'}';
+            push @output, '{'. join(', ', map { "$_ => '$arg->{$_}'" } keys %$arg) .'}';
+        }
+        elsif (defined $arg) {
+            push @output, "'$arg'";
         }
         else {
-            push ( @output, "'$arg'" );
+            push @output, 'undef';
         }
     }
 
     for my $wheel_id ( keys %{ $self->{wheels} } ) {
         next if ( $self->{exit}->{ $wheel_id } or ( not defined ( $self->{wheels}->{ $wheel_id } ) ) );
         next if !$self->{authed}{ $wheel_id };
-        $self->{wheels}->{ $wheel_id }->put( join(' ', @output ) );
+        $self->{wheels}->{ $wheel_id }->put("$event: ".join(', ', @output));
     }
     
     return PCI_EAT_NONE;
