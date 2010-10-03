@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.47  Sun Oct 3 15:28:50 GMT 2010
     - Join arguments to the 'quote' command with spaces. This allows us to
       send commands with multiple arguments through the Console plugin.
     - Add support for CAP command/replies. We use it to enable the server's
