@@ -8,6 +8,7 @@ Revision history for Perl extension POE::Component::IRC.
     - State.pm: In disconnected/error/socketerr events when no info is
       available, make ARG1 an empty hash reference instead of undef.
     - Console.pm: Don't send events to client before they're authed
+    - Console.pm: Pretty-print hash references
 
 6.46  Wed Sep 29 04:57:42 UTC 2010
     - Document the 'debug' parameter.

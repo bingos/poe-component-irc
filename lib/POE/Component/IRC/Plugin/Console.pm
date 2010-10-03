@@ -52,6 +52,9 @@ sub _default {
         if ( ref($arg) eq 'ARRAY' ) {
             push( @output, '[' . join(', ', @$arg ) . ']' );
         }
+        elsif (ref $arg eq 'HASH') {
+            push @output, '{'. join(', ', map { "$_ => \"$arg->{$_}\"" } keys %$arg) .'}';
+        }
         else {
             push ( @output, "'$arg'" );
         }
