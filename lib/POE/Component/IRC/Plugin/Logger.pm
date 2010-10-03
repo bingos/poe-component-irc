@@ -94,10 +94,11 @@ sub S_333 {
 
 sub S_chan_mode {
     my ($self, $irc) = splice @_, 0, 2;
+    pop @_;
     my $nick = parse_user(${ $_[0] });
     my $chan = irc_to_utf8(${ $_[1] });
     my $mode = ${ $_[2] };
-    my $arg  = ${ $_[3] };
+    my $arg  = defined $_[3] ? ${ $_[3] } : '';
 
     $self->_log_entry($chan, $mode => $nick, $arg);
     return PCI_EAT_NONE;

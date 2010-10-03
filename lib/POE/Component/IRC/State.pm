@@ -263,10 +263,11 @@ sub S_nick {
 
 sub S_chan_mode {
     my ($self, undef) = splice @_, 0, 2;
+    pop @_;
     my $who  = ${ $_[0] };
     my $chan = ${ $_[1] };
     my $mode = ${ $_[2] };
-    my $arg  = ${ $_[3] };
+    my $arg  = defined $_[3] ? ${ $_[3] } : '';
     my $map  = $self->isupport('CASEMAPPING');
     my $me   = u_irc($self->nick_name(), $map);
     
@@ -330,7 +331,7 @@ sub S_mode {
                 $arg = shift @{ $parsed_mode->{args} };
             }
 
-            $self->_send_event(irc_chan_mode => $who, $chan, $mode, $arg );
+            $self->_send_event(irc_chan_mode => $who, $chan, $mode, (defined $arg ? $arg : ()));
             my $flag;
             
             if (length $statmodes && (($flag) = $mode =~ /\+([$statmodes])/)) {
