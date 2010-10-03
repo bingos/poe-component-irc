@@ -1624,8 +1624,14 @@ sub resolver {
 }
 
 sub _pluggable_event {
-    my ($self, @args) = @_;
-    $self->yield(__send_event => @args);
+    my ($self, $event, @args) = @_;
+
+    if ($event eq 'irc_plugin_error') {
+        $self->call(__send_event => $event, @args);
+    }
+    else {
+        $self->yield(__send_event => $event, @args);
+    }
     return;
 }
 
