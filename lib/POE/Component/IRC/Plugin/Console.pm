@@ -59,6 +59,7 @@ sub _default {
 
     for my $wheel_id ( keys %{ $self->{wheels} } ) {
         next if ( $self->{exit}->{ $wheel_id } or ( not defined ( $self->{wheels}->{ $wheel_id } ) ) );
+        next if !$self->{authed}{ $wheel_id };
         $self->{wheels}->{ $wheel_id }->put( join(' ', @output ) );
     }
     
