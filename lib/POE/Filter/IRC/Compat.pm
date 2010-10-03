@@ -20,6 +20,14 @@ my %irc_cmds = (
         }
         $event->{args}->[2] = $line->{params};
     },
+    qr/^cap$/ => sub {
+        my ($self, $event, $line) = @_;
+
+        for (my $i = 0; ; $i++) {
+            last if !defined $line->{params}[$i+1];
+            $event->{args}[$i] = $line->{params}[$i+1];
+        }
+    },
     qr/^notice$/ => sub {
         my ($self, $event, $line) = @_;
 

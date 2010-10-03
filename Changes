@@ -3,6 +3,8 @@ Revision history for Perl extension POE::Component::IRC.
 {{$NEXT}}
     - Join arguments to the 'quote' command with spaces. This allows us to
       send commands with multiple arguments through the Console plugin.
+    - Add support for CAP command/replies. We use it to enable the server's
+      identify-msg feature when we connect.
 
 6.46  Wed Sep 29 04:57:42 UTC 2010
     - Document the 'debug' parameter.
