@@ -46,6 +46,7 @@ sub _start {
     );
     
     $kernel->delay(_time_out => 40);
+    $heap->{tests} = 5;
 }
 
 sub _success {
@@ -71,9 +72,9 @@ sub _time_out {
 }
 
 sub _shutdown {
-    my $skip = $_[ARG0];
+    my ($heap, $skip) = @_[HEAP, ARG0];
     SKIP: {
-        skip $skip, 5 if $skip;
+        skip $skip, $heap->{tests} if $skip;
     }
     $poe_kernel->alarm_remove_all();
     $bot->yield('shutdown');
@@ -89,12 +90,14 @@ sub _irc_connect {
 }
 
 sub irc_registered {
-    my ($irc) = $_[ARG0];
+    my ($heap, $irc) = @_[HEAP, ARG0];
     isa_ok($irc, 'POE::Component::IRC');
+    $heap->{tests}--;
 }
 
 sub irc_connected {
     pass('Connected');
+    $_[HEAP]->{tests}--;
 }
 
 sub irc_socketerr {
@@ -105,15 +108,18 @@ sub irc_socketerr {
 sub irc_001 {
     my $irc = $_[SENDER]->get_heap();
     pass('Logged in');
+    $_[HEAP]->{tests}--;
     $irc->yield('quit');
 }
 
 sub irc_error {
     pass('irc_error');
+    $_[HEAP]->{tests}--;
 }
 
 sub irc_disconnected {
-    my ($kernel) = $_[KERNEL];
+    my ($kernel, $heap) = @_[KERNEL, HEAP];
     pass('Disconnected');
+    $heap->{tests}--;
     $kernel->yield('_shutdown');
 }
