@@ -2735,13 +2735,13 @@ undef if they aren't.
 
 B<'actually'>, some ircds report the users actual ip address, that'll be here;
 
-On ircu servers, if the user has registered with services, there will be
-another key:
+On ircu/seven IRCDs (e.g. FreeNode), if the user has registered with
+services, there will be another key:
 
 B<'account'>.
 
-On Freenode if the user has identified with NICKSERV there will be an
-additional key:
+On Hyperion IRCDs, if the user has identified with NICKSERV there will be
+an additional key:
 
 B<'identified'>.
 
