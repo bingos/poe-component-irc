@@ -3,6 +3,7 @@ Revision history for Perl extension POE::Component::IRC.
 {{$NEXT}}
     - Add draft-mitchell-irc-capabilities-02.html to docs/
     - Fix incorrect number of skipped tests in 06_online.t in some cases
+    - Allow IRC server passwords which evaluate to false (e.g. '0')
 
 6.48  Sun Oct 3 19:49:20 GMT 2010
     - State.pm: Don't send an undefined value with irc_chan_mode when the

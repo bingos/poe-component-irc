@@ -528,7 +528,7 @@ sub _send_login {
     $kernel->call($session, 'sl_login', 'CAP LS');
     $kernel->call($session, 'sl_login', 'CAP END');
 
-    if ($self->{password}) {
+    if (defined $self->{password}) {
         $kernel->call($session => sl_login => 'PASS ' . $self->{password});
     }
     $kernel->call($session => sl_login => 'NICK ' . $self->{nick});
