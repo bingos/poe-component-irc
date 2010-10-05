@@ -116,9 +116,9 @@ sub irc_001 {
     my $irc = $_[SENDER]->get_heap();
     
     pass($irc->nick_name() . ' logged in');
-    if ($irc == $bot2) {
-        $irc->yield(dcc => $bot1->nick_name() => CHAT => undef, undef, 5);
-    }
+    $heap->{logged_in}++;
+    return if $heap->{logged_in} != 2;
+    $bot2->yield(dcc => $bot1->nick_name() => CHAT => undef, undef, 5);
 }
 
 sub irc_dcc_request {

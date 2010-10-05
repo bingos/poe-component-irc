@@ -114,19 +114,20 @@ sub irc_001 {
 }
 
 sub irc_join {
-    my ($sender, $who, $where) = @_[SENDER, ARG0, ARG1];
+    my ($heap, $sender, $who, $where) = @_[HEAP, SENDER, ARG0, ARG1];
     my $nick = (split /!/, $who)[0];
     my $irc = $sender->get_heap();
 
     return if $nick ne $irc->nick_name();
     pass('Joined channel');
-    return if $irc != $bot2;
+    $heap->{joined}++;
+    return if $heap->{joined} != 2;
 
     # try command
-    $irc->yield(privmsg => $where, "TestBot1: cmd1 foo bar");
+    $bot2->yield(privmsg => $where, "TestBot1: cmd1 foo bar");
 
     # and one with color
-    $irc->yield(privmsg => $where, "\x0302TestBot1\x0f: \x02cmd2\x0f");
+    $bot2->yield(privmsg => $where, "\x0302TestBot1\x0f: \x02cmd2\x0f");
 }
 
 sub irc_botcmd_cmd1 {

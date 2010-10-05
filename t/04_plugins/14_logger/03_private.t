@@ -117,11 +117,11 @@ sub irc_001 {
     my $irc = $_[SENDER]->get_heap();
     
     pass($irc->nick_name() . ' logged in');
+    $heap->{logged_in}++;
+    return if $heap->{logged_in} != 2;
 
-    if ($irc == $bot2) {
-        $bot1->yield(privmsg => $bot2->nick_name(), 'Hello there');
-        $heap->{msg}++;
-    }
+    $bot1->yield(privmsg => $bot2->nick_name(), 'Hello there');
+    $heap->{msg}++;
 }
 
 sub irc_msg {

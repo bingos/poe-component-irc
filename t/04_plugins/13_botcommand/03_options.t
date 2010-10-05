@@ -132,16 +132,17 @@ sub irc_001 {
 }
 
 sub irc_join {
-    my ($sender, $who, $where) = @_[SENDER, ARG0, ARG1];
+    my ($heap, $sender, $who, $where) = @_[HEAP, SENDER, ARG0, ARG1];
     my $nick = (split /!/, $who)[0];
     my $irc = $sender->get_heap();
 
     return if $nick ne $irc->nick_name();
     pass('Joined channel');
-    return if $irc != $bot2;
+    $heap->{joined}++;
+    return if $heap->{joined} != 2;
 
-    $irc->yield(privmsg => $where, ",cmd1 foo bar");
-    $irc->yield(privmsg => $where, ",cmd2");
+    $bot2->yield(privmsg => $where, ",cmd1 foo bar");
+    $bot2->yield(privmsg => $where, ",cmd2");
 }
 
 sub irc_botcmd_cmd1 {
