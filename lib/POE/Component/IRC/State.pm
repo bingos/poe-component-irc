@@ -1528,7 +1528,7 @@ should use them with this in mind (for now, at least).
 
 Chris Williams <chris@bingosnet.co.uk>
 
-With contributions from the Kinky Black Goat.
+With contributions from Lyndon Miller.
 
 =head1 LICENCE
 

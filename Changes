@@ -579,7 +579,7 @@ Revision history for Perl extension POE::Component::IRC.
       helios.
 
 5.18  Fri Dec 29 10:55:05 GMT 2006
-    - Documentation fix to ::Plugin by Kinks.
+    - Documentation fix to ::Plugin by Lyndon Miller.
     - Still a problem with TOPIC command. Fixed.
 
 5.17  Tue Dec 12 22:52:48 GMT 2006
@@ -725,9 +725,9 @@ Revision history for Perl extension POE::Component::IRC.
       reported by dec.
     - Added nick_channel_modes method to ::State to return
       the channel modes (ie. qaohv) of a given nick on a
-      given channel - Kinks
+      given channel - Lyndon Miller
     - Added note concerning the issues surrounding the SetAt
-      and SetBy values to CAVEATS in the ::State pod - Kinks
+      and SetBy values to CAVEATS in the ::State pod - Lyndon Miller
     - Improvements to Plugin::PlugMan, it should actually 
       work properly now >:) Thanks to mst and dngor.
     - ::State, nick_sync now has the channel name as ARG1.
@@ -737,7 +737,7 @@ Revision history for Perl extension POE::Component::IRC.
 
 4.91  Thu Jun 01 21:08:13 BST 2006
     - Tweak to ::State to deal with ircds that don't report @+ 
-      status in WHO replies ( like unreal ). Thanks to Kinks
+      status in WHO replies ( like unreal ). Thanks to Lyndon Miller
       for reporting that.
     - 'irc_dcc_failed' event was undocumented. Fixed.
     - Switched the poco-client-dns checks to 'use', so as to
@@ -748,20 +748,20 @@ Revision history for Perl extension POE::Component::IRC.
       independent of what the ircd sends us back.
     - Various changes to ::State in order to ensure full RFC
       compliant channel mode support, including support
-      for channel access lists - Kinks
+      for channel access lists - Lyndon Miller
     - Added ::State methods to return channel access lists:
-      channel_ban_list, channel_invex_list, channel_except_list - Kinks
+      channel_ban_list, channel_invex_list, channel_except_list - Lyndon Miller
     - Using 'use' for the dns checks was fubar. Switched back 
       to 'require' and test the VERSION instead.
     - Changed the simpleclient.pl script to accept a filename as
       a second argument to /dump_state command.
-    - Documentation tweaks to ::State by Kinks
+    - Documentation tweaks to ::State by Lyndon Miller
     - Channel topic support added to ::State. Added the method
-      channel_topic to return a hashref of topic data - Kinks
+      channel_topic to return a hashref of topic data - Lyndon Miller
     - Changed 'Time' keys for channel lists and topic to 'SetAt'
     - Added irc_chan_mode event to ::State to allow everyone
-      to enjoy the mode parsing State does internally - Kinks
-    - Refactored ::Qnet::State subclass after all Kinks' 
+      to enjoy the mode parsing State does internally - Lyndon Miller
+    - Refactored ::Qnet::State subclass after all - Lyndon Miller 
       changes to ::State.
     - Refactored ::State slightly to use ARG2 for numerics 
       handlers instead of trying to parse ARG1 ourselves. FTW.
