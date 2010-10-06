@@ -414,6 +414,7 @@ sub _sock_up {
         };
 
         if ($@) {
+            chomp $@;
             warn "Couldn't use an SSL socket: $@\n";
             $self->{usessl} = 0;
         }
