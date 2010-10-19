@@ -85,7 +85,7 @@ sub _config_ircd {
 
 sub irc_001 {
     my $irc = $_[SENDER]->get_heap();
-    pass('Logged in');
+    pass($irc->nick_name.' logged in');
     
     if ($irc == $bot1) {
         $irc->yield(join => '#testchannel');
@@ -98,7 +98,7 @@ sub irc_join {
     my $irc = $sender->get_heap();
     
     return if $nick ne $irc->nick_name();
-    is($where, '#testchannel', 'Joined Channel Test');
+    is($where, '#testchannel', $irc->nick_name. ' joined channel');
 
     if ($nick eq 'TestBot1') {
         $irc->yield(mode => $where, '+b TestBot2!*@*');
@@ -123,8 +123,12 @@ sub irc_chan_mode {
 
 sub irc_474 {
     my ($chan) = $_[ARG2]->[0];
-    pass("Can't join due to ban");
-    $bot1->yield(mode => $chan, '-b TestBot2!*@*');
+
+    if (!$_[HEAP]->{denied}) {
+        pass("Can't join due to ban");
+        $bot1->yield(mode => $chan, '-b TestBot2!*@*');
+        $_[HEAP]->{denied} = 1;
+    }
 }
 
 sub irc_disconnected {
