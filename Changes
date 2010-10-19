@@ -3,6 +3,7 @@ Revision history for Perl extension POE::Component::IRC.
 {{$NEXT}}
     - Fix race condition causing a duplicated test in
       t/04_plugins/12_autojoin/03_banned.t
+    - Console.pm: Dump hashes and arrays recursively
 
 6.49  Sat Oct 16 19:05:25 GMT 2010
     - Add draft-mitchell-irc-capabilities-02.html to docs/
