@@ -101,9 +101,7 @@ sub S_005 {
     my @vals = @{ ${ $args[2] } };
     pop @vals;
     my $support = $self->{server};
-    #(my $spec = ${ $args[1] }) =~ s/:are (?:available|supported).*//;
 
-    #for (split ' ', $spec) {
     for my $val (@vals) {
         if ($val =~ /=/) {
             my $key;
