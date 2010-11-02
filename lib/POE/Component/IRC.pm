@@ -124,6 +124,8 @@ sub _create {
         connect
         _resolve_addresses
         _do_connect
+        _cleanup
+        _quit_timeout
         _send_login
         _got_dns_response
         ison
@@ -311,13 +313,6 @@ sub _send_event {
     return;
 }
 
-sub _sock_flush {
-    my ($kernel, $self) = @_[KERNEL, OBJECT];
-    return if !$self->{_shutdown};
-    delete $self->{socket};
-    return;
-}
-
 # Internal function called when a socket is closed.
 sub _sock_down {
     my ($kernel, $self) = @_[KERNEL, OBJECT];
@@ -386,7 +381,6 @@ sub _sock_up {
             Filter       => POE::Filter::Stream->new(),
             InputEvent   => '_socks_proxy_response',
             ErrorEvent   => '_sock_down',
-            FlushedEvent => '_sock_flush',
         );
     
         if ( !$self->{socket} ) {
@@ -438,7 +432,6 @@ sub _sock_up {
         OutputFilter => $self->{out_filter},
         InputEvent   => '_parseline',
         ErrorEvent   => '_sock_down',
-        FlushedEvent => '_sock_flush',
     );
 
     if ($self->{socket}) {
@@ -1158,15 +1151,40 @@ sub register {
 sub shutdown {
     my ($kernel, $self, $sender, $session) = @_[KERNEL, OBJECT, SENDER, SESSION];
     return if $self->{_shutdown};
+    $self->{_shutdown} = $sender;
 
-    my $args = '';
-    $args = join '', @_[ARG0..$#_] if @_[ARG0..$#_];
-    $args = ":$args" if $args =~ /\x20/;
-    my $cmd = "QUIT $args";
+    if ($self->logged_in()) {
+        my ($msg, $timeout) = @_[ARG0, ARG1];
+        $msg = '' if !defined $msg;
+        $timeout = 5 if !defined $timeout;
+        $msg = ":$msg" if $msg =~ /\x20/;
+        my $cmd = "QUIT $msg";
+        $kernel->call($session => sl_high => $cmd);
+        $kernel->delay('_quit_timeout', $timeout);
+        $self->{_waiting} = 1;
+    }
+    elsif ($self->connected()) {
+        $self->disconnect();
+    }
+    else {
+        $self->call('_cleanup');
+    }
 
+    return;
+}
+
+sub _quit_timeout {
+    my ($self) = $_[OBJECT];
+    $self->disconnect();
+    return;
+}
+
+sub _cleanup {
+    my ($kernel, $self, $session) = @_[KERNEL, OBJECT];
+
+    my $sender = delete $self->{_shutdown};
     $kernel->sig('POCOIRC_REGISTER');
     $kernel->sig('POCOIRC_SHUTDOWN');
-    $self->{_shutdown} = 1;
     $self->_send_event(irc_shutdown => $sender->ID());
     $self->_unregister_sessions();
     $kernel->alarm_remove_all();
@@ -1177,7 +1195,6 @@ sub shutdown {
     $self->_pluggable_destroy();
     
     $self->{resolver}->shutdown() if $self->{resolver} && $self->{mydns};
-    $kernel->call($session => sl_high => $cmd) if $self->{socket};
     
     return;
 }
@@ -1558,6 +1575,13 @@ sub S_error {
 sub S_disconnected {
     my ($self, $irc) = splice @_, 0, 2;
     $self->{INFO}{LoggedIn} = 0;
+
+    if ($self->{_waiting}) {
+        $poe_kernel->delay('_quit_timeout');
+        delete $self->{_waiting};
+    }
+
+    $self->yield('_cleanup') if $self->{_shutdown};
     return PCI_EAT_NONE;
 }
 
@@ -2305,12 +2329,14 @@ reconnect. (Whether this behavior is the Right Thing is doubtful, but I
 don't want to break backwards compatibility at this point.) You can send
 the IRC session a C<shutdown> event manually to make it delete itself.
 
-If you are connected, C<shutdown> will send a quit message to ircd and
-disconnect. If you provide an argument that will be used as the QUIT
-message.
+If you are logged into an IRC server, C<shutdown> first will send a quit
+message and wait to be disconnected. It will wait for up to 5 seconds before
+forcibly disconnecting from the IRC server. If you provide an argument, that
+will be used as the QUIT message. If you provide two arguments, the second
+one will be used as the timeout (in seconds).
 
 Terminating multiple components can be tricky. Check the L<SIGNALS|/SIGNALS>
-section for an alternative method of shutting down multiple poco-ircs.
+section for a method of shutting down multiple poco-ircs.
 
 =head3 C<topic>
 

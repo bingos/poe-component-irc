@@ -6,7 +6,7 @@ use POE::Component::IRC::Common qw(parse_user);
 use POE::Component::IRC::State;
 use POE::Component::Server::IRC;
 use Socket;
-use Test::More tests => 42;
+use Test::More tests => 43;
 
 my $bot = POE::Component::IRC::State->spawn(Flood => 1);
 my $ircd1 = POE::Component::Server::IRC->spawn(
@@ -208,7 +208,6 @@ sub irc_error {
 
 sub irc_disconnected {
     pass('irc_disconnected');
-    $poe_kernel->yield('_shutdown');
 }
 
  # We registered for all events, this will produce some debug info.

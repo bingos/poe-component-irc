@@ -5,6 +5,9 @@ Revision history for Perl extension POE::Component::IRC.
       t/04_plugins/12_autojoin/03_banned.t
     - Console.pm: Dump hashes and arrays recursively
     - Enable all debugging messages if $ENV{POCOIRC_DEBUG} is true
+    - Make the 'shutdown' event do more work for us, such as forcibly
+      disconnecting after a timeout if the server doesn't disconnect us
+      following a QUIT command
 
 6.49  Sat Oct 16 19:05:25 GMT 2010
     - Add draft-mitchell-irc-capabilities-02.html to docs/

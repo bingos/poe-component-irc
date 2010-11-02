@@ -655,12 +655,14 @@ reconnect. (Whether this behavior is the Right Thing is doubtful, but I
 don't want to break backwards compatibility at this point.) You can send
 the IRC session a C<shutdown> event manually to make it delete itself.
 
-If you are connected, C<shutdown> will send a quit message to ircd and
-disconnect. If you provide an argument that will be used as the QUIT
-message.
+If you are logged into an IRC server, C<shutdown> first will send a quit
+message and wait to be disconnected. It will wait for up to 5 seconds before
+forcibly disconnecting from the IRC server. If you provide an argument, that
+will be used as the QUIT message. If you provide two arguments, the second
+one will be used as the timeout (in seconds).
 
 Terminating multiple components can be tricky. Check the L<SIGNALS|/SIGNALS>
-section for an alternative method of shutting down multiple poco-ircs.
+section for a method of shutting down multiple poco-ircs.
 
 =head3 C<topic>
 
