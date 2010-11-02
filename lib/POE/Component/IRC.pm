@@ -156,6 +156,11 @@ sub _configure {
         $spawned = delete $args->{spawned};
         @{ $self }{ keys %{ $args } } = values %{ $args };
     }
+
+    if ($ENV{POCOIRC_DEBUG}) {
+        $self->{debug} = 1;
+        $self->{plugin_debug} = 1;
+    }
     
     if ($self->{debug}) {
         $self->{ircd_filter}->debug(1);
@@ -912,6 +917,11 @@ sub spawn {
     my $self = bless { }, $package;
     $self->_create();
     
+    if ($ENV{POCOIRC_DEBUG}) {
+        $params{debug} = 1;
+        $params{plugin_debug} = 1;
+    }
+
     my $options      = delete $params{options};
     my $alias        = delete $params{alias};
     my $plugin_debug = delete $params{plugin_debug};
@@ -1934,11 +1944,13 @@ you try to send a message that's too long.
 
 B<'debug'>, if set to a true value causes the IRC component to print every
 message sent to and from the server, as well as print some warnings when it
-receives malformed messages.
+receives malformed messages. This option will be enabled if the
+C<POCOIRC_DEBUG> environment variable is set to a true value.
 
 B<'plugin_debug'>, set to some true value to print plugin debug info, default 0.
 Plugins are processed inside an eval. When you enable this option, you will be
-notified when (and why) a plugin raises an exception.
+notified when (and why) a plugin raises an exception. This option will be
+enabled if the C<POCOIRC_DEBUG> environment variable is set to a true value.
 
 B<'socks_proxy'>, specify a SOCKS4/SOCKS4a proxy to use.
 

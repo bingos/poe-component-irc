@@ -294,11 +294,13 @@ you try to send a message that's too long.
 
 B<'debug'>, if set to a true value causes the IRC component to print every
 message sent to and from the server, as well as print some warnings when it
-receives malformed messages.
+receives malformed messages. This option will be enabled if the
+C<POCOIRC_DEBUG> environment variable is set to a true value.
 
 B<'plugin_debug'>, set to some true value to print plugin debug info, default 0.
 Plugins are processed inside an eval. When you enable this option, you will be
-notified when (and why) a plugin raises an exception.
+notified when (and why) a plugin raises an exception. This option will be
+enabled if the C<POCOIRC_DEBUG> environment variable is set to a true value.
 
 B<'socks_proxy'>, specify a SOCKS4/SOCKS4a proxy to use.
 
