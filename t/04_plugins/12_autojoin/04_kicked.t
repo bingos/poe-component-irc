@@ -3,16 +3,16 @@ use warnings FATAL => 'all';
 use lib 't/inc';
 use POE qw(Wheel::SocketFactory);
 use Socket;
-use POE::Component::IRC::State;
+use POE::Component::IRC;
 use POE::Component::IRC::Plugin::AutoJoin;
 use POE::Component::Server::IRC;
 use Test::More tests => 8;
 
-my $bot1 = POE::Component::IRC::State->spawn(
+my $bot1 = POE::Component::IRC->spawn(
     Flood        => 1,
     plugin_debug => 1,
 );
-my $bot2 = POE::Component::IRC::State->spawn(
+my $bot2 = POE::Component::IRC->spawn(
     Flood        => 1,
     plugin_debug => 1,
 );

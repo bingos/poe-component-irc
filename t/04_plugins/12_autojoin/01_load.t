@@ -2,10 +2,10 @@ use strict;
 use warnings FATAL => 'all';
 use Test::More tests => 3;
 use POE;
-use POE::Component::IRC::State;
+use POE::Component::IRC;
 use POE::Component::IRC::Plugin::AutoJoin;
 
-my $bot = POE::Component::IRC::State->spawn( plugin_debug => 1 );
+my $bot = POE::Component::IRC->spawn( plugin_debug => 1 );
 
 POE::Session->create(
     package_states => [
