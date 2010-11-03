@@ -96,7 +96,10 @@ sub irc_registered {
 }
 
 sub irc_connected {
-    pass('Connected');
+    TODO: {
+        local $TODO = "K-lines or other unforeseen issues could derail this test";
+        pass('Connected');
+    };
     $_[HEAP]->{tests}--;
 }
 
@@ -107,19 +110,28 @@ sub irc_socketerr {
 
 sub irc_001 {
     my $irc = $_[SENDER]->get_heap();
-    pass('Logged in');
+    TODO: {
+        local $TODO = "K-lines or other unforeseen issues could derail this test";
+        pass('Logged in');
+    };
     $_[HEAP]->{tests}--;
     $irc->yield('quit');
 }
 
 sub irc_error {
-    pass('irc_error');
+    TODO: {
+        local $TODO = "K-lines or other unforeseen issues could derail this test";
+        pass('irc_error');
+    };
     $_[HEAP]->{tests}--;
 }
 
 sub irc_disconnected {
     my ($kernel, $heap) = @_[KERNEL, HEAP];
-    pass('Disconnected');
+    TODO: {
+        local $TODO = "K-lines or other unforeseen issues could derail this test";
+        pass('Disconnected');
+    };
     $heap->{tests}--;
     $kernel->yield('_shutdown');
 }
