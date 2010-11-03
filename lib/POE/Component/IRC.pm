@@ -1271,6 +1271,7 @@ sub sl_prioritized {
     }
     else {
         warn ">>> $msg\n" if $self->{debug};
+        $self->_send_event(irc_raw_out => $msg) if $self->{raw};
         $self->{send_time} += 2 + length($msg) / 120;
         $self->{socket}->put($msg);
     }
@@ -1293,6 +1294,7 @@ sub sl_delayed {
     while (@{ $self->{send_queue} } && ($self->{send_time} - $now < 10)) {
         my $arg = (shift @{$self->{send_queue}})->[MSG_TEXT];
         warn ">>> $arg\n" if $self->{debug};
+        $self->_send_event(irc_raw_out => $arg) if $self->{raw};
         $self->{send_time} += 2 + length($arg) / 120;
         $self->{socket}->put($arg);
     }
@@ -1930,7 +1932,7 @@ B<'Ircname'>, some cute comment or something.
 B<'UseSSL'>, set to some true value if you want to connect using SSL.
 
 B<'Raw'>, set to some true value to enable the component to send
-L<C<irc_raw>|/irc_raw> events.
+L<C<irc_raw>|/irc_raw> and L<C<irc_raw_out>|/irc_raw_out> events.
 
 B<'LocalAddr'>, which local IP address on a multihomed box to connect as;
 
@@ -2015,9 +2017,6 @@ SSL support requires L<POE::Component::SSLify|POE::Component::SSLify>, as well
 as an IRC server that supports SSL connections. If you're missing
 POE::Component::SSLify, specifying B<'UseSSL'> will do nothing. The default is to
 not try to use SSL.
-
-Setting B<'Raw'> to true, will enable the component to send
-L<C<irc_raw>|/irc_raw> events to interested plugins and sessions.
 
 B<'Resolver'>, requires a L<POE::Component::Client::DNS|POE::Component::Client::DNS>
 object. Useful when spawning multiple poco-irc sessions, saves the overhead of
@@ -2110,8 +2109,9 @@ Takes no arguments. Terminates the socket connection disgracefully >;o]
 =head2 C<raw_events>
 
 With no arguments, returns true or false depending on whether
-L<C<irc_raw>|/irc_raw> events are being  generated or not. Provide a
-true or false argument to enable or disable this feature accordingly.
+L<C<irc_raw>|/irc_raw> and L<C<irc_raw_out>|/irc_raw_out> events are being generated
+or not. Provide a true or false argument to enable or disable this feature
+accordingly.
 
 =head2 C<isupport>
 
@@ -2794,6 +2794,13 @@ Enabled by passing C<< Raw => 1 >> to L<C<spawn>|/spawn> or
 L<C<connect>|/connect>, or by calling L<C<raw_events>|/raw_events> with
 a true argument. C<ARG0> is the raw IRC string received by the component from
 the IRC server, before it has been mangled by filters and such like.
+
+=head3 C<irc_raw_out>
+
+Enabled by passing C<< Raw => 1 >> to L<C<spawn>|/spawn> or
+L<C<connect>|/connect>, or by calling L<C<raw_events>|/raw_events> with
+a true argument. C<ARG0> is the raw IRC string sent by the component to the
+the IRC server.
 
 =head3 C<irc_registered>
 

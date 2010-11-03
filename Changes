@@ -8,6 +8,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Make the 'shutdown' event do more work for us, such as forcibly
       disconnecting after a timeout if the server doesn't disconnect us
       following a QUIT command
+    - Add an irc_raw_out event, corollary to irc_raw
 
 6.49  Sat Oct 16 19:05:25 GMT 2010
     - Add draft-mitchell-irc-capabilities-02.html to docs/
