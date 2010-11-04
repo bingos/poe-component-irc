@@ -1151,7 +1151,7 @@ sub register {
 sub shutdown {
     my ($kernel, $self, $sender, $session) = @_[KERNEL, OBJECT, SENDER, SESSION];
     return if $self->{_shutdown};
-    $self->{_shutdown} = $sender;
+    $self->{_shutdown} = $sender->ID();
 
     if ($self->logged_in()) {
         my ($msg, $timeout) = @_[ARG0, ARG1];
@@ -1182,10 +1182,10 @@ sub _quit_timeout {
 sub _cleanup {
     my ($kernel, $self, $session) = @_[KERNEL, OBJECT];
 
-    my $sender = delete $self->{_shutdown};
+    my $sender_id = delete $self->{_shutdown};
     $kernel->sig('POCOIRC_REGISTER');
     $kernel->sig('POCOIRC_SHUTDOWN');
-    $self->_send_event(irc_shutdown => $sender->ID());
+    $self->_send_event(irc_shutdown => $sender_id());
     $self->_unregister_sessions();
     $kernel->alarm_remove_all();
     $kernel->alias_remove($_) for $kernel->alias_list($session);

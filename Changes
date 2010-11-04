@@ -3,6 +3,8 @@ Revision history for Perl extension POE::Component::IRC.
 {{$NEXT}}
     - Make the t/02_behavior/06_online.t test a TODO, since we can't work
       around problems such as the user being K-lined from FreeNode
+    - Save the sender id on shutdown, not the sender's reference, avoids
+      a crash when a sender disappears before we complete the shutdown
 
 6.50  Wed Nov 3 02:05:56 GMT 2010
     - Fix race condition causing a duplicated test in
