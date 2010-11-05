@@ -1185,7 +1185,7 @@ sub _cleanup {
     my $sender_id = delete $self->{_shutdown};
     $kernel->sig('POCOIRC_REGISTER');
     $kernel->sig('POCOIRC_SHUTDOWN');
-    $self->_send_event(irc_shutdown => $sender_id());
+    $self->_send_event(irc_shutdown => $sender_id);
     $self->_unregister_sessions();
     $kernel->alarm_remove_all();
     $kernel->alias_remove($_) for $kernel->alias_list($session);
