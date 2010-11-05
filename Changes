@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.51  Fri Nov 5 12:28:14 CET 2010
     - Make the t/02_behavior/06_online.t test a TODO, since we can't work
       around problems such as the user being K-lined from FreeNode
     - Save the sender id on shutdown, not the sender's reference, avoids
