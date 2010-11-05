@@ -1,6 +1,7 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+    - Fixed typo in shutdown code and added a test to confirm
 
 6.51  Fri Nov 5 12:28:14 CET 2010
     - Make the t/02_behavior/06_online.t test a TODO, since we can't work
