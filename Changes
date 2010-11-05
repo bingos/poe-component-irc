@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.52  Fri Nov 5 18:27:16 CET 2010
     - Fixed typo in shutdown code and added a test to confirm
 
 6.51  Fri Nov 5 12:28:14 CET 2010
