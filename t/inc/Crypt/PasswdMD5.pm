@@ -1,5 +1,5 @@
 #
-# Crypt::PasswdMD5: Module to provide an interoperable crypt() 
+# Crypt::PasswdMD5: Module to provide an interoperable crypt()
 #	function for modern Unix O/S. This is based on the code for
 #
 # /usr/src/libcrypt/crypt.c
@@ -44,7 +44,7 @@ sub to64 {
 sub apache_md5_crypt {
 	# change the Magic string to match the one used by Apache
 	local $Magic = q/$apr1$/;
-	
+
 	unix_md5_crypt(@_);
 }
 
@@ -106,7 +106,7 @@ sub unix_md5_crypt {
 	else { $ctx1->add($pw); }
 	$final = $ctx1->digest;
     }
-    
+
 				# Final xform
 
     $passwd = '';

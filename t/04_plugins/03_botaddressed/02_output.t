@@ -27,8 +27,8 @@ POE::Session->create(
     package_states => [
         main => [qw(
             _start
-            _config_ircd 
-            _shutdown 
+            _config_ircd
+            _shutdown
             irc_001
             irc_disconnected
             irc_join
@@ -66,14 +66,14 @@ sub _config_ircd {
     my ($kernel, $port) = @_[KERNEL, ARG0];
 
     $ircd->yield(add_listener => Port => $port);
-    
+
     $bot1->yield(register => 'all');
     $bot1->yield(connect => {
         nick    => 'TestBot1',
         server  => '127.0.0.1',
         port    => $port,
     });
-  
+
     $bot2->yield(register => 'all');
     $bot2->yield(connect => {
         nick    => 'TestBot2',
@@ -97,7 +97,7 @@ sub irc_join {
     $heap->{joined}++;
     pass($irc->nick_name() . ' joined channel');
     return if $heap->{joined} != 2;
-    
+
     $bot1->yield(privmsg => $where, $bot2->nick_name . ': y halo thar');
     $bot1->yield(privmsg => $where, 'y halo thar, ' . $bot2->nick_name());
     $bot1->yield(ctcp => $where, 'ACTION greets ' . $bot2->nick_name());
@@ -137,7 +137,7 @@ sub irc_disconnected {
 sub _shutdown {
     my ($kernel, $error) = @_[KERNEL, ARG0];
     fail($error) if defined $error;
-    
+
     $kernel->alarm_remove_all();
     $ircd->yield('shutdown');
     $bot1->yield('shutdown');

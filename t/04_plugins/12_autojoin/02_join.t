@@ -25,9 +25,9 @@ POE::Session->create(
     package_states => [
         main => [qw(
             _start
-            _config_ircd 
-            _shutdown 
-            irc_001 
+            _config_ircd
+            _shutdown
+            irc_001
             irc_join
             irc_disconnected
         )],
@@ -59,9 +59,9 @@ sub get_port {
 
 sub _config_ircd {
     my ($kernel, $port) = @_[KERNEL, ARG0];
-    
+
     $kernel->post( 'ircd' => 'add_listener' => Port => $port);
-    
+
     $bot->yield(register => 'all');
     $bot->yield(connect => {
         nick    => 'TestBot1',
@@ -84,7 +84,7 @@ sub irc_join {
         ? pass("Joined channel $where")
         : fail("Joined wrong channel $where");
     ;
-    
+
     $irc->yield('quit') if $heap->{joined} == 2;
 }
 
@@ -97,7 +97,7 @@ sub irc_disconnected {
 sub _shutdown {
     my ($kernel, $error) = @_[KERNEL, ARG0];
     fail($error) if defined $error;
-    
+
     $kernel->alarm_remove_all();
     $kernel->post(ircd => 'shutdown');
     $bot->yield('shutdown');

@@ -84,7 +84,7 @@ sub get_port {
 sub _shutdown {
     my ($kernel, $error) = @_[KERNEL, ARG0];
     fail($error) if defined $error;
-    
+
     $kernel->alarm_remove_all();
     $ircd->yield('shutdown');
     $bot1->yield('shutdown');
@@ -92,9 +92,9 @@ sub _shutdown {
 
 sub _config_ircd {
     my ($kernel, $port) = @_[KERNEL, ARG0];
-    
+
     $ircd->yield(add_listener => Port => $port);
-    
+
     $bot1->yield(register => 'all');
     $bot1->yield(connect => {
         nick    => 'TestBot1',

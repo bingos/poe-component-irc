@@ -101,7 +101,7 @@ to handle the translate command.
 
  sub translated {
      my $irc = $_[HEAP]->{irc};
-     my ($text, $context, $error) = @_[ARG0, ARG1, ARG2]; 
+     my ($text, $context, $error) = @_[ARG0, ARG1, ARG2];
 
      if ($error) {
          $irc->yield(

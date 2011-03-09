@@ -17,11 +17,11 @@ POE::Session->create(
     package_states => [
         main => [qw(
             _start
-            _config_ircd 
-            _shutdown 
-            irc_registered 
-            irc_connected 
-            irc_001 
+            _config_ircd
+            _shutdown
+            irc_registered
+            irc_connected
+            irc_001
             irc_error
             irc_disconnected
             irc_shutdown
@@ -63,7 +63,7 @@ sub irc_registered {
     my ($heap, $irc) = @_[HEAP, ARG0];
     pass('Registered');
     isa_ok($irc, 'POE::Component::IRC');
-    
+
     $irc->yield(connect => {
         nick    => 'TestBot',
         server  => '127.0.0.1',
@@ -94,7 +94,7 @@ sub irc_disconnected {
 sub _shutdown {
     my ($kernel, $error) = @_[KERNEL, ARG0];
     fail($error) if defined $error;
-    
+
     $kernel->alarm_remove_all();
     $ircd->yield('shutdown');
     $kernel->signal($kernel, 'POCOIRC_SHUTDOWN');

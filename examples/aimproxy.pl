@@ -365,7 +365,7 @@ sub irc_socketerr {
 }
 
 
-POE::Session->create( package_states => [ 
+POE::Session->create( package_states => [
 		   'main' => [qw( _start _stop aim_buddy_update aim_friends
 				  aim_got_message aim_listen aim_queue aim_send
 				  irc_001 irc_433 irc_ctcp_action

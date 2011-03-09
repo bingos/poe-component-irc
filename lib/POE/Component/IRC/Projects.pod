@@ -71,7 +71,7 @@ threat messages while following the basic channel rules.
 
 =item L<POE::Component::IRC::Plugin::RSS::Headlines|POE::Component::IRC::Plugin::RSS::Headlines>
 
-A POE::Component::IRC plugin that provides RSS headline retrieval. 
+A POE::Component::IRC plugin that provides RSS headline retrieval.
 
 =item L<POE::Component::IRC::Plugin::URI::Find|POE::Component::IRC::Plugin::URI::Find>
 
@@ -79,7 +79,7 @@ A POE::Component::IRC plugin that finds URIs in channel traffic.
 
 =item L<POE::Component::IRC::Plugin::POE::Knee|POE::Component::IRC::Plugin::POE::Knee>
 
-A POE::Component::IRC plugin that runs Acme::POE::Knee races. 
+A POE::Component::IRC plugin that runs Acme::POE::Knee races.
 
 =item L<POE::Component::IRC::Plugin::Blowfish|POE::Component::IRC::Plugin::Blowfish>
 
@@ -87,7 +87,7 @@ A POE::Component::IRC plugin that provides blowfish encryption.
 
 =item L<POE::Component::IRC::Plugin::YouTube::MovieFindStore|POE::Component::IRC::Plugin::YouTube::MovieFindStore>
 
-A plugin for finding, resolving .FLV, and optionally storing YouTube URIs. 
+A plugin for finding, resolving .FLV, and optionally storing YouTube URIs.
 
 =item L<POE::Component::IRC::Object|POE::Component::IRC::Object>
 

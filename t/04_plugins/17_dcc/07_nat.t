@@ -24,9 +24,9 @@ POE::Session->create(
     package_states => [
         main => [qw(
             _start
-            _config_ircd 
-            _shutdown 
-            irc_001 
+            _config_ircd
+            _shutdown
+            irc_001
             irc_join
             irc_disconnected
             irc_dcc_request
@@ -62,7 +62,7 @@ sub get_port {
 sub _shutdown {
     my ($kernel, $error) = @_[KERNEL, ARG0];
     fail($error) if defined $error;
-    
+
     $kernel->alarm_remove_all();
     $ircd->yield('shutdown');
     $bot1->yield('shutdown');
@@ -71,9 +71,9 @@ sub _shutdown {
 
 sub _config_ircd {
     my ($kernel, $port) = @_[KERNEL, ARG0];
-    
+
     $ircd->yield(add_listener => Port => $port);
-    
+
     $bot1->yield(register => 'all');
     $bot1->yield(connect => {
         nick    => 'TestBot1',
@@ -81,7 +81,7 @@ sub _config_ircd {
         port    => $port,
         nataddr => '127.0.0.100',
     });
-  
+
     $bot2->yield(register => 'all');
     $bot2->yield(connect => {
         nick    => 'TestBot2',
@@ -104,7 +104,7 @@ sub irc_join {
 
     return if $nick ne $irc->nick_name();
     is($where,'#testchannel', 'Joined Channel Test');
-    
+
     $heap->{joined}++;
     return if $heap->{joined} != 2;
     $bot1->yield(dcc => $bot2->nick_name() => CHAT => undef, undef, 5);
@@ -112,7 +112,7 @@ sub irc_join {
 
 sub irc_dcc_request {
     my ($sender, $cookie) = @_[SENDER, ARG3];
-    
+
     pass('Got dcc request');
     is($cookie->{addr}, '2130706532', 'NAT Address');
     $sender->get_heap()->yield('quit');

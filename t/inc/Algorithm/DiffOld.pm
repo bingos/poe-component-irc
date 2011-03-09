@@ -110,7 +110,7 @@ sub _longestCommonSubsequence
 			# oddly, it's faster to always test this (CPU cache?).
 			if ( defined( $k ) )
 			{
-				$links->[ $k ] = 
+				$links->[ $k ] =
 					[ ( $k ? $links->[ $k - 1 ] : undef ), $i, $j ];
 			}
 		}

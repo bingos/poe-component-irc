@@ -11,7 +11,7 @@ require Exporter;
 	cidrs2contiglists range2cidrlist sort_by_ip_address
 	dumpNetworkTable sort_network_blocks cidrs2cidrs
 	cidrs2inverse);
-@EXPORT_OK = (@EXPORT, qw(int2quad quad2int %quadmask2bits 
+@EXPORT_OK = (@EXPORT, qw(int2quad quad2int %quadmask2bits
 	%quadhostmask2bits imask sameblock cmpblocks contains));
 
 my $remembered = {};
@@ -32,7 +32,7 @@ use overload
 	'""' => \&desc,
 	'<=>' => \&cmp_net_netmask_block,
 	'cmp' => \&cmp_net_netmask_block,
-	'fallback' => 1; 
+	'fallback' => 1;
 
 sub new
 {
@@ -64,7 +64,7 @@ sub new
 			$error = "illegal hostmask: $hostmask";
 		}
 	} elsif (($net =~ m,^\d+\.\d+\.\d+\.\d+$,)
-		&& ($mask =~ m,\d+\.\d+\.\d+\.\d+$,)) 
+		&& ($mask =~ m,\d+\.\d+\.\d+\.\d+$,))
 	{
 		$base = $net;
 		if (exists $quadmask2bits{$mask}) {
@@ -73,7 +73,7 @@ sub new
 			$error = "illegal netmask: $mask";
 		}
 	} elsif (($net =~ m,^\d+\.\d+\.\d+\.\d+$,) &&
-		($mask =~ m,0x[a-z0-9]+,i)) 
+		($mask =~ m,0x[a-z0-9]+,i))
 	{
 		$base = $net;
 		my $imask = hex($mask);
@@ -102,7 +102,7 @@ sub new
 		# whois format
 		$ibase = quad2int($1);
 		my $end = quad2int($2);
-		$error = "illegal dotted quad: $net" 
+		$error = "illegal dotted quad: $net"
 			unless defined($ibase) && defined($end);
 		my $diff = ($end || 0) - ($ibase || 0) + 1;
 		$bits = $size2bits{$diff};
@@ -126,15 +126,15 @@ sub new
 		if defined $ibase && defined $bits;
 
 	$bits = 0 unless $bits;
-	if ($bits > 32) { 
+	if ($bits > 32) {
 		$error = "illegal number of bits: $bits"
 			unless $error;
 		$bits = 32;
 	}
 
-	return bless { 
+	return bless {
 		'IBASE' => $ibase,
-		'BITS' => $bits, 
+		'BITS' => $bits,
 		( $error ? ( 'ERROR' => $error ) : () ),
 	};
 }
@@ -155,7 +155,7 @@ sub bits { my ($this) = @_; return $this->{'BITS'}; }
 sub size { my ($this) = @_; return 2**(32- $this->{'BITS'}); }
 sub next { my ($this) = @_; int2quad($this->{'IBASE'} + $this->size()); }
 
-sub broadcast 
+sub broadcast
 {
 	my($this) = @_;
 	int2quad($this->{'IBASE'} + $this->size() - 1);
@@ -164,17 +164,17 @@ sub broadcast
 *first = \&base;
 *last = \&broadcast;
 
-sub desc 
-{ 
+sub desc
+{
 	return int2quad($_[0]->{'IBASE'}).'/'.$_[0]->{'BITS'};
 }
 
-sub imask 
+sub imask
 {
 	return (2**32 -(2** (32- $_[0])));
 }
 
-sub mask 
+sub mask
 {
 	my ($this) = @_;
 
@@ -413,8 +413,8 @@ sub match
 	}
 }
 
-sub maxblock 
-{ 
+sub maxblock
+{
 	my ($this) = @_;
 	return imaxblock($this->{'IBASE'}, $this->{'BITS'});
 }
@@ -567,7 +567,7 @@ sub contains
 
 sub cmp_net_netmask_block
 {
-	return ($_[0]->{IBASE} <=> $_[1]->{IBASE} 
+	return ($_[0]->{IBASE} <=> $_[1]->{IBASE}
 		|| $_[0]->{BITS} <=> $_[1]->{BITS});
 }
 

@@ -20,7 +20,7 @@ sub _start {
 
     my $plugin = POE::Component::IRC::Plugin::NickServID->new( Password => 'test' );
     isa_ok($plugin, 'POE::Component::IRC::Plugin::NickServID');
-  
+
     if (!$bot->plugin_add('TestPlugin', $plugin )) {
         fail('plugin_add failed');
         $bot->yield('shutdown');
@@ -32,7 +32,7 @@ sub irc_plugin_add {
     return if $name ne 'TestPlugin';
 
     isa_ok($plugin, 'POE::Component::IRC::Plugin::NickServID');
-  
+
     if (!$bot->plugin_del('TestPlugin') ) {
         fail('plugin_del failed');
         $bot->yield('shutdown');

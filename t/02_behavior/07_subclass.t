@@ -38,12 +38,12 @@ POE::Session->create(
     package_states => [
         main => [qw(
             _start
-            _config_ircd 
-            _shutdown 
-            irc_registered 
-            irc_connected 
-            irc_001 
-            irc_whois 
+            _config_ircd
+            _shutdown
+            irc_registered
+            irc_connected
+            irc_001
+            irc_whois
             irc_join
             irc_error
             irc_disconnected
@@ -77,7 +77,7 @@ sub get_port {
 sub _shutdown {
     my ($kernel, $error) = @_[KERNEL, ARG0];
     fail($error) if defined $error;
-    
+
     $kernel->alarm_remove_all();
     $bot->yield('shutdown');
     $ircd->yield('shutdown');

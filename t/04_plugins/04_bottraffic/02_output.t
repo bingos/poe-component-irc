@@ -22,9 +22,9 @@ POE::Session->create(
     package_states => [
         main => [qw(
             _start
-            _config_ircd 
-            _shutdown 
-            irc_001 
+            _config_ircd
+            _shutdown
+            irc_001
             irc_join
             irc_disconnected
             irc_bot_public
@@ -60,9 +60,9 @@ sub get_port {
 
 sub _config_ircd {
     my ($kernel, $port) = @_[KERNEL, ARG0];
-    
+
     $ircd->yield(add_listener => Port => $port);
-    
+
     $bot->yield(register => 'all');
     $bot->yield(connect => {
         nick    => 'TestBot1',
@@ -127,7 +127,7 @@ sub irc_disconnected {
 sub _shutdown {
     my ($kernel, $error) = @_[KERNEL, ARG0];
     fail($error) if defined $error;
-    
+
     $kernel->alarm_remove_all();
     $ircd->yield('shutdown');
     $bot->yield('shutdown');

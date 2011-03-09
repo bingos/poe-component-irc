@@ -16,7 +16,7 @@ sub new {
     my ($package) = shift;
     croak "$package requires an even number of arguments" if @_ & 1;
     my %self = @_;
-    
+
     if (!defined $self{Path} && ref $self{Log_sub} ne 'CODE') {
         die "$package requires a Path";
     }
@@ -25,15 +25,15 @@ sub new {
 
 sub PCI_register {
     my ($self, $irc) = @_;
-    
+
     if (!$irc->isa('POE::Component::IRC::State')) {
         die __PACKAGE__ . ' requires PoCo::IRC::State or a subclass thereof';
     }
-    
+
     if ( !grep { $_->isa('POE::Component::IRC::Plugin::BotTraffic') } values %{ $irc->plugin_list() } ) {
         $irc->plugin_add('BotTraffic', POE::Component::IRC::Plugin::BotTraffic->new());
     }
-    
+
     if ($self->{Restricted}) {
         $self->{dir_perm} = oct 700;
         $self->{file_perm} = oct 600;
@@ -47,7 +47,7 @@ sub PCI_register {
     if (defined $self->{Path} && ! -d $self->{Path}) {
         mkdir $self->{Path}, $self->{dir_perm} or die 'Cannot create directory ' . $self->{Path} . ": $!; aborted";
     }
-    
+
     $self->{irc} = $irc;
     $self->{logging} = { };
     $self->{Private} = 1 if !defined $self->{Private};
@@ -55,7 +55,7 @@ sub PCI_register {
     $self->{DCC} = 1 if !defined $self->{DCC};
     $self->{Format} = $self->default_format() if !defined $self->{Format};
 
-    $irc->plugin_register($self, 'SERVER', qw(001 332 333 chan_mode 
+    $irc->plugin_register($self, 'SERVER', qw(001 332 333 chan_mode
         ctcp_action bot_action bot_msg bot_public bot_notice join kick msg
         nick part public notice quit topic dcc_start dcc_chat dcc_done));
     $irc->plugin_register($self, 'USER', 'dcc_chat');
@@ -313,8 +313,8 @@ sub U_dcc_chat {
     my ($dcc) = grep { $_->isa('POE::Component::IRC::Plugin::DCC') } values %{ $irc->plugin_list() };
     my $info = $dcc->dcc_info($$id);
     my $nick = $info->{nick};
-   
-    for my $msg (@lines) { 
+
+    for my $msg (@lines) {
         $msg = $self->_normalize($msg);
         if (my ($action) = $msg =~ /\001ACTION (.*?)\001/) {
             $self->_log_entry("=$nick", action => $me, $action);
@@ -365,7 +365,7 @@ sub _log_entry {
 
     # slash is problematic in a filename, replace it with underscore
     $context =~ s!/!_!g;
-    
+
     my $log_file;
     if ($self->{Sort_by_date}) {
         my $log_dir = catdir($self->{Path}, $context);
@@ -378,7 +378,7 @@ sub _log_entry {
     else {
         $log_file = catfile($self->{Path}, "$context.log");
     }
-    
+
     $log_file = $self->_open_log($log_file);
 
     if (!$self->{logging}->{$context}) {
@@ -497,7 +497,7 @@ logs public, private, and DCC chat messages to disk
 
 POE::Component::IRC::Plugin::Logger is a L<POE::Component::IRC|POE::Component::IRC>
 plugin. It logs messages and CTCP ACTIONs to either F<#some_channel.log> or
-F<some_nickname.log> in the supplied path. In the case of DCC chats, a '=' is 
+F<some_nickname.log> in the supplied path. In the case of DCC chats, a '=' is
 prepended to the nickname (like in irssi).
 
 The plugin tries to detect UTF-8 encoding of every message or else falls back

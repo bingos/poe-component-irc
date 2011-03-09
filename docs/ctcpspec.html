@@ -60,7 +60,7 @@ Characters between an Internet Relay Chat (IRC) client and server are
 octal \000 to \377 inclusive (0 to 255 decimal). Some characters are
 special:
 
-	CHARS	::= '\000' .. '\377' 
+	CHARS	::= '\000' .. '\377'
 	NUL	::= '\000'
 	NL	::= '\n'
 	CR	::= '\r'
@@ -77,8 +77,8 @@ CR) with either a NL or CR appended.
 		    '\016' .. '\377'
 	L-LINE	::= L-CHARS* CR LF
 
-Note: The `*' is used here to denote "zero or more of the preceding class of 
-      characters", and the `|' is used to denote alternation. 
+Note: The `*' is used here to denote "zero or more of the preceding class of
+      characters", and the `|' is used to denote alternation.
 
 A NUL is never sent to the server.
 
@@ -161,8 +161,8 @@ followed by zero or more characters.
 	SPC	::= '\040'
 	X-MSG	::= | X-N-AS+ | X-N-AS+ SPC X-CHR*
 
-Note: Here `+' is used to denote "one or more of the previous class of 
-      characters", and `*' is used to denote "zero or more of the previous 
+Note: Here `+' is used to denote "one or more of the previous class of
+      characters", and `*' is used to denote "zero or more of the previous
       class of characters".
 
 The characters up until the first SPC (or if no SPC, all of the X-MSG)
@@ -417,7 +417,7 @@ Extended data passed between clients can be used to pass structured
 information between them. Currently known extended data types are:
 
 ACTION		- Used to simulate "role playing" on IRC.
-DCC		- Negotiates file transfers and direct tcp chat 
+DCC		- Negotiates file transfers and direct tcp chat
 		  connections between clients.
 SED		- Used to send encrypted messages between clients.
 
@@ -438,7 +438,7 @@ users clients might display the message as:
 Presumably other users on the channel are suitably impressed.
 
 DCC
-=== 
+===
 DCC stands for something like "Direct Client Connection". CTCP DCC
 extended data messages are used to negotiate file transfers between
 clients and to negotiate chat connections over tcp connections between
@@ -514,7 +514,7 @@ running in.
 
 Using
 
-	X-N-CLN	::= '\000' .. '\071' | '\073' .. '\377' 
+	X-N-CLN	::= '\000' .. '\071' | '\073' .. '\377'
 
 the client name is a string of type X-N-CLN saying things like "Kiwi"
 or "ircII", the version saying things like "5.2" or "2.1.5c", the
@@ -544,7 +544,7 @@ directory.
 
 Using
 
-	X-N-SPC	::= '\000' .. '\037' | '\041' .. '\377' 
+	X-N-SPC	::= '\000' .. '\037' | '\041' .. '\377'
 
 the name of the FTP site is to be given by name like "cs.bu.edu" or
 "funic.funet.fi".
@@ -899,7 +899,7 @@ CHAT	Data sent across a CHAT connection should be sent line-by-line
 	without any prefixes or commands. A CHAT connection ends when
 	one party issues the DCC CLOSE command to their clients, which
 	causes the socket to be closed and the information on the connection
-	to be discarded. The terminating character of each line is a 
+	to be discarded. The terminating character of each line is a
 	newline character, '\n'.
 
 FILE	Data is sent in packets, rather than dumped in a stream manner.

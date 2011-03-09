@@ -6,7 +6,7 @@ POE::Component::IRC::Cookbook::Reload - Reload your bot's code after a change
 
 =head1 SYNOPSIS
 
-Wouldn't it be neat if you could update your bot's code, and have the changes 
+Wouldn't it be neat if you could update your bot's code, and have the changes
 be applied without dropping the connection to the IRC server?
 
 =head1 DESCRIPTION

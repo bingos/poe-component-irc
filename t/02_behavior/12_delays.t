@@ -11,7 +11,7 @@ POE::Session->create(
     package_states => [
         main => [qw(
             _start
-            irc_registered 
+            irc_registered
             irc_delay_set
             irc_delay_removed
         )],
@@ -26,7 +26,7 @@ sub _start {
 
 sub irc_registered {
   my ($heap, $irc) = @_[HEAP, ARG0];
-  
+
   $heap->{alarm_id} =
     $irc->delay( [ connect => {
         nick    => 'TestBot',
@@ -39,7 +39,7 @@ sub irc_registered {
 
 sub irc_delay_set {
     my ($heap, $event, $alarm_id) = @_[HEAP, STATE, ARG0];
-    
+
     is($alarm_id, $heap->{alarm_id}, $_[STATE]);
     my $opts = $bot->delay_remove($alarm_id);
     ok($opts, 'Delay Removed');
@@ -47,7 +47,7 @@ sub irc_delay_set {
 
 sub irc_delay_removed {
     my ($heap, $alarm_id) = @_[HEAP, ARG0];
-    
+
     is($alarm_id, $heap->{alarm_id}, $_[STATE] );
     $bot->yield('shutdown');
 }

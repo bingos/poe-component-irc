@@ -18,11 +18,11 @@ POE::Session->create(
     package_states => [
         main => [qw(
             _start
-            _config_ircd 
-            _shutdown 
-            irc_registered 
-            irc_connected 
-            irc_001 
+            _config_ircd
+            _shutdown
+            irc_registered
+            irc_connected
+            irc_001
             irc_join
             irc_mode
             irc_public
@@ -59,14 +59,14 @@ sub _config_ircd {
     my ($kernel, $port) = @_[KERNEL, ARG0];
 
     $ircd->yield(add_listener => Port => $port);
-    
+
     $bot1->yield(register => 'all');
     $bot1->yield(connect => {
         nick    => 'TestBot1',
         server  => '127.0.0.1',
         port    => $port,
     });
-    
+
     $bot2->yield(register => 'all');
     $bot2->yield(connect => {
         nick    => 'TestBot2',
@@ -87,7 +87,7 @@ sub irc_connected {
 sub irc_001 {
     my ($kernel, $sender, $text) = @_[KERNEL, SENDER, ARG1];
     my $irc = $sender->get_heap();
-    
+
     pass('Logged in');
     is($irc->server_name(), 'poco.server.irc', 'Server Name Test');
     $irc->yield(join => '#testchannel');
@@ -116,7 +116,7 @@ sub irc_public {
     my ($sender, $who, $where, $what) = @_[SENDER, ARG0..ARG2];
     my $nick = ( split /!/, $who )[0];
     my $irc = $sender->get_heap();
-  
+
     is($what, 'HELLO', 'irc_public test');
     $irc->yield('quit');
 }
@@ -135,7 +135,7 @@ sub irc_disconnected {
 sub _shutdown {
     my ($kernel, $error) = @_[KERNEL, ARG0];
     fail($error) if defined $error;
-    
+
     $kernel->alarm_remove_all();
     $bot1->yield('shutdown');
     $bot2->yield('shutdown');

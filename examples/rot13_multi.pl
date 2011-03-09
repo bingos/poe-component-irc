@@ -9,7 +9,7 @@ use POE qw(Component::IRC);
 my $nickname = 'Flibble' . $$;
 my $ircname = 'Flibble the Sailor Bot';
 
-my $settings = { 
+my $settings = {
     'server1.irc' => { port => 6667, channels => [ '#Foo' ], },
     'server2.irc' => { port => 6668, channels => [ '#Bar' ], },
     'server3.irc' => { port => 7001, channels => [ '#Baa' ], },
@@ -17,10 +17,10 @@ my $settings = {
 
 # We create our PoCo-IRC objects
 for my $server ( keys %{ $settings } ) {
-    POE::Component::IRC->spawn( 
-        alias   => $server, 
+    POE::Component::IRC->spawn(
+        alias   => $server,
         nick    => $nickname,
-        ircname => $ircname,  
+        ircname => $ircname,
     );
 }
 
@@ -54,7 +54,7 @@ sub irc_registered {
     );
 
     # In any irc_* events SENDER will be the PoCo-IRC session
-    $kernel->post( $sender, 'connect', \%conn_hash ); 
+    $kernel->post( $sender, 'connect', \%conn_hash );
 
     return;
 }
@@ -89,7 +89,7 @@ sub irc_public {
         # Someone has told us to die =[
         $kernel->signal( $kernel, 'POCOIRC_SHUTDOWN', "See you loosers" );
     }
-    
+
     return;
 }
 
@@ -107,7 +107,7 @@ sub _default {
         }
     }
     print join ' ', @output, "\n";
-    
+
     return 0;
 }
 

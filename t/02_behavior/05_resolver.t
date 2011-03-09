@@ -6,7 +6,7 @@ use Test::More;
 
 BEGIN {
     my $GOT_DNS;
-    eval { 
+    eval {
         require POE::Component::Client::DNS;
         $GOT_DNS = 1 if $POE::Component::Client::DNS::VERSION >= 0.99;
     };

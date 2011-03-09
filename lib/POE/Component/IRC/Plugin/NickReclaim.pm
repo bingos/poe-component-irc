@@ -15,12 +15,12 @@ sub new {
     if (!defined $args{poll} || $args{poll} !~ /^\d+$/) {
         $args{poll} = 30;
     }
-    
+
     # the $irc->nick_name() and offending nickname will be...
     #...the same on start, thus won't change
     $args{_did_start} = 0;
     $args{_claims} = {};
-    
+
     return bless \%args, $package;
 }
 
@@ -28,12 +28,12 @@ sub PCI_register {
     my ($self, $irc) = @_;
     $irc->plugin_register( $self, 'SERVER', qw(433 001 nick quit) );
     $irc->plugin_register( $self, 'USER', qw(nick) );
-    
+
     # we will store the original nickname so we would know...
     #...what we need to reclaim, without sending dozens of...
     #...requests to reclaim foo_, foo__, foo___ etc.
     $self->{_nick} = $irc->nick_name();
-    
+
     return 1;
 }
 
@@ -54,14 +54,14 @@ sub PCI_register {
 sub U_nick {
     my $self = shift;
     my ($nick) = ${ $_[1 ] } =~ /^NICK +(.+)/i;
-    
+
     return PCI_EAT_NONE if exists $self->{_claims}{ $nick };
 
     # we got a new "real" nick, reset old nicks with underscores...
     #...we don't need those anymore.
     $self->{_claims} = {};
     $self->{_nick} = $nick;
-    
+
     return PCI_EAT_NONE;
 }
 
@@ -74,21 +74,21 @@ sub PCI_unregister {
 ## sub S_001
 ########
 # This is basically a tiny little bit that will differentiate
-# between successful reclaims and the startup routine 
+# between successful reclaims and the startup routine
 # when $irc->nick_name() returns the nick which we need to reclaim
 ######
 sub S_001 {
-    $_[0]->{_did_start} = 1; 
+    $_[0]->{_did_start} = 1;
     return PCI_EAT_NONE;
 }
 
 # ERR_NICKNAMEINUSE
 sub S_433 {
     my ($self,$irc) = splice @_, 0, 2;
-    
+
     # this is the nickname which we failed to get...
     my $offending = ${ $_[2] }->[0];
-    
+
     # only reclaim if we don't have a nick we can use...
     #...and it's not a startup routine where ->nick_name cannot
     #...be used (and needs to be reclaimed)
@@ -98,7 +98,7 @@ sub S_433 {
         #...by NickReclaim and which ones need to change the "real" nick
         $offending .= '_';
         $self->{_claims}{ $offending } = 1;
-        
+
         # we will kindly ask the server to give us the nick with an underscore...
         $irc->yield( nick => $offending );
     }
@@ -114,7 +114,7 @@ sub S_433 {
         $self->{poll}
     ); # note that we are asking the server to give us ->{_nick} which is...
     #....our "real" nick.
-    
+
   return PCI_EAT_NONE;
 }
 
@@ -162,7 +162,7 @@ your nickname
  my $ircserver = 'irc.blahblahblah.irc';
  my $port = 6667;
 
- my $irc = POE::Component::IRC->spawn( 
+ my $irc = POE::Component::IRC->spawn(
      nick => $nickname,
      server => $ircserver,
      port => $port,
@@ -180,8 +180,8 @@ your nickname
  sub _start {
      $irc->yield( register => 'all' );
 
-     # Create and load our NickReclaim plugin, before we connect 
-     $irc->plugin_add( 'NickReclaim' => 
+     # Create and load our NickReclaim plugin, before we connect
+     $irc->plugin_add( 'NickReclaim' =>
          POE::Component::IRC::Plugin::NickReclaim->new( poll => 30 ) );
 
      $irc->yield( connect => { } );

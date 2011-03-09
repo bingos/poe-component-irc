@@ -25,8 +25,8 @@ POE::Session->create(
     package_states => [
         main => [qw(
             _start
-            _config_ircd 
-            _shutdown 
+            _config_ircd
+            _shutdown
             irc_001
             irc_332
             irc_topic
@@ -72,7 +72,7 @@ sub _config_ircd {
     my ($kernel, $port) = @_[KERNEL, ARG0];
 
     $ircd->yield(add_listener => Port => $port);
-    
+
     $bot1->yield(register => 'all');
     $bot1->yield(connect => {
         nick    => 'TestBot1',
@@ -83,7 +83,7 @@ sub _config_ircd {
 
 sub irc_001 {
     my $irc = $_[SENDER]->get_heap();
-    
+
     if ($irc == $bot1) {
         pass($irc->nick_name() . ' logged in');
         $irc->yield(join => '#testchannel');
@@ -97,7 +97,7 @@ sub irc_join {
     my ($sender, $heap, $who, $where) = @_[SENDER, HEAP, ARG0, ARG1];
     my $nick = ( split /!/, $who )[0];
     my $irc = $sender->get_heap();
-    
+
     if ($irc == $bot1) {
         like($where, qr/#testchannel/, "$nick joined $where");
         $irc->yield(topic => $where, 'Some topic');
@@ -112,7 +112,7 @@ sub irc_topic {
     my $irc = $sender->get_heap();
 
     is($topic, 'Some topic', $irc->nick_name() . ' changed topic');
- 
+
     $bot2->yield(register => 'all');
     $bot2->yield(connect => {
         nick     => 'TestBot1',
@@ -143,7 +143,7 @@ sub irc_disconnected {
 sub _shutdown {
     my ($kernel, $error) = @_[KERNEL, ARG0];
     fail($error) if defined $error;
-    
+
     $kernel->alarm_remove_all();
     $ircd->yield('shutdown');
     $bot1->yield('shutdown');

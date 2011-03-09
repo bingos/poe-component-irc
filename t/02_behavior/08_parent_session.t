@@ -1,5 +1,5 @@
 # This tests the following from IRC.pm's pod:
-# 
+#
 # Starting with version 4.96, if you spawn the component from inside another
 # POE session, the component will automatically register that session as
 # wanting 'all' irc events. That session will receive an irc_registered

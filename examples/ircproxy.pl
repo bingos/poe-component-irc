@@ -34,7 +34,7 @@ my @channels = split /\,/, $channels;
 my $poco = POE::Component::IRC::State->spawn(Nick => $nick, Server => $server, Port => $port, Ircname => $ircname, Username => $user);
 
 POE::Session->create(
-  package_states => [ 
+  package_states => [
 	'main' => [ qw(_start _default irc_proxy_service irc_proxy_authed irc_proxy_close irc_001) ],
   ],
   heap => { irc => $poco, channels => \@channels },

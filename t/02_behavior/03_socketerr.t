@@ -44,7 +44,7 @@ sub get_port {
 sub _shutdown {
     my ($kernel, $error) = @_[KERNEL, ARG0];
     fail($error) if defined $error;
-    
+
     $kernel->alarm_remove_all();
     $bot->yield(unregister => 'socketerr');
     $bot->yield('shutdown');
@@ -52,7 +52,7 @@ sub _shutdown {
 
 sub _try_connect {
     my ($port) = $_[ARG0];
-    
+
     $bot->yield(register => 'socketerr');
     $bot->yield( connect => {
         nick => 'TestBot',

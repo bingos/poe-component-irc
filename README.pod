@@ -19,7 +19,7 @@ POE::Component::IRC - A fully event-driven IRC client module
  my @channels = ('#Blah', '#Foo', '#Bar');
 
  # We create a new PoCo-IRC object
- my $irc = POE::Component::IRC->spawn( 
+ my $irc = POE::Component::IRC->spawn(
     nick => $nickname,
     ircname => $ircname,
     server => $server,
@@ -109,7 +109,7 @@ The POE::Component::IRC distribution has a F<docs/> folder with a collection of
 salient documentation including the pertinent RFCs.
 
 POE::Component::IRC consists of a POE::Session that manages the IRC connection
-and dispatches C<irc_> prefixed events to interested sessions and 
+and dispatches C<irc_> prefixed events to interested sessions and
 an object that can be used to access additional information using methods.
 
 Sessions register their interest in receiving C<irc_> events by sending
@@ -144,7 +144,7 @@ network.
 =item L<POE::Component::IRC::Qnet::State|POE::Component::IRC::Qnet::State>
 
 POE::Component::IRC::Qnet::State is a tweaked version of POE::Component::IRC::State
-for use on the Quakenet IRC network. 
+for use on the Quakenet IRC network.
 
 =back
 
@@ -156,7 +156,7 @@ That is not a subclass, just a placeholder for documentation!
 
 A number of useful plugins have made their way into the core distribution:
 
-=over 
+=over
 
 =item L<POE::Component::IRC::Plugin::DCC|POE::Component::IRC::Plugin::DCC>
 
@@ -288,7 +288,7 @@ the 'user' part and some even replace the whole string (think FreeNode cloaks).
 If you have an unusually long user@host mask you might want to decrease this
 value if you're prone to sending long messages. Conversely, if you have an
 unusually short one, you can increase this value if you want to be able to
-send as long a message as possible. Be careful though, increase it too much 
+send as long a message as possible. Be careful though, increase it too much
 and the IRC server might disconnect you with a "Request too long" message when
 you try to send a message that's too long.
 
@@ -570,7 +570,7 @@ specify. Takes 2 arguments: the nick or channel to send a message to
 plain text of the message to send (the CTCP quoting will be handled
 for you). The "/me" command in popular IRC clients is actually a CTCP action.
 
- # Doing a /me 
+ # Doing a /me
  $irc->yield(ctcp => $channel => 'ACTION dances.');
 
 =head3 C<join>
@@ -596,7 +596,7 @@ out the door. Similar to KICK but does an enforced PART instead.
 =head3 C<mode>
 
 Request a mode change on a particular channel or user. Takes at least
-one argument: the mode changes to effect, as a single string (e.g. 
+one argument: the mode changes to effect, as a single string (e.g.
 "#mychan +sm-p+o"), and any number of optional operands to the mode changes
 (nicks, hostmasks, channel keys, whatever.) Or just pass them all as one
 big string and it'll still work, whatever. I regret that I haven't the
@@ -678,7 +678,7 @@ for a particular event which you no longer care about, this event will
 tell the IRC connection to stop sending them to you. (If you haven't, it just
 ignores you. No big deal.)
 
-If you have registered with 'all', attempting to unregister individual 
+If you have registered with 'all', attempting to unregister individual
 events such as 'mode', etc. will not work. This is a 'feature'.
 
 =head3 C<debug>
@@ -840,7 +840,7 @@ pings automatically. Don't worry about it.
 =head3 C<die>
 
 Tells the IRC server you're connect to, to terminate. Only useful for
-IRCops, thank goodness. Takes no arguments. 
+IRCops, thank goodness. Takes no arguments.
 
 =head3 C<locops>
 
@@ -919,14 +919,14 @@ receive are prefixed by C<irc_>, to inhibit event namespace pollution.
 If you wish, you can ask the client to send you every event it
 generates. Simply register for the event name "all". This is a lot
 easier than writing a huge list of things you specifically want to
-listen for. 
+listen for.
 
 FIXME: I'd really like to classify these somewhat ("basic", "oper", "ctcp",
 "dcc", "raw" or some such), and I'd welcome suggestions for ways to make
 this easier on the user, if you can think of some.
 
 In your event handlers, C<$_[SENDER]> is the particular component session that
-sent you the event. C<< $_[SENDER]->get_heap() >> will retrieve the component's 
+sent you the event. C<< $_[SENDER]->get_heap() >> will retrieve the component's
 object. Useful if you want on-the-fly access to the object and its methods.
 
 =head2 Important Events
@@ -1073,11 +1073,11 @@ unset. Note: replies to queries about what a channel topic *is*
 =head3 C<irc_whois>
 
 Sent in response to a WHOIS query. C<ARG0> is a hashref, with the following
-keys: 
+keys:
 
-B<'nick'>, the users nickname; 
+B<'nick'>, the users nickname;
 
-B<'user'>, the users username; 
+B<'user'>, the users username;
 
 B<'host'>, their hostname;
 
@@ -1093,7 +1093,7 @@ prefixed with '@','+','%' depending on whether they have +o +v or +h;
 
 B<'server'>, their server ( might not be useful on some networks );
 
-B<'oper'>, whether they are an IRCop, contains the IRC operator string if they are, 
+B<'oper'>, whether they are an IRCop, contains the IRC operator string if they are,
 undef if they aren't.
 
 B<'actually'>, some ircds report the users actual ip address, that'll be here;
@@ -1213,7 +1213,7 @@ is no need to parse C<ARG1> yourself.
 
 =head1 SIGNALS
 
-The component will handle a number of custom signals that you may send using 
+The component will handle a number of custom signals that you may send using
 L<POE::Kernel|POE::Kernel>'s C<signal> method.
 
 =head2 C<POCOIRC_REGISTER>
@@ -1227,7 +1227,7 @@ event. From that event one can get all the information necessary such as the
 poco-irc object and the SENDER session to do whatever one needs to build a
 poco-irc dispatch table.
 
-The way the signal handler in PoCo-IRC is written also supports sending the 
+The way the signal handler in PoCo-IRC is written also supports sending the
 C<POCOIRC_REGISTER> to multiple sessions simultaneously, by sending the signal
 to the POE Kernel itself.
 
@@ -1252,7 +1252,7 @@ L<C<irc_registered>|/irc_registered> event:
  sub irc_registered {
      my ($kernel, $sender, $heap, $irc_object) = @_[KERNEL, SENDER, HEAP, ARG0];
 
-     # Get the poco-irc session ID 
+     # Get the poco-irc session ID
      my $sender_id = $sender->ID();
 
      # Or it's alias
@@ -1261,7 +1261,7 @@ L<C<irc_registered>|/irc_registered> event:
      # Store it in our heap maybe
      $heap->{irc_objects}->{ $sender_id } = $irc_object;
 
-     # Make the poco connect 
+     # Make the poco connect
      $irc_object->yield(connect => { });
 
      return;
@@ -1409,7 +1409,7 @@ Check out the Changes file for further contributors.
 
 =head1 SEE ALSO
 
-RFC 1459 L<http://www.faqs.org/rfcs/rfc1459.html> 
+RFC 1459 L<http://www.faqs.org/rfcs/rfc1459.html>
 
 L<http://www.irchelp.org/>,
 

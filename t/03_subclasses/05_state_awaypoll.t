@@ -26,9 +26,9 @@ POE::Session->create(
     package_states => [
         main => [qw(
             _start
-            _config_ircd 
-            _shutdown 
-            irc_001 
+            _config_ircd
+            _shutdown
+            irc_001
             irc_join
             irc_chan_sync
             irc_user_away
@@ -65,14 +65,14 @@ sub _config_ircd {
     my ($kernel, $port) = @_[KERNEL, ARG0];
 
     $ircd->yield(add_listener => Port => $port);
-    
+
     $bot1->yield(register => 'all');
     $bot1->yield(connect => {
         nick    => 'TestBot1',
         server  => '127.0.0.1',
         port    => $port,
     });
-  
+
     $bot2->yield(register => 'all');
     $bot2->yield(connect => {
         nick    => 'TestBot2',
@@ -84,7 +84,7 @@ sub _config_ircd {
 sub irc_001 {
     my $irc = $_[SENDER]->get_heap();
     pass($irc->nick_name . ' logged in');
-    
+
     if ($irc == $bot1) {
         $irc->yield(join => '#testchannel');
     }
@@ -94,7 +94,7 @@ sub irc_join {
     my ($sender, $who, $where) = @_[SENDER, ARG0, ARG1];
     my $nick = ( split /!/, $who )[0];
     my $irc = $sender->get_heap();
-    
+
     return if $nick ne $irc->nick_name();
     is($where, '#testchannel', $irc->nick_name . ' joined channel');
 }
@@ -134,7 +134,7 @@ sub irc_user_back {
     if ($irc == $bot1) {
         fail("Shouldn't get irc_user_back when AwayPoll is off");
     }
-    
+
     is($nick, $bot1->nick_name(), $bot1->nick_name() .' came back');
     $_->yield('quit') for ($bot1, $bot2);
 }
@@ -149,7 +149,7 @@ sub irc_disconnected {
 sub _shutdown {
     my ($kernel, $error) = @_[KERNEL, ARG0];
     fail($error) if defined $error;
-    
+
     $kernel->alarm_remove_all();
     $ircd->yield('shutdown');
     $bot1->yield('shutdown');

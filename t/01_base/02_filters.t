@@ -155,7 +155,7 @@ my $stack = POE::Filter::Stackable->new(
 
 for my $filter ( $stack, $irc_filter ) {
     isa_ok( $filter, 'POE::Filter::Stackable');
-    
+
     my @events = @{ $filter->get( [map {$tests{$_}->{line} } sort keys %tests]) };
     for my $event ( @events ) {
         next if !defined $tests{ $event->{name} };
@@ -164,11 +164,11 @@ for my $filter ( $stack, $irc_filter ) {
         my $test = $tests{ $event->{name} };
         is($event->{raw_line}, $test->{line}, "Raw Line $event->{name}");
         is(scalar @{ $event->{args} },scalar @{ $test->{args} }, "Args count $event->{name}");
-        
+
         for my $idx (0 .. $#{ $test->{args} }) {
             if (ref $test->{args}->[$idx] eq 'ARRAY') {
                 is(scalar @{ $event->{args}->[$idx] }, scalar @{ $test->{args}->[$idx] }, "Sub args count $event->{name}");
-                
+
                 for my $iidx (0 .. $#{ $test->{args}->[$idx] }) {
                     is($event->{args}->[$idx]->[$iidx], $test->{args}->[$idx]->[$iidx], "Sub args Index $event->{name} $idx $iidx");
                 }

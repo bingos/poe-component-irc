@@ -85,7 +85,7 @@ sub _default {
         next if !$self->{authed}{ $wheel_id };
         $self->{wheels}->{ $wheel_id }->put("$event: ".join(', ', @output));
     }
-    
+
     return PCI_EAT_NONE;
 }
 
@@ -106,14 +106,14 @@ sub _start {
         FailureEvent => '_listener_failed',
         Reuse        => 'yes',
     );
-    
+
     if ($self->{listener}) {
         $self->{irc}->send_event( 'irc_console_service' => $self->{listener}->getsockname() );
     }
     else {
         $self->{irc}->plugin_del( $self );
     }
-    
+
     return;
 }
 
@@ -171,7 +171,7 @@ sub _client_input {
         $self->{irc}->send_event( 'irc_console_authed' => $wheel_id );
         return;
     }
-    
+
     $self->{wheels}->{ $wheel_id }->put('NOTICE * Password required * enter PASS <password> *');
     return;
 }
@@ -228,7 +228,7 @@ lightweight debugging and control console for your bot
 
  my @channels = ( '#Blah', '#Foo', '#Bar' );
 
- my $irc = POE::Component::IRC->spawn( 
+ my $irc = POE::Component::IRC->spawn(
      nick => $nickname,
      server => $ircserver,
      port => $port,
@@ -245,7 +245,7 @@ lightweight debugging and control console for your bot
  $poe_kernel->run();
 
  sub _start {
-     $irc->plugin_add( 'Console' => POE::Component::IRC::Plugin::Console->new( 
+     $irc->plugin_add( 'Console' => POE::Component::IRC::Plugin::Console->new(
          bindport => $bindport,
          password => 'opensesame'
      );

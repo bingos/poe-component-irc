@@ -10,7 +10,7 @@ sub new {
     my ($package) = shift;
     croak "$package requires an even number of arguments" if @_ & 1;
     my %self = @_;
-    
+
     die "$package requires a Password" if !defined $self{Password};
     return bless \%self, $package;
 }

@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 use Carp;
 use Socket;
-use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::IRCD 
+use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::IRCD
            Filter::Line Filter::Stackable);
 use POE::Component::IRC::Plugin qw(PCI_EAT_NONE);
 
@@ -101,17 +101,17 @@ sub S_raw {
     my $input = $self->{irc_filter}->get( [$line] )->[0];
 
     return PCI_EAT_NONE if $input->{command} eq 'PING';
-    
+
     for my $wheel_id (keys %{ $self->{wheels} }) {
         $self->_send_to_client($wheel_id, $line);
     }
 
     return PCI_EAT_NONE if $self->{stashed};
-    
+
     if ($input->{command} =~ /^(?:NOTICE|\d{3})$/) {
         push @{ $self->{stash} }, $line;
     }
-    
+
     $self->{stashed} = 1 if $input->{command} =~ /^(?:376|422)$/;
     return PCI_EAT_NONE;
 }
@@ -120,7 +120,7 @@ sub _send_to_client {
     my ($self, $wheel_id, $line) = splice @_, 0, 3;
     return if !defined $self->{wheels}->{ $wheel_id }->{wheel};
     return if !$self->{wheels}->{ $wheel_id }->{reg};
-    
+
     $self->{wheels}->{ $wheel_id }->{wheel}->put($line);
     return;
 }
@@ -147,7 +147,7 @@ sub _start {
             $self->{irc_filter},
         ],
     );
-    
+
     if ($self->{irc}->connected()) {
         $kernel->yield('_spawn_listener');
     }
@@ -164,13 +164,13 @@ sub _spawn_listener {
         FailureEvent => '_listener_failed',
         Reuse        => 'yes',
     );
-    
+
     if (!$self->{listener}) {
         my $irc = $self->{irc};
         $irc->plugin_del($self);
         return;
     }
-    
+
     $self->{irc}->send_event(irc_proxy_up => $self->{listener}->getsockname());
     return;
 }
@@ -200,7 +200,7 @@ sub _listener_accept {
     else {
         $self->{irc}->send_event(irc_proxy_rw_fail => inet_ntoa( $peeradr ) => $peerport);
     }
-    
+
     return;
 }
 
@@ -312,13 +312,13 @@ sub _shutdown {
 
     my $mysockaddr = $self->getsockname();
     delete $self->{listener};
-    
+
     for my $wheel_id ( $self->list_wheels() ) {
         $self->_close_wheel( $wheel_id );
     }
     delete $self->{wheels};
     $irc->send_event(irc_proxy_down => $mysockaddr);
-    
+
     return;
 }
 
@@ -357,8 +357,8 @@ lightweight IRC proxy/bouncer
 
  my $irc = POE::Component::IRC::State->spawn();
 
- POE::Session->create( 
-     package_states => [ 
+ POE::Session->create(
+     package_states => [
          main => [ qw(_start) ],
      ],
      heap => { irc => $irc },
@@ -387,7 +387,7 @@ Spawn a L<POE::Component::IRC::State> session and add in a
 POE::Component::IRC::Plugin::Proxy plugin object, specifying a bindport and a
 password the connecting IRC clients have to use. When the component is
 connected to an IRC network a listening port is opened by the plugin for
-multiple IRC clients to connect. 
+multiple IRC clients to connect.
 
 Neat, huh? >;o)
 

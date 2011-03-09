@@ -6,7 +6,7 @@ use Carp;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Common qw( matches_mask parse_user );
 
-BEGIN { 
+BEGIN {
     # Turn on the debugger's symbol source tracing
     $^P |= 0x10;
 
@@ -33,7 +33,7 @@ sub PCI_register {
 
     $self->{irc} = $irc;
     $irc->plugin_register( $self, 'SERVER', qw(public msg) );
-    
+
     $self->{commands} = {
         PLUGIN_ADD => sub {
             my ($self, $method, $recipient, @cmd) = @_;
@@ -89,11 +89,11 @@ sub S_public {
 
     my (@cmd) = split(/ +/, $command);
     my $cmd = uc (shift @cmd);
-    
+
     if (defined $self->{commands}->{$cmd}) {
         $self->{commands}->{$cmd}->($self, 'privmsg', $channel, @cmd);
     }
-    
+
     return PCI_EAT_NONE;
 }
 
@@ -105,9 +105,9 @@ sub S_msg {
     my $command = ${ $_[2] };
     my (@cmd)   = split(/ +/,$command);
     my $cmd     = uc (shift @cmd);
-    
+
     return PCI_EAT_NONE if !$self->_authed($who, $channel);
-    
+
     if (defined $self->{commands}->{$cmd}) {
         $self->{commands}->{$cmd}->($self, 'notice', $nick, @cmd);
     }
@@ -122,10 +122,10 @@ sub S_msg {
 sub load {
     my ($self, $desc, $plugin) = splice @_, 0, 3;
     return if !$desc || !$plugin;
-    
+
     my $object;
     my $module = ref $plugin || $plugin;
-    if (! ref $plugin){        
+    if (! ref $plugin){
         $module .= '.pm' if $module !~ /\.pm$/;
         $module =~ s/::/\//g;
 
@@ -142,7 +142,7 @@ sub load {
         $object = $plugin;
         $plugin = ref $object;
     }
-    
+
     my $args = [ @_ ];
     $self->{plugins}->{ $desc }->{module} = $module;
     $self->{plugins}->{ $desc }->{plugin} = $plugin;
@@ -156,7 +156,7 @@ sub load {
         # Cleanup
         delete $self->{plugins}->{ $desc };
     }
-    
+
     return $return;
 }
 
@@ -233,8 +233,8 @@ management services.
  my $botowner = 'somebody!*@somehost.com';
  my $irc = POE::Component::IRC::State->spawn();
 
- POE::Session->create( 
-     package_states => [ 
+ POE::Session->create(
+     package_states => [
          main => [ qw(_start irc_plugin_add) ],
      ],
  );
@@ -247,7 +247,7 @@ management services.
 
  sub irc_plugin_add {
      my ($desc, $plugin) = @_[ARG0, ARG1];
-     
+
      if ($desc eq 'PlugMan') {
          $plugin->load( 'Connector', 'POE::Component::IRC::Plugin::Connector' );
      }
@@ -275,7 +275,7 @@ may issue commands via the IRC interface. Overrides B<'botowner'>. It will be
 called with three arguments: the IRC component object, the nick!user@host and
 the channel name as arguments. It should return a true value if the user is
 authorized, a false one otherwise.
- 
+
 B<'debug'>, set to a true value to see when stuff goes wrong;
 
 Not setting B<'botowner'> or B<'auth_sub'> effectively disables the IRC

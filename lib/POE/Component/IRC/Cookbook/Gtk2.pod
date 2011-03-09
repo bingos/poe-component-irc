@@ -21,7 +21,7 @@ present an event-driven GUI to the user.
  use POE::Component::IRC::Common qw(parse_user strip_color strip_formatting irc_to_utf8);
 
  my $channel = "#IRC.pm-test";
- my $irc = POE::Component::IRC::State->spawn( 
+ my $irc = POE::Component::IRC::State->spawn(
      nick         => 'gtk-example',
      server       => 'irc.perl.org',
      port         => 6667,

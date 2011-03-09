@@ -85,13 +85,13 @@ my %dcc_types = (
         my ($nick, $type, $args) = @_;
         my ($file, $addr, $port, $size);
         return if !(($file, $addr, $port, $size) = $args =~ /^(".+"|[^ ]+) +(\d+) +(\d+)(?: +(\d+))?/);
-        
+
         if ($file =~ s/^"//) {
             $file =~ s/"$//;
             $file =~ s/\\"/"/g;
         }
         $file = fileparse($file);
-        
+
         return (
             $port,
             {
@@ -132,12 +132,12 @@ my %dcc_types = (
 
 sub new {
     my ($package, %self) = @_;
-    
+
     $self{lc $_} = delete $self{$_} for keys %self;
     $self{BUFFER} = [ ];
     $self{_ircd} = POE::Filter::IRCD->new();
     $self{chantypes} = [ '#', '&' ] if ref $self{chantypes} ne 'ARRAY';
-  
+
     return bless \%self, $package;
 }
 
@@ -187,11 +187,11 @@ sub get_one {
         warn "Received line '$line' that is not IRC protocol\n" if $self->{debug};
         return [ ];
     }
-    
+
     if ($line->{command} =~ /^PRIVMSG|NOTICE$/ && $line->{params}->[1] =~ tr/\001//) {
         return $self->_get_ctcp($line);
     }
-    
+
     my $event = {
         name     => lc $line->{command},
         raw_line => $line->{raw_line},
@@ -203,7 +203,7 @@ sub get_one {
             return [ $event ];
         }
     }
-    
+
     # default
     unshift( @{ $line->{params} }, _decolon( $line->{prefix} || '' ) ) if $line->{prefix};
     $event->{args} = $line->{params};
@@ -386,7 +386,7 @@ sub _get_ctcp {
     #    warn "CTCP: $text\n" if $self->{debug};
     #    push @$events, @{ $self->{_ircd}->get([$text]) };
     #}
-    
+
     return $events;
 }
 

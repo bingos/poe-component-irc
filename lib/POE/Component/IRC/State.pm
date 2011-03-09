@@ -111,7 +111,7 @@ sub S_join {
     $self->{STATE}{Nicks}{ $unick }{Host} = $host;
     $self->{STATE}{Nicks}{ $unick }{CHANS}{ $uchan } = '';
     $self->{STATE}{Chans}{ $uchan }{Nicks}{ $unick } = '';
-    
+
     return PCI_EAT_NONE;
 }
 
@@ -136,14 +136,14 @@ sub S_part {
     if ($nick eq u_irc($self->nick_name(), $map)) {
         delete $self->{STATE}{Nicks}{ $nick }{CHANS}{ $uchan };
         delete $self->{STATE}{Chans}{ $uchan }{Nicks}{ $nick };
-        
+
         for my $member ( keys %{ $self->{STATE}{Chans}{ $uchan }{Nicks} } ) {
             delete $self->{STATE}{Nicks}{ $member }{CHANS}{ $uchan };
             if ( keys %{ $self->{STATE}{Nicks}{ $member }{CHANS} } <= 0 ) {
                 delete $self->{STATE}{Nicks}{ $member };
             }
         }
-        
+
         delete $self->{STATE}{Chans}{ $uchan };
     }
     else {
@@ -153,7 +153,7 @@ sub S_part {
             delete $self->{STATE}{Nicks}{ $nick };
         }
     }
-    
+
     return PCI_EAT_NONE;
 }
 
@@ -177,7 +177,7 @@ sub S_quit {
             #$self->{NETSPLIT}{Chans}{ $uchan }{NICKS}{ $unick } = $chanstate
             #  if $netsplit;
         }
-        
+
         my $nickstate = delete $self->{STATE}{Nicks}{ $unick };
         if ( $netsplit ) {
           delete $nickstate->{CHANS};
@@ -202,20 +202,20 @@ sub S_kick {
     my $map   = $self->isupport('CASEMAPPING');
     my $unick = u_irc($nick, $map);
     my $uchan = u_irc($chan, $map);
-    
+
     push @{ $_[-1] }, $self->nick_long_form( $nick );
 
     if ( $unick eq u_irc($self->nick_name(), $map)) {
         delete $self->{STATE}{Nicks}{ $unick }{CHANS}{ $uchan };
         delete $self->{STATE}{Chans}{ $uchan }{Nicks}{ $unick };
-        
+
         for my $member ( keys %{ $self->{STATE}{Chans}{ $uchan }{Nicks} } ) {
             delete $self->{STATE}{Nicks}{ $member }{CHANS}{ $uchan };
             if ( keys %{ $self->{STATE}{Nicks}{ $member }{CHANS} } <= 0 ) {
                 delete $self->{STATE}{Nicks}{ $member };
             }
         }
-        
+
         delete $self->{STATE}{Chans}{ $uchan };
     }
     else {
@@ -225,7 +225,7 @@ sub S_kick {
             delete $self->{STATE}{Nicks}{ $unick };
         }
     }
-    
+
     return PCI_EAT_NONE;
 }
 
@@ -249,12 +249,12 @@ sub S_nick {
     else {
         my $user = delete $self->{STATE}{Nicks}{ $unick };
         $user->{Nick} = $new;
-        
+
         for my $channel ( keys %{ $user->{CHANS} } ) {
            $self->{STATE}{Chans}{ $channel }{Nicks}{ $unew } = $user->{CHANS}{ $channel };
            delete $self->{STATE}{Chans}{ $channel }{Nicks}{ $unick };
         }
-        
+
         $self->{STATE}{Nicks}{ $unew } = $user;
     }
 
@@ -270,14 +270,14 @@ sub S_chan_mode {
     my $arg  = defined $_[3] ? ${ $_[3] } : '';
     my $map  = $self->isupport('CASEMAPPING');
     my $me   = u_irc($self->nick_name(), $map);
-    
+
     return PCI_EAT_NONE if $mode !~ /\+[qoah]/ || $me ne u_irc($arg, $map);
-    
+
     my $excepts = $self->isupport('EXCEPTS');
     my $invex = $self->isupport('INVEX');
     $self->yield(mode => $chan, $excepts ) if $excepts;
     $self->yield(mode => $chan, $invex ) if $invex;
-    
+
     return PCI_EAT_NONE;
 }
 
@@ -333,7 +333,7 @@ sub S_mode {
 
             $self->_send_event(irc_chan_mode => $who, $chan, $mode, (defined $arg ? $arg : ()));
             my $flag;
-            
+
             if (length $statmodes && (($flag) = $mode =~ /\+([$statmodes])/)) {
                 $arg = u_irc($arg, $map);
                 if (!$self->{STATE}{Nicks}{ $arg }{CHANS}{ $uchan } || $self->{STATE}{Nicks}{ $arg }{CHANS}{ $uchan } !~ /$flag/) {
@@ -376,7 +376,7 @@ sub S_mode {
                 $self->{STATE}{Chans}{ $uchan }{Mode} =~ s/$flag//;
             }
         }
-        
+
         # Lets make the channel mode nice
         if ( $self->{STATE}{Chans}{ $uchan }{Mode} ) {
             $self->{STATE}{Chans}{ $uchan }{Mode} = join('', sort {uc $a cmp uc $b} ( split( //, $self->{STATE}{Chans}{ $uchan }{Mode} ) ) );
@@ -413,7 +413,7 @@ sub S_topic {
         SetAt => time(),
     };
 
-    return PCI_EAT_NONE;  
+    return PCI_EAT_NONE;
 }
 
 # RPL_NAMES
@@ -445,7 +445,7 @@ sub S_353 {
        $self->{STATE}{Nicks}{ $unick }{CHANS}{ $uchan } = $existing;
        $self->{STATE}{Chans}{ $uchan }{Nicks}{ $unick } = $existing;
     }
-    return PCI_EAT_NONE;  
+    return PCI_EAT_NONE;
 }
 
 # RPL_WHOREPLY
@@ -460,14 +460,14 @@ sub S_352 {
     $self->{STATE}{Nicks}{ $unick }{Nick} = $nick;
     $self->{STATE}{Nicks}{ $unick }{User} = $user;
     $self->{STATE}{Nicks}{ $unick }{Host} = $host;
-    
+
     if ( !exists $self->{whojoiners} || $self->{whojoiners} ) {
         $self->{STATE}{Nicks}{ $unick }{Hops} = $hops;
         $self->{STATE}{Nicks}{ $unick }{Real} = $real;
         $self->{STATE}{Nicks}{ $unick }{Server} = $server;
         $self->{STATE}{Nicks}{ $unick }{IRCop} = 1 if $status =~ /\*/;
     }
-    
+
     if ( exists $self->{STATE}{Chans}{ $uchan } ) {
         my $whatever = '';
         my $existing = $self->{STATE}{Nicks}{ $unick }{CHANS}{ $uchan } || '';
@@ -497,7 +497,7 @@ sub S_352 {
             $self->{STATE}{Nicks}{ $unick }{Away} = $status =~ /G/ ? 1 : 0;
         }
     }
-    
+
     return PCI_EAT_NONE;
 }
 
@@ -535,7 +535,7 @@ sub S_329 {
     my $chan  = ${ $_[2] }->[0];
     my $time  = ${ $_[2] }->[1];
     my $uchan = u_irc($chan, $map);
-    
+
     $self->{STATE}->{Chans}{ $uchan }{CreationTime} = $time;
     return PCI_EAT_NONE;
 }
@@ -584,7 +584,7 @@ sub S_346 {
         SetBy => $who,
         SetAt => $when
     };
-    
+
     return PCI_EAT_NONE;
 }
 
@@ -620,7 +620,7 @@ sub S_349 {
     my ($chan) = @{ ${ $_[2] } };
     my $map    = $self->isupport('CASEMAPPING');
     my $uchan  = u_irc($chan, $map);
-    
+
     $self->_send_event(irc_chan_sync_excepts => $chan);
     return PCI_EAT_NONE;
 }
@@ -643,21 +643,21 @@ sub S_324 {
             # doesn't match a mode with no args
             $arg = shift @{ $parsed_mode->{args} };
         }
-        
+
         if ( $self->{STATE}{Chans}{ $uchan }{Mode} ) {
             $self->{STATE}{Chans}{ $uchan }{Mode} .= $mode if $self->{STATE}{Chans}{ $uchan }{Mode} !~ /$mode/;
         }
         else {
             $self->{STATE}{Chans}{ $uchan }{Mode} = $mode;
         }
-        
+
         $self->{STATE}{Chans}{ $uchan }{ModeArgs}{ $mode } = $arg if defined ( $arg );
     }
-    
+
     if ( $self->{STATE}{Chans}{ $uchan }{Mode} ) {
         $self->{STATE}{Chans}{ $uchan }{Mode} = join('', sort {uc $a cmp uc $b} split //, $self->{STATE}{Chans}{ $uchan }{Mode} );
     }
-    
+
     if ( $self->_channel_sync($chan, 'MODE') ) {
         my $rec = delete $self->{CHANNEL_SYNCH}{ $uchan };
         $self->_send_event(irc_chan_sync => $chan, time() - $rec->{_time} );
@@ -702,11 +702,11 @@ sub umode {
 
 sub is_user_mode_set {
     my ($self, $mode) = @_;
-    
+
     $mode = (split //, $mode)[0] || return;
     $mode =~ s/[^A-Za-z]//g;
     return if !$mode;
-    
+
     return 1 if $self->{STATE}{usermode} =~ /$mode/;
     return;
 }
@@ -715,11 +715,11 @@ sub _away_sync {
     my ($self, $chan) = @_[OBJECT, ARG0];
     my $map = $self->isupport('CASEMAPPING');
     my $uchan = u_irc($chan, $map);
-    
+
     $self->{STATE}{Chans}{ $uchan }{AWAY_SYNCH} = 1;
     $self->_send_event(irc_away_sync_start => $chan);
     $self->yield(who => $chan);
-    
+
     return;
 }
 
@@ -781,7 +781,7 @@ sub channels {
             $result{ $self->{STATE}{Chans}{ $uchan }{Name} } = $self->{STATE}{Nicks}{ $unick }{CHANS}{ $uchan };
         }
     }
-    
+
     return \%result;
 }
 
@@ -794,7 +794,7 @@ sub nick_info {
     my ($self, $nick) = @_;
     my $map   = $self->isupport('CASEMAPPING');
     my $unick = u_irc($nick, $map);
-    
+
     return if !$self->_nick_exists($nick);
 
     my $user = $self->{STATE}{Nicks}{ $unick };
@@ -809,9 +809,9 @@ sub nick_long_form {
     my ($self, $nick) = @_;
     my $map   = $self->isupport('CASEMAPPING');
     my $unick = u_irc($nick, $map);
-    
+
     return if !$self->_nick_exists($nick);
-    
+
     my $user = $self->{STATE}{Nicks}{ $unick };
     return "$user->{Nick}!$user->{User}\@$user->{Host}";
 }
@@ -821,7 +821,7 @@ sub nick_channels {
     my $map   = $self->isupport('CASEMAPPING');
     my $unick = u_irc($nick, $map);
 
-    return if !$self->_nick_exists($nick); 
+    return if !$self->_nick_exists($nick);
     return map { $self->{STATE}{Chans}{$_}{Name} } keys %{ $self->{STATE}{Nicks}{ $unick }{CHANS} };
 }
 
@@ -829,7 +829,7 @@ sub channel_list {
     my ($self, $chan) = @_;
     my $map   = $self->isupport('CASEMAPPING');
     my $uchan = u_irc($chan, $map);
-    
+
     return if !$self->_channel_exists($chan);
     return map { $self->{STATE}{Nicks}{$_}{Nick} } keys %{ $self->{STATE}{Chans}{ $uchan }{Nicks} };
 }
@@ -844,7 +844,7 @@ sub is_away {
         return 1 if $self->{STATE}{away};
         return;
     }
-    
+
     return if !$self->_nick_exists($nick);
     return 1 if $self->{STATE}{Nicks}{ $unick }{Away};
     return;
@@ -854,9 +854,9 @@ sub is_operator {
     my ($self, $nick) = @_;
     my $map   = $self->isupport('CASEMAPPING');
     my $unick = u_irc($nick, $map);
-    
+
     return if !$self->_nick_exists($nick);
-    
+
     return 1 if $self->{STATE}{Nicks}{ $unick }{IRCop};
     return;
 }
@@ -874,7 +874,7 @@ sub is_channel_mode_set {
         && $self->{STATE}{Chans}{ $uchan }{Mode} =~ /$mode/) {
         return 1;
     }
-    
+
     return;
 }
 
@@ -890,7 +890,7 @@ sub channel_creation_time {
 
     return if !$self->_channel_exists($chan);
     return if !exists $self->{STATE}{Chans}{ $uchan }{CreationTime};
-    
+
     return $self->{STATE}{Chans}{ $uchan }{CreationTime};
 }
 
@@ -898,7 +898,7 @@ sub channel_limit {
     my ($self, $chan) = @_;
     my $map   = $self->isupport('CASEMAPPING');
     my $uchan = u_irc($chan, $map);
-    
+
     return if !$self->_channel_exists($chan);
 
     if ( $self->is_channel_mode_set($chan, 'l')
@@ -919,7 +919,7 @@ sub channel_key {
         && defined $self->{STATE}{Chans}{ $uchan }{ModeArgs}{k} ) {
         return $self->{STATE}{Chans}{ $uchan }{ModeArgs}{k};
     }
-    
+
     return;
 }
 
@@ -937,7 +937,7 @@ sub channel_modes {
         my %args = %{ $self->{STATE}{Chans}{ $uchan }{ModeArgs} };
         @modes{keys %args} = values %args;
     }
-    
+
     return \%modes;
 }
 
@@ -947,7 +947,7 @@ sub is_channel_member {
     my $uchan = u_irc($chan, $map);
     my $unick = u_irc($nick, $map);
 
-    return if !$self->_channel_exists($chan) || !$self->_nick_exists($nick);    
+    return if !$self->_channel_exists($chan) || !$self->_nick_exists($nick);
     return 1 if defined $self->{STATE}{Chans}{ $uchan }{Nicks}{ $unick };
     return;
 }
@@ -999,7 +999,7 @@ sub ban_mask {
     for my $nick ( $self->channel_list($chan) ) {
         push @result, $nick if u_irc($self->nick_long_form($nick)) =~ /^$mask$/;
     }
-    
+
     return @result;
 }
 
@@ -1102,7 +1102,7 @@ nickname and channel tracking
  my @channels = ( '#Blah', '#Foo', '#Bar' );
 
  # We create a new PoCo-IRC object and component.
- my $irc = POE::Component::IRC::State->spawn( 
+ my $irc = POE::Component::IRC::State->spawn(
      nick => $nickname,
      server => $ircserver,
      port => $port,
@@ -1271,7 +1271,7 @@ channel is not in the state.
 =head2 C<channels>
 
 Takes no parameters. Returns a hashref, keyed on channel name and whether the
-bot is operator, halfop or 
+bot is operator, halfop or
 has voice on that channel.
 
  for my $channel ( keys %{ $irc->channels() } ) {
@@ -1429,7 +1429,7 @@ individual.
 
 These three all have two additional parameters. C<ARG1> is a hash of
 information about your IRC user (see L<C<nick_info>|/nick_info>), while
-C<ARG2> is a hash of the channels you were on (see 
+C<ARG2> is a hash of the channels you were on (see
 L<C<channels>|/channels>).
 
 =head2 New events
@@ -1513,7 +1513,7 @@ When the component is asked to join a channel, when it joins it will issue
 'WHO #channel', 'MODE #channel', and 'MODE #channel b'. These will solicit
 between them the numerics, C<irc_352>, C<irc_324> and C<irc_329>, respectively.
 When someone joins a channel the bot is on, it issues a 'WHO nick'. You may
-want to ignore these. 
+want to ignore these.
 
 Currently, whenever the component sees a topic or channel list change, it will
 use C<time> for the SetAt value and the full address of the user who set it

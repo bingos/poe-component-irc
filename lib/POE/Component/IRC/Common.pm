@@ -21,14 +21,14 @@ my ($ERROR, $ERRNO);
 
 use constant {
     NORMAL      => "\x0f",
-    
+
     # formatting
     BOLD        => "\x02",
     UNDERLINE   => "\x1f",
     REVERSE     => "\x16",
     ITALIC      => "\x1d",
     FIXED       => "\x11",
-    
+
     # mIRC colors
     WHITE       => "\x0300",
     BLACK       => "\x0301",
@@ -93,7 +93,7 @@ sub parse_mode_line {
     my $statmodes = 'ov';
     my $hashref = { };
     my $count = 0;
-    
+
     while (my $arg = shift @args) {
         if ( ref $arg eq 'ARRAY' ) {
            $chanmodes = $arg;
@@ -112,12 +112,12 @@ sub parse_mode_line {
                 else {
                    push @{ $hashref->{modes} }, $action . $char;
                 }
-                
+
                 if (length $chanmodes->[0] && length $chanmodes->[1] && length $statmodes
                     && $char =~ /[$statmodes$chanmodes->[0]$chanmodes->[1]]/) {
                     push @{ $hashref->{args} }, shift @args;
                 }
-                
+
                 if (length $chanmodes->[2] && $action eq '+' && $char =~ /[$chanmodes->[2]]/) {
                     push @{ $hashref->{args} }, shift @args;
                 }
@@ -145,26 +145,26 @@ sub parse_ban_mask {
     else {
         ($ban[0], $remainder) = split /\x21/, $arg, 2;
     }
-    
+
     $remainder =~ s/\x21//g if defined $remainder;
     @ban[1..2] = split(/\x40/, $remainder, 2) if defined $remainder;
     $ban[2] =~ s/\x40//g if defined $ban[2];
-    
+
     for my $i (1..2) {
         $ban[$i] = '*' if !$ban[$i];
     }
-    
+
     return $ban[0] . '!' . $ban[1] . '@' . $ban[2];
 }
 
 sub matches_mask_array {
     my ($masks, $matches, $mapping) = @_;
-    
+
     return if !defined $masks || !defined $matches;
     return if ref $masks ne 'ARRAY';
     return if ref $matches ne 'ARRAY';
     my $ref = { };
-    
+
     for my $mask ( @{ $masks } ) {
         for my $match ( @{ $matches } ) {
             if ( matches_mask($mask, $match, $mapping) ) {
@@ -172,7 +172,7 @@ sub matches_mask_array {
             }
         }
     }
-    
+
     return $ref;
 }
 
@@ -218,14 +218,14 @@ sub has_formatting {
 sub strip_color {
     my ($string) = @_;
     return if !defined $string;
-    
+
     # mIRC colors
     $string =~ s/\x03(?:,\d{1,2}|\d{1,2}(?:,\d{1,2})?)?//g;
     $string =~ s/\x0f//g;
-    
+
     # RGB colors supported by some clients
     $string =~ s/\x04[0-9a-fA-F]{0,6}//ig;
-    
+
     return $string;
 }
 

@@ -116,7 +116,7 @@ sub unparse_mode_line {
 	  $return .= $mode;
 	  $action = $mode;
 	  next;
-	} 
+	}
 	$return .= $mode if ( $mode ne '+' and $mode ne '-' );
   }
   $return =~ s/[+-]$//;

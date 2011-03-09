@@ -24,9 +24,9 @@ sub new {
 
 sub PCI_register {
     my ($self, $irc) = @_;
-    
+
     $self->{irc} = $irc;
-    
+
     POE::Session->create(
         object_states => [
             $self => [qw(
@@ -46,7 +46,7 @@ sub PCI_register {
 
     $irc->plugin_register($self, 'SERVER', qw(disconnected dcc_request));
     $irc->plugin_register($self, 'USER', qw(dcc dcc_accept dcc_chat dcc_close dcc_resume));
-    
+
     return 1;
 }
 
@@ -82,7 +82,7 @@ sub nataddr {
 # returns information about a connection
 sub dcc_info {
     my ($self, $id) = @_;
-    
+
     if (!$self->{dcc}->{$id}) {
         warn "dcc_info: Unknown wheel ID: $id\n";
         return;
@@ -108,7 +108,7 @@ sub _quote_file {
 
 sub S_disconnected {
     my ($self) = $_;
-    # clean up old cookies for any ignored RESUME requests 
+    # clean up old cookies for any ignored RESUME requests
     delete $self->{resuming};
     return PCI_EAT_NONE;
 }
@@ -153,7 +153,7 @@ sub _default {
 sub _U_dcc {
     my ($kernel, $self, $nick, $type, $file, $blocksize, $timeout)
         = @_[KERNEL, OBJECT, ARG0..$#_];
-    
+
     if (!defined $type) {
         warn "The 'dcc' command requires at least two arguments\n";
         return;
@@ -185,7 +185,7 @@ sub _U_dcc {
             return;
         }
     }
-    
+
     $bindaddr = $irc->localaddr();
 
     if ($self->{dccports}) {
@@ -203,10 +203,10 @@ sub _U_dcc {
         FailureEvent => '_dcc_failed',
         Reuse        => 'yes',
     );
-    
+
     ($port, $addr) = unpack_sockaddr_in($factory->getsockname());
     $addr = inet_aton($self->{nataddr}) if $self->{nataddr};
-  
+
     if (!defined $addr) {
         warn "dcc: Can't determine our IP address! ($!)\n";
         return;
@@ -233,13 +233,13 @@ sub _U_dcc {
         listener  => 1,
         factory   => $factory,
     };
-    
+
     $kernel->alarm(
         '_dcc_timeout',
         time() + ($timeout || LISTEN_TIMEOUT),
         $factory->ID,
     );
-    
+
     return;
 }
 
@@ -264,7 +264,7 @@ sub _U_dcc_accept {
         SuccessEvent  => '_dcc_up',
         FailureEvent  => '_dcc_failed',
     );
-  
+
     $self->{dcc}->{$factory->ID} = $cookie;
     $self->{dcc}->{$factory->ID}->{factory} = $factory;
 
@@ -274,7 +274,7 @@ sub _U_dcc_accept {
 # Send data over a DCC CHAT connection.
 sub _U_dcc_chat {
     my ($self, $id, @data) = @_[OBJECT, ARG0..$#_];
-    
+
     if (!defined $id || !@data) {
         warn "The 'dcc_chat' command requires at least two arguments\n";
         return;
@@ -284,12 +284,12 @@ sub _U_dcc_chat {
         warn "dcc_chat: Unknown wheel ID: $id\n";
         return;
     }
-    
+
     if (!exists $self->{dcc}->{$id}->{wheel}) {
         warn "dcc_chat: No DCC wheel for id $id!\n";
         return;
     }
-  
+
     if ($self->{dcc}->{$id}->{type} ne 'CHAT') {
         warn "dcc_chat: id $id isn't associated with a DCC CHAT connection!\n";
         return;
@@ -303,7 +303,7 @@ sub _U_dcc_chat {
 sub _U_dcc_close {
     my ($kernel, $self, $id) = @_[KERNEL, OBJECT, ARG0];
     my $irc = $self->{irc};
-    
+
     if (!defined $id) {
         warn "The 'dcc_close' command requires an id argument\n";
         return;
@@ -313,7 +313,7 @@ sub _U_dcc_close {
         warn "dcc_close: Unknown wheel ID: $id\n";
         return;
     }
-    
+
     if (!exists $self->{dcc}->{$id}->{wheel}) {
         warn "dcc_close: No DCC wheel for id $id!\n";
         return;
@@ -365,13 +365,13 @@ sub _U_dcc_resume {
             warn "dcc_resume: Can't truncate '$cookie->{file}' to size $size\n";
             return;
         }
-        
+
         $irc->yield(ctcp => $cookie->{nick} => "DCC RESUME $sender_file $cookie->{port} $size");
-        
+
         # save the cookie for later
         $self->{resuming}->{"$cookie->{port}+$cookie->{nick}"} = $cookie;
     }
-    
+
     return;
 }
 
@@ -402,7 +402,7 @@ sub _dcc_read {
     elsif ($self->{dcc}->{$id}->{type} eq 'SEND') {
         # Record the client's download progress.
         $self->{dcc}->{$id}->{done} = unpack 'N', substr( $data, -4 );
-        
+
         $irc->send_event(
             'irc_dcc_send',
             $id,
@@ -444,7 +444,7 @@ sub _dcc_read {
             $self->{dcc}->{$id}->{peeraddr},
         );
     }
-    
+
     return;
 }
 
@@ -462,7 +462,7 @@ sub _dcc_failed {
             return;
         }
     }
-  
+
     # Reclaim our port if necessary.
     if ( $self->{dcc}->{$id}->{listener} && $self->{dccports}) {
         push ( @{ $self->{dccports} }, $self->{dcc}->{$id}->{port} );
@@ -470,7 +470,7 @@ sub _dcc_failed {
 
     DCC: {
         last DCC if $errnum != 0;
-    
+
         # Did the peer of a DCC GET connection close the socket after the file
         # transfer finished? If so, it's not really an error.
         if ($self->{dcc}->{$id}->{type} eq 'GET') {
@@ -493,10 +493,10 @@ sub _dcc_failed {
             }
             delete $self->{dcc}->{$id};
         }
-        
+
         return;
     }
-  
+
     # something went wrong
     if ($errnum == 0 && $self->{dcc}->{$id}->{type} eq 'GET') {
         $errstr = 'Aborted by sender';
@@ -507,7 +507,7 @@ sub _dcc_failed {
             : $errstr = "$operation error $errnum"
         ;
     }
-  
+
     $irc->send_event(
         'irc_dcc_error',
         $id,
@@ -548,7 +548,7 @@ sub _dcc_up {
     my ($kernel, $self, $sock, $peeraddr, $id) =
         @_[KERNEL, OBJECT, ARG0, ARG1, ARG3];
     my $irc = $self->{irc};
-    
+
     # Delete the listening socket and monitor the accepted socket
     # for incoming data
     delete $self->{dcc}->{$id}->{factory};
@@ -568,19 +568,19 @@ sub _dcc_up {
         InputEvent => '_dcc_read',
         ErrorEvent => '_dcc_failed',
     );
-    
+
     $self->{wheelmap}->{ $self->{dcc}->{$id}->{wheel}->ID } = $id;
-    
+
     my $handle;
     if ($self->{dcc}->{$id}->{type} eq 'GET') {
         # check if we're resuming
         my $mode = -s $self->{dcc}->{$id}->{file} ? '>>' : '>';
-        
+
         if ( !open $handle, $mode, $self->{dcc}->{$id}->{file} ) {
             $kernel->yield(_dcc_failed => 'open file', $! + 0, $!, $id);
             return;
         }
-        
+
         binmode $handle;
         $self->{dcc}->{$id}->{fh} = $handle;
     }
@@ -605,7 +605,7 @@ sub _dcc_up {
             nick type port file size peeraddr
         )},
     );
-    
+
     return;
 }
 

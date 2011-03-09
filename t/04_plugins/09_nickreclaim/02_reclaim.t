@@ -31,8 +31,8 @@ POE::Session->create(
     package_states => [
         main => [qw(
             _start
-            _config_ircd 
-            _shutdown 
+            _config_ircd
+            _shutdown
             irc_001
             irc_433
             irc_nick
@@ -69,7 +69,7 @@ sub _config_ircd {
     $heap->{port} = $port;
 
     $ircd->yield(add_listener => Port => $port);
-    
+
     $bot1->yield(register => 'all');
     $bot1->yield(connect => {
         nick    => 'TestBot1',
@@ -82,7 +82,7 @@ sub irc_001 {
     my $irc = $_[SENDER]->get_heap();
     pass($irc->session_alias() . ' (nick=' . $irc->nick_name() .') logged in');
     return if $irc != $bot1;
-    
+
     $bot2->yield(register => 'all');
     $bot2->yield(connect => {
         nick    => 'TestBot1',
@@ -108,7 +108,7 @@ sub irc_nick {
 sub irc_disconnected {
     my ($kernel, $sender, $heap) = @_[KERNEL, SENDER, HEAP];
     my $irc = $sender->get_heap();
-    
+
     pass($irc->session_alias . ' (nick=' . $irc->nick_name() .') disconnected');
     $heap->{count}++;
     $kernel->yield('_shutdown') if $heap->{count} == 2;
@@ -117,7 +117,7 @@ sub irc_disconnected {
 sub _shutdown {
     my ($kernel, $error) = @_[KERNEL, ARG0];
     fail($error) if defined $error;
-    
+
     $kernel->alarm_remove_all();
     $ircd->yield('shutdown');
     $bot1->yield('shutdown');

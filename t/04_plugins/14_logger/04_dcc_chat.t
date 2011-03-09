@@ -84,7 +84,7 @@ sub get_port {
 sub _shutdown {
     my ($kernel, $error) = @_[KERNEL, ARG0];
     fail($error) if defined $error;
-    
+
     $kernel->alarm_remove_all();
     $ircd->yield('shutdown');
     $bot1->yield('shutdown');
@@ -93,16 +93,16 @@ sub _shutdown {
 
 sub _config_ircd {
     my ($kernel, $port) = @_[KERNEL, ARG0];
-    
+
     $ircd->yield(add_listener => Port => $port);
-    
+
     $bot1->yield(register => 'all');
     $bot1->yield(connect => {
         nick    => 'TestBot1',
         server  => '127.0.0.1',
         port    => $port,
     });
-    
+
     $bot2->yield(register => 'all');
     $bot2->yield(connect => {
         nick    => 'TestBot2',
@@ -114,7 +114,7 @@ sub _config_ircd {
 sub irc_001 {
     my ($heap, $server) = @_[HEAP, ARG0];
     my $irc = $_[SENDER]->get_heap();
-    
+
     pass($irc->nick_name() . ' logged in');
     $heap->{logged_in}++;
     return if $heap->{logged_in} != 2;

@@ -7,7 +7,7 @@ with PoCo-IRC
 
 =head1 SYNOPSIS
 
-Shutting down an IRC bot can be quick and messy, or slow and graceful. 
+Shutting down an IRC bot can be quick and messy, or slow and graceful.
 
 =head1 DESCRIPTION
 

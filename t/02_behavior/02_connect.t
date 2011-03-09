@@ -21,13 +21,13 @@ POE::Session->create(
     package_states => [
         main => [qw(
             _start
-            _config_ircd 
-            _shutdown 
+            _config_ircd
+            _shutdown
             _default
-            irc_connected 
-            irc_001 
+            irc_connected
+            irc_001
             irc_391
-            irc_whois 
+            irc_whois
             irc_join
             irc_isupport
             irc_error
@@ -84,7 +84,7 @@ sub irc_001 {
     is($irc->server_name(), 'poco.server.irc', 'Server Name Test');
     is($irc->nick_name(), 'TestBot', 'Nick Name Test');
     is($irc->session_alias(), $irc, 'Alias Test');
-    
+
     $irc->yield('time');
     $irc->yield(whois => 'TestBot');
 }
@@ -92,10 +92,10 @@ sub irc_001 {
 sub irc_isupport {
     my $isupport = $_[ARG0];
     isa_ok($isupport, 'POE::Component::IRC::Plugin::ISupport');
-    
+
     is($isupport->isupport('NETWORK'), 'poconet', 'ISupport Network');
     is($isupport->isupport('CASEMAPPING'), 'rfc1459', 'ISupport Casemapping');
-    
+
     for my $isupp ( qw(MAXCHANNELS MAXBANS MAXTARGETS NICKLEN
         TOPICLEN KICKLEN CHANTYPES PREFIX CHANMODES) ) {
         ok($isupport->isupport($isupp), "Testing $isupp");
@@ -139,7 +139,7 @@ sub irc_disconnected {
 sub _shutdown {
     my ($kernel, $error) = @_[KERNEL, ARG0];
     fail($error) if defined $error;
-    
+
     $kernel->alarm_remove_all();
     $ircd->yield('shutdown');
     $bot->yield('shutdown');

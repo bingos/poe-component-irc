@@ -188,7 +188,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Fix localaddr() issue reported in RT #48791 by Michael Andreen
     - Depend on latest (1.24) POE::Component::Pluggable (Hinrik)
     - BotCommand.pm: Strip colors/formatting before processing (Hinrik)
-    - Plugin::AutoJoin S_join should return PCI_EAT_NONE if 
+    - Plugin::AutoJoin S_join should return PCI_EAT_NONE if
       $joiner ne $irc->nick_name() (perigrin)
 
 6.10 Fri Aug 14 21:19:07 BST 2009
@@ -201,7 +201,7 @@ Revision history for Perl extension POE::Component::IRC.
       for a while (Hinrik)
     - State and subclasses will use NAMES replies to synchronise
       channel state as well now. Should help RT #46825 (bingos).
-    - Refactored the netsplit test slightly to try and eliminate 
+    - Refactored the netsplit test slightly to try and eliminate
       race conditions (bingos)
     - Added netsplit detection code to Qnet::State subclass. (bingos)
     - Netsplit restoration now triggers irc_nick_sync event (bingos)
@@ -317,7 +317,7 @@ Revision history for Perl extension POE::Component::IRC.
 5.90 Thu Jan 22 10:52:53 GMT 2009
     - Seen.pod: Recipe for a bot implementing the 'seen' command (Hinrik)
     - Reload.pod: How to reload your bot with out reconnecting (Hinrik)
-    - Memory leak with stashing $self in $self->{alias}, change to 
+    - Memory leak with stashing $self in $self->{alias}, change to
       stash a stringified version of $self instead. (bingos)
 
 5.88 Thu Aug 28 15:49:48 BST 2008
@@ -373,7 +373,7 @@ Revision history for Perl extension POE::Component::IRC.
     - State.pm: Add is_channel_synced() (Hinrik)
     - PlugMan.pm - bug in new() spotted by plu (bingos)
 
-5.74  Thu Apr 03 15:14:04 GMT 2008 
+5.74  Thu Apr 03 15:14:04 GMT 2008
     - Logger.pm: Do charset conversion on everything, not just messages. This
       should handle non-ASCII channel names and nicknames on servers that
       support such things (Hinrik)
@@ -387,7 +387,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Logger.pm: Make logging work again :) (Hinrik)
     - Logger.pm: Fix topic_change log string (Hinrik)
     - State.pm: Document new AwayPoll behavior correctly (Hinrik)
-    - Moved author tests to xt/ Module::Install::AuthorTests is now 
+    - Moved author tests to xt/ Module::Install::AuthorTests is now
       required by maintainers. (bingos)
 
 5.70  Mon Mar 03 10:51:01 GMT 2008
@@ -424,7 +424,7 @@ Revision history for Perl extension POE::Component::IRC.
       instead of warn/die where appropriate, use 4-column indents,
       use consistent coding style everywhere, some refactoring here
       and there... (Hinrik)
-    - put Filter::IRC back. It is now a Stackable/IRCD/Compat 
+    - put Filter::IRC back. It is now a Stackable/IRCD/Compat
       mash-up (bingos)
     - full regression testing in 1_filter_compat.t yippee. (bingos)
 
@@ -520,7 +520,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Applied a patch from Hinrik to fix umode issues with State.pm
 
 5.38  Thu Dec  6 17:24:23 GMT 2007
-    - CPAN Testers reports for dev releases look favourable, bumped for 
+    - CPAN Testers reports for dev releases look favourable, bumped for
       proper release.
 
 5.37_02  Thu Dec  6 08:35:47 GMT 2007
@@ -611,11 +611,11 @@ Revision history for Perl extension POE::Component::IRC.
     - Serious bug in TOPIC handling spotted. Fixed.
 
 5.16  Wed Dec 06 11:54:08 GMT 2006
-    - Refactored the SOCKS code to use $wheel->event() to switch 
+    - Refactored the SOCKS code to use $wheel->event() to switch
       InputEvent. Thanks to dngor for pointing that out.
 
 5.15  Tue Dec 05 19:26:34 GMT 2006
-    - Implemented SOCKS4 support. Requested by netmunky @ Efnet. Somni 
+    - Implemented SOCKS4 support. Requested by netmunky @ Efnet. Somni
       assisted with the design. Thanks!
 
 5.14  Wed Nov 29 10:56:57 GMT 2006
@@ -634,7 +634,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Added ability to remove delayed commands.
 
 5.11  Wed Oct 25 16:32:03 BST 2006
-    - Changed plugin processing so that any poco plugin handlers 
+    - Changed plugin processing so that any poco plugin handlers
       are now in an eval as well. Pesky edge-cases.
     - Refactored parse_mode_line() to handle dangerous edge cases.
 
@@ -664,12 +664,12 @@ Revision history for Perl extension POE::Component::IRC.
 
 5.05  Fri Oct 06 14:40:37 BST 2006
     - ISupport documentation fix.
-    - Amendments to plugin processing, plugin debugging should be 
-      less noisy now. 
+    - Amendments to plugin processing, plugin debugging should be
+      less noisy now.
 
 5.04  Mon Sep 25 13:30:46 BST 2006
     - Removed Build.PL
-    - Applied a patch from Ben Jackson which fixes the proxy 
+    - Applied a patch from Ben Jackson which fixes the proxy
       support. Yay.
 
 5.03  Sat Sep 16 14:17:01 BST 2006
@@ -706,7 +706,7 @@ Revision history for Perl extension POE::Component::IRC.
 4.97  Mon Jul 24 12:46:26 BST 2006
     - Fixed 'sconnect', it should send 'CONNECT' to the ircd
       now instead of 'SCONNECT'.
-    - ::State assumed that ircd had returned ISupport info. 
+    - ::State assumed that ircd had returned ISupport info.
       Set reasonable defaults for ircd's that don't.
     - Changed 'sl' to 'quote' instead as far as the documented
       API.
@@ -714,10 +714,10 @@ Revision history for Perl extension POE::Component::IRC.
 4.96  Sun Jul 16 14:35:34 BST 2006
     - Fixed a bug in Console plugin.
     - Minor code changes to Proxy plugin.
-    - Component will automatically register a parent session 
+    - Component will automatically register a parent session
       if spawned from another session. Added testcase for
       this also.
-    - Removed the deprecated IRC_EVTS registration bit from 
+    - Removed the deprecated IRC_EVTS registration bit from
       _start as the component uses plugin API stylee handlers now.
     - Tidied up PlugMan plugin code.
     - Updated documentation stipulating that the module is licensed
@@ -729,7 +729,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Fixed serious bug in ISupport plugin.
 
 4.94  Sun Jul 02 10:01:45 BST 2006
-    - Amended the DNS code to implement round-robin type 
+    - Amended the DNS code to implement round-robin type
       behaviour.
     - Added POCOIRC_REGISTER and POCOIRC_SHUTDOWN signals
       for multiple registration and shutdown, respectively.
@@ -740,8 +740,8 @@ Revision history for Perl extension POE::Component::IRC.
 4.93  Tue Jun 13 19:25:45 BST 2006
     - ::State, invex & excepts sync'ing when we +[qoah].
     - ::State, documentation fixes.
-    - Added 'irc_shutdown' event. 
-    - Bug in Qnet::State spotted by helios. Changed 
+    - Added 'irc_shutdown' event.
+    - Bug in Qnet::State spotted by helios. Changed
       inheritance order and cpoied some code from Qnet to
       Qnet::State accordingly.
 
@@ -753,15 +753,15 @@ Revision history for Perl extension POE::Component::IRC.
       given channel - Lyndon Miller
     - Added note concerning the issues surrounding the SetAt
       and SetBy values to CAVEATS in the ::State pod - Lyndon Miller
-    - Improvements to Plugin::PlugMan, it should actually 
+    - Improvements to Plugin::PlugMan, it should actually
       work properly now >:) Thanks to mst and dngor.
     - ::State, nick_sync now has the channel name as ARG1.
     - Moved the INVEX and EXCEPTS sync'ing until we are +o'd,
-      created irc_chan_sync_(invex|excepts). irc_chan_sync 
+      created irc_chan_sync_(invex|excepts). irc_chan_sync
       features the time in seconds taken to sync as ARG1 now.
 
 4.91  Thu Jun 01 21:08:13 BST 2006
-    - Tweak to ::State to deal with ircds that don't report @+ 
+    - Tweak to ::State to deal with ircds that don't report @+
       status in WHO replies ( like unreal ). Thanks to Lyndon Miller
       for reporting that.
     - 'irc_dcc_failed' event was undocumented. Fixed.
@@ -769,14 +769,14 @@ Revision history for Perl extension POE::Component::IRC.
       ensure that we only load >= 0.99.
     - Amendments to shutdown so that it sends a quit message
       to the ircd if we are connected.
-    - Amended Connector plugin so the lag is collected 
+    - Amended Connector plugin so the lag is collected
       independent of what the ircd sends us back.
     - Various changes to ::State in order to ensure full RFC
       compliant channel mode support, including support
       for channel access lists - Lyndon Miller
     - Added ::State methods to return channel access lists:
       channel_ban_list, channel_invex_list, channel_except_list - Lyndon Miller
-    - Using 'use' for the dns checks was fubar. Switched back 
+    - Using 'use' for the dns checks was fubar. Switched back
       to 'require' and test the VERSION instead.
     - Changed the simpleclient.pl script to accept a filename as
       a second argument to /dump_state command.
@@ -786,9 +786,9 @@ Revision history for Perl extension POE::Component::IRC.
     - Changed 'Time' keys for channel lists and topic to 'SetAt'
     - Added irc_chan_mode event to ::State to allow everyone
       to enjoy the mode parsing State does internally - Lyndon Miller
-    - Refactored ::Qnet::State subclass after all - Lyndon Miller 
+    - Refactored ::Qnet::State subclass after all - Lyndon Miller
       changes to ::State.
-    - Refactored ::State slightly to use ARG2 for numerics 
+    - Refactored ::State slightly to use ARG2 for numerics
       handlers instead of trying to parse ARG1 ourselves. FTW.
 
 4.90  Mon May 22 13:23:09 BST 2006
@@ -799,9 +799,9 @@ Revision history for Perl extension POE::Component::IRC.
       ::Test::Harness. Enabled a runaround *sigh*
 
 4.88  Sun May 21 17:57:38 BST 2006
-    - Code cleanup in ::Test::Harness. Workaround for systems 
+    - Code cleanup in ::Test::Harness. Workaround for systems
       without %z in strftime, like Solaris.
-    - Added matches_mask() function to ::Common. Updated 6_common.t 
+    - Added matches_mask() function to ::Common. Updated 6_common.t
       to add applicable tests.
     - Added parse_user() function to ::Common. Updated 6_common.t
       to add applicable tests.
@@ -828,13 +828,13 @@ Revision history for Perl extension POE::Component::IRC.
     - Changed Common.pm u_irc/l_irc to support a casemapping
       argument, one may specify 'rfc1459', 'strict-rfc1459' or
       'ascii'. Default is 'rfc1459'.
-    - Changed State and Qnet::State to use casemapping for 
+    - Changed State and Qnet::State to use casemapping for
       generating unique state keys.
     - Removed State::Lite. Deprecated.
     - Online test reports the server connected to.
 
 4.85  Thu Apr 13 12:37:49 BST 2006
-    - Numerous bug fixes to State and Qnet/State which were 
+    - Numerous bug fixes to State and Qnet/State which were
       causing terminations. Reported by dec.
     - Tweaks to a number of tests.
     - Various plugins have been debugged.
@@ -859,7 +859,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Added DCC test scripts to the testsuite.
     - Fixed a bug in DCC code for CHAT.
     - Added nick and nick_state tests.
-    - Amended processing order in _send_event() so that the 
+    - Amended processing order in _send_event() so that the
       poco session can process events *before* the plugins do.
     - Plugin system will automagically check whether the poco
       object has any plugin handlers. These get processed first.
@@ -867,7 +867,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Applied a patch from ketas for State.pm.
     - Fixes to Pipeline, spotted by dec @ MAGnet.
     - Added resolver() method for accessing the PoCo-Client-DNS object.
-    - Refactored State.pm, Qnet.pm and Qnet/State.pm, handlers are all 
+    - Refactored State.pm, Qnet.pm and Qnet/State.pm, handlers are all
       processed by plugin system now. Implemented better inheritance.
     - Expanded the SYNOPSIS sections of Qnet.pm, State.pm and Qnet/State.pm.
     - Added NickReclaim plugin and associated test.
@@ -876,8 +876,8 @@ Revision history for Perl extension POE::Component::IRC.
     - Added PlugMan plugin manager and associated test.
     - Fixed the RFC docs in docs/. Spotted by integral. Thanks.
     - Added session_alias() method as suggested by Chris Thompson.
-    - The component's HEAP is now the object. So is retrievable via 
-      $_[SENDER]->get_heap() in event handlers. Thanks to CT for the 
+    - The component's HEAP is now the object. So is retrievable via
+      $_[SENDER]->get_heap() in event handlers. Thanks to CT for the
       idea. Now why didn't I think of that sooner =[
     - Various fixes to Test::Harness ircd.
     - Expanded the testsuite with 2 new tests. One uses Test::Harness,
@@ -902,18 +902,18 @@ Revision history for Perl extension POE::Component::IRC.
 4.78  Tue Jan 10 22:01:09 GMT 2006
     - Documentation bug. 'irc_topic' event wasn't documented.
       Reported by bluepunk @ efnet, through dngor :)
-    - Finally got around to switch session registering from using 
+    - Finally got around to switch session registering from using
       POE::Session ( ew, nasty ) to session IDs instead.
 
 4.77  Mon Dec 26 17:00:01 GMT 2005
     - Forgot to add use ::Common to Qnet::State. Doh.
 
 4.76  Fri Dec 23 15:20:20 GMT 2005
-    - Documentation bugs in the main IRC.pm SYNOPSIS. Bad BinGOs :( 
+    - Documentation bugs in the main IRC.pm SYNOPSIS. Bad BinGOs :(
       Spotted and reported by Mulander via email.
-    - Added 'plugin_debug' option to dump after plugin evals if 
+    - Added 'plugin_debug' option to dump after plugin evals if
       applicable.
-    - Spotted a bug with the 'whois' handler. Looks like it has 
+    - Spotted a bug with the 'whois' handler. Looks like it has
       never worked ( properly ). Adjusted 'commasep' for the special
       case WHOIS <target> mask,mask.
     - Minor fixes to Filter-IRC-Compat for argument handling.
@@ -933,7 +933,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Stole japhy's ISupport plugin for .. erm .. new ISupport plugin >;]
     - Added CTCP.pm from gumbynet source. Added applicable test for it.
     - Added Console.pm from gumbynet source. Added applicable test for it.
-    - Moved common functions to Common.pm. Amended relevant code to import 
+    - Moved common functions to Common.pm. Amended relevant code to import
       functions from there.
     - Added Proxy.pm from gumbynet source. Hacked to make much more useful
       and robust. Added applicable test for it and added ircproxy.pl to
@@ -951,7 +951,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Minor problem with PoCo-Client-DNS fixed.
 
 4.72  Tue Oct 25 19:01:05 BST 2005
-    - Fix to Filter::IRC for INVITE. Apparently, asuka 
+    - Fix to Filter::IRC for INVITE. Apparently, asuka
       timestamps after the channel name. Doh. Thanks to
       Johannes Studt for spotting that.
     - Fixed the documentation in Projects.pm
@@ -972,7 +972,7 @@ Revision history for Perl extension POE::Component::IRC.
       on Cygwin for now.
 
 4.68  Fri Sep 02 14:00:00 BST 2005
-    - Altered Connector plugin so it starts the auto_ping on 
+    - Altered Connector plugin so it starts the auto_ping on
       'irc_connected' rather than 'irc_001'. Thanks to British
       Telecom for enabling me to spot that one. >:]
 
@@ -1003,7 +1003,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Fixed POD in BotAddressed and Connector plugins,
       thanks integral @ MagNET for spotting that one.
     - perigrin pointed out a problem with Test::Harness
-      and dependent components. Updated distribution 
+      and dependent components. Updated distribution
       dependencies and amended Test::Harness accordingly.
 
 4.62  Thu Jun 02 16:43:45 BST 2005
@@ -1019,28 +1019,28 @@ Revision history for Perl extension POE::Component::IRC.
     - Added BotAddressed plugin.
     - Added ::Test::Plugin.
     - Added ::Test::Harness, PoCo-Server-IRC in disguise :)
-    - Added tests for the ::Test::* 
+    - Added tests for the ::Test::*
 
 4.5   Sun May 22 16:21:08 BST 2005
     - Moved repository from cvs to svn \o/
     - Applied patch from ketas.
     - Fixed docs for DCCPorts parameter to connect().
-    - Removed State.pm plugin as it was becoming difficult to 
+    - Removed State.pm plugin as it was becoming difficult to
       keep in sync with State subclass. Eventually hope to replace
       State subclass with a proper plugin wrapper.
     - Relocated constants to Constants.pm, tidied up subclasses.
     - Added Connector.pm plugin. See docs for details.
-    - PoCo-IRC will now send an 'irc_registered' event to 
+    - PoCo-IRC will now send an 'irc_registered' event to
       registering sessions. ARG0 will the poco's object.
 
 4.4   Thu Apr 28 15:16:03 BST 2005
     - Added event handlers for PING and PONG IRC commands.
-    - Added connected() method, so punters can query if the 
+    - Added connected() method, so punters can query if the
       component is connected to an IRC server or not.
     - Applied a patch from Apocalypse re: DNS and SSL.
     - Fixed Filter::IRC so it now parses PONG properly.
-    - ketas pointed out that in State.pm, the state for a 
-      channel wasn't getting deleted when the bot parted or 
+    - ketas pointed out that in State.pm, the state for a
+      channel wasn't getting deleted when the bot parted or
       got kicked. Fixed.
 
 4.3   Wed Apr 20 09:25:21 BST 2005
@@ -1059,16 +1059,16 @@ Revision history for Perl extension POE::Component::IRC.
 
 4.0   Tue Apr 05 10:39:42 BST 2005
     - Fixed a minor bug in Filter-IRC.pm, where it wasn't
-      decoloning the mode line before splitting it. 
+      decoloning the mode line before splitting it.
       Thanks to webfox for pointing it out.
     - Used eval's to make plugins system safe from rogue
       plugins. *tssk* *tssk*
     - Plugins system will now try to send events to a plugin
       method _default() if the call to S_* or U_* fails.
-    - Applied a patch from webfox to enable SSL 
+    - Applied a patch from webfox to enable SSL
       connections. \o/
     - Ported SSL patch to all dependent sub-classes.
-    - Teased and fixed a bug in IRC-State.pm. ban_mask() 
+    - Teased and fixed a bug in IRC-State.pm. ban_mask()
       should work properly now.
     - paulv @ MAGnet pointed out that spawn() and connect()
       arguments are case-sensitive. Adapted his patch. Args
@@ -1085,7 +1085,7 @@ Revision history for Perl extension POE::Component::IRC.
       for Freenode's 320 whois response.
     - Added Apocalypse's port of IRC-State.pm using the plugin
       API, Plugin-State.pm.
-    - Added my plugin for 'irc_whois' and 'irc_whowas' 
+    - Added my plugin for 'irc_whois' and 'irc_whowas'
       functionality.
     - Fixed all the necessary modules to use Whois plugin.
 
@@ -1094,19 +1094,19 @@ Revision history for Perl extension POE::Component::IRC.
       adds plugins. Read the docs in Plugins.pm for more info.
     - Corrected some grammar mistakes in Plugins.pm >:o)
     - Amended IRC-State.pm so that 'irc_nick' and 'irc_quit'
-      have an additional parameter in ARG2 which is an 
+      have an additional parameter in ARG2 which is an
       arrayref of channels that are common with the component.
 
-3.6   Tue Mar 01 17:47:05 GMT 2005 "Y Adeilad Daffydd-Sant" 
+3.6   Tue Mar 01 17:47:05 GMT 2005 "Y Adeilad Daffydd-Sant"
 				   ( The Saint David Build(ing) )
     - Applied ketas' patch to IRC-State. Adds channel_modes
       method and some code tidying.
     - Spotted that in some cases the component *needs* an
-      alias. Made it use an internal alias unless one is 
+      alias. Made it use an internal alias unless one is
       specified.
-    - Applied another ketas patch to IRC.pm, puts a 
+    - Applied another ketas patch to IRC.pm, puts a
       friendly message when we can't allocate a DCC port.
-    - Updated IRC-Qnet-State.pm to use a 'querytype' in the 
+    - Updated IRC-Qnet-State.pm to use a 'querytype' in the
       extended WHO command, to specify <channel> or <nick>
       WHO queries, due to spurious channels appearing in the
       state. Big thanks to MikeC @ Qnet for the pointers.
@@ -1122,7 +1122,7 @@ Revision history for Perl extension POE::Component::IRC.
       Moved config stuff to _configure() to save duplication.
     - Changed all the object constructors about. Bit tedious
       but now it is alot easier to subclass. See _create().
-    - Added a hack for $self->session_id(). Made 'alias' 
+    - Added a hack for $self->session_id(). Made 'alias'
       optional if used with 'spawn'.
     - Added parameter NATPort so one can specify the NAT
       address that a bot appears to other IRC clients as
@@ -1137,12 +1137,12 @@ Revision history for Perl extension POE::Component::IRC.
     - Fixed the event dispatchers in _sock_up and _sock_down to
       use _send_event like everyone else. Danke to Apocalypse for
       spotting that. Amended _send_event so that 'irc_connected'
-      and 'irc_disconnected' get sent to every session not just 
+      and 'irc_disconnected' get sent to every session not just
       those that ask for it, as was the original behaviour.
     - Documentation updates for all the new stuff.
     - Added CVSLOG which contains all the glorious changes in
       developing this thingy. :)
-    - Added send_queue() method, as I noticed that merlyn's 
+    - Added send_queue() method, as I noticed that merlyn's
       logfile tailing code was accessing the heap and i moved all
       heap stuff to the object. *sigh* hacked it so that $heap holds
       a reference to $self->{send_queue} which should work.

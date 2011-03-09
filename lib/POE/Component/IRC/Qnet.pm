@@ -82,7 +82,7 @@ sub service_bots {
             $self->{$botname} = $args{$botname};
         }
     }
-    
+
     return 1;
 }
 
@@ -108,7 +108,7 @@ POE::Component::IRC::Qnet - A fully event-driven IRC client module for Quakenet
  my @channels = ( '#Blah', '#Foo', '#Bar' );
 
  # We create a new PoCo-IRC object and component.
- my $irc = POE::Component::IRC::Qnet->spawn( 
+ my $irc = POE::Component::IRC::Qnet->spawn(
      nick => $nickname,
      port => $port,
      ircname => $ircname,
@@ -192,7 +192,7 @@ Quakenet service bot Q.
 =head2 C<service_bots>
 
 The component will query Q its default name on Quakenet. If you
-wish to override these settings, use this method to configure them. 
+wish to override these settings, use this method to configure them.
 
  $irc->service_bots(QBOT => 'W@blah.network.net');
 

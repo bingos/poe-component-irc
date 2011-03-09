@@ -24,11 +24,11 @@ POE::Session->create(
     package_states => [
         main => [qw(
             _start
-            _config_ircd 
-            _shutdown 
-            irc_connected 
+            _config_ircd
+            _shutdown
+            irc_connected
             irc_raw_out
-            irc_001 
+            irc_001
             irc_disconnected
         )],
     ],
@@ -94,7 +94,7 @@ sub irc_disconnected {
 sub _shutdown {
     my ($kernel, $error) = @_[KERNEL, ARG0];
     fail($error) if defined $error;
-    
+
     $kernel->alarm_remove_all();
     $ircd->yield('shutdown');
     $bot->yield('shutdown');

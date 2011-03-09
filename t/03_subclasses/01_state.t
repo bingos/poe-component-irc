@@ -67,7 +67,7 @@ sub get_port {
 sub _shutdown {
     my ($kernel, $error) = @_[KERNEL, ARG0];
     fail($error) if defined $error;
-    
+
     $kernel->alarm_remove_all();
     $ircd->yield('shutdown');
     $bot->yield('shutdown');
@@ -75,9 +75,9 @@ sub _shutdown {
 
 sub _config_ircd {
     my ($kernel, $port) = @_[KERNEL, ARG0];
-    
+
     $ircd->yield(add_listener => Port => $port);
-    
+
     $bot->yield(register => 'all');
     $bot->yield(connect => {
         nick    => 'TestBot',
@@ -100,7 +100,7 @@ sub irc_001 {
     my ($heap, $server) = @_[HEAP, ARG0];
     my $irc = $_[SENDER]->get_heap();
     $heap->{server} = $server;
-    
+
     pass('Logged in');
     is($irc->server_name(), 'poco.server.irc', 'Server Name Test');
     is($irc->nick_name(), 'TestBot', 'Nick Name Test');
@@ -160,7 +160,7 @@ sub irc_chan_sync {
     my $irc = $sender->get_heap();
     my ($nick, $user, $host) = parse_user($irc->nick_long_form($irc->nick_name()));
     my ($occupant) = $irc->channel_list($chan);
-    
+
     is($occupant, 'TestBot', 'Channel Occupancy Test');
     ok($irc->channel_creation_time($chan), 'Got channel creation time');
     ok(!$irc->channel_limit($chan), 'There is no channel limit');
@@ -184,7 +184,7 @@ sub irc_chan_sync {
     is($info->{Real}, 'Test test bot', 'nick_info() - Realname');
     is($info->{Server}, $heap->{server}, 'nick_info() - Server');
     ok(!$info->{IRCop}, 'nick_info() - IRCop');
-    
+
     $irc->yield(mode => $chan, '+l 100');
     $heap->{mode_changed} = 1;
 }
@@ -203,7 +203,7 @@ sub irc_chan_mode {
 sub irc_user_mode {
     my ($sender, $who, $mode) = @_[SENDER, ARG0, ARG2];
     my $irc = $sender->get_heap();
-    
+
     $mode =~ s/\+//g;
     ok($irc->is_user_mode_set($mode), "User Mode Set: $mode");
     is($irc->umode(), $mode, 'Correct user mode in state');

@@ -11,7 +11,7 @@ sub new {
     my ($package) = shift;
     croak "$package requires an even number of arguments" if @_ & 1;
     my %args = @_;
-    
+
     $args{ lc $_ } = delete $args{ $_ } for keys %args;
     $args{eat} = 1 if !defined ( $args{eat} ) || $args{eat} eq '0';
     return bless \%args, $package;
@@ -61,7 +61,7 @@ sub S_ctcp_time {
     my $nick = ( split /!/, ${ $_[0] } )[0];
 
     $irc->yield(ctcpreply => $nick => strftime('TIME %a, %d %b %Y %H:%M:%S %z', localtime));
-    
+
     return PCI_EAT_CLIENT if $self->eat();
     return PCI_EAT_NONE;
 }
@@ -70,9 +70,9 @@ sub S_ctcp_ping {
     my ($self,$irc) = splice @_, 0, 2;
     my $nick = ( split /!/, ${ $_[0] } )[0];
     my $timestamp = ${ $_[2] };
-    
+
     $irc->yield( ctcpreply => $nick => 'PING ' . $timestamp );
-    
+
     return PCI_EAT_CLIENT if $self->eat();
     return PCI_EAT_NONE;
 }
@@ -95,7 +95,7 @@ sub S_ctcp_userinfo {
     my $nick = ( split /!/, ${ $_[0] } )[0];
 
     $irc->yield( ctcpreply => $nick => 'USERINFO ' . ( $self->{userinfo} ? $self->{userinfo} : 'm33p' ) );
-    
+
     return PCI_EAT_CLIENT if $self->eat();
     return PCI_EAT_NONE;
 }
@@ -108,7 +108,7 @@ sub S_ctcp_source {
         ? $self->{source}
         : 'http://search.cpan.org/dist/POE-Component-IRC'
     ));
-    
+
     return PCI_EAT_CLIENT if $self->eat();
     return PCI_EAT_NONE;
 }
@@ -140,7 +140,7 @@ POE::Component::IRC::Plugin::CTCP - A PoCo-IRC plugin that auto-responds to CTCP
  my $ircserver = 'irc.blahblahblah.irc';
  my $port = 6667;
 
- my $irc = POE::Component::IRC->spawn( 
+ my $irc = POE::Component::IRC->spawn(
      nick => $nickname,
      server => $ircserver,
      port => $port,

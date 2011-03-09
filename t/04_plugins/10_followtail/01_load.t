@@ -23,13 +23,13 @@ $poe_kernel->run();
 sub _start {
     $bot->yield(register => 'all');
 
-    my $plugin = POE::Component::IRC::Plugin::FollowTail->new( 
+    my $plugin = POE::Component::IRC::Plugin::FollowTail->new(
         filename => $temp_file,
         filter   => POE::Filter::Line->new(),
     );
-    
+
     isa_ok($plugin, 'POE::Component::IRC::Plugin::FollowTail');
-  
+
     if (!$bot->plugin_add('TestPlugin', $plugin) ) {
         fail('plugin_add failed');
         $bot->yield('shutdown');
@@ -39,7 +39,7 @@ sub _start {
 sub irc_plugin_add {
     my ($name, $plugin) = @_[ARG0, ARG1];
     return if $name ne 'TestPlugin';
-    
+
     isa_ok($plugin, 'POE::Component::IRC::Plugin::FollowTail');
     print $temp_fh "Cows go moo, yes they do\n";
 }
@@ -47,7 +47,7 @@ sub irc_plugin_add {
 sub irc_tail_input {
     my ($sender, $filename, $input) = @_[SENDER, ARG0, ARG1];
     my $irc = $sender->get_heap();
-    
+
     is($filename, $temp_file, 'Filename is okay');
     is($input, 'Cows go moo, yes they do', 'Cows go moo!');
 
@@ -62,6 +62,6 @@ sub irc_plugin_del {
     my $irc = $sender->get_heap();
     return if $name ne 'TestPlugin';
 
-    isa_ok($plugin, 'POE::Component::IRC::Plugin::FollowTail'); 
+    isa_ok($plugin, 'POE::Component::IRC::Plugin::FollowTail');
     $irc->yield('shutdown');
 }

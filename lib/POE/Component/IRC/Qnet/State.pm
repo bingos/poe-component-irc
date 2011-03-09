@@ -68,7 +68,7 @@ sub _resync_chan {
     my $mapping = $self->isupport('CASEMAPPING');
     my $nickname = $self->nick_name();
     my $flags = '%cunharsft';
-    
+
     for my $channel ( @channels ) {
         next if !$self->is_channel_member( $channel, $nickname );
 
@@ -81,7 +81,7 @@ sub _resync_chan {
         $self->yield ( 'mode' => $channel );
         $self->yield ( 'mode' => $channel => 'b');
     }
-    
+
     return;
 }
 
@@ -96,10 +96,10 @@ sub _resync_nick {
     my $mapping = $self->isupport('CASEMAPPING');
     my $unick = u_irc $nick, $mapping;
     my $flags = '%cunharsft';
-    
+
     for my $channel ( @channels ) {
         next if !$self->is_channel_member( $channel, $nick );
-        
+
         my $uchan = u_irc $channel, $mapping;
         $self->yield ( 'sl' => "WHO $nick $flags,102" );
         $self->{STATE}->{Nicks}->{ $unick }->{Nick} = $nick;
@@ -109,7 +109,7 @@ sub _resync_nick {
         $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick } = '';
         push @{ $self->{NICK_SYNCH}->{ $unick } }, $channel;
     }
-    
+
     return;
 }
 
@@ -130,18 +130,18 @@ sub S_354 {
         = @{ ${ $_[2] } };
     my $unick = u_irc $nick, $mapping;
     my $uchan = u_irc $channel, $mapping;
-  
+
     $self->{STATE}->{Nicks}->{ $unick }->{Nick} = $nick;
     $self->{STATE}->{Nicks}->{ $unick }->{User} = $user;
     $self->{STATE}->{Nicks}->{ $unick }->{Host} = $host;
     $self->{STATE}->{Nicks}->{ $unick }->{Real} = $real;
     $self->{STATE}->{Nicks}->{ $unick }->{Server} = $server;
     $self->{STATE}->{Nicks}->{ $unick }->{Auth} = $auth if ( $auth );
-    
+
     if ( $auth and defined ( $self->{USER_AUTHED}->{ $unick } ) ) {
         $self->{USER_AUTHED}->{ $unick } = $auth;
     }
-  
+
     if ( $query eq '101' ) {
         my $whatever = '';
         $whatever .= 'o' if $status =~ /\@/;
@@ -155,7 +155,7 @@ sub S_354 {
     if ( $status =~ /\*/ ) {
         $self->{STATE}->{Nicks}->{ $unick }->{IRCop} = 1;
     }
-    
+
     return PCI_EAT_NONE;
 }
 
@@ -204,7 +204,7 @@ sub S_join {
             _time => time()
         };
         $self->{STATE}->{Chans}->{ $uchan } = { Name => $channel, Mode => '' };
-        
+
         $self->yield ( 'sl' => "WHO $channel $flags,101" );
         $self->yield ( 'mode' => $channel );
         $self->yield ( 'mode' => $channel => 'b');
@@ -246,14 +246,14 @@ sub S_chan_mode {
     my $mode = ${ $_[2] };
     my $arg = defined $_[3] ? ${ $_[3] } : '';
     my $uarg = u_irc $arg, $mapping;
-    
+
     return PCI_EAT_NONE if $source !~ /^[Q]$/ || $mode !~ /[ov]/;
-    
+
     if ( !$self->is_nick_authed($arg) && !$self->{USER_AUTHED}->{ $uarg } ) {
        $self->{USER_AUTHED}->{ $uarg } = 0;
        $self->yield ( 'sl' => "WHO $arg " . '%cunharsft,102' );
     }
-    
+
     return PCI_EAT_NONE;
 }
 
@@ -287,7 +287,7 @@ sub S_part {
                 delete $self->{STATE}->{Nicks}->{ $nick };
         }
     }
-    
+
     return PCI_EAT_NONE;
 }
 
@@ -318,7 +318,7 @@ sub S_quit {
              { meta => $nickstate, stamp => time };
         }
     }
-    
+
     return PCI_EAT_NONE;
 }
 
@@ -357,7 +357,7 @@ sub S_kick {
             delete $self->{STATE}->{Nicks}->{ $unick };
         }
     }
-    
+
     return PCI_EAT_NONE;
 }
 
@@ -365,7 +365,7 @@ sub is_nick_authed {
     my ($self, $nick) = @_;
     my $mapping = $self->isupport('CASEMAPPING');
     my $unick = u_irc $nick, $mapping;
-    
+
     return if !$self->_nick_exists($nick);
 
     if (defined $self->{STATE}->{Nicks}->{ $unick }->{Auth}) {
@@ -379,7 +379,7 @@ sub find_auth_nicks {
     my ($self, $auth, $channel) = @_;
     my $mapping = $self->isupport('CASEMAPPING');
     my $uchan = u_irc $channel, $mapping;
-    
+
     return if !$self->_channel_exists($channel);
     my @results;
 
@@ -390,7 +390,7 @@ sub find_auth_nicks {
         }
     }
 
-    return @results; 
+    return @results;
 }
 
 sub ban_mask {
@@ -409,7 +409,7 @@ sub ban_mask {
 
     for my $nick ( $self->channel_list($channel) ) {
         my $long_form = $self->nick_long_form($nick);
-        
+
         if ( u_irc ( $long_form ) =~ /^$mask$/ ) {
             push @result, $nick;
             next;
@@ -451,7 +451,7 @@ for Quakenet with nickname and channel tracking
  my @channels = ( '#Blah', '#Foo', '#Bar' );
 
  # We create a new PoCo-IRC object and component.
- my $irc = POE::Component::IRC::Qnet::State->spawn( 
+ my $irc = POE::Component::IRC::Qnet::State->spawn(
      nick => $nickname,
      server => $ircserver,
      port => $port,
@@ -475,7 +475,7 @@ for Quakenet with nickname and channel tracking
      my $irc_session = $heap->{irc}->session_id();
      $kernel->post( $irc_session => register => 'all' );
      $kernel->post( $irc_session => connect => { } );
-     
+
      return;
  }
 
@@ -526,7 +526,7 @@ for Quakenet with nickname and channel tracking
              push ( @output, "'$arg'" );
          }
      }
-     
+
      print join ' ', @output, "\n";
      return 0;
  }

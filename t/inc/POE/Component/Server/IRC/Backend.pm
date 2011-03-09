@@ -31,45 +31,45 @@ sub create {
 		$self => { _start	 => '_start',
 			   add_connector => '_add_connector',
 			   add_filter    => '_add_filter',
-			   add_listener  => '_add_listener', 
+			   add_listener  => '_add_listener',
 			   del_filter    => '_del_filter',
-			   del_listener  => '_del_listener', 
+			   del_listener  => '_del_listener',
 			   send_output   => '_send_output',
 			   shutdown 	 => '_shutdown', },
 		$self => [ qw(  __send_event
 				__send_output
-				_accept_connection 
-				_accept_failed 
+				_accept_connection
+				_accept_failed
 				_auth_client
 				_auth_done
 				_conn_alarm
-				_conn_input 
-				_conn_error 
+				_conn_input
+				_conn_error
 				_conn_flushed
 				_event_dispatcher
 				_got_hostname_response
 				_got_ip_response
 				_sock_failed
 				_sock_up
-				_start 
+				_start
 				ident_agent_error
 				ident_agent_reply
-				register 
+				register
 				unregister) ],
 	],
 	heap => $self,
 	( ref($options) eq 'HASH' ? ( options => $options ) : () ),
   )->ID();
   $self->{got_zlib} = 0;
-  eval { 
-	require POE::Filter::Zlib::Stream; 
+  eval {
+	require POE::Filter::Zlib::Stream;
 	$self->{got_zlib} = 1;
   };
 
   if ( $sslify_options and ref $sslify_options eq 'ARRAY' ) {
     $self->{got_ssl} = $self->{got_server_ssl} = 0;
     eval {
-	require POE::Component::SSLify; 
+	require POE::Component::SSLify;
 	import POE::Component::SSLify qw(SSLify_Options Server_SSLify Client_SSLify);
 	$self->{got_ssl} = 1;
     };
@@ -368,10 +368,10 @@ sub _add_connector {
   my %parms = @_[ARG0..$#_];
 
   $parms{ lc($_) } = delete $parms{$_} for keys %parms;
-  
+
   my $remoteaddress = $parms{remoteaddress};
   my $remoteport = $parms{remoteport};
-  
+
   return unless $remoteaddress and $remoteport;
 
   my $wheel = POE::Wheel::SocketFactory->new(
@@ -425,7 +425,7 @@ sub _sock_up {
 	my $wheel_id = $wheel->ID();
 	my $sockaddr = inet_ntoa( ( unpack_sockaddr_in ( getsockname $socket ) )[1] );
 	my $sockport = ( unpack_sockaddr_in ( getsockname $socket ) )[0];
-        my $ref = { wheel => $wheel, peeraddr => $peeraddr, peerport => $peerport, 
+        my $ref = { wheel => $wheel, peeraddr => $peeraddr, peerport => $peerport,
 		      sockaddr => $sockaddr, sockport => $sockport, idle => time(), antiflood => 0, compress => 0 };
 	$self->{wheels}->{ $wheel_id } = $ref;
 	$self->_send_event( $self->{prefix} . 'connected' => $wheel_id => $peeraddr => $peerport => $sockaddr => $sockport => $cntr->{name} );
@@ -461,8 +461,8 @@ sub _anti_flood {
   my ($self,$wheel_id,$input) = splice @_, 0, 3;
   my $current_time = time();
 
-  return unless $wheel_id and $self->_wheel_exists( $wheel_id ) and $input; 
-  SWITCH: { 
+  return unless $wheel_id and $self->_wheel_exists( $wheel_id ) and $input;
+  SWITCH: {
      if ( $self->{wheels}->{ $wheel_id }->{flooded} ) {
 	last SWITCH;
      }
@@ -598,11 +598,11 @@ sub _auth_client {
   $self->send_output( { command => 'NOTICE', params => [ 'AUTH', '*** Checking Hostname' ] }, $wheel_id );
 
   if ( $peeraddr !~ /^127\./ ) {
-	my $response = $self->{resolver}->resolve( 
-		event => '_got_hostname_response', 
+	my $response = $self->{resolver}->resolve(
+		event => '_got_hostname_response',
 		host => $peeraddr,
 		context => { wheel => $wheel_id, peeraddress => $peeraddr },
-		type => 'PTR' 
+		type => 'PTR'
 	);
 	if ( $response ) {
 		$kernel->yield( '_got_hostname_response' => $response );
@@ -612,14 +612,14 @@ sub _auth_client {
 	$self->{wheels}->{ $wheel_id }->{auth}->{hostname} = 'localhost';
 	$self->yield( '_auth_done' => $wheel_id );
   }
-#  POE::Component::Client::Ident::Agent->spawn( 
-#		PeerAddr => $peeraddr, 
-#		PeerPort => $peerport, 
+#  POE::Component::Client::Ident::Agent->spawn(
+#		PeerAddr => $peeraddr,
+#		PeerPort => $peerport,
 #		SockAddr => $sockaddr,
-#	        SockPort => $sockport, 
-#		BuggyIdentd => 1, 
+#	        SockPort => $sockport,
+#		BuggyIdentd => 1,
 #		TimeOut => 10,
-#		Reference => $wheel_id 
+#		Reference => $wheel_id
 #  );
   undef;
 }
@@ -629,7 +629,7 @@ sub _auth_done {
 
   return unless $self->_wheel_exists( $wheel_id );
   if ( defined ( $self->{wheels}->{ $wheel_id }->{auth}->{ident} ) and defined ( $self->{wheels}->{ $wheel_id }->{auth}->{hostname} ) ) {
-	$self->_send_event( $self->{prefix} . 'auth_done' => $wheel_id => { 
+	$self->_send_event( $self->{prefix} . 'auth_done' => $wheel_id => {
 		ident    => $self->{wheels}->{ $wheel_id }->{auth}->{ident},
    	        hostname => $self->{wheels}->{ $wheel_id }->{auth}->{hostname} } )
 		unless ( $self->{wheels}->{ $wheel_id }->{auth}->{done} );
@@ -660,11 +660,11 @@ sub _got_hostname_response {
 	if ( $context->{hostname} =~ /\.$/ ) {
 	   chop $context->{hostname};
 	}
-	my $query = $self->{resolver}->resolve( 
-		event => '_got_ip_response', 
-		host => $answer->rdatastr(), 
-		context => $context, 
-		type => 'A' 
+	my $query = $self->{resolver}->resolve(
+		event => '_got_ip_response',
+		host => $answer->rdatastr(),
+		context => $context,
+		type => 'A'
 	);
 	if ( defined $query ) {
 	   $self->yield( '_got_ip_response' => $query );
@@ -839,7 +839,7 @@ sub add_denial {
   $self->{denials}->{ $netmask } = { blk => $netmask, reason => $reason };
   return 1;
 }
- 
+
 sub del_denial {
   my $self = shift;
   my $netmask = shift || return;
@@ -926,7 +926,7 @@ sub plugin_del {
 
 # Gets the plugin object
 sub plugin_get {
-  my ($self, $name) = @_;  
+  my ($self, $name) = @_;
 
   unless (defined $name) {
     warn 'Please supply a name/object for the plugin to be removed!';
@@ -1069,7 +1069,7 @@ sub _plugin_process {
   }
 
   return $return;
-}  
+}
 
 1;
 __END__

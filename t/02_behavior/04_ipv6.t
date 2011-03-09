@@ -60,7 +60,7 @@ sub _start {
     }
 
     eval { ($heap->{bindport}) = unpack_sockaddr_in6($packed_socket) };
-    
+
     if ($@) {
         diag("ERROR: $@");
         return;
@@ -93,7 +93,7 @@ sub accept_client {
         ErrorEvent => 'client_error',
         Filter     => POE::Filter::Line->new( Literal => "\x0D\x0A" ),
     );
-    
+
     $heap->{client} = $wheel;
 }
 
@@ -134,7 +134,7 @@ sub client_input {
 
 sub client_error {
     my ($heap) = $_[HEAP];
-    delete $heap->{client}; 
+    delete $heap->{client};
     delete $heap->{sockfactory};
 }
 
@@ -154,7 +154,7 @@ sub irc_001 {
 
 sub _skip_rest {
     my ($error) = @_;
-    
+
     SKIP: {
         skip "AF_INET6 probably not supported ($error)", $tests;
     }

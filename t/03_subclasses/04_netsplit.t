@@ -72,7 +72,7 @@ sub get_port {
 sub _shutdown {
     my ($kernel, $error) = @_[KERNEL, ARG0];
     fail($error) if defined $error;
-    
+
     $kernel->alarm_remove_all();
     $ircd1->yield('shutdown');
     $ircd2->yield('shutdown');
@@ -81,10 +81,10 @@ sub _shutdown {
 
 sub _config_ircd {
     my ($kernel, $port) = @_[KERNEL, ARG0];
-    
+
     $ircd1->yield(add_listener => Port => $port);
     $ircd1->add_peer( name => 'ircd2.poco.server.irc', pass => $pass, rpass => $pass, type => 'c' );
-    $ircd2->add_peer( name => 'ircd1.poco.server.irc', pass => $pass, rpass => $pass, type => 'r', auto => 'r', 
+    $ircd2->add_peer( name => 'ircd1.poco.server.irc', pass => $pass, rpass => $pass, type => 'r', auto => 'r',
                       raddress => '127.0.0.1', rport => $port );
     $ircd2->yield( 'register' );
     $ircd2->yield( 'add_spoofed_nick', nick => 'oper', umode => 'o', );
@@ -113,7 +113,7 @@ sub irc_001 {
     my ($heap, $server) = @_[HEAP, ARG0];
     my $irc = $_[SENDER]->get_heap();
     $heap->{server} = $server;
-    
+
     pass('Logged in');
     is($irc->server_name(), 'ircd1.poco.server.irc', 'Server Name Test');
     is($irc->nick_name(), 'TestBot', 'Nick Name Test');
@@ -198,7 +198,7 @@ sub irc_chan_sync {
     is($info->{Real}, 'Test test bot', 'nick_info() - Realname');
     is($info->{Server}, $heap->{server}, 'nick_info() - Server');
     ok(!$info->{IRCop}, 'nick_info() - IRCop');
-    
+
     $ircd2->_daemon_cmd_squit( 'oper', 'ircd1.poco.server.irc' );
 }
 

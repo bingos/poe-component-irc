@@ -83,7 +83,7 @@ that information on command.
      $kernel->delay_set('save', SAVE_INTERVAL);
      return;
  }
- 
+
  sub save {
      my $kernel = $_[KERNEL];
      warn "storing\n";
@@ -95,25 +95,25 @@ that information on command.
      my $nick = parse_user($_[ARG0]);
      my $chan = $_[ARG1]->[0];
      my $text = $_[ARG2];
-     
+
      add_nick($nick, "on $chan doing: * $nick $text");
  }
 
  sub irc_join {
      my $nick = parse_user($_[ARG0]);
      my $chan = $_[ARG1];
-     
-     add_nick($nick, "joining $chan"); 
+
+     add_nick($nick, "joining $chan");
  }
 
  sub irc_part {
      my $nick = parse_user($_[ARG0]);
      my $chan = $_[ARG1];
      my $text = $_[ARG2];
-     
+
      my $msg = 'parting $chan';
      $msg .= " with message '$text'" if defined $text;
-     
+
      add_nick($nick, $msg);
  }
 
@@ -121,17 +121,17 @@ that information on command.
      my $nick = parse_user($_[ARG0]);
      my $chan = $_[ARG1]->[0];
      my $text = $_[ARG2];
-     
+
      add_nick($nick, "on $chan saying: $text");
  }
- 
+
  sub irc_quit {
      my $nick = parse_user($_[ARG0]);
      my $text = $_[ARG1];
-     
+
      my $msg = 'quitting';
      $msg .= " with message '$text'" if defined $text;
-     
+
      add_nick($nick, $msg);
  }
 

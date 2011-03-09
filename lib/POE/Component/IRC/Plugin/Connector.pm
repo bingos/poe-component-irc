@@ -10,7 +10,7 @@ sub new {
     my ($package) = shift;
     croak "$package requires an even number of arguments" if @_ & 1;
     my %args = @_;
-    
+
     $args{ lc $_ } = delete $args{$_} for keys %args;
     $args{lag} = 0;
     return bless \%args, $package;
@@ -111,7 +111,7 @@ sub _start_ping {
 
 sub _auto_ping {
     my ($kernel, $self) = @_[KERNEL, OBJECT];
-    
+
     if (!$self->{seen_traffic}) {
         my $time = time();
         $self->{irc}->yield( 'ping' => $time );
@@ -154,7 +154,7 @@ sub _reconnect {
     else {
         $kernel->delay( '_reconnect' => $self->{reconnect} || 60 );
     }
-    
+
     return;
 }
 
@@ -185,8 +185,8 @@ messy business of staying connected to an IRC server
 
  my $irc = POE::Component::IRC->spawn();
 
- POE::Session->create( 
-     package_states => [ 
+ POE::Session->create(
+     package_states => [
          main => [ qw(_start lag_o_meter) ],
      ],
  );

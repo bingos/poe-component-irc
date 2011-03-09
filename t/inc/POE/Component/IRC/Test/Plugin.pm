@@ -56,14 +56,14 @@ L<POE::Component::IRC|POE::Component::IRC> test-suite.
 
      my $plugin = POE::Component::IRC::Test::Plugin->new();
      isa_ok ( $plugin, 'POE::Component::IRC::Test::Plugin' );
-  
+
      $heap->{counter} = 6;
      if ( !$self->plugin_add( 'TestPlugin' => $plugin ) ) {
          fail( 'plugin_add' );
          $self->yield( 'unregister' => 'all' );
          $self->yield( 'shutdown' );
      }
-     
+
      return:
  }
 
@@ -71,13 +71,13 @@ L<POE::Component::IRC|POE::Component::IRC> test-suite.
      my ($kernel, $heap, $desc, $plugin) = @_[KERNEL, HEAP, ARG0, ARG1];
 
      isa_ok ( $plugin, 'POE::Component::IRC::Test::Plugin' );
-  
+
      if ( !$self->plugin_del( 'TestPlugin' ) ) {
          fail( 'plugin_del' );
          $self->yield( 'unregister' => 'all' );
          $self->yield( 'shutdown' );
      }
- 
+
      return;
  }
 
@@ -97,7 +97,7 @@ L<POE::Component::IRC|POE::Component::IRC> test-suite.
              $self->yield( 'shutdown' );
          }
      }
-     
+
      return:
  }
 
