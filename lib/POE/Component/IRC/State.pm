@@ -504,11 +504,12 @@ sub S_352 {
 # RPL_ENDOFWHO
 sub S_315 {
     my ($self, undef) = splice @_, 0, 2;
-    my $chan  = ${ $_[2] }->[0];
+    my $what  = ${ $_[2] }->[0];
     my $map   = $self->isupport('CASEMAPPING');
-    my $uchan = u_irc($chan, $map);
+    my $uwhat = u_irc($what, $map);
 
-    if ( exists $self->{STATE}{Chans}{ $uchan } ) {
+    if ( exists $self->{STATE}{Chans}{ $uwhat } ) {
+        my $chan = $what; my $uchan = $uwhat;
         if ( $self->_channel_sync($chan, 'WHO') ) {
             my $rec = delete $self->{CHANNEL_SYNCH}{ $uchan };
             $self->_send_event(irc_chan_sync => $chan, time() - $rec->{_time} );
@@ -520,8 +521,9 @@ sub S_315 {
         }
     }
     else {
-        my $nick = shift @{ $self->{NICK_SYNCH}{ $uchan } };
-        delete $self->{NICK_SYNCH}{ $uchan } if !@{ $self->{NICK_SYNCH}{ $uchan } };
+        my $nick = $what; my $unick = $uwhat;
+        my $chan = shift @{ $self->{NICK_SYNCH}{ $unick } };
+        delete $self->{NICK_SYNCH}{ $unick } if !@{ $self->{NICK_SYNCH}{ $unick } };
         $self->_send_event(irc_nick_sync => $nick, $chan );
     }
 
