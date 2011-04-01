@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.56  Fri Apr 1 20:05:14 GMT 2011
     - irc_snotice has been used for server NOTICEs which do not have a sender
       prefix. NOTICEs which have a server name as the sender prefix are now
       irc_snotice too, leaving irc_notice only for notices with a proper
