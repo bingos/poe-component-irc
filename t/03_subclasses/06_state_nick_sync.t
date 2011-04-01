@@ -6,7 +6,7 @@ use Socket;
 use POE::Component::IRC::State;
 use POE::Component::IRC::Plugin::AutoJoin;
 use POE::Component::Server::IRC;
-use Test::More tests => 12;
+use Test::More tests => 14;
 
 my $bot1 = POE::Component::IRC::State->spawn(
     Flood        => 1,
@@ -29,6 +29,7 @@ POE::Session->create(
             _config_ircd
             _shutdown
             irc_001
+            irc_366
             irc_join
             irc_nick_sync
             irc_disconnected
@@ -101,6 +102,16 @@ sub irc_join {
         $bot2->yield(join => "#testchannel");
         $bot2->yield(join => "#testchannel2");
     }
+}
+
+sub irc_366 {
+    my ($sender, $heap, $args) = @_[SENDER, HEAP, ARG2];
+    my $irc = $sender->get_heap();
+    my $chan = $args->[0];
+    return if $irc != $bot2;
+    return if $chan ne '#testchannel';
+    my @nicks = $irc->channel_list($chan);
+    ok(defined $_, 'Nickname is defined') for @nicks;
 }
 
 sub irc_nick_sync {

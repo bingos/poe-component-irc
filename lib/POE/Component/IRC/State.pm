@@ -444,6 +444,7 @@ sub S_353 {
        $existing .= $whatever if !$existing || $existing !~ /$whatever/;
        $self->{STATE}{Nicks}{ $unick }{CHANS}{ $uchan } = $existing;
        $self->{STATE}{Chans}{ $uchan }{Nicks}{ $unick } = $existing;
+       $self->{STATE}{Nicks}{ $unick }{Nick} = $user;
     }
     return PCI_EAT_NONE;
 }
