@@ -31,7 +31,7 @@ my %irc_cmds = (
     qr/^notice$/ => sub {
         my ($self, $event, $line) = @_;
 
-        if ($line->{prefix}) {
+        if (length $line->{prefix} && $line->{prefix} =~ /!/) {
             $event->{args} = [
                 _decolon( $line->{prefix} ),
                 [split /,/, $line->{params}->[0]],
@@ -43,7 +43,10 @@ my %irc_cmds = (
         }
         else {
             $event->{name} = 'snotice';
-            $event->{args}->[0] = $line->{params}->[1];
+            $event->{args} = [
+                $line->{params}->[1],
+                (length $line->{prefix} ? _decolon($line->{prefix}) : ()),
+            ];
         }
     },
     qr/^privmsg$/ => sub {

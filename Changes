@@ -1,6 +1,10 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+    - irc_snotice has been used for server NOTICEs which do not have a sender
+      prefix. NOTICEs which have a server name as the sender prefix are now
+      irc_snotice too, leaving irc_notice only for notices with a proper
+      nick!user@host sender.
 
 6.55  Fri Apr 1 18:37:49 GMT 2011
     - State.pm: Store the real nicks of channel members after receiving a
