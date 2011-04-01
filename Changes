@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.55  Fri Apr 1 18:37:49 GMT 2011
     - State.pm: Store the real nicks of channel members after receiving a
       NAMES reply. Fixes the issue of undefined nicks being returned by
       channel_list() before the channel has been synced.
