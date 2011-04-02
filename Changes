@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.57  Sat Apr 2 03:34:04 GMT 2011
     - FollowTail, Logger & DCC plugins: Expand '~' in filename arguments,
       and resolve them to absolute paths, in case the process will chdir().
 
