@@ -3,6 +3,8 @@ package POE::Component::IRC::Plugin::FollowTail;
 use strict;
 use warnings FATAL => 'all';
 use Carp;
+use Cwd qw(abs_path);
+use File::Glob ':glob';
 use POE qw(Wheel::FollowTail);
 use POE::Component::IRC::Plugin qw( :ALL );
 
@@ -12,9 +14,10 @@ sub new {
     my %args = @_;
     $args{lc $_} = delete $args{$_} for keys %args;
 
-    if (!$args{filename} || ! -e $args{filename}) {
-        die "$package requires a valid 'filename' attribute";
-    }
+    die "$package requires a 'filename' attribute" if !defined $args{filename};
+    $args{filename} = bsd_glob($args{filename});
+    die "File '$args{filename}' does not exist" if !-e $args{filename};
+    $args{filename} = abs_path($args{filename});
 
     return bless \%args, $package;
 }
