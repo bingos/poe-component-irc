@@ -110,9 +110,9 @@ sub S_005 {
                 $self->{parser}->{$key}->($support, $key, $val);
             }
             else {
-                # AWAYLEN CHANNELLEN CHIDLEN EXCEPTS INVEX KICKLEN MAXBANS
-                # MAXCHANNELS MAXTARGETS MODES NETWORK NICKLEN STD TOPICLEN
-                # WATCH
+                # AWAYLEN CHANNELLEN CHIDLEN CHARSET EXCEPTS INVEX KICKLEN
+                # MAXBANS MAXCHANNELS MAXTARGETS MODES NETWORK NICKLEN STD
+                # TOPICLEN WATCH
                 $support->{$key} = $val;
             }
         }
