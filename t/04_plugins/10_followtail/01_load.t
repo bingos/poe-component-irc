@@ -7,6 +7,7 @@ use POE::Component::IRC::Plugin::FollowTail;
 use Test::More tests => 5;
 
 my ($temp_fh, $temp_file) = tempfile(UNLINK => 1);
+my $inode = (stat $temp_fh)[1];
 $temp_fh->autoflush(1);
 print $temp_fh "moocow\n";
 
@@ -48,7 +49,10 @@ sub irc_tail_input {
     my ($sender, $filename, $input) = @_[SENDER, ARG0, ARG1];
     my $irc = $sender->get_heap();
 
-    is($filename, $temp_file, 'Filename is okay');
+    SKIP: {
+        skip "No inodes on Windows", 1 if $^O eq 'MSWin32';
+        is((stat $filename)[1], $inode, 'Filename is okay');
+    }
     is($input, 'Cows go moo, yes they do', 'Cows go moo!');
 
     if (!$irc->plugin_del('TestPlugin')) {
