@@ -3,9 +3,9 @@ package POE::Component::IRC::Plugin::DCC;
 use strict;
 use warnings FATAL => 'all';
 use Carp;
-use Cwd qw(abs_path);
 use File::Basename qw(fileparse);
 use File::Glob ':glob';
+use File::Spec::Functions 'rel2abs';
 use POE qw(Driver::SysRW Filter::Line Filter::Stream
            Wheel::ReadWrite Wheel::SocketFactory);
 use POE::Component::IRC::Plugin qw(:ALL);
@@ -173,7 +173,7 @@ sub _U_dcc {
             warn "The 'dcc' command requires three arguments for a SEND\n";
             return;
         }
-        $file = abs_path(bsd_glob($file));
+        $file = rel2abs(bsd_glob($file));
         $size = (stat $file)[7];
         if (!defined $size) {
             $irc->send_event(

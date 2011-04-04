@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+    - FollowTail, Logger & DCC: Use rel2abs instead of abs_path to
+      preserve symlinks while still being unaffected by chdir()
 
 6.58  Mon Apr 4 17:48:59 GMT 2011
     - Fix FollowTail test to work in case /tmp is a symlink

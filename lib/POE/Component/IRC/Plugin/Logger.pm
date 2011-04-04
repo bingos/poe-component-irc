@@ -2,12 +2,11 @@ package POE::Component::IRC::Plugin::Logger;
 
 use strict;
 use warnings FATAL => 'all';
-use Cwd qw(abs_path);
 use Carp;
 use Encode::Guess;
 use Fcntl qw(O_WRONLY O_APPEND O_CREAT);
 use File::Glob ':glob';
-use File::Spec::Functions qw(catdir catfile);
+use File::Spec::Functions qw(catdir catfile rel2abs);
 use IO::Handle;
 use POE::Component::IRC::Plugin qw( :ALL );
 use POE::Component::IRC::Plugin::BotTraffic;
@@ -50,7 +49,7 @@ sub PCI_register {
     if (defined $self->{Path} && ! -d $self->{Path}) {
         mkdir $self->{Path}, $self->{dir_perm}
             or die 'Cannot create directory ' . $self->{Path} . ": $!; aborted";
-        $self->{Path} = abs_path($self->{Path});
+        $self->{Path} = rel2abs($self->{Path});
     }
 
     $self->{irc} = $irc;
