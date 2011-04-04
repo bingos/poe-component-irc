@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.58  Mon Apr 4 17:48:59 GMT 2011
     - Fix FollowTail test to work in case /tmp is a symlink
 
 6.57  Sat Apr 2 03:34:04 GMT 2011
