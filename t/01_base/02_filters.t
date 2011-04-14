@@ -6,145 +6,176 @@ use POE::Filter::IRCD;
 use POE::Filter::IRC::Compat;
 use POE::Filter::IRC;
 
-my %tests = (
-    part => {
-        args => [
-            'joe!joe@example.com',
-            '#foo',
-            'Goodbye',
-        ],
+my @tests = (
+    {
         line => ':joe!joe@example.com PART #foo :Goodbye',
-        tests => 6,
+        events => {
+            part => [
+                'joe!joe@example.com',
+                '#foo',
+                'Goodbye',
+            ],
+        },
     },
-    join => {
-        args => [
-            'joe!joe@example.com',
-            '#foo',
-        ],
+    {
         line => ':joe!joe@example.com JOIN #foo',
-        tests => 5,
-    },
-    366 => {
-        args => [
-            'magnet.shadowcat.co.uk',
-            '#IRC.pm :End of /NAMES list.',
-            [
-                '#IRC.pm',
-                'End of /NAMES list.'
+        events => {
+            join => [
+                'joe!joe@example.com',
+                '#foo',
             ],
-        ],
+        },
+    },
+    {
         line => ':magnet.shadowcat.co.uk 366 Flibble28185 #IRC.pm :End of /NAMES list.',
-        tests => 8,
-    },
-    public => {
-        args => [
-            'joe!joe@example.com',
-            [
-                '#foo',
+        events => {
+            366 => [
+                'magnet.shadowcat.co.uk',
+                '#IRC.pm :End of /NAMES list.',
+                [
+                    '#IRC.pm',
+                    'End of /NAMES list.'
+                ],
             ],
-           'Fish go moo',
-        ],
+        },
+    },
+    {
         line => ':joe!joe@example.com PRIVMSG #foo :Fish go moo',
-        tests => 7,
-    },
-    notice => {
-        args => [
-            'joe!joe@example.com',
-            [
-                '#foo',
+        events => {
+            public => [
+                'joe!joe@example.com',
+                [
+                    '#foo',
+                ],
+                'Fish go moo',
             ],
-            'Fish go moo',
-        ],
+        },
+    },
+    {
         line => ':joe!joe@example.com NOTICE #foo :Fish go moo',
-        tests => 7,
-    },
-    msg => {
-        args => [
-            'joe!joe@example.com',
-            [
-                'foobar',
+        events => {
+            notice => [
+                'joe!joe@example.com',
+                [
+                    '#foo',
+                ],
+                'Fish go moo',
             ],
-            'Fish go moo',
-        ],
+        },
+    },
+    {
         line => ':joe!joe@example.com PRIVMSG foobar :Fish go moo',
-        tests => 7,
+        events => {
+            msg => [
+                'joe!joe@example.com',
+                [
+                    'foobar',
+                ],
+                'Fish go moo',
+            ],
+        },
     },
-    nick => {
-        args => [
-            'joe!joe@example.com',
-            'moe',
-        ],
+    {
         line => ':joe!joe@example.com NICK :moe',
-        tests => 5,
+        events => {
+            nick => [
+                'joe!joe@example.com',
+                'moe',
+            ],
+        },
     },
-    quit => {
-        args => [
-            'joe!joe@example.com',
-            'moe',
-        ],
+    {
         line => ':joe!joe@example.com QUIT :moe',
-        tests => 5,
+        events => {
+            quit => [
+                'joe!joe@example.com',
+                'moe',
+            ],
+        },
     },
-    ping => {
-        args => [
-            'moe'
-        ],
+    {
         line => 'PING :moe',
-        tests => 4,
+        events => {
+            ping => [
+                'moe'
+            ],
+        },
     },
-    topic => {
-        args => [
-            'joe!joe@example.com',
-            '#foo',
-            'Fish go moo',
-        ],
+    {
         line => ':joe!joe@example.com TOPIC #foo :Fish go moo',
-        tests => 6,
+        events => {
+            topic => [
+                'joe!joe@example.com',
+                '#foo',
+                'Fish go moo',
+            ],
+        },
     },
-    kick => {
-        args => [
-            'joe!joe@example.com',
-            '#foo',
-            'foobar',
-            'Goodbye'
-        ],
+    {
         line => ':joe!joe@example.com KICK #foo foobar :Goodbye',
-        tests => 7,
+        events => {
+            kick => [
+                'joe!joe@example.com',
+                '#foo',
+                'foobar',
+                'Goodbye',
+            ],
+        },
     },
-    invite => {
-        args => [
-            'joe!joe@example.com',
-            '#foo',
-        ],
+    {
         line => ':joe!joe@example.com INVITE foobar :#foo',
-        tests => 5,
-    },
-    mode => {
-        args => [
-            'joe!joe@example.com',
-            '#foo',
-            '+m',
-        ],
-        line => ':joe!joe@example.com MODE #foo +m',
-        tests => 6,
-    },
-    ctcp_action => {
-        args => [
-            'joe!joe@example.com',
-            [
+        events => {
+            invite => [
+                'joe!joe@example.com',
                 '#foo',
             ],
-            'barfs on the floor.',
-        ],
+        },
+    },
+    {
+        line => ':joe!joe@example.com MODE #foo +m',
+        events => {
+            mode => [
+                'joe!joe@example.com',
+                '#foo',
+                '+m',
+            ],
+        },
+    },
+    {
         line => ":joe!joe\@example.com PRIVMSG #foo :\001ACTION barfs on the floor.\001",
-        tests => 7,
+        events => {
+            ctcp_action => [
+                'joe!joe@example.com',
+                [
+                    '#foo',
+                ],
+                'barfs on the floor.',
+            ],
+        },
     },
 );
 
-my $sum;
-$sum += $_ for map { $tests{$_}->{tests} } keys %tests;
+sub count {
+    my (@items) = @_;
 
-plan tests => ( 2 + 2 * $sum );
+    my $count = 0;
+    for my $item (@items) {
+        $count++;
+        next if ref $item ne 'ARRAY';
+        $count += count(@$item);
+    }
+
+    return $count;
+}
+
+my $sum;
+$sum += $_ for map {
+    map {
+        4 + count(values @$_)
+    } values %{ $_->{events} }
+} @tests;
+
+plan tests => (2 + 2 * $sum);
 
 my $irc_filter = POE::Filter::IRC->new();
 my $stack = POE::Filter::Stackable->new(
@@ -156,25 +187,41 @@ my $stack = POE::Filter::Stackable->new(
 for my $filter ( $stack, $irc_filter ) {
     isa_ok( $filter, 'POE::Filter::Stackable');
 
-    my @events = @{ $filter->get( [map {$tests{$_}->{line} } sort keys %tests]) };
-    for my $event ( @events ) {
-        next if !defined $tests{ $event->{name} };
-        pass("irc_$event->{name}");
+    for my $test (@tests) {
+        my @events = @{ $filter->get( [$test->{line}]) };
 
-        my $test = $tests{ $event->{name} };
-        is($event->{raw_line}, $test->{line}, "Raw Line $event->{name}");
-        is(scalar @{ $event->{args} },scalar @{ $test->{args} }, "Args count $event->{name}");
+        is(scalar @events, scalar keys %{ $test->{events} }, 'Event count');
+        for my $event (@events) {
+            ok($test->{events}{$event->{name}}, "Got irc_$event->{name}");
+            is($event->{raw_line}, $test->{line}, "Raw Line $event->{name}");
 
-        for my $idx (0 .. $#{ $test->{args} }) {
-            if (ref $test->{args}->[$idx] eq 'ARRAY') {
-                is(scalar @{ $event->{args}->[$idx] }, scalar @{ $test->{args}->[$idx] }, "Sub args count $event->{name}");
+            my $test_args = $test->{events}{$event->{name}};
+            is(scalar @{ $event->{args} }, scalar @$test_args,
+               "Args count $event->{name}");
 
-                for my $iidx (0 .. $#{ $test->{args}->[$idx] }) {
-                    is($event->{args}->[$idx]->[$iidx], $test->{args}->[$idx]->[$iidx], "Sub args Index $event->{name} $idx $iidx");
+            for my $idx (0 .. $#$test_args) {
+                if (ref $test_args->[$idx] eq 'ARRAY') {
+                    is(
+                        scalar @{ $event->{args}[$idx] },
+                        scalar @{ $test_args->[$idx] },
+                        "Sub args count $event->{name}",
+                    );
+
+                    for my $iidx (0 .. $#{ $test_args->[$idx] }) {
+                        is(
+                            $event->{args}->[$idx][$iidx],
+                            $test_args->[$idx][$iidx],
+                            "Sub args Index $event->{name} $idx $iidx",
+                        );
+                    }
                 }
-            }
-            else {
-                is($event->{args}->[$idx], $test->{args}->[$idx], "Args Index $event->{name} $idx");
+                else {
+                    is(
+                        $event->{args}[$idx],
+                        $test_args->[$idx],
+                        "Args Index $event->{name} $idx",
+                    );
+                }
             }
         }
     }
