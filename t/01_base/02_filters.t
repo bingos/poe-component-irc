@@ -159,7 +159,7 @@ my @tests = (
             snotice => [
                 'Fish go moo',
             ],
-        }
+        },
     },
 
     {
@@ -189,7 +189,7 @@ sub count {
 my $sum;
 $sum += $_ for map {
     map {
-        4 + count(values @$_)
+        4 + count( @$_ )
     } values %{ $_->{events} }
 } @tests;
 
