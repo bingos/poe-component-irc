@@ -153,6 +153,24 @@ my @tests = (
             ],
         },
     },
+    {
+        line => 'NOTICE * :Fish go moo',
+        events => {
+            snotice => [
+                'Fish go moo',
+            ],
+        }
+    },
+
+    {
+        line => ':foo.bar.baz NOTICE * :Fish go moo',
+        events => {
+            snotice => [
+                'Fish go moo',
+                'foo.bar.baz',
+            ],
+        },
+    },
 );
 
 sub count {

@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+    - Fix failure (RT #67465) related to the recent irc_snotice change.
+      Added a test for it as well.
 
 6.59  Mon Apr 4 20:22:38 GMT 2011
     - FollowTail, Logger & DCC: Use rel2abs instead of abs_path to
