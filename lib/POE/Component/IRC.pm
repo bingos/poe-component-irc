@@ -244,13 +244,14 @@ sub _parseline {
     return;
 }
 
+# the public interface
 sub send_event {
     my ($self, @args) = @_;
     $poe_kernel->call($self->{SESSION_ID} => __send_event => @args);
     return 1;
 }
 
-# Hack to make plugin_add/del send events from OUR session
+# Hack to make sure events are sent from OUR session
 sub __send_event {
     my ($self, $event, @args) = @_[OBJECT, ARG0..$#_];
     # Actually send the event...
@@ -1185,15 +1186,15 @@ sub _cleanup {
     my $sender_id = delete $self->{_shutdown};
     $kernel->sig('POCOIRC_REGISTER');
     $kernel->sig('POCOIRC_SHUTDOWN');
+
+    # Delete all plugins that are loaded.
+    $self->_pluggable_destroy();
+
     $self->_send_event(irc_shutdown => $sender_id);
     $self->_unregister_sessions();
     $kernel->alarm_remove_all();
     $kernel->alias_remove($_) for $kernel->alias_list($session);
     delete $self->{$_} for qw(socketfactory dcc wheelmap);
-
-    # Delete all plugins that are loaded.
-    $self->_pluggable_destroy();
-
     $self->{resolver}->shutdown() if $self->{resolver} && $self->{mydns};
 
     return;
