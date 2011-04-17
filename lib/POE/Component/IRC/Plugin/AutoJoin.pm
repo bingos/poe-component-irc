@@ -20,6 +20,8 @@ sub PCI_register {
         if ($irc->isa('POE::Component::IRC::State')) {
             for my $chan (keys %{ $irc->channels() }) {
                 my $lchan = l_irc($chan, $irc->isupport('MAPPING'));
+                # note that this will not get the real key on ircu servers
+                # in channels where we don't have ops
                 my $key = $irc->is_channel_mode_set($chan, 'k')
                     ? $irc->channel_key($chan)
                     : ''
@@ -41,7 +43,7 @@ sub PCI_register {
     $self->{tried_keys} = { };
     $self->{Rejoin_delay} = 5 if !defined $self->{Rejoin_delay};
     $self->{NickServ_delay} = 5 if !defined $self->{NickServ_delay};
-    $irc->plugin_register($self, 'SERVER', qw(001 004 474 isupport chan_mode join kick part identified));
+    $irc->plugin_register($self, 'SERVER', qw(001 474 isupport chan_mode join kick part identified));
     $irc->plugin_register($self, 'USER', qw(join));
     return 1;
 }
@@ -52,19 +54,7 @@ sub PCI_unregister {
 
 sub S_001 {
     my ($self, $irc) = splice @_, 0, 2;
-    delete $self->{masked_key};
     delete $self->{alarm_ids};
-    return PCI_EAT_NONE;
-}
-
-# RPL_MYINFO
-sub S_004 {
-    my ($self, $irc) = splice @_, 0, 2;
-    my $version = ${ $_[2] }->[1];
-
-    # ircu returns '*' to non-ops instead of the real channel key
-    $self->{masked_key} = 1 if $version =~ /^u\d/;
-
     return PCI_EAT_NONE;
 }
 
