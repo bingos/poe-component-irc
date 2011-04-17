@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 use POE;
 use POE::Component::IRC::Plugin qw( PCI_EAT_NONE );
-use POE::Component::IRC::Common qw(:ALL);
+use IRC::Utils qw(uc_irc);
 
 sub new {
     return bless { }, shift;
@@ -27,7 +27,7 @@ sub S_311 {
     my @args = @{ ${ $_[2] } };
     my $real = pop @args;
     my ($rnick,$user,$host) = @args;
-    my $nick = u_irc $rnick, $mapping;
+    my $nick = uc_irc $rnick, $mapping;
 
     $self->{WHOIS}->{ $nick }->{nick} = $rnick;
     $self->{WHOIS}->{ $nick }->{user} = $user;
@@ -41,7 +41,7 @@ sub S_311 {
 sub S_313 {
     my ($self, $irc) = splice @_, 0, 2;
     my $mapping = $irc->isupport('CASEMAPPING');
-    my $nick = u_irc ${ $_[2] }->[0], $mapping;
+    my $nick = uc_irc ${ $_[2] }->[0], $mapping;
     my $oper = ${ $_[2] }->[1];
 
     $self->{WHOIS}->{ $nick }->{oper} = $oper;
@@ -53,7 +53,7 @@ sub S_312 {
     my ($self, $irc) = splice @_, 0, 2;
     my $mapping = $irc->isupport('CASEMAPPING');
     my ($nick,$server) = @{ ${ $_[2] } };
-    $nick = u_irc $nick, $mapping;
+    $nick = uc_irc $nick, $mapping;
 
     # This can be returned in reply to either a WHOIS or a WHOWAS *sigh*
     if ( defined $self->{WHOWAS}->{ $nick } ) {
@@ -71,7 +71,7 @@ sub S_317 {
     my ($self, $irc) = splice @_, 0, 2;
     my $mapping = $irc->isupport('CASEMAPPING');
     my ($nick,@args) = @{ ${ $_[2] } };
-    $nick = u_irc $nick, $mapping;
+    $nick = uc_irc $nick, $mapping;
 
     $self->{WHOIS}->{ $nick }->{idle} = $args[0];
     $self->{WHOIS}->{ $nick }->{signon} = $args[1];
@@ -84,7 +84,7 @@ sub S_319 {
     my ($self, $irc) = splice @_, 0, 2;
     my $mapping = $irc->isupport('CASEMAPPING');
     my @args = @{ ${ $_[2] } };
-    my $nick = u_irc shift ( @args ), $mapping;
+    my $nick = uc_irc shift ( @args ), $mapping;
     my @chans = split / /, shift @args;
 
     if ( !defined $self->{WHOIS}->{ $nick }->{channels} ) {
@@ -103,7 +103,7 @@ sub S_320 {
     my $mapping = $irc->isupport('CASEMAPPING');
     my ($nick, $ident) = @{ ${ $_[2] } };
 
-    $self->{WHOIS}->{ u_irc ( $nick, $mapping  ) }->{identified} = $ident;
+    $self->{WHOIS}->{ uc_irc ( $nick, $mapping  ) }->{identified} = $ident;
 
     return PCI_EAT_NONE;
 }
@@ -112,7 +112,7 @@ sub S_320 {
 sub S_338 {
     my ($self, $irc) = splice @_, 0, 2;
     my $mapping = $irc->isupport('CASEMAPPING');
-    my $nick = u_irc ${ $_[2] }->[0], $mapping;
+    my $nick = uc_irc ${ $_[2] }->[0], $mapping;
     my $ip = ${ $_[2] }->[1];
 
     $self->{WHOIS}->{ $nick }->{actually} = $ip;
@@ -126,7 +126,7 @@ sub S_330 {
     my $mapping = $irc->isupport('CASEMAPPING');
     my ($nick,$account) = @{ ${ $_[2] } };
 
-    $self->{WHOIS}->{ u_irc ( $nick, $mapping ) }->{account} = $account;
+    $self->{WHOIS}->{ uc_irc ( $nick, $mapping ) }->{account} = $account;
 
     return PCI_EAT_NONE;
 }
@@ -136,7 +136,7 @@ sub S_330 {
 sub S_318 {
     my ($self, $irc) = splice @_, 0, 2;
     my $mapping = $irc->isupport('CASEMAPPING');
-    my $nick = u_irc ${ $_[2] }->[0], $mapping;
+    my $nick = uc_irc ${ $_[2] }->[0], $mapping;
     my $whois = delete $self->{WHOIS}->{ $nick };
 
     $irc->send_event_next( 'irc_whois', $whois ) if defined $whois;
@@ -150,7 +150,7 @@ sub S_314 {
     my @args = @{ ${ $_[2] } };
     my $real = pop @args;
     my ($rnick,$user,$host) = @args;
-    my $nick = u_irc $rnick, $mapping;
+    my $nick = uc_irc $rnick, $mapping;
 
     $self->{WHOWAS}->{ $nick }->{nick} = $rnick;
     $self->{WHOWAS}->{ $nick }->{user} = $user;
@@ -164,7 +164,7 @@ sub S_314 {
 sub S_369 {
     my ($self, $irc) = splice @_, 0, 2;
     my $mapping = $irc->isupport('CASEMAPPING');
-    my $nick = u_irc ${ $_[2] }->[0], $mapping;
+    my $nick = uc_irc ${ $_[2] }->[0], $mapping;
 
     my $whowas = delete $self->{WHOWAS}->{ $nick };
     $irc->send_event_next( 'irc_whowas', $whowas ) if defined $whowas;

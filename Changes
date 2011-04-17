@@ -8,6 +8,8 @@ Revision history for Perl extension POE::Component::IRC.
     - Improve event queue ordering to make it more predictable. Add new
       methods, send_event_next() and send_event_now(), to bypass the
       event queue in different ways.
+    - Replace the functions in Common.pm with wrappers around equivalents
+      from IRC::Utils.
 
 6.60  Fri Apr 15 06:12:28 GMT 2011
     - Fix failure (RT #67465) related to the recent irc_snotice change.

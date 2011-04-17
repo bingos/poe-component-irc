@@ -3,8 +3,8 @@ package POE::Component::IRC::Plugin::AutoJoin;
 use strict;
 use warnings FATAL => 'all';
 use Carp;
+use IRC::Utils qw(parse_user lc_irc);
 use POE::Component::IRC::Plugin qw(:ALL);
-use POE::Component::IRC::Common qw(parse_user l_irc);
 
 sub new {
     my ($package) = shift;
@@ -19,7 +19,7 @@ sub PCI_register {
     if (!$self->{Channels}) {
         if ($irc->isa('POE::Component::IRC::State')) {
             for my $chan (keys %{ $irc->channels() }) {
-                my $lchan = l_irc($chan, $irc->isupport('MAPPING'));
+                my $lchan = lc_irc($chan, $irc->isupport('MAPPING'));
                 # note that this will not get the real key on ircu servers
                 # in channels where we don't have ops
                 my $key = $irc->is_channel_mode_set($chan, 'k')
@@ -36,7 +36,7 @@ sub PCI_register {
     }
     elsif (ref $self->{Channels} eq 'ARRAY') {
         my %channels;
-        $channels{l_irc($_, $irc->isupport('MAPPING'))} = undef for @{ $self->{Channels} };
+        $channels{lc_irc($_, $irc->isupport('MAPPING'))} = undef for @{ $self->{Channels} };
         $self->{Channels} = \%channels;
     }
 
@@ -98,7 +98,7 @@ sub S_identified {
 sub S_474 {
     my ($self, $irc) = splice @_, 0, 2;
     my $chan = ${ $_[2] }->[0];
-    my $lchan = l_irc($chan, $irc->isupport('MAPPING'));
+    my $lchan = lc_irc($chan, $irc->isupport('MAPPING'));
     return PCI_EAT_NONE if !$self->{Retry_when_banned};
 
     my $key = $self->{Channels}{$lchan};
@@ -113,7 +113,7 @@ sub S_chan_mode {
     my $chan  = ${ $_[1] };
     my $mode  = ${ $_[2] };
     my $arg   = defined $_[3] ? ${ $_[3] } : '';
-    my $lchan = l_irc($chan, $irc->isupport('MAPPING'));
+    my $lchan = lc_irc($chan, $irc->isupport('MAPPING'));
 
     $self->{Channels}->{$lchan} = $arg if $mode eq '+k';
     $self->{Channels}->{$lchan} = '' if $mode eq '-k';
@@ -124,7 +124,7 @@ sub S_join {
     my ($self, $irc) = splice @_, 0, 2;
     my $joiner = parse_user(${ $_[0] });
     my $chan   = ${ $_[1] };
-    my $lchan  = l_irc($chan, $irc->isupport('MAPPING'));
+    my $lchan  = lc_irc($chan, $irc->isupport('MAPPING'));
 
     return PCI_EAT_NONE if $joiner ne $irc->nick_name();
     delete $self->{alarm_ids};
@@ -144,7 +144,7 @@ sub S_kick {
     my ($self, $irc) = splice @_, 0, 2;
     my $chan   = ${ $_[1] };
     my $victim = ${ $_[2] };
-    my $lchan  = l_irc($chan, $irc->isupport('MAPPING'));
+    my $lchan  = lc_irc($chan, $irc->isupport('MAPPING'));
 
     if ($victim eq $irc->nick_name()) {
         if ($self->{RejoinOnKick}) {
@@ -163,7 +163,7 @@ sub S_part {
     my ($self, $irc) = splice @_, 0, 2;
     my $parter = parse_user(${ $_[0] });
     my $chan   = ${ $_[1] };
-    my $lchan  = l_irc($chan, $irc->isupport('MAPPING'));
+    my $lchan  = lc_irc($chan, $irc->isupport('MAPPING'));
 
     delete $self->{Channels}->{$lchan} if $parter eq $irc->nick_name();
     return PCI_EAT_NONE;
@@ -172,7 +172,7 @@ sub S_part {
 sub U_join {
     my ($self, $irc) = splice @_, 0, 2;
     my (undef, $chan, $key) = split /\s/, ${ $_[0] }, 3;
-    my $lchan = l_irc($chan, $irc->isupport('MAPPING'));
+    my $lchan = lc_irc($chan, $irc->isupport('MAPPING'));
 
     $self->{tried_keys}->{$lchan} = $key if defined $key;
     return PCI_EAT_NONE;

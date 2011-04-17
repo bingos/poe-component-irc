@@ -15,9 +15,9 @@ to DNS records for channel members.
 
  use strict;
  use warnings;
+ use IRC::Utils qw(parse_user);
  use POE;
  use POE::Component::Client::DNS;
- use POE::Component::IRC::Common qw(parse_user);
  use POE::Component::IRC::State;
  use POE::Component::IRC::Plugin::AutoJoin;
  use POE::Component::IRC::Plugin::BotCommand;

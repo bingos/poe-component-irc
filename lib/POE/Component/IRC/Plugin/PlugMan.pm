@@ -3,8 +3,8 @@ package POE::Component::IRC::Plugin::PlugMan;
 use strict;
 use warnings FATAL => 'all';
 use Carp;
+use IRC::Utils qw( matches_mask parse_user );
 use POE::Component::IRC::Plugin qw( :ALL );
-use POE::Component::IRC::Common qw( matches_mask parse_user );
 
 BEGIN {
     # Turn on the debugger's symbol source tracing

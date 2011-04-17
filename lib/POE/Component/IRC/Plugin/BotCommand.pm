@@ -3,7 +3,7 @@ package POE::Component::IRC::Plugin::BotCommand;
 use strict;
 use warnings FATAL => 'all';
 use Carp;
-use POE::Component::IRC::Common qw( parse_user strip_color strip_formatting );
+use IRC::Utils qw( parse_user strip_color strip_formatting );
 use POE::Component::IRC::Plugin qw( :ALL );
 
 sub new {

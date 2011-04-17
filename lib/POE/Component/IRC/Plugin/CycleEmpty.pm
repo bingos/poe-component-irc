@@ -3,8 +3,8 @@ package POE::Component::IRC::Plugin::CycleEmpty;
 use strict;
 use warnings FATAL => 'all';
 use Carp;
+use IRC::Utils qw( parse_user uc_irc );
 use POE::Component::IRC::Plugin qw( :ALL );
-use POE::Component::IRC::Common qw( parse_user u_irc );
 
 sub new {
     my ($package) = shift;
@@ -70,7 +70,7 @@ sub _cycle {
     my $irc = $self->{irc};
     if ($irc->channel_list($chan) == 1) {
         if (!$irc->is_channel_operator($chan, $irc->nick_name)) {
-            $self->{cycling}->{ u_irc($chan) } = 1;
+            $self->{cycling}->{ uc_irc($chan) } = 1;
             my $topic = $irc->channel_topic($chan);
             $irc->yield(part => $chan);
             $irc->yield(join => $chan => $irc->channel_key($chan));
@@ -83,7 +83,7 @@ sub _cycle {
 
 sub is_cycling {
     my ($self, $value) = @_;
-    return 1 if $self->{cycling}->{ u_irc($value) };
+    return 1 if $self->{cycling}->{ uc_irc($value) };
     return;
 }
 

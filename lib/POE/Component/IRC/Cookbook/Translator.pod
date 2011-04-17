@@ -18,8 +18,8 @@ to handle the translate command.
  use warnings;
  use Encode qw(decode);
  use Encode::Guess;
+ use IRC::Utils qw(decode_irc parse_user);
  use POE;
- use POE::Component::IRC::Common qw(parse_user);
  use POE::Component::IRC::State;
  use POE::Component::IRC::Plugin::AutoJoin;
  use POE::Component::IRC::Plugin::BotCommand;
@@ -83,20 +83,13 @@ to handle the translate command.
      }
 
      $poe_kernel->post($from . $to => translate =>
-         to_utf8($text),
+         decode_irc($text),
          {
              channel => $channel,
              nick    => $nick,
          }
      );
      return;
- }
-
- # Some IRC users use CP1252, some use UTF-8. Let's decode it properly.
- sub to_utf8 {
-     my ($line) = @_;
-     my $utf8 = guess_encoding($line, 'utf8');
-     return ref $utf8 ? decode('utf8', $line) : decode('cp1252', $line);
  }
 
  sub translated {

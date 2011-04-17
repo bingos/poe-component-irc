@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 use Carp;
 use POE;
-use POE::Component::IRC::Common qw(:ALL);
+use IRC::Utils qw(uc_irc parse_mask);
 use POE::Component::IRC::Plugin qw(:ALL);
 use base qw(POE::Component::IRC::State POE::Component::IRC::Qnet);
 
@@ -72,7 +72,7 @@ sub _resync_chan {
     for my $channel ( @channels ) {
         next if !$self->is_channel_member( $channel, $nickname );
 
-        my $uchan = u_irc $channel, $mapping;
+        my $uchan = uc_irc $channel, $mapping;
         delete $self->{STATE}->{Chans}->{ $uchan };
         $self->{CHANNEL_SYNCH}->{ $uchan } = { MODE => 0, WHO => 0, BAN => 0, _time => time() };
         $self->{STATE}->{Chans}->{ $uchan } = { Name => $channel, Mode => '' };
@@ -94,13 +94,13 @@ sub _resync_nick {
     my $user = $info->{User};
     my $host = $info->{Host};
     my $mapping = $self->isupport('CASEMAPPING');
-    my $unick = u_irc $nick, $mapping;
+    my $unick = uc_irc $nick, $mapping;
     my $flags = '%cunharsft';
 
     for my $channel ( @channels ) {
         next if !$self->is_channel_member( $channel, $nick );
 
-        my $uchan = u_irc $channel, $mapping;
+        my $uchan = uc_irc $channel, $mapping;
         $self->yield ( 'sl' => "WHO $nick $flags,102" );
         $self->{STATE}->{Nicks}->{ $unick }->{Nick} = $nick;
         $self->{STATE}->{Nicks}->{ $unick }->{User} = $user;
@@ -128,8 +128,8 @@ sub S_354 {
     my $mapping = $irc->isupport('CASEMAPPING');
     my ($query, $channel, $user, $host, $server, $nick, $status, $auth, $real)
         = @{ ${ $_[2] } };
-    my $unick = u_irc $nick, $mapping;
-    my $uchan = u_irc $channel, $mapping;
+    my $unick = uc_irc $nick, $mapping;
+    my $uchan = uc_irc $channel, $mapping;
 
     $self->{STATE}->{Nicks}->{ $unick }->{Nick} = $nick;
     $self->{STATE}->{Nicks}->{ $unick }->{User} = $user;
@@ -164,7 +164,7 @@ sub S_315 {
     my ($self, $irc) = splice @_, 0, 2;
     my $mapping = $irc->isupport('CASEMAPPING');
     my $channel = ${ $_[2] }->[0];
-    my $uchan = u_irc $channel, $mapping;
+    my $uchan = uc_irc $channel, $mapping;
 
     if ( exists $self->{STATE}->{Chans}->{ $uchan } ) {
         if ( $self->_channel_sync($channel, 'WHO' ) ) {
@@ -191,11 +191,11 @@ sub S_join {
     my $channel = ${ $_[1] };
 
     my $mapping = $irc->isupport('CASEMAPPING');
-    my $uchan = u_irc $channel, $mapping;
-    my $unick = u_irc $nick, $mapping;
+    my $uchan = uc_irc $channel, $mapping;
+    my $unick = uc_irc $nick, $mapping;
     my $flags = '%cunharsft';
 
-    if ( $unick eq u_irc ( $self->nick_name(), $mapping ) ) {
+    if ( $unick eq uc_irc ( $self->nick_name(), $mapping ) ) {
         delete $self->{STATE}->{Chans}->{ $uchan };
         $self->{CHANNEL_SYNCH}->{ $uchan } = {
             MODE => 0,
@@ -242,10 +242,10 @@ sub S_chan_mode {
     my $mapping = $irc->isupport('CASEMAPPING');
     pop @_;
     my $who = ${ $_[0] };
-    my $source = u_irc ( ( split /!/, $who )[0], $mapping );
+    my $source = uc_irc ( ( split /!/, $who )[0], $mapping );
     my $mode = ${ $_[2] };
     my $arg = defined $_[3] ? ${ $_[3] } : '';
-    my $uarg = u_irc $arg, $mapping;
+    my $uarg = uc_irc $arg, $mapping;
 
     return PCI_EAT_NONE if $source !~ /^[Q]$/ || $mode !~ /[ov]/;
 
@@ -260,8 +260,8 @@ sub S_chan_mode {
 sub S_part {
     my ($self, $irc) = splice @_, 0, 2;
     my $mapping = $irc->isupport('CASEMAPPING');
-    my $nick = u_irc ( ( split /!/, ${ $_[0] } )[0], $mapping );
-    my $channel = u_irc ${ $_[1] }, $mapping;
+    my $nick = uc_irc ( ( split /!/, ${ $_[0] } )[0], $mapping );
+    my $channel = uc_irc ${ $_[1] }, $mapping;
     if ( ref $_[2] eq 'ARRAY' ) {
         push @{ $_[-1] }, '', $self->is_nick_authed( $nick );
     }
@@ -269,7 +269,7 @@ sub S_part {
         push @{ $_[-1] }, $self->is_nick_authed( $nick );
     }
 
-    if ( $nick eq u_irc ( $self->nick_name(), $mapping ) ) {
+    if ( $nick eq uc_irc ( $self->nick_name(), $mapping ) ) {
         delete $self->{STATE}->{Nicks}->{ $nick }->{CHANS}->{ $channel };
         delete $self->{STATE}->{Chans}->{ $channel }->{Nicks}->{ $nick };
         for my $member ( keys %{ $self->{STATE}->{Chans}->{ $channel }->{Nicks} } ) {
@@ -298,13 +298,13 @@ sub S_quit {
     my $msg = ${ $_[1] };
     push @{ $_[2] }, [ $self->nick_channels( $nick ) ];
     push @{ $_[2] }, $self->is_nick_authed( $nick );
-    my $unick = u_irc $nick, $mapping;
+    my $unick = uc_irc $nick, $mapping;
     my $netsplit = 0;
 
     # Check if it is a netsplit
     $netsplit = 1 if _is_netsplit( $msg );
 
-    if ( $unick eq u_irc ( $self->nick_name(), $mapping ) ) {
+    if ( $unick eq uc_irc ( $self->nick_name(), $mapping ) ) {
         delete $self->{STATE};
     }
     else {
@@ -333,13 +333,13 @@ sub S_kick {
     my $mapping = $irc->isupport('CASEMAPPING');
     my $channel = ${ $_[1] };
     my $nick = ${ $_[2] };
-    my $unick = u_irc $nick, $mapping;
-    my $uchan = u_irc $channel, $mapping;
+    my $unick = uc_irc $nick, $mapping;
+    my $uchan = uc_irc $channel, $mapping;
 
     push @{ $_[-1] }, $self->nick_long_form( $nick );
     push @{ $_[-1] }, $self->is_nick_authed( $nick );
 
-    if ( $unick eq u_irc ( $self->nick_name(), $mapping ) ) {
+    if ( $unick eq uc_irc ( $self->nick_name(), $mapping ) ) {
         delete $self->{STATE}->{Nicks}->{ $unick }->{CHANS}->{ $uchan };
         delete $self->{STATE}->{Chans}->{ $uchan }->{Nicks}->{ $unick };
         for my $member ( keys %{ $self->{STATE}->{Chans}->{ $uchan }->{Nicks} } ) {
@@ -364,7 +364,7 @@ sub S_kick {
 sub is_nick_authed {
     my ($self, $nick) = @_;
     my $mapping = $self->isupport('CASEMAPPING');
-    my $unick = u_irc $nick, $mapping;
+    my $unick = uc_irc $nick, $mapping;
 
     return if !$self->_nick_exists($nick);
 
@@ -378,7 +378,7 @@ sub is_nick_authed {
 sub find_auth_nicks {
     my ($self, $auth, $channel) = @_;
     my $mapping = $self->isupport('CASEMAPPING');
-    my $uchan = u_irc $channel, $mapping;
+    my $uchan = uc_irc $channel, $mapping;
 
     return if !$self->_channel_exists($channel);
     my @results;
@@ -395,7 +395,7 @@ sub find_auth_nicks {
 
 sub ban_mask {
     my ($self, $channel, $mask) = @_;
-    $mask = parse_ban_mask($mask);
+    $mask = parse_mask($mask);
     my $mapping = $self->isupport('CASEMAPPING');
     my @result;
 
@@ -410,14 +410,14 @@ sub ban_mask {
     for my $nick ( $self->channel_list($channel) ) {
         my $long_form = $self->nick_long_form($nick);
 
-        if ( u_irc ( $long_form ) =~ /^$mask$/ ) {
+        if ( uc_irc ( $long_form ) =~ /^$mask$/ ) {
             push @result, $nick;
             next;
         }
 
         if ( my $auth = $self->is_nick_authed( $nick ) ) {
             $long_form =~ s/\@(.+)$/\@$auth.users.quakenet.org/;
-            push @result, $nick if u_irc ( $long_form ) =~ /^$mask$/;
+            push @result, $nick if uc_irc ( $long_form ) =~ /^$mask$/;
         }
     }
 

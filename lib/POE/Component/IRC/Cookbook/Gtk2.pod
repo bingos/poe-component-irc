@@ -17,8 +17,8 @@ present an event-driven GUI to the user.
  use warnings;
  use Gtk2 -init;
  use Gtk2::SimpleList;
+ use IRC::Utils qw(parse_user strip_color strip_formatting decode_irc);
  use POE qw(Loop::Glib Component::IRC::State Component::IRC::Plugin::Connector);
- use POE::Component::IRC::Common qw(parse_user strip_color strip_formatting irc_to_utf8);
 
  my $channel = "#IRC.pm-test";
  my $irc = POE::Component::IRC::State->spawn(
@@ -224,14 +224,14 @@ present an event-driven GUI to the user.
  sub irc_notice {
      my ($user, $recipients, $text) = @_[ARG0..ARG2];
      my $nick = parse_user($user);
-     $text = irc_to_utf8($text);
+     $text = decode_irc($text);
      push_buffer("$nick : $text\n", "fg_orange");
  }
 
  sub irc_public {
      my ($user, $where, $what) = @_[ARG0 .. ARG2];
      my $nick = parse_user($user);
-     $what = irc_to_utf8($what);
+     $what = decode_irc($what);
      push_buffer("<$nick> $what\n");
  }
 

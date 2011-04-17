@@ -7,7 +7,6 @@ use POE qw(Wheel::SocketFactory Wheel::ReadWrite Driver::SysRW
            Filter::Line Filter::Stream Filter::Stackable);
 use POE::Filter::IRCD;
 use POE::Filter::IRC::Compat;
-use POE::Component::IRC::Common qw(:ALL);
 use POE::Component::IRC::Constants qw(:ALL);
 use POE::Component::IRC::Plugin qw(:ALL);
 use POE::Component::IRC::Plugin::DCC;
@@ -402,7 +401,7 @@ sub _sock_up {
         }
 
         my $packet;
-        if ( irc_ip_is_ipv4( $self->{server} ) ) {
+        if ( _ip_is_ipv4( $self->{server} ) ) {
             # SOCKS 4
             $packet = pack ('CCn', 4, 1, $self->{port}) .
             inet_aton($self->{server}) . ($self->{socks_id} || '') . (pack 'x');
@@ -691,7 +690,7 @@ sub connect {
     }
 
     # try and use non-blocking resolver if needed
-    if ( $self->{resolver} && !irc_ip_get_version( $self->{server} )
+    if ( $self->{resolver} && !_ip_get_version( $self->{server} )
         && !$self->{nodns} ) {
         $kernel->yield(
             '_resolve_addresses',
@@ -734,7 +733,7 @@ sub _do_connect {
     }
 
     for my $address (qw(socks_proxy proxy server localaddr)) {
-        next if !$self->{$address} || !irc_ip_is_ipv6( $self->{$address} );
+        next if !$self->{$address} || !_ip_is_ipv6( $self->{$address} );
         if (!$GOT_SOCKET6) {
             warn "IPv6 address specified for '$address' but Socket6 not found\n";
             return;
@@ -1682,6 +1681,87 @@ sub _pluggable_event {
     return;
 }
 
+sub _ip_get_version {
+    my ($ip) = @_;
+    return if !defined $ip;
+
+    # If the address does not contain any ':', maybe it's IPv4
+    return 4 if $ip !~ /:/ && _ip_is_ipv4($ip);
+
+    # Is it IPv6 ?
+    return 6 if _ip_is_ipv6($ip);
+
+    return;
+}
+
+sub _ip_is_ipv4 {
+    my ($ip) = @_;
+    return if !defined $ip;
+
+    # Check for invalid chars
+    return if $ip !~ /^[\d\.]+$/;
+    return if $ip =~ /^\./;
+    return if $ip =~ /\.$/;
+
+    # Single Numbers are considered to be IPv4
+    return 1 if $ip =~ /^(\d+)$/ && $1 < 256;
+
+    # Count quads
+    my $n = ($ip =~ tr/\./\./);
+
+    # IPv4 must have from 1 to 4 quads
+    return if $n <= 0 || $n > 4;
+
+    # Check for empty quads
+    return if $ip =~ /\.\./;
+
+    for my $quad (split /\./, $ip) {
+        # Check for invalid quads
+        return if $quad < 0 || $quad >= 256;
+    }
+    return 1;
+}
+
+sub _ip_is_ipv6 {
+    my ($ip) = @_;
+    return if !defined $ip;
+
+    # Count octets
+    my $n = ($ip =~ tr/:/:/);
+    return if ($n <= 0 || $n >= 8);
+
+    # $k is a counter
+    my $k;
+
+    for my $octet (split /:/, $ip) {
+        $k++;
+
+        # Empty octet ?
+        next if $octet eq '';
+
+        # Normal v6 octet ?
+        next if $octet =~ /^[a-f\d]{1,4}$/i;
+
+        # Last octet - is it IPv4 ?
+        if ($k == $n + 1) {
+            next if (ip_is_ipv4($octet));
+        }
+
+        return;
+    }
+
+    # Does the IP address start with : ?
+    return if $ip =~ m/^:[^:]/;
+
+    # Does the IP address finish with : ?
+    return if $ip =~ m/[^:]:$/;
+
+    # Does the IP address have more than one '::' pattern ?
+    return if $ip =~ s/:(?=:)//g > 1;
+
+    return 1;
+}
+
 1;
 
 =encoding utf8
@@ -2335,8 +2415,7 @@ you specify. Takes 2 arguments: the nick or channel to send a message
 to (use an array reference here to specify multiple recipients), and
 the text of the message to send.
 
-Have a look at the constants in
-L<POE::Component::IRC::Common|POE::Component::IRC::Common> if you would
+Have a look at the constants in L<IRC::Utils|IRC::Utils> if you would
 like to use formatting and color codes in your messages.
 
 =head3 C<quit>
@@ -2984,79 +3063,10 @@ poco-ircs simultaneously.
 Any additional parameters passed to the signal will become your quit messages
 on each IRC network.
 
-=head1 ENCODING AND CHARACTER SETS
+=head1 ENCODING
 
-=head2 Messages
-
-The only requirement the IRC protocol places on its messages is that they be
-8-bits, and in ASCII. This has resulted in most of the Western world settling
-on ASCII-compatible Latin-1 (usually Microsoft's CP1252, a Latin-1 variant) as
-a convention. Recently, popular IRC clients (mIRC, xchat, certain irssi
-configurations) have begun sending a mixture of CP1252 and UTF-8 over the wire
-to allow more characters without breaking backward compatibility (too much).
-They send CP1252 encoded messages if the characters fit within that encoding,
-otherwise falling back to UTF-8. Writing text with mixed encoding to a file,
-terminal, or database is rarely a good idea. To decode such messages reliably,
-see L<C<irc_to_utf8>|POE::Component::IRC::Common/irc_to_utf8> from
-L<POE::Component::IRC::Common|POE::Component::IRC::Common>.
-
-=head2 Channel names
-
-This matter is complicated further by the fact that some servers allow
-non-ASCII characters in channel names. The IRC component doesn't explicitly
-convert between encodings before sending your message along, but it has to
-concatenate the channel name and the message before sending them over the
-wire. So when you do C<< $irc->yield(privmsg => $chan, 'æði') >>, where
-C<$chan> is the unmodified channel name you got from the IRC component
-(i.e. it's a byte string), the channel name will end up getting
-double-encoded when concatenated with the message (which is a text string).
-If the channel name is all-ASCII, then nothing bad will happen, but if there
-are non-ASCII chars in it, you're in trouble.
-
-To prevent this, you can't simply call C<irc_to_utf8> on the channel name and
-then use it, because IRC servers don't care about encodings. C<'#æði'> in
-CP1252 is not the same channel as C<'#æði'> in UTF-8. The channel name and
-your message must therefore both be byte stirngs, or both be text strings.
-If they're text strings, the UTF-8 flag must be off for both, or on for both.
-
-A simple rule to follow is to call L<C<encode_utf8>|Encode> on the channel
-name and/or message if they are text strings. Here are some examples:
-
- use Encode qw(encode_utf8);
-
- sub irc_public {
-     my ($who, $where, $what) = @_[ARG0..ARG2];
-     my $irc = $_[SENDER]->get_heap();
-
-     # bad: if $where has any non-ASCII chars, they will get double-encoded
-     $irc->yield(privmsg => $where, 'æði');
-
-     # bad: if $what has any non-ASCII chars, they will get double-encoded
-     $irc->yield(privmsg => '#æði', $what);
-
-     # good: both are byte strings already, so this does what we expect
-     $irc->yield(privmsg => $where, $what);
-
-     # good: both are text strings (Latin1 as per Perl's default), so
-     # they'll be concatenated correctly
-     $irc->yield(privmsg => '#æði', 'æði');
-
-     # good: same as the last one, except now they're both in UTF-8,
-     # which means we'll be sending the message to a different channel
-     use utf8;
-     $irc->yield(privmsg => '#æði', 'æði');
-
-     # good: $where and $msg_bytes are both byte strings
-     my $msg_bytes = encode_utf8('æði');
-     $irc->yield(privmsg => $where, $msg_bytes);
-
-     # good: $chan_bytes and $what are both byte strings
-     my $chan_bytes = encode_utf8('#æði');
-     $irc->yield(privmsg => $chan_bytes, $what);
- }
-
-See also L<Encode|Encode>, L<perluniintro>, L<perlunitut>, L<perlunicode>,
-and L<perlunifaq>.
+This can be an issue. Take a look at L<IRC::Utils' section|IRC::Utils/ENCODING>
+on it.
 
 =head1 BUGS
 
@@ -3108,6 +3118,9 @@ Jeff 'japhy' Pinyan, <japhy@perlmonk.org>, for Pipeline.
 Thanks to the merry band of POE pixies from #PoE @ irc.perl.org,
 including ( but not limited to ), ketas, ct, dec, integral, webfox,
 immute, perigrin, paulv, alias.
+
+IP functions are shamelessly 'borrowed' from L<Net::IP|Net::IP> by Manuel
+Valente
 
 Check out the Changes file for further contributors.
 
