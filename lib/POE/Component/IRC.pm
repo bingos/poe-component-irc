@@ -1965,7 +1965,7 @@ Log public and private messages to disk.
 
 =item L<POE::Component::IRC::Plugin::NickServID|POE::Component::IRC::Plugin::NickServID>
 
-Identify with FreeNode's NickServ when needed.
+Identify with NickServ when needed.
 
 =item L<POE::Component::IRC::Plugin::Proxy|POE::Component::IRC::Plugin::Proxy>
 
@@ -2801,8 +2801,8 @@ Sent whenever you receive a PRIVMSG command that was addressed to you
 privately. C<ARG0> is the nick!hostmask of the sender. C<ARG1> is an array
 reference containing the nick(s) of the recipients. C<ARG2> is the text
 of the message. On servers supporting the IDENTIFY-MSG feature (e.g.
-FreeNode), there will be an additional argument, C<ARG3>, will be C<1> if the
-sender has identified with NickServ, C<0> otherwise.
+FreeNode), there will be an additional argument, C<ARG3>, which will be
+C<1> if the sender has identified with NickServ, C<0> otherwise.
 
 =head3 C<irc_nick>
 
@@ -2829,8 +2829,8 @@ Sent whenever you receive a PRIVMSG command that was sent to a channel.
 C<ARG0> is the nick!hostmask of the sender. C<ARG1> is an array
 reference containing the channel name(s) of the recipients. C<ARG2> is the
 text of the message. On servers supporting the IDENTIFY-MSG feature (e.g.
-FreeNode), there will be an additional argument, C<ARG3>, will be C<1> if the
-sender has identified with NickServ, C<0> otherwise.
+FreeNode), there will be an additional argument, C<ARG3>, which will be
+C<1> if the sender has identified with NickServ, C<0> otherwise.
 
 =head3 C<irc_quit>
 
@@ -3080,7 +3080,7 @@ You can find the latest source on github:
 L<http://github.com/bingos/poe-component-irc>
 
 The project's developers usually hang out in the C<#poe> IRC channel on
-irc.freenode.org. Do drop us a line.
+irc.perl.org.org. Do drop us a line.
 
 =head1 MAINTAINERS
 
