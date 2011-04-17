@@ -112,7 +112,7 @@ sub _create {
         _delay
         _delay_remove
         _parseline
-        __send_event
+        _send_pending_events
         _sock_down
         _sock_failed
         _sock_up
@@ -124,7 +124,6 @@ sub _create {
         connect
         _resolve_addresses
         _do_connect
-        _cleanup
         _quit_timeout
         _send_login
         _got_dns_response
@@ -227,7 +226,7 @@ sub _parseline {
     my ($session, $self, $ev) = @_[SESSION, OBJECT, ARG0];
 
     return if !$ev->{name};
-    $self->_send_event(irc_raw => $ev->{raw_line} ) if $self->{raw};
+    $self->send_event(irc_raw => $ev->{raw_line} ) if $self->{raw};
 
     # record our nickname
     if ( $ev->{name} eq '001' ) {
@@ -235,82 +234,94 @@ sub _parseline {
     }
 
     $ev->{name} = 'irc_' . $ev->{name};
-    $self->_send_event( $ev->{name}, @{$ev->{args}} );
+    $self->send_event( $ev->{name}, @{$ev->{args}} );
 
     if ($ev->{name} =~ /^irc_ctcp_(.+)$/) {
-        $self->_send_event(irc_ctcp => $1 => @{$ev->{args}});
+        $self->send_event(irc_ctcp => $1 => @{$ev->{args}});
     }
 
     return;
 }
 
-# the public interface
 sub send_event {
     my ($self, @args) = @_;
-    $poe_kernel->call($self->{SESSION_ID} => __send_event => @args);
+    $poe_kernel->post($self->{SESSION_ID}, '_send_pending_events', @args);
     return 1;
 }
 
-# Hack to make sure events are sent from OUR session
-sub __send_event {
-    my ($self, $event, @args) = @_[OBJECT, ARG0..$#_];
-    # Actually send the event...
-    $self->_send_event($event, @args);
+sub send_event_now {
+    my ($self, @args) = @_;
+    $poe_kernel->call($self->{SESSION_ID}, '_send_pending_events', @args);
     return 1;
 }
 
-# Sends an event to all interested sessions. This is a separate sub
-# because I do it so much, but it's not an actual POE event because it
-# doesn't need to be one and I don't need the overhead.
-# Changed to a method by BinGOs, 21st January 2005.
-# Amended by BinGOs (2nd February 2005) use call to send events to
-# *our* session first.
-sub _send_event {
+sub send_event_next {
     my ($self, $event, @args) = @_;
-    my $kernel = $poe_kernel;
-    my $session = $kernel->get_active_session()->ID();
+
+    if (!$self->{pending_events} || !@{ $self->{pending_events} }) {
+        croak('send_event_next() can only be called from an event handler');
+    }
+    else {
+        push @{ $self->{pending_events}[-1] }, [$event, \@args];
+    }
+    return 1;
+}
+
+sub _send_pending_events {
+    my ($kernel, $session, $self, $event, @args)
+        = @_[KERNEL, SESSION, OBJECT, ARG0, ARG1..$#_];
+    my $session_id = $session->ID();
     my %sessions;
 
-    # BINGOS:
-    # I've moved these above the plugin system call to ensure that pesky plugins
-    # don't eat the events before *our* session can process them. *sigh*
-
-    for my $value (values %{ $self->{events}->{irc_all} },
-        values %{ $self->{events}->{$event} })
-    {
-        $sessions{$value} = $value;
+    # create new context if we were passed an event directly
+    if (defined $event) {
+        my @our_events = [$event, \@args];
+        push @{ $self->{pending_events} }, \@our_events;
     }
 
-    # Make sure our session gets notified of any requested events before
-    # any other bugger
-    $kernel->call($session => $event => @args) if delete $sessions{$session};
+    while (my ($ev) = shift @{ $self->{pending_events}[-1] }) {
+        last if !defined $ev;
+        my ($event, $args) = @$ev;
 
-    # Let the plugin system process this
-    return 1 if $self->_pluggable_process(
-        'SERVER',
-        $event,
-        \@args,
-    ) == PCI_EAT_ALL;
+        # BINGOS:
+        # I've moved these above the plugin system call to ensure that pesky plugins
+        # don't eat the events before *our* session can process them. *sigh*
 
-    # BINGOS:
-    # We have a hack here, because the component used to send 'irc_connected'
-    # and 'irc_disconnected' events to every registered session regardless of
-    # whether that session had registered from them or not.
-    if ( $event =~ /connected$/ || $event eq 'irc_shutdown' ) {
-        for my $session (keys %{ $self->{sessions} }) {
-            $kernel->post(
-                $self->{sessions}->{$session}->{ref},
-                $event,
-                @args,
-            );
+        for my $value (values %{ $self->{events}->{irc_all} },
+            values %{ $self->{events}->{$event} })
+        {
+            $sessions{$value} = $value;
         }
-        return 1;
+
+        # Make sure our session gets notified of any requested events before
+        # any other bugger
+        $kernel->call($session_id => $event => @$args) if delete $sessions{$session_id};
+
+        # Let the plugin system process this
+        if ($self->_pluggable_process('SERVER', $event, $args) != PCI_EAT_ALL) {
+            # BINGOS:
+            # We have a hack here, because the component used to send 'irc_connected'
+            # and 'irc_disconnected' events to every registered session regardless of
+            # whether that session had registered from them or not.
+            if ( $event =~ /connected$/ || $event eq 'irc_shutdown' ) {
+                for my $session (keys %{ $self->{sessions} }) {
+                    $kernel->call(
+                        $self->{sessions}->{$session}->{ref},
+                        $event,
+                        @$args,
+                    );
+                }
+            }
+            else {
+                for my $session (values %sessions) {
+                    $kernel->call($session => $event => @$args);
+                }
+            }
+        }
+        $self->_cleanup() if $event eq 'irc_shutdown';
     }
 
-    for my $session (values %sessions) {
-        $kernel->post($session => $event => @args);
-    }
-
+    pop @{ $self->{pending_events} };
     return;
 }
 
@@ -334,7 +345,7 @@ sub _sock_down {
     $self->{ircd_compat}->identifymsg(0);
 
     # post a 'irc_disconnected' to each session that cares
-    $self->_send_event(irc_disconnected => $self->{server} );
+    $self->send_event(irc_disconnected => $self->{server} );
     return;
 }
 
@@ -348,7 +359,7 @@ sub _sock_failed {
     my ($self, $op, $errno, $errstr) = @_[OBJECT, ARG0..ARG2];
 
     delete $self->{socketfactory};
-    $self->_send_event(irc_socketerr => "$op error $errno: $errstr" );
+    $self->send_event(irc_socketerr => "$op error $errno: $errstr" );
     return;
 }
 
@@ -385,7 +396,7 @@ sub _sock_up {
         );
 
         if ( !$self->{socket} ) {
-            $self->_send_event(irc_socketerr =>
+            $self->send_event(irc_socketerr =>
                 "Couldn't create ReadWrite wheel for SOCKS socket" );
             return;
         }
@@ -439,12 +450,12 @@ sub _sock_up {
         $self->{connected} = 1;
     }
     else {
-        $self->_send_event(irc_socketerr => "Couldn't create ReadWrite wheel for IRC socket");
+        $self->send_event(irc_socketerr => "Couldn't create ReadWrite wheel for IRC socket");
         return;
     }
 
     # Post a 'irc_connected' event to each session that cares
-    $self->_send_event(irc_connected => $self->{server} );
+    $self->send_event(irc_connected => $self->{server} );
 
     # CONNECT if we're using a proxy
     if ($self->{proxy}) {
@@ -470,7 +481,7 @@ sub _socks_proxy_response {
     my ($kernel, $self, $session, $input) = @_[KERNEL, OBJECT, SESSION, ARG0];
 
     if (length $input != 8) {
-        $self->_send_event(
+        $self->send_event(
             'irc_socks_failed',
             'Mangled response from SOCKS proxy',
             $input,
@@ -481,7 +492,7 @@ sub _socks_proxy_response {
 
     my @resp = unpack 'CCnN', $input;
     if (@resp != 4 || $resp[0] ne '0' || $resp[1] !~ /^(90|91|92|93)$/) {
-        $self->_send_event(
+        $self->send_event(
             'irc_socks_failed',
             'Mangled response from SOCKS proxy',
             $input,
@@ -493,11 +504,11 @@ sub _socks_proxy_response {
     if ( $resp[1] eq '90' ) {
         $kernel->call($session => '_socks_proxy_connect');
         $self->{connected} = 1;
-        $self->_send_event( 'irc_connected', $self->{server} );
+        $self->send_event( 'irc_connected', $self->{server} );
         $kernel->yield('_send_login');
     }
     else {
-        $self->_send_event(
+        $self->send_event(
             'irc_socks_rejected',
             $resp[1],
             $self->{socks_proxy},
@@ -755,7 +766,7 @@ sub _got_dns_response {
     $self->{res_addresses} = [ ];
 
     if (!defined $net_dns_packet) {
-        $self->_send_event(irc_socketerr => $net_dns_errorstring );
+        $self->send_event(irc_socketerr => $net_dns_errorstring );
         return;
     }
 
@@ -772,7 +783,7 @@ sub _got_dns_response {
     }
 
     if ( !@{ $self->{res_addresses} } ) {
-        $self->_send_event(irc_socketerr => 'Unable to resolve ' . $self->{server});
+        $self->send_event(irc_socketerr => 'Unable to resolve ' . $self->{server});
         return;
       }
 
@@ -782,7 +793,7 @@ sub _got_dns_response {
         return;
     }
 
-    $self->_send_event(irc_socketerr => 'Unable to resolve ' . $self->{server});
+    $self->send_event(irc_socketerr => 'Unable to resolve ' . $self->{server});
     return;
 }
 
@@ -808,8 +819,13 @@ sub ctcp {
 
 # allow plugins to respond to user commands which are not defined here
 sub __default {
-    return if $_[ARG0] =~ /^_/;
-    $_[OBJECT]->_pluggable_process(USER => $_[ARG0] => [@{ $_[ARG1] }]);
+    my ($self, $event, $args) = @_[OBJECT, ARG0, ARG1];
+    return if $event =~ /^_/;
+
+    push @{ $self->{pending_events} }, [];
+    $self->_pluggable_process(USER => $event => [@$args]);
+    $self->call('_send_pending_events');
+
     return;
 }
 
@@ -1154,6 +1170,9 @@ sub shutdown {
     return if $self->{_shutdown};
     $self->{_shutdown} = $sender->ID();
 
+    $kernel->sig('POCOIRC_REGISTER');
+    $kernel->sig('POCOIRC_SHUTDOWN');
+
     if ($self->logged_in()) {
         my ($msg, $timeout) = @_[ARG0, ARG1];
         $msg = '' if !defined $msg;
@@ -1168,7 +1187,7 @@ sub shutdown {
         $self->disconnect();
     }
     else {
-        $self->call('_cleanup');
+        $self->_shutdown();
     }
 
     return;
@@ -1180,23 +1199,20 @@ sub _quit_timeout {
     return;
 }
 
-sub _cleanup {
-    my ($kernel, $self, $session) = @_[KERNEL, OBJECT];
-
-    my $sender_id = delete $self->{_shutdown};
-    $kernel->sig('POCOIRC_REGISTER');
-    $kernel->sig('POCOIRC_SHUTDOWN');
-
-    # Delete all plugins that are loaded.
+sub _shutdown {
+    my ($self) = @_;
     $self->_pluggable_destroy();
+    $self->send_event('irc_shutdown', $self->{_shutdown});
+    return;
+}
 
-    $self->_send_event(irc_shutdown => $sender_id);
+sub _cleanup {
+    my ($self) = @_;
+
     $self->_unregister_sessions();
-    $kernel->alarm_remove_all();
-    $kernel->alias_remove($_) for $kernel->alias_list($session);
+    $poe_kernel->alarm_remove_all();
     delete $self->{$_} for qw(socketfactory dcc wheelmap);
     $self->{resolver}->shutdown() if $self->{resolver} && $self->{mydns};
-
     return;
 }
 
@@ -1236,14 +1252,13 @@ sub sl {
 sub sl_prioritized {
     my ($kernel, $self, $priority, @args) = @_[KERNEL, OBJECT, ARG0, ARG1];
 
-    # Get the first word for the plugin system
+    my $eat;
     if (my ($event) = $args[0] =~ /^(\w+)/ ) {
         # Let the plugin system process this
-        return 1 if $self->_pluggable_process(
-            'USER',
-            $event,
-            \@args,
-        ) == PCI_EAT_ALL;
+        push @{ $self->{pending_events} }, [];
+        my $eat = $self->_pluggable_process('USER', $event, \@args);
+        $self->call('_send_pending_events');
+        return 1 if $eat == PCI_EAT_ALL;
     }
     else {
         warn "Unable to extract the event name from '$args[0]'\n";
@@ -1272,7 +1287,7 @@ sub sl_prioritized {
     }
     else {
         warn ">>> $msg\n" if $self->{debug};
-        $self->_send_event(irc_raw_out => $msg) if $self->{raw};
+        $self->send_event(irc_raw_out => $msg) if $self->{raw};
         $self->{send_time} += 2 + length($msg) / 120;
         $self->{socket}->put($msg);
     }
@@ -1295,7 +1310,7 @@ sub sl_delayed {
     while (@{ $self->{send_queue} } && ($self->{send_time} - $now < 10)) {
         my $arg = (shift @{$self->{send_queue}})->[MSG_TEXT];
         warn ">>> $arg\n" if $self->{debug};
-        $self->_send_event(irc_raw_out => $arg) if $self->{raw};
+        $self->send_event(irc_raw_out => $arg) if $self->{raw};
         $self->{send_time} += 2 + length($arg) / 120;
         $self->{socket}->put($arg);
     }
@@ -1484,7 +1499,7 @@ sub _delay {
     return if !defined $time;
     my $event = shift @{ $arrayref };
     my $alarm_id = $kernel->delay_set( $event => $time => @{ $arrayref } );
-    $self->_send_event(irc_delay_set => $alarm_id, $event, @{ $arrayref } ) if $alarm_id;
+    $self->send_event(irc_delay_set => $alarm_id, $event, @{ $arrayref } ) if $alarm_id;
     return $alarm_id;
 }
 
@@ -1501,7 +1516,7 @@ sub _delay_remove {
     my @old_alarm_list = $kernel->alarm_remove( $alarm_id );
     if (@old_alarm_list) {
         splice @old_alarm_list, 1, 1;
-        $self->_send_event(irc_delay_removed => $alarm_id, @old_alarm_list );
+        $self->send_event(irc_delay_removed => $alarm_id, @old_alarm_list );
         return \@old_alarm_list;
     }
 
@@ -1584,7 +1599,7 @@ sub S_disconnected {
         delete $self->{_waiting};
     }
 
-    $self->yield('_cleanup') if $self->{_shutdown};
+    $self->_shutdown() if $self->{_shutdown};
     return PCI_EAT_NONE;
 }
 
@@ -1663,13 +1678,7 @@ sub resolver {
 
 sub _pluggable_event {
     my ($self, $event, @args) = @_;
-
-    if ($event eq 'irc_plugin_error') {
-        $self->call(__send_event => $event, @args);
-    }
-    else {
-        $self->yield(__send_event => $event, @args);
-    }
+    $self->send_event($event, @args);
     return;
 }
 
@@ -2171,9 +2180,25 @@ object that is internally created by the component.
 
 =head2 C<send_event>
 
-Sends an event through the components event handling system. These will get
+Sends an event through the component's event handling system. These will get
 processed by plugins then by registered sessions. First argument is the event
 name, followed by any parameters for that event.
+
+=head2 C<send_event_next>
+
+This sends an event right after the one that's currently being processed.
+Useful if you want to generate some event which is directly related to
+another event so you want them to appear together. This method can only be
+called when POE::Component::IRC is processing an event, e.g. from one of your
+event handlers. Takes the same arguments as L<C<send_event>/send_event>.
+
+=head2 C<send_event_now>
+
+This will send an event to be processed immediately. This means that if an
+event is currently being processed and there are plugins or sessions which
+will receive it after you do, then an event sent with C<send_event_now> will
+be received by those plugins/sessions I<before> the current event. Takes the
+same arguments as L<C<send_event>/send_event>.
 
 =head1 INPUT
 

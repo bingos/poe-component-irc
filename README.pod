@@ -494,9 +494,25 @@ object that is internally created by the component.
 
 =head2 C<send_event>
 
-Sends an event through the components event handling system. These will get
+Sends an event through the component's event handling system. These will get
 processed by plugins then by registered sessions. First argument is the event
 name, followed by any parameters for that event.
+
+=head2 C<send_event_next>
+
+This sends an event right after the one that's currently being processed.
+Useful if you want to generate some event which is directly related to
+another event so you want them to appear together. This method can only be
+called when POE::Component::IRC is processing an event, e.g. from one of your
+event handlers. Takes the same arguments as L<C<send_event>/send_event>.
+
+=head2 C<send_event_now>
+
+This will send an event to be processed immediately. This means that if an
+event is currently being processed and there are plugins or sessions which
+will receive it after you do, then an event sent with C<send_event_now> will
+be received by those plugins/sessions I<before> the current event. Takes the
+same arguments as L<C<send_event>/send_event>.
 
 =head1 INPUT
 

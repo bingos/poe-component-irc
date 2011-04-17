@@ -90,7 +90,7 @@ sub S_join {
             my $nuser = delete $self->{NETSPLIT}{Users}{ $netsplit };
             if ( ( time - $nuser->{stamp} ) < ( 60 * 60 ) ) {
               $self->{STATE}{Nicks}{ $unick } = $nuser->{meta};
-              $self->_send_event(irc_nick_sync => $nick, $chan);
+              $self->send_event_next(irc_nick_sync => $nick, $chan);
               last SWITCH;
             }
         }
@@ -101,7 +101,7 @@ sub S_join {
         }
         else {
             # Fake 'irc_nick_sync'
-            $self->_send_event(irc_nick_sync => $nick, $chan);
+            $self->send_event_next(irc_nick_sync => $nick, $chan);
         }
       }
     }
@@ -326,13 +326,13 @@ sub S_mode {
     if ($uchan ne u_irc($self->nick_name(), $map)) {
         my $parsed_mode = parse_mode_line( $prefix, $chanmodes, @modes );
         for my $mode (@{ $parsed_mode->{modes} }) {
-            my $arg;
+            my $orig_arg;
             if (length $chanmodes->[2] && length $alwaysarg && $mode =~ /^(.[$alwaysarg]|\+[$chanmodes->[2]])/) {
-                $arg = shift @{ $parsed_mode->{args} };
+                $orig_arg = shift @{ $parsed_mode->{args} };
             }
 
-            $self->_send_event(irc_chan_mode => $who, $chan, $mode, (defined $arg ? $arg : ()));
             my $flag;
+            my $arg = $orig_arg;
 
             if (length $statmodes && (($flag) = $mode =~ /\+([$statmodes])/)) {
                 $arg = u_irc($arg, $map);
@@ -375,6 +375,7 @@ sub S_mode {
             elsif (($flag) = $mode =~ /^-(.)/ ) {
                 $self->{STATE}{Chans}{ $uchan }{Mode} =~ s/$flag//;
             }
+            $self->send_event_next(irc_chan_mode => $who, $chan, $mode, (defined $orig_arg ? $orig_arg : ()));
         }
 
         # Lets make the channel mode nice
@@ -385,7 +386,6 @@ sub S_mode {
     else {
         my $parsed_mode = parse_mode_line( @modes );
         for my $mode (@{ $parsed_mode->{modes} }) {
-            $self->_send_event(irc_user_mode => $who, $chan, $mode );
             my $flag;
             if ( ($flag) = $mode =~ /^\+(.)/ ) {
                 $self->{STATE}{usermode} .= $flag if $self->{STATE}{usermode} !~ /$flag/;
@@ -393,6 +393,7 @@ sub S_mode {
             elsif ( ($flag) = $mode =~ /^-(.)/ ) {
                 $self->{STATE}{usermode} =~ s/$flag//;
             }
+            $self->send_event_next(irc_user_mode => $who, $chan, $mode );
         }
     }
 
@@ -487,10 +488,10 @@ sub S_352 {
 
         if ($self->{STATE}{Chans}{ $uchan }{AWAY_SYNCH} && $unick ne u_irc($self->nick_name(), $map)) {
             if ( $status =~ /G/ && !$self->{STATE}{Nicks}{ $unick }{Away} ) {
-                $self->_send_event(irc_user_away => $nick, [ $self->nick_channels( $nick ) ] );
+                $self->send_event_next(irc_user_away => $nick, [ $self->nick_channels( $nick ) ] );
             }
             elsif ($status =~ /H/ && $self->{STATE}{Nicks}{ $unick }{Away} ) {
-                $self->_send_event(irc_user_back => $nick, [ $self->nick_channels( $nick ) ] );
+                $self->send_event_next(irc_user_back => $nick, [ $self->nick_channels( $nick ) ] );
             }
         }
 
@@ -513,19 +514,19 @@ sub S_315 {
         my $chan = $what; my $uchan = $uwhat;
         if ( $self->_channel_sync($chan, 'WHO') ) {
             my $rec = delete $self->{CHANNEL_SYNCH}{ $uchan };
-            $self->_send_event(irc_chan_sync => $chan, time() - $rec->{_time} );
+            $self->send_event_next(irc_chan_sync => $chan, time() - $rec->{_time} );
         }
         elsif ( $self->{STATE}{Chans}{ $uchan }{AWAY_SYNCH} ) {
             $self->{STATE}{Chans}{ $uchan }{AWAY_SYNCH} = 0;
-            $self->_send_event(irc_away_sync_end => $chan );
             $poe_kernel->delay_add(_away_sync => $self->{awaypoll} => $chan );
+            $self->send_event_next(irc_away_sync_end => $chan );
         }
     }
     else {
         my $nick = $what; my $unick = $uwhat;
         my $chan = shift @{ $self->{NICK_SYNCH}{ $unick } };
         delete $self->{NICK_SYNCH}{ $unick } if !@{ $self->{NICK_SYNCH}{ $unick } };
-        $self->_send_event(irc_nick_sync => $nick, $chan );
+        $self->send_event_next(irc_nick_sync => $nick, $chan );
     }
 
     return PCI_EAT_NONE;
@@ -569,7 +570,7 @@ sub S_368 {
 
     if ($self->_channel_sync($chan, 'BAN')) {
         my $rec = delete $self->{CHANNEL_SYNCH}{ $uchan };
-        $self->_send_event(irc_chan_sync => $chan, time() - $rec->{_time} );
+        $self->send_event_next(irc_chan_sync => $chan, time() - $rec->{_time} );
     }
 
     return PCI_EAT_NONE;
@@ -598,7 +599,7 @@ sub S_347 {
     my $map    = $self->isupport('CASEMAPPING');
     my $uchan  = u_irc($chan, $map);
 
-    $self->_send_event(irc_chan_sync_invex => $chan);
+    $self->send_event_next(irc_chan_sync_invex => $chan);
     return PCI_EAT_NONE;
 }
 
@@ -624,7 +625,7 @@ sub S_349 {
     my $map    = $self->isupport('CASEMAPPING');
     my $uchan  = u_irc($chan, $map);
 
-    $self->_send_event(irc_chan_sync_excepts => $chan);
+    $self->send_event_next(irc_chan_sync_excepts => $chan);
     return PCI_EAT_NONE;
 }
 
@@ -663,7 +664,7 @@ sub S_324 {
 
     if ( $self->_channel_sync($chan, 'MODE') ) {
         my $rec = delete $self->{CHANNEL_SYNCH}{ $uchan };
-        $self->_send_event(irc_chan_sync => $chan, time() - $rec->{_time} );
+        $self->send_event_next(irc_chan_sync => $chan, time() - $rec->{_time} );
     }
 
     return PCI_EAT_NONE;
@@ -725,8 +726,8 @@ sub _away_sync {
     my $uchan = u_irc($chan, $map);
 
     $self->{STATE}{Chans}{ $uchan }{AWAY_SYNCH} = 1;
-    $self->_send_event(irc_away_sync_start => $chan);
     $self->yield(who => $chan);
+    $self->send_event(irc_away_sync_start => $chan);
 
     return;
 }

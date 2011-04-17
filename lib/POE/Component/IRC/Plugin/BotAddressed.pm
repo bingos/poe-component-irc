@@ -38,7 +38,7 @@ sub S_ctcp_action {
     for my $recipient (@{ $recipients }) {
         if ($recipient =~ /^[$chantypes]/) {
             $eat = PCI_EAT_ALL if $self->{eat};
-            $irc->send_event(irc_bot_mentioned_action => $who => [$recipient] => $what);
+            $irc->send_event_next(irc_bot_mentioned_action => $who => [$recipient] => $what);
         }
     }
 
@@ -57,10 +57,10 @@ sub S_public {
 
     for my $channel (@{ $channels }) {
         if (defined $cmd) {
-            $irc->send_event(irc_bot_addressed => $who => [$channel] => $cmd );
+            $irc->send_event_next(irc_bot_addressed => $who => [$channel] => $cmd );
         }
         else {
-            $irc->send_event(irc_bot_mentioned => $who => [$channel] => $what);
+            $irc->send_event_next(irc_bot_mentioned => $who => [$channel] => $what);
         }
     }
 

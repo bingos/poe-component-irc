@@ -56,7 +56,7 @@ sub S_notice {
     return PCI_EAT_NONE if $recipient ne $irc->nick_name();
     return PCI_EAT_NONE if $sender !~ /^nickserv$/i;
     return PCI_EAT_NONE if $msg !~ /now (?:identified|recognized)/;
-    $irc->send_event('irc_identified');
+    $irc->send_event_next('irc_identified');
     return PCI_EAT_NONE;
 }
 

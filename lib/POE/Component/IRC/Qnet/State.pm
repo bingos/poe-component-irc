@@ -169,17 +169,17 @@ sub S_315 {
     if ( exists $self->{STATE}->{Chans}->{ $uchan } ) {
         if ( $self->_channel_sync($channel, 'WHO' ) ) {
             my $rec = delete $self->{CHANNEL_SYNCH}->{ $uchan };
-            $self->_send_event( 'irc_chan_sync', $channel, time() - $rec->{_time} );
+            $self->send_event_next( 'irc_chan_sync', $channel, time() - $rec->{_time} );
         }
     }
     # it's apparently a nickname
     elsif ( defined $self->{USER_AUTHED}->{ $uchan } ) {
-        $self->_send_event( 'irc_nick_authed', $channel, delete $self->{USER_AUTHED}->{ $uchan } );
+        $self->send_event_next( 'irc_nick_authed', $channel, delete $self->{USER_AUTHED}->{ $uchan } );
     }
     else {
         my $chan = shift @{ $self->{NICK_SYNCH}->{ $uchan } };
         delete $self->{NICK_SYNCH}->{ $uchan } if !@{ $self->{NICK_SYNCH}->{ $uchan } };
-        $self->_send_event( 'irc_nick_sync', $channel, $chan );
+        $self->send_event_next( 'irc_nick_sync', $channel, $chan );
     }
 
     return PCI_EAT_NONE;
@@ -217,12 +217,12 @@ sub S_join {
             my $nuser = delete $self->{NETSPLIT}->{Users}->{ $netsplit };
             if ( ( time - $nuser->{stamp} ) < ( 60 * 60 ) ) {
               $self->{STATE}->{Nicks}->{ $unick } = $nuser->{meta};
-              $self->_send_event(irc_nick_sync => $nick, $channel);
+              $self->send_event_next(irc_nick_sync => $nick, $channel);
             }
             return PCI_EAT_NONE;
         }
         if ( exists $self->{STATE}->{Nicks}->{ $unick }->{Real} ) {
-            $self->_send_event(irc_nick_sync => $nick, $channel);
+            $self->send_event_next(irc_nick_sync => $nick, $channel);
             return PCI_EAT_NONE;
         }
         $self->yield ( 'sl' => "WHO $nick $flags,102" );
