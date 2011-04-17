@@ -4,6 +4,7 @@ Revision history for Perl extension POE::Component::IRC.
     - The changes to the filter test were causing failures on <5.12 due to
       C<values(ARRAY)>. Fixed it.
     - Make it so that irc_shutdown is always the last event to be sent
+    - Depend on POE 1.310 to fix failing socket error test on Windows
 
 6.60  Fri Apr 15 06:12:28 GMT 2011
     - Fix failure (RT #67465) related to the recent irc_snotice change.
