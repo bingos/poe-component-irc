@@ -8,6 +8,8 @@ my @methods = qw(
     new
     nick_name
     localaddr
+    server
+    port
     server_name
     session_id
     session_alias

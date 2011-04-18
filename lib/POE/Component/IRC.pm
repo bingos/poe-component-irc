@@ -686,7 +686,7 @@ sub connect {
     if ( $self->{resolver} && $self->{res_addresses}
         && @{ $self->{res_addresses} } ) {
         push @{ $self->{res_addresses} }, $self->{server};
-        $self->{server} = shift @{ $self->{res_addresses} };
+        $self->{resolved_server} = shift @{ $self->{res_addresses} };
     }
 
     # try and use non-blocking resolver if needed
@@ -732,7 +732,7 @@ sub _do_connect {
         $self->{socks_port} = 1080;
     }
 
-    for my $address (qw(socks_proxy proxy server localaddr)) {
+    for my $address (qw(socks_proxy proxy server resolved_server localaddr)) {
         next if !$self->{$address} || !_ip_is_ipv6( $self->{$address} );
         if (!$GOT_SOCKET6) {
             warn "IPv6 address specified for '$address' but Socket6 not found\n";
@@ -745,7 +745,7 @@ sub _do_connect {
         SocketDomain   => $domain,
         SocketType     => SOCK_STREAM,
         SocketProtocol => 'tcp',
-        RemoteAddress  => $self->{socks_proxy} || $self->{proxy} || $self->{server},
+        RemoteAddress  => $self->{socks_proxy} || $self->{proxy} || $self->{resolved_server} || $self->{server},
         RemotePort     => $self->{socks_port} || $self->{proxyport} || $self->{port},
         SuccessEvent   => '_sock_up',
         FailureEvent   => '_sock_failed',
@@ -787,7 +787,7 @@ sub _got_dns_response {
       }
 
     if ( my $address = shift @{ $self->{res_addresses} } ) {
-        $self->{server} = $address;
+        $self->{resolved_server} = $address;
         $kernel->yield('_do_connect');
         return;
     }
@@ -1421,6 +1421,16 @@ sub userhost {
 }
 
 # Non-event methods
+
+sub server {
+    my ($self) = @_;
+    return $self->{server};
+}
+
+sub port {
+    my ($self) = @_;
+    return $self->{port};
+}
 
 sub server_name {
     my ($self) = @_;
@@ -2145,6 +2155,16 @@ plans to make it die() >;]
 These are methods supported by the POE::Component::IRC object. It also
 inherits a few from L<Object::Pluggable|Object::Pluggable>.
 See its documentation for details.
+
+=head2 C<server>
+
+Takes no arguments. Returns the server host we are currently connected to
+(or trying to connect to).
+
+=head2 C<port>
+
+Takes no arguments. Returns the server port we are currently connected to
+(or trying to connect to).
 
 =head2 C<server_name>
 

@@ -380,6 +380,16 @@ These are methods supported by the POE::Component::IRC object. It also
 inherits a few from L<Object::Pluggable|Object::Pluggable>.
 See its documentation for details.
 
+=head2 C<server>
+
+Takes no arguments. Returns the server host we are currently connected to
+(or trying to connect to).
+
+=head2 C<port>
+
+Takes no arguments. Returns the server port we are currently connected to
+(or trying to connect to).
+
 =head2 C<server_name>
 
 Takes no arguments. Returns the name of the IRC server that the component
