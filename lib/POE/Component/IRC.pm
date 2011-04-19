@@ -34,16 +34,13 @@ BEGIN {
   
     # Socket6 provides AF_INET6 where earlier Perls' Socket don't.
     {
-        # under perl-5.6.2 the warning "leaks" from the eval, while newer versions don't...
-        # it's due to Exporter.pm behaving differently, so we have to shut it up
-        no warnings 'redefine';
-        local *Carp::carp = sub { die @_ };
         $GOT_SOCKET6 = 1;
         eval { require Socket; Socket->import( qw(AF_INET6 unpack_sockaddr_in6 inet_ntop) ) };
         if ($@) {
             eval { require Socket6; Socket6->import( qw(AF_INET6 unpack_sockaddr_in6 inet_ntop) ) };
             if ($@) {
                 $GOT_SOCKET6 = 0;
+                *AF_INET6 = sub { ~0 };
             }
         }
     }
