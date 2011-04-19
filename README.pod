@@ -1324,7 +1324,7 @@ You can find the latest source on github:
 L<http://github.com/bingos/poe-component-irc>
 
 The project's developers usually hang out in the C<#poe> IRC channel on
-irc.perl.org.org. Do drop us a line.
+irc.perl.org. Do drop us a line.
 
 =head1 MAINTAINERS
 
