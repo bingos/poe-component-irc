@@ -606,14 +606,14 @@ sub _start {
     $self->{SESSION_ID} = $session->ID();
 
     # Plugin 'irc_whois' and 'irc_whowas' support
-    $self->plugin_add('Whois' . $self->{SESSION_ID},
+    $self->plugin_add('Whois_' . $self->{SESSION_ID},
         POE::Component::IRC::Plugin::Whois->new()
     );
 
     $self->{isupport} = POE::Component::IRC::Plugin::ISupport->new();
-    $self->plugin_add('ISupport' . $self->{SESSION_ID}, $self->{isupport});
+    $self->plugin_add('ISupport_' . $self->{SESSION_ID}, $self->{isupport});
     $self->{dcc} = POE::Component::IRC::Plugin::DCC->new();
-    $self->plugin_add('DCC' . $self->{SESSION_ID}, $self->{dcc});
+    $self->plugin_add('DCC_' . $self->{SESSION_ID}, $self->{dcc});
 
     if ($kernel != $sender) {
         my $sender_id = $sender->ID;
