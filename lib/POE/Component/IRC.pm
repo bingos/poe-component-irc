@@ -12,7 +12,7 @@ use POE::Component::IRC::Plugin qw(:ALL);
 use POE::Component::IRC::Plugin::DCC;
 use POE::Component::IRC::Plugin::ISupport;
 use POE::Component::IRC::Plugin::Whois;
-use Socket;
+use Socket qw(AF_INET SOCK_STREAM unpack_sockaddr_in inet_ntoa inet_aton);
 use base qw(Object::Pluggable);
 
 our ($GOT_SSL, $GOT_CLIENT_DNS, $GOT_SOCKET6, $GOT_ZLIB);
@@ -28,13 +28,24 @@ BEGIN {
         $GOT_CLIENT_DNS = 1 if $POE::Component::Client::DNS::VERSION >= 0.99;
     };
     eval {
-        require Socket6;
-        import Socket6;
-        $GOT_SOCKET6 = 1;
-    };
-    eval {
         require POE::Filter::Zlib::Stream;
         $GOT_ZLIB = 1 if $POE::Filter::Zlib::Stream::VERSION >= 1.96;
+    };
+  
+    # Socket6 provides AF_INET6 where earlier Perls' Socket don't.
+    {
+        # under perl-5.6.2 the warning "leaks" from the eval, while newer versions don't...
+        # it's due to Exporter.pm behaving differently, so we have to shut it up
+        no warnings 'redefine';
+        local *Carp::carp = sub { die @_ };
+        $GOT_SOCKET6 = 1;
+        eval { require Socket; Socket->import( qw(AF_INET6 unpack_sockaddr_in6 inet_ntop) ) };
+        if ($@) {
+            eval { require Socket6; Socket6->import( qw(AF_INET6 unpack_sockaddr_in6 inet_ntop) ) };
+            if ($@) {
+                $GOT_SOCKET6 = 0;
+            }
+        }
     }
 }
 

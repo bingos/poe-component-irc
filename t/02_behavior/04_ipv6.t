@@ -2,21 +2,26 @@ use strict;
 use warnings FATAL => 'all';
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Line);
 use POE::Component::IRC;
-use Socket;
 use Test::More;
 
 my $tests = 4;
 
-eval {
-    require Socket6;
-    import Socket6;
-};
-
-if ($@ or not exists($INC{'Socket6.pm'}) ) {
-    plan skip_all => 'Socket6 is needed for IPv6 tests';
+# Socket6 provides AF_INET6 where earlier Perls' Socket don't.
+BEGIN {
+    # under perl-5.6.2 the warning "leaks" from the eval, while newer versions don't...
+    # it's due to Exporter.pm behaving differently, so we have to shut it up
+    no warnings 'redefine';
+    local *Carp::carp = sub { die @_ };
+    eval { require Socket; Socket->import( qw(AF_INET6 unpack_sockaddr_in6 inet_pton) ) };
+    if ($@) {
+       eval { require Socket6; Socket6->import( qw(AF_INET6 unpack_sockaddr_in6 inet_pton) ) };
+       if ($@) {
+           plan skip_all => 'Socket6 is needed for IPv6 tests';
+       }
+    }
 }
 
-my $addr = Socket6::inet_pton(&Socket6::AF_INET6, "::1");
+my $addr = inet_pton(AF_INET6, "::1");
 if (!defined $addr) {
     plan skip_all => "IPv6 tests require a configured localhost address ('::1')";
 }
