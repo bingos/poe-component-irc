@@ -1219,10 +1219,12 @@ informational purposes.
 
 =head3 C<irc_snotice>
 
-A weird, non-RFC-compliant message from an IRC server. Don't worry
-about it. C<ARG0> is the text of the server's message. Servers vary as to
-whether these notices include a server name as the sender, or no sender at
-all. C<ARG1> is the sender, if any.
+A weird, non-RFC-compliant message from an IRC server. Usually sent during
+to you during an authentication phase right after you connect, while the
+server does a hostname lookup or similar tasks. C<ARG0> is the text of the
+server's message. C<ARG1> is the target, which could be B<'*'> or B<'AUTH'>
+or whatever. Servers vary as to whether these notices include a server name
+as the sender, or no sender at all. C<ARG1> is the sender, if any.
 
 =head2 All numeric events
 

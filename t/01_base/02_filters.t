@@ -158,6 +158,7 @@ my @tests = (
         events => {
             snotice => [
                 'Fish go moo',
+                '*',
             ],
         },
     },
@@ -167,6 +168,7 @@ my @tests = (
         events => {
             snotice => [
                 'Fish go moo',
+                '*',
                 'foo.bar.baz',
             ],
         },

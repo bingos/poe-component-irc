@@ -4,6 +4,8 @@ Revision history for Perl extension POE::Component::IRC.
     - Make use of IPv6 functions from Socket (instead of Socket6) if
       they are available, and skip the IPv6 test if we don't have an
       implementation of getaddrinfo(). Thanks to Apocalypse for this.
+    - Add a parameter to irc_snotice which contains the target of the
+      message (usually '*' or 'AUTH' or something).
 
 6.61  Tue Apr 19 17:02:54 GMT 2011
     - The changes to the filter test were causing failures on <5.12 due to
