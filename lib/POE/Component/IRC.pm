@@ -35,11 +35,13 @@ BEGIN {
     # Socket6 provides AF_INET6 where earlier Perls' Socket don't.
     {
         $GOT_SOCKET6 = 1;
-        eval { require Socket; Socket->import( qw(AF_INET6 unpack_sockaddr_in6 inet_ntop) ) };
+        eval { Socket->import( qw(AF_INET6 unpack_sockaddr_in6 inet_ntop) ) };
         if ($@) {
             eval { require Socket6; Socket6->import( qw(AF_INET6 unpack_sockaddr_in6 inet_ntop) ) };
             if ($@) {
                 $GOT_SOCKET6 = 0;
+
+                # provide a dummy sub so code compiles
                 *AF_INET6 = sub { ~0 };
             }
         }

@@ -8,11 +8,7 @@ my $tests = 4;
 
 # Socket6 provides AF_INET6 where earlier Perls' Socket don't.
 BEGIN {
-    # under perl-5.6.2 the warning "leaks" from the eval, while newer versions don't...
-    # it's due to Exporter.pm behaving differently, so we have to shut it up
-    no warnings 'redefine';
-    local *Carp::carp = sub { die @_ };
-    eval { require Socket; Socket->import( qw(AF_INET6 unpack_sockaddr_in6 inet_pton) ) };
+    eval { Socket->import( qw(AF_INET6 unpack_sockaddr_in6 inet_pton) ) };
     if ($@) {
        eval { require Socket6; Socket6->import( qw(AF_INET6 unpack_sockaddr_in6 inet_pton) ) };
        if ($@) {
@@ -21,9 +17,14 @@ BEGIN {
     }
 }
 
-eval { require Socket::GetAddrInfo };
+# Argh, we need to be "smart" and see if we need GAI or not...
+# Perl-5.14.0 will core getaddrinfo() in it's Socket.pm
+eval { Socket->import('getaddrinfo') };
 if ($@) {
+  eval { require Socket::GetAddrInfo };
+  if ($@) {
     plan skip_all => 'Socket::GetAddrInfo is needed for IPv6 tests';
+  }
 }
 
 my $addr = inet_pton(AF_INET6, "::1");
