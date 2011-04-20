@@ -9,7 +9,7 @@ use File::Spec::Functions 'rel2abs';
 use POE qw(Driver::SysRW Filter::Line Filter::Stream
            Wheel::ReadWrite Wheel::SocketFactory);
 use POE::Component::IRC::Plugin qw(:ALL);
-use Socket;
+use Socket qw(INADDR_ANY unpack_sockaddr_in inet_aton inet_ntoa);
 
 use constant {
     OUT_BLOCKSIZE  => 1024,   # Send DCC data in 1k chunks

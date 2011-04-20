@@ -4,7 +4,7 @@ use lib 't/inc';
 use POE::Component::IRC;
 use POE::Component::Server::IRC;
 use POE qw(Wheel::SocketFactory);
-use Socket;
+use Socket qw(unpack_sockaddr_in);
 use Test::More tests => 13;
 
 my $bot1 = POE::Component::IRC->spawn(

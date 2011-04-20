@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 use POE qw(Wheel::SocketFactory);
 use POE::Component::IRC;
-use Socket;
+use Socket qw(unpack_sockaddr_in);
 use Test::More tests => 4;
 
 my $bot = POE::Component::IRC->spawn(Flood => 1);

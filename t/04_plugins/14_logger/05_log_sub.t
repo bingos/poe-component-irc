@@ -6,7 +6,7 @@ use POE qw(Wheel::SocketFactory);
 use POE::Component::IRC::State;
 use POE::Component::IRC::Plugin::Logger;
 use POE::Component::Server::IRC;
-use Socket;
+use Socket qw(unpack_sockaddr_in);
 use Test::More tests => 12;
 
 my $bot1 = POE::Component::IRC::State->spawn(

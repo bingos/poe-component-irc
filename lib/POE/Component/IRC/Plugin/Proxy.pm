@@ -3,7 +3,7 @@ package POE::Component::IRC::Plugin::Proxy;
 use strict;
 use warnings FATAL => 'all';
 use Carp;
-use Socket;
+use Socket qw(inet_ntoa);
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::IRCD
            Filter::Line Filter::Stackable);
 use POE::Component::IRC::Plugin qw(PCI_EAT_NONE);
