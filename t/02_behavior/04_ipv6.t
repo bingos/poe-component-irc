@@ -21,6 +21,11 @@ BEGIN {
     }
 }
 
+eval { require Socket::GetAddrInfo };
+if ($@) {
+    plan skip_all => 'Socket::GetAddrInfo is needed for IPv6 tests';
+}
+
 my $addr = inet_pton(AF_INET6, "::1");
 if (!defined $addr) {
     plan skip_all => "IPv6 tests require a configured localhost address ('::1')";
