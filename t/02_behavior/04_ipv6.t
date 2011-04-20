@@ -6,14 +6,19 @@ use Test::More;
 
 my $tests = 4;
 
-# Socket6 provides AF_INET6 where earlier Perls' Socket don't.
 BEGIN {
-    eval { Socket->import( qw(AF_INET6 unpack_sockaddr_in6 inet_pton) ) };
-    if ($@) {
-       eval { require Socket6; Socket6->import( qw(AF_INET6 unpack_sockaddr_in6 inet_pton) ) };
-       if ($@) {
-           plan skip_all => 'Socket6 is needed for IPv6 tests';
-       }
+    my $GOT_SOCKET6;
+    eval {
+        Socket->import(qw(AF_INET6 unpack_sockaddr_in6 inet_pton));
+        $GOT_SOCKET6 = 1;
+    };
+    if (!$GOT_SOCKET6) {
+        eval {
+            require Socket6;
+            Socket6->import(qw(AF_INET6 unpack_sockaddr_in6 inet_pton));
+            $GOT_SOCKET6 = 1;
+        };
+        plan skip_all => 'Socket6 is needed for IPv6 tests' if !$GOT_SOCKET6;
     }
 }
 
@@ -21,10 +26,10 @@ BEGIN {
 # Perl-5.14.0 will core getaddrinfo() in it's Socket.pm
 eval { Socket->import('getaddrinfo') };
 if ($@) {
-  eval { require Socket::GetAddrInfo };
-  if ($@) {
-    plan skip_all => 'Socket::GetAddrInfo is needed for IPv6 tests';
-  }
+    eval { require Socket::GetAddrInfo };
+    if ($@) {
+        plan skip_all => 'Socket::GetAddrInfo is needed for IPv6 tests';
+    }
 }
 
 my $addr = inet_pton(AF_INET6, "::1");

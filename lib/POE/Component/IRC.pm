@@ -31,19 +31,20 @@ BEGIN {
         require POE::Filter::Zlib::Stream;
         $GOT_ZLIB = 1 if $POE::Filter::Zlib::Stream::VERSION >= 1.96;
     };
-  
     # Socket6 provides AF_INET6 where earlier Perls' Socket don't.
-    {
+    eval {
+        Socket->import(qw(AF_INET6 unpack_sockaddr_in6 inet_ntop));
         $GOT_SOCKET6 = 1;
-        eval { Socket->import( qw(AF_INET6 unpack_sockaddr_in6 inet_ntop) ) };
-        if ($@) {
-            eval { require Socket6; Socket6->import( qw(AF_INET6 unpack_sockaddr_in6 inet_ntop) ) };
-            if ($@) {
-                $GOT_SOCKET6 = 0;
-
-                # provide a dummy sub so code compiles
-                *AF_INET6 = sub { ~0 };
-            }
+    };
+    if (!$GOT_SOCKET6) {
+        eval {
+            require Socket6;
+            Socket6->import(qw(AF_INET6 unpack_sockaddr_in6 inet_ntop));
+            $GOT_SOCKET6 = 1;
+        };
+        if (!$GOT_SOCKET6) {
+            # provide a dummy sub so code compiles
+            *AF_INET6 = sub { ~0 };
         }
     }
 }
