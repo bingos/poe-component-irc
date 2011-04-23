@@ -557,7 +557,7 @@ sub _send_login {
         'sl_login',
         'USER ' .
         join(' ', $self->{username},
-            ($self->{bitmode} ? $self->{bitmode} : 0),
+            (defined $self->{bitmode} ? $self->{bitmode} : 8),
             '*',
             ':' . $self->{ircname}
         ),
@@ -2025,7 +2025,10 @@ B<'Nick'>, your client's IRC nickname;
 
 B<'Username'>, your client's username;
 
-B<'Ircname'>, some cute comment or something.
+Z<< B<'Ircname'>, some cute comment or something. >>
+
+C<'Bitmode'>, an integer representing your initial user modes set in the
+USER command. See RFC 2812. If you do not set this, C<8> (+i) will be used.
 
 B<'UseSSL'>, set to some true value if you want to connect using SSL.
 

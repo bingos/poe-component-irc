@@ -7,6 +7,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Add a parameter to irc_snotice which contains the target of the
       message (usually '*' or 'AUTH' or something).
     - Qnet/State.pm: Forgot to import parse_user() from IRC::Utils.
+    - IRC.pm: Document the Bitmode parameter and make it 8 (+i) by default.
 
 6.61  Tue Apr 19 17:02:54 GMT 2011
     - The changes to the filter test were causing failures on <5.12 due to
