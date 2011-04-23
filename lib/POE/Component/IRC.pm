@@ -129,7 +129,6 @@ sub _create {
         _socks_proxy_connect
         _socks_proxy_response
         _start
-        _stop
         debug
         connect
         _resolve_addresses
@@ -637,18 +636,6 @@ sub _start {
     }
 
     return 1;
-}
-
-# Destroy ourselves when asked politely.
-sub _stop {
-    my ($kernel, $session, $self, $quitmsg) = @_[KERNEL, SESSION, OBJECT, ARG0];
-
-    if ($self->{connected}) {
-        $kernel->call($session => quit => $quitmsg);
-        $kernel->call($session => shutdown => $quitmsg);
-    }
-
-    return;
 }
 
 # The handler for commands which have N arguments, separated by commas.
