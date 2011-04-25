@@ -380,8 +380,9 @@ plans to make it die() >;]
 =head1 METHODS
 
 These are methods supported by the POE::Component::IRC object. It also
-inherits a few from L<Object::Pluggable|Object::Pluggable>.
-See its documentation for details.
+inherits a few from L<Object::Pluggable|Object::Pluggable> and
+L<POE::Component::Syndicator|POE::Component::Syndicator>. See those modules'
+documentation for details.
 
 =head2 C<server>
 
@@ -410,18 +411,6 @@ bot is using.
 =head2 C<localaddr>
 
 Takes no arguments. Returns the IP address being used.
-
-=head2 C<session_id>
-
-Takes no arguments. Returns the ID of the component's session. Ideal for posting
-events to the component.
-
- $kernel->post($irc->session_id() => 'mode' => $channel => '+o' => $dude);
-
-=head2 C<session_alias>
-
-Takes no arguments. Returns the session alias that has been set through
-L<C<spawn>|/spawn>'s alias argument.
 
 =head2 C<send_queue>
 
@@ -461,7 +450,30 @@ is available at L<http://www.irc.org/tech_docs/005.html>.
 Takes no arguments, returns a list of the available server capabilities keys,
 which can be used with L<C<isupport>|/isupport>.
 
+=head2 C<resolver>
+
+Returns a reference to the L<POE::Component::Client::DNS|POE::Component::Client::DNS>
+object that is internally created by the component.
+
+=head2 C<session_id>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/session_id>>
+
+Takes no arguments. Returns the ID of the component's session. Ideal for posting
+events to the component.
+
+ $kernel->post($irc->session_id() => 'mode' => $channel => '+o' => $dude);
+
+=head2 C<session_alias>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/session_alias>>
+
+Takes no arguments. Returns the session alias that has been set through
+L<C<spawn>|/spawn>'s alias argument.
+
 =head2 C<yield>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/yield>>
 
 This method provides an alternative object based means of posting events to the
 component. First argument is the event to post, following arguments are sent as
@@ -471,6 +483,8 @@ arguments to the resultant post.
 
 =head2 C<call>
 
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/call>>
+
 This method provides an alternative object based means of calling events to the
 component. First argument is the event to call, following arguments are sent as
 arguments to the resultant
@@ -479,6 +493,8 @@ call.
  $irc->call(mode => $channel => '+o' => $dude);
 
 =head2 C<delay>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/delay>>
 
 This method provides a way of posting delayed events to the component. The
 first argument is an arrayref consisting of the delayed command to post and
@@ -492,6 +508,8 @@ to cancel the delayed event. This will be undefined if something went wrong.
 
 =head2 C<delay_remove>
 
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/delay_remove>>
+
 This method removes a previously scheduled delayed event from the component.
 Takes one argument, the C<alarm_id> that was returned by a
 L<C<delay>|/delay> method call.
@@ -500,18 +518,17 @@ L<C<delay>|/delay> method call.
 
 Returns an arrayref that was originally requested to be delayed.
 
-=head2 C<resolver>
-
-Returns a reference to the L<POE::Component::Client::DNS|POE::Component::Client::DNS>
-object that is internally created by the component.
-
 =head2 C<send_event>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/send_event>>
 
 Sends an event through the component's event handling system. These will get
 processed by plugins then by registered sessions. First argument is the event
 name, followed by any parameters for that event.
 
 =head2 C<send_event_next>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/send_event_next>>
 
 This sends an event right after the one that's currently being processed.
 Useful if you want to generate some event which is directly related to
@@ -521,11 +538,126 @@ event handlers. Takes the same arguments as L<C<send_event>/send_event>.
 
 =head2 C<send_event_now>
 
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/send_event_now>>
+
 This will send an event to be processed immediately. This means that if an
 event is currently being processed and there are plugins or sessions which
 will receive it after you do, then an event sent with C<send_event_now> will
 be received by those plugins/sessions I<before> the current event. Takes the
 same arguments as L<C<send_event>/send_event>.
+
+=head2 C<pipeline>
+
+I<Inherited from L<Object::Pluggable|Object::Pluggable/pipeline>>
+
+Returns the L<Object::Pluggable::Pipeline|Object::Pluggable::Pipeline>
+object.
+
+=head2 C<plugin_add>
+
+I<Inherited from L<Object::Pluggable|Object::Pluggable/plugin_add>>
+
+Accepts two arguments:
+
+ The alias for the plugin
+ The actual plugin object
+ Any number of extra arguments
+
+The alias is there for the user to refer to it, as it is possible to have
+multiple plugins of the same kind active in one Object::Pluggable object.
+
+This method goes through the pipeline's C<push()> method, which will call
+C<< $plugin->plugin_register($pluggable, @args) >>.
+
+Returns the number of plugins now in the pipeline if plugin was initialized,
+C<undef>/an empty list if not.
+
+=head2 C<plugin_del>
+
+I<Inherited from L<Object::Pluggable|Object::Pluggable/plugin_del>>
+
+Accepts the following arguments:
+
+ The alias for the plugin or the plugin object itself
+ Any number of extra arguments
+
+This method goes through the pipeline's C<remove()> method, which will call
+C<< $plugin->plugin_unregister($pluggable, @args) >>.
+
+Returns the plugin object if the plugin was removed, C<undef>/an empty list
+if not.
+
+=head2 C<plugin_get>
+
+I<Inherited from L<Object::Pluggable|Object::Pluggable/plugin_get>>
+
+Accepts the following arguments:
+
+ The alias for the plugin
+
+This method goes through the pipeline's C<get()> method.
+
+Returns the plugin object if it was found, C<undef>/an empty list if not.
+
+=head2 C<plugin_list>
+
+I<Inherited from L<Object::Pluggable|Object::Pluggable/plugin_list>>
+
+Takes no arguments.
+
+Returns a hashref of plugin objects, keyed on alias, or an empty list if
+there are no plugins loaded.
+
+=head2 C<plugin_order>
+
+I<Inherited from L<Object::Pluggable|Object::Pluggable/plugin_order>>
+
+Takes no arguments.
+
+Returns an arrayref of plugin objects, in the order which they are
+encountered in the pipeline.
+
+=head2 C<plugin_register>
+
+I<Inherited from L<Object::Pluggable|Object::Pluggable/plugin_register>>
+
+Accepts the following arguments:
+
+ The plugin object
+ The type of the hook (the hook types are specified with _pluggable_init()'s 'types')
+ The event name[s] to watch
+
+The event names can be as many as possible, or an arrayref. They correspond
+to the prefixed events and naturally, arbitrary events too.
+
+You do not need to supply events with the prefix in front of them, just the
+names.
+
+It is possible to register for all events by specifying 'all' as an event.
+
+Returns 1 if everything checked out fine, C<undef>/an empty list if something
+is seriously wrong.
+
+=head2 C<plugin_unregister>
+
+I<Inherited from L<Object::Pluggable|Object::Pluggable/plugin_unregister>>
+
+Accepts the following arguments:
+
+ The plugin object
+ The type of the hook (the hook types are specified with _pluggable_init()'s 'types')
+ The event name[s] to unwatch
+
+The event names can be as many as possible, or an arrayref. They correspond
+to the prefixed events and naturally, arbitrary events too.
+
+You do not need to supply events with the prefix in front of them, just the
+names.
+
+It is possible to register for all events by specifying 'all' as an event.
+
+Returns 1 if all the event name[s] was unregistered, undef if some was not
+found.
 
 =head1 INPUT
 
@@ -550,6 +682,8 @@ So the following would be functionally equivalent:
 =head2 Important Commands
 
 =head3 C<register>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/register>>
 
 Takes N arguments: a list of event names that your session wants to
 listen for, minus the C<irc_> prefix. So, for instance, if you just
@@ -583,6 +717,19 @@ session, the component will automatically register that session as wanting
 B<'all'> irc events. That session will receive an
 L<C<irc_registered>|/irc_registered> event indicating that the component
 is up and ready to go.
+
+=head3 C<unregister>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/unregister>>
+
+Takes N arguments: a list of event names which you I<don't> want to
+receive. If you've previously done a L<C<register>|/register>
+for a particular event which you no longer care about, this event will
+tell the IRC connection to stop sending them to you. (If you haven't, it just
+ignores you. No big deal.)
+
+If you have registered with 'all', attempting to unregister individual
+events such as 'mode', etc. will not work. This is a 'feature'.
 
 =head3 C<connect>
 
@@ -697,17 +844,6 @@ the channel name as an argument, it will ask the server to return the
 current topic. If called with the channel name and a string, it will
 set the channel topic to that string. Supply an empty string to unset a
 channel topic.
-
-=head3 C<unregister>
-
-Takes N arguments: a list of event names which you I<don't> want to
-receive. If you've previously done a L<C<register>|/register>
-for a particular event which you no longer care about, this event will
-tell the IRC connection to stop sending them to you. (If you haven't, it just
-ignores you. No big deal.)
-
-If you have registered with 'all', attempting to unregister individual
-events such as 'mode', etc. will not work. This is a 'feature'.
 
 =head3 C<debug>
 
@@ -959,6 +1095,38 @@ object. Useful if you want on-the-fly access to the object and its methods.
 
 =head2 Important Events
 
+=head3 C<irc_registered>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/syndicator_registered>>
+
+Sent once to the requesting session on registration (see
+L<C<register>|/register>). C<ARG0> is a reference tothe component's object.
+
+=head3 C<irc_shutdown>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/syndicator_shutdown>>
+
+Sent to all registered sessions when the component has been asked to
+L<C<shutdown>|/shutdown>. C<ARG0> will be the session ID of the requesting
+session.
+
+=head3 C<irc_delay_set>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/syndicator_delay_set>>
+
+Emitted on a successful addition of a delayed event using the
+L<C<delay>|/delay> method. C<ARG0> will be the alarm_id which can be used
+later with L<C<delay_remove>|/delay_remove>. Subsequent parameters are
+the arguments that were passed to L<C<delay>|/delay>.
+
+=head3 C<irc_delay_removed>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/syndicator_delay_removed>>
+
+Emitted when a delayed command is successfully removed. C<ARG0> will be the
+alarm_id that was removed. Subsequent parameters are the arguments that were
+passed to L<C<delay>|/delay>.
+
 =head3 C<irc_connected>
 
 The IRC component will send an C<irc_connected> event as soon as it
@@ -1154,36 +1322,12 @@ L<C<connect>|/connect>, or by calling L<C<raw_events>|/raw_events> with
 a true argument. C<ARG0> is the raw IRC string sent by the component to the
 the IRC server.
 
-=head3 C<irc_registered>
-
-Sent once to the requesting session on registration (see
-L<C<register>|/register>). C<ARG0> is a reference tothe component's object.
-
-=head3 C<irc_shutdown>
-
-Sent to all registered sessions when the component has been asked to
-L<C<shutdown>|/shutdown>. C<ARG0> will be the session ID of the requesting
-session.
-
 =head3 C<irc_isupport>
 
 Emitted by the first event after an L<C<irc_005>|/All numeric events>, to
 indicate that isupport information has been gathered. C<ARG0> is the
 L<POE::Component::IRC::Plugin::ISupport|POE::Component::IRC::Plugin::ISupport>
 object.
-
-=head3 C<irc_delay_set>
-
-Emitted on a successful addition of a delayed event using the
-L<C<delay>|/delay> method. C<ARG0> will be the alarm_id which can be used
-later with L<C<delay_remove>|/delay_remove>. Subsequent parameters are
-the arguments that were passed to L<C<delay>|/delay>.
-
-=head3 C<irc_delay_removed>
-
-Emitted when a delayed command is successfully removed. C<ARG0> will be the
-alarm_id that was removed. Subsequent parameters are the arguments that were
-passed to L<C<delay>|/delay>.
 
 =head3 C<irc_socks_failed>
 
@@ -1250,6 +1394,8 @@ L<POE::Kernel|POE::Kernel>'s C<signal> method.
 
 =head2 C<POCOIRC_REGISTER>
 
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/SYNDICATOR_REGISTER>>
+
 Registering with multiple PoCo-IRC components has been a pita. Well, no more,
 using the power of L<POE::Kernel|POE::Kernel> signals.
 
@@ -1300,6 +1446,8 @@ L<C<irc_registered>|/irc_registered> event:
  }
 
 =head2 C<POCOIRC_SHUTDOWN>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/SYNDICATOR_SHUTDOWN>>
 
 Telling multiple poco-ircs to shutdown was a pita as well. The same principle as
 with registering applies to shutdown too.

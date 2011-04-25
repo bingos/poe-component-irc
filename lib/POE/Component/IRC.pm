@@ -13,7 +13,7 @@ use POE::Component::IRC::Plugin::DCC;
 use POE::Component::IRC::Plugin::ISupport;
 use POE::Component::IRC::Plugin::Whois;
 use Socket qw(AF_INET SOCK_STREAM unpack_sockaddr_in inet_ntoa inet_aton);
-use base qw(Object::Pluggable);
+use base qw(POE::Component::Syndicator);
 
 our ($GOT_SSL, $GOT_CLIENT_DNS, $GOT_SOCKET6, $GOT_ZLIB);
 
@@ -115,20 +115,16 @@ sub _create {
     $self->{OBJECT_STATES_HASHREF} = {
         %event_map,
         quote => 'sl',
-        _default => '__default',
     };
 
     $self->{OBJECT_STATES_ARRAYREF} = [qw(
-        _delay
-        _delay_remove
+        syndicator_started
         _parseline
-        _send_pending_events
         _sock_down
         _sock_failed
         _sock_up
         _socks_proxy_connect
         _socks_proxy_response
-        _start
         debug
         connect
         _resolve_addresses
@@ -138,7 +134,6 @@ sub _create {
         _got_dns_response
         ison
         kick
-        register
         remove
         nickserv
         shutdown
@@ -252,88 +247,6 @@ sub _parseline {
     return;
 }
 
-sub send_event {
-    my ($self, @args) = @_;
-    $poe_kernel->post($self->{SESSION_ID}, '_send_pending_events', @args);
-    return 1;
-}
-
-sub send_event_now {
-    my ($self, @args) = @_;
-    $poe_kernel->call($self->{SESSION_ID}, '_send_pending_events', @args);
-    return 1;
-}
-
-sub send_event_next {
-    my ($self, $event, @args) = @_;
-
-    if (!$self->{pending_events} || !@{ $self->{pending_events} }) {
-        croak('send_event_next() can only be called from an event handler');
-    }
-    else {
-        push @{ $self->{pending_events}[-1] }, [$event, \@args];
-    }
-    return 1;
-}
-
-sub _send_pending_events {
-    my ($kernel, $session, $self, $event, @args)
-        = @_[KERNEL, SESSION, OBJECT, ARG0, ARG1..$#_];
-    my $session_id = $session->ID();
-    my %sessions;
-
-    # create new context if we were passed an event directly
-    if (defined $event) {
-        my @our_events = [$event, \@args];
-        push @{ $self->{pending_events} }, \@our_events;
-    }
-
-    while (my ($ev) = shift @{ $self->{pending_events}[-1] }) {
-        last if !defined $ev;
-        my ($event, $args) = @$ev;
-
-        # BINGOS:
-        # I've moved these above the plugin system call to ensure that pesky plugins
-        # don't eat the events before *our* session can process them. *sigh*
-
-        for my $value (values %{ $self->{events}->{irc_all} },
-            values %{ $self->{events}->{$event} })
-        {
-            $sessions{$value} = $value;
-        }
-
-        # Make sure our session gets notified of any requested events before
-        # any other bugger
-        $kernel->call($session_id => $event => @$args) if delete $sessions{$session_id};
-
-        # Let the plugin system process this
-        if ($self->_pluggable_process('SERVER', $event, $args) != PCI_EAT_ALL) {
-            # BINGOS:
-            # We have a hack here, because the component used to send 'irc_connected'
-            # and 'irc_disconnected' events to every registered session regardless of
-            # whether that session had registered from them or not.
-            if ( $event =~ /connected$/ || $event eq 'irc_shutdown' ) {
-                for my $session (keys %{ $self->{sessions} }) {
-                    $kernel->call(
-                        $self->{sessions}->{$session}->{ref},
-                        $event,
-                        @$args,
-                    );
-                }
-            }
-            else {
-                for my $session (values %sessions) {
-                    $kernel->call($session => $event => @$args);
-                }
-            }
-        }
-        $self->_cleanup() if $event eq 'irc_shutdown';
-    }
-
-    pop @{ $self->{pending_events} };
-    return;
-}
-
 # Internal function called when a socket is closed.
 sub _sock_down {
     my ($kernel, $self) = @_[KERNEL, OBJECT];
@@ -359,7 +272,8 @@ sub _sock_down {
 }
 
 sub disconnect {
-    $poe_kernel->post($_[0]->session_id() => '_sock_down');
+    my ($self) = @_;
+    $self->yield('_sock_down');
     return;
 }
 
@@ -470,8 +384,7 @@ sub _sock_up {
     if ($self->{proxy}) {
         # The original proxy code, AFAIK, did not actually work
         # with an HTTP proxy.
-        $kernel->call(
-            $session,
+        $self->call(
             'sl_login',
             'CONNECT ' . $self->{server} . ':' . $self->{port} . " HTTP/1.0\n\n",
         );
@@ -571,30 +484,14 @@ sub _send_login {
 }
 
 # Set up the component's IRC session.
-sub _start {
-    my ($kernel, $session, $sender, $self, $alias, @options)
+sub syndicator_started {
+    my ($kernel, $session, $sender, $self, $alias)
         = @_[KERNEL, SESSION, SENDER, OBJECT, ARG0, ARG1 .. $#_];
-
-    $kernel->state(_poco_irc_sig_register => $self );
-    $kernel->sig(POCOIRC_REGISTER => '_poco_irc_sig_register' );
-    $kernel->state(_poco_irc_sig_shutdown => $self );
-    $kernel->sig(POCOIRC_SHUTDOWN => '_poco_irc_sig_shutdown' );
 
     # Send queue is used to hold pending lines so we don't flood off.
     # The count is used to track the number of lines sent at any time.
     $self->{send_queue} = [ ];
     $self->{send_time}  = 0;
-
-    $session->option( @options ) if @options;
-
-    if ($alias) {
-        $kernel->alias_set($alias);
-        $self->{alias} = $alias;
-    }
-    else {
-        $kernel->alias_set($self);
-        $self->{alias} = "$self";
-    }
 
     $self->{ircd_filter} = POE::Filter::IRCD->new(debug => $self->{debug});
     $self->{ircd_compat} = POE::Filter::IRC::Compat->new(debug => $self->{debug});
@@ -613,27 +510,15 @@ sub _start {
         POE::Filter::Line->new( OutputLiteral => "\015\012" ),
     ]);
 
-    $self->{SESSION_ID} = $session->ID();
-
     # Plugin 'irc_whois' and 'irc_whowas' support
-    $self->plugin_add('Whois_' . $self->{SESSION_ID},
+    $self->plugin_add('Whois_' . $self->session_id(),
         POE::Component::IRC::Plugin::Whois->new()
     );
 
     $self->{isupport} = POE::Component::IRC::Plugin::ISupport->new();
-    $self->plugin_add('ISupport_' . $self->{SESSION_ID}, $self->{isupport});
+    $self->plugin_add('ISupport_' . $self->session_id(), $self->{isupport});
     $self->{dcc} = POE::Component::IRC::Plugin::DCC->new();
-    $self->plugin_add('DCC_' . $self->{SESSION_ID}, $self->{dcc});
-
-    if ($kernel != $sender) {
-        my $sender_id = $sender->ID;
-        $self->{events}->{irc_all}->{$sender_id} = $sender_id;
-        $self->{sessions}->{$sender_id}->{ref} = $sender_id;
-        $self->{sessions}->{$sender_id}->{refcnt}++;
-        $kernel->refcount_increment($sender_id, PCI_REFCOUNT_TAG);
-        $kernel->post($sender => irc_registered => $self);
-	$kernel->detach_myself();
-    }
+    $self->plugin_add('DCC_' . $self->session_id(), $self->{dcc});
 
     return 1;
 }
@@ -814,18 +699,6 @@ sub ctcp {
     return;
 }
 
-# allow plugins to respond to user commands which are not defined here
-sub __default {
-    my ($self, $event, $args) = @_[OBJECT, ARG0, ARG1];
-    return if $event =~ /^_/;
-
-    push @{ $self->{pending_events} }, [];
-    $self->_pluggable_process(USER => $event => [@$args]);
-    $self->call('_send_pending_events');
-
-    return;
-}
-
 # The way /notify is implemented in IRC clients.
 sub ison {
     my ($kernel, @nicks) = @_[KERNEL, ARG0 .. $#_];
@@ -933,21 +806,19 @@ sub spawn {
     my $alias        = delete $params{alias};
     my $plugin_debug = delete $params{plugin_debug};
 
-    $self->_pluggable_init(
-        prefix     => 'irc_',
-        reg_prefix => 'PCI_',
-        types      => { SERVER => 'S', USER => 'U' },
-        ($plugin_debug ? (debug => 1) : () ),
-    );
-
-    POE::Session->create(
-        object_states => [
-            $self => $self->{OBJECT_STATES_HASHREF},
-            $self => $self->{OBJECT_STATES_ARRAYREF},
+    $self->_syndicator_init(
+        prefix          => 'irc_',
+        reg_prefix      => 'PCI_',
+        types           => [SERVER => 'S', USER => 'U'],
+        alias           => $alias,
+        register_signal => 'POCOIRC_REGISTER',
+        shutdown_signal => 'POCOIRC_SHUTDOWN',
+        object_states   => [
+            $self => delete $self->{OBJECT_STATES_HASHREF},
+            $self => delete $self->{OBJECT_STATES_ARRAYREF},
         ],
-        ref $options eq 'HASH' ? ( options => $options ) : (),
-        args => [ $alias ],
-        heap => $self,
+        ($plugin_debug ? (debug => 1) : () ),
+        (ref $options eq 'HASH' ? ( options => $options ) : ()),
     );
 
     $params{spawned} = 1;
@@ -1086,89 +957,11 @@ sub privandnotice {
     return;
 }
 
-sub _poco_irc_sig_shutdown {
-    my ($kernel,$self,$session,$signal) = @_[KERNEL,OBJECT,SESSION,ARG0];
-    $kernel->yield(shutdown => @_[ARG1..$#_] );
-    return;
-}
-
-sub _poco_irc_sig_register {
-    my ($kernel, $self, $session, $signal, $sender, @events)
-        = @_[KERNEL, OBJECT, SESSION, ARG0 .. $#_];
-
-    return if !defined $sender;
-    my $session_id = $session->ID();
-    my $sender_id;
-    if ( my $ref = $kernel->alias_resolve( $sender ) ) {
-        $sender_id = $ref->ID();
-    }
-    else {
-        warn "Can't resolve $sender\n";
-        return;
-    }
-
-    if (!@events) {
-        warn "Signal POCOIRC: Not enough arguments\n";
-        return;
-    }
-
-    for my $event (@events) {
-        $event = "irc_$event" if $event !~ /^_/;
-        $self->{events}->{$event}->{$sender_id} = $sender_id;
-        $self->{sessions}->{$sender_id}->{ref} = $sender_id;
-
-        if (!$self->{sessions}->{$sender_id}->{refcnt}++
-            && $session_id != $sender_id) {
-            $kernel->refcount_increment($sender_id, PCI_REFCOUNT_TAG);
-        }
-    }
-
-    $kernel->post($sender_id => irc_registered => $self);
-    return;
-}
-
-# Ask P::C::IRC to send you certain events, listed in @events.
-sub register {
-    my ($kernel, $self, $session, $sender, @events)
-        = @_[KERNEL, OBJECT, SESSION, SENDER, ARG0 .. $#_];
-
-    if (!@events) {
-        warn "The 'register' event requires more arguments\n";
-        return;
-    }
-
-    my $sender_id = $sender->ID();
-    # FIXME: What "special" event names go here? (ie, "errors")
-    # basic, dcc (implies ctcp), ctcp, oper ...what other categories?
-    for my $event (@events) {
-        $event = "irc_$event" if $event !~ /^_/;
-        $self->{events}->{$event}->{$sender_id} = $sender_id;
-        $self->{sessions}->{$sender_id}->{ref} = $sender_id;
-
-        if (!$self->{sessions}->{$sender_id}->{refcnt} && $session != $sender) {
-            $kernel->refcount_increment($sender_id, PCI_REFCOUNT_TAG);
-        }
-
-        $self->{sessions}->{$sender_id}->{refcnt}++;
-    }
-
-    # BINGOS:
-    # Apocalypse is gonna hate me for this as 'irc_registered' events will bypass
-    # the Plugins system, but I can't see how this event will be relevant without
-    # some sort of reference, like what session has registered. I'm not going to
-    # start hurling session references around at this point :)
-    $kernel->post($sender => irc_registered => $self);
-    return;
-}
-
 # Tell the IRC session to go away.
 sub shutdown {
     my ($kernel, $self, $sender, $session) = @_[KERNEL, OBJECT, SENDER, SESSION];
     return if $self->{_shutdown};
     $self->{_shutdown} = $sender->ID();
-
-    $kernel->sig('POCOIRC_REGISTER');
-    $kernel->sig('POCOIRC_SHUTDOWN');
 
     if ($self->logged_in()) {
         my ($msg, $timeout) = @_[ARG0, ARG1];
@@ -1198,16 +991,8 @@ sub _quit_timeout {
 
 sub _shutdown {
     my ($self) = @_;
-    $self->_pluggable_destroy();
-    $self->send_event('irc_shutdown', $self->{_shutdown});
-    return;
-}
 
-sub _cleanup {
-    my ($self) = @_;
-
-    $self->_unregister_sessions();
-    $poe_kernel->alarm_remove_all();
+    $self->_syndicator_destroy($self->{_shutdown});
     delete $self->{$_} for qw(socketfactory dcc wheelmap);
     $self->{resolver}->shutdown() if $self->{resolver} && $self->{mydns};
     return;
@@ -1252,10 +1037,7 @@ sub sl_prioritized {
     my $eat;
     if (my ($event) = $args[0] =~ /^(\w+)/ ) {
         # Let the plugin system process this
-        push @{ $self->{pending_events} }, [];
-        my $eat = $self->_pluggable_process('USER', $event, \@args);
-        $self->call('_send_pending_events');
-        return 1 if $eat == PCI_EAT_ALL;
+        return 1 if $self->send_user_event($event, \@args) == PCI_EAT_ALL;
     }
     else {
         warn "Unable to extract the event name from '$args[0]'\n";
@@ -1346,57 +1128,6 @@ sub topic {
     return;
 }
 
-# Ask P::C::IRC to stop sending you certain events, listed in $evref.
-sub unregister {
-    my ($kernel, $self, $session, $sender, @events)
-        = @_[KERNEL, OBJECT, SESSION, SENDER, ARG0 .. $#_];
-
-    if (!@events) {
-        warn "The 'unregister' event requires more arguments\n";
-        return;
-    }
-
-    $self->_unregister($session, $sender, @events);
-    return;
-}
-
-sub _unregister {
-    my ($self, $session, $sender, @events) = @_;
-    my $sender_id = $sender->ID();
-
-    for my $event (@events) {
-        $event = "irc_$event" if $event !~ /^_/;
-        my $blah = delete $self->{events}->{$event}->{$sender_id};
-        if (!defined $blah) {
-            carp "Sender $sender_id hasn't registered for '$event' events";
-            next;
-        }
-
-        if (--$self->{sessions}->{$sender_id}->{refcnt} <= 0) {
-            delete $self->{sessions}->{$sender_id};
-            if ($session != $sender) {
-                $poe_kernel->refcount_decrement($sender_id, PCI_REFCOUNT_TAG);
-            }
-        }
-    }
-
-    return;
-}
-
-sub _unregister_sessions {
-    my ($self) = @_;
-
-    for my $session_id ( keys %{ $self->{sessions} } ) {
-        my $refcnt = $self->{sessions}->{$session_id}->{refcnt};
-        while ( $refcnt --> 0 ) {
-            $poe_kernel->refcount_decrement($session_id, PCI_REFCOUNT_TAG);
-        }
-        delete $self->{sessions}->{$session_id};
-    }
-
-    return;
-}
-
 # Asks the IRC server for some random information about particular nicks.
 sub userhost {
     my ($kernel, @nicks) = @_[KERNEL, ARG0 .. $#_];
@@ -1463,70 +1194,6 @@ sub raw_events {
     my ($self, $value) = @_;
     return $self->{raw} if !defined $value;
     $self->{raw} = $value;
-    return;
-}
-
-sub session_id {
-    my ($self) = @_;
-    return $self->{SESSION_ID};
-}
-
-sub session_alias {
-    my ($self) = @_;
-    return $self->{alias};
-}
-
-sub yield {
-    my ($self, @args) = @_;
-    $poe_kernel->post($self->session_id() => @args);
-    return;
-}
-
-sub call {
-    my ($self, @args) = @_;
-    $poe_kernel->call($self->session_id() => @args);
-    return;
-}
-
-sub delay {
-    my ($self, $arrayref, @args) = @_;
-
-    if (!defined $arrayref || ref $arrayref ne 'ARRAY') {
-        carp 'First argument to delay() must be an ARRAYREF';
-        return;
-    }
-
-    return $poe_kernel->call($self->session_id() => _delay => $arrayref => @args);
-}
-
-sub _delay {
-    my ($kernel, $self, $arrayref, $time) = @_[KERNEL, OBJECT, ARG0, ARG1];
-
-    return if !scalar @{ $arrayref };
-    return if !defined $time;
-    my $event = shift @{ $arrayref };
-    my $alarm_id = $kernel->delay_set( $event => $time => @{ $arrayref } );
-    $self->send_event(irc_delay_set => $alarm_id, $event, @{ $arrayref } ) if $alarm_id;
-    return $alarm_id;
-}
-
-sub delay_remove {
-    my ($self, @args) = @_;
-    return $poe_kernel->call($self->session_id() => _delay_remove => @args);
-}
-
-
-sub _delay_remove {
-    my ($kernel, $self, $alarm_id) = @_[KERNEL, OBJECT, ARG0];
-
-    return if !defined $alarm_id;
-    my @old_alarm_list = $kernel->alarm_remove( $alarm_id );
-    if (@old_alarm_list) {
-        splice @old_alarm_list, 1, 1;
-        $self->send_event(irc_delay_removed => $alarm_id, @old_alarm_list );
-        return \@old_alarm_list;
-    }
-
     return;
 }
 
@@ -1681,12 +1348,6 @@ sub isupport_dump_keys {
 
 sub resolver {
     return $_[0]->{resolver};
-}
-
-sub _pluggable_event {
-    my ($self, $event, @args) = @_;
-    $self->send_event($event, @args);
-    return;
 }
 
 sub _ip_get_version {
@@ -2154,8 +1815,9 @@ plans to make it die() >;]
 =head1 METHODS
 
 These are methods supported by the POE::Component::IRC object. It also
-inherits a few from L<Object::Pluggable|Object::Pluggable>.
-See its documentation for details.
+inherits a few from L<Object::Pluggable|Object::Pluggable> and
+L<POE::Component::Syndicator|POE::Component::Syndicator>. See those modules'
+documentation for details.
 
 =head2 C<server>
 
@@ -2184,18 +1846,6 @@ bot is using.
 =head2 C<localaddr>
 
 Takes no arguments. Returns the IP address being used.
-
-=head2 C<session_id>
-
-Takes no arguments. Returns the ID of the component's session. Ideal for posting
-events to the component.
-
- $kernel->post($irc->session_id() => 'mode' => $channel => '+o' => $dude);
-
-=head2 C<session_alias>
-
-Takes no arguments. Returns the session alias that has been set through
-L<C<spawn>|/spawn>'s alias argument.
 
 =head2 C<send_queue>
 
@@ -2235,7 +1885,30 @@ is available at L<http://www.irc.org/tech_docs/005.html>.
 Takes no arguments, returns a list of the available server capabilities keys,
 which can be used with L<C<isupport>|/isupport>.
 
+=head2 C<resolver>
+
+Returns a reference to the L<POE::Component::Client::DNS|POE::Component::Client::DNS>
+object that is internally created by the component.
+
+=head2 C<session_id>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/session_id>>
+
+Takes no arguments. Returns the ID of the component's session. Ideal for posting
+events to the component.
+
+ $kernel->post($irc->session_id() => 'mode' => $channel => '+o' => $dude);
+
+=head2 C<session_alias>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/session_alias>>
+
+Takes no arguments. Returns the session alias that has been set through
+L<C<spawn>|/spawn>'s alias argument.
+
 =head2 C<yield>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/yield>>
 
 This method provides an alternative object based means of posting events to the
 component. First argument is the event to post, following arguments are sent as
@@ -2245,6 +1918,8 @@ arguments to the resultant post.
 
 =head2 C<call>
 
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/call>>
+
 This method provides an alternative object based means of calling events to the
 component. First argument is the event to call, following arguments are sent as
 arguments to the resultant
@@ -2253,6 +1928,8 @@ call.
  $irc->call(mode => $channel => '+o' => $dude);
 
 =head2 C<delay>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/delay>>
 
 This method provides a way of posting delayed events to the component. The
 first argument is an arrayref consisting of the delayed command to post and
@@ -2266,6 +1943,8 @@ to cancel the delayed event. This will be undefined if something went wrong.
 
 =head2 C<delay_remove>
 
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/delay_remove>>
+
 This method removes a previously scheduled delayed event from the component.
 Takes one argument, the C<alarm_id> that was returned by a
 L<C<delay>|/delay> method call.
@@ -2274,18 +1953,17 @@ L<C<delay>|/delay> method call.
 
 Returns an arrayref that was originally requested to be delayed.
 
-=head2 C<resolver>
-
-Returns a reference to the L<POE::Component::Client::DNS|POE::Component::Client::DNS>
-object that is internally created by the component.
-
 =head2 C<send_event>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/send_event>>
 
 Sends an event through the component's event handling system. These will get
 processed by plugins then by registered sessions. First argument is the event
 name, followed by any parameters for that event.
 
 =head2 C<send_event_next>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/send_event_next>>
 
 This sends an event right after the one that's currently being processed.
 Useful if you want to generate some event which is directly related to
@@ -2295,11 +1973,126 @@ event handlers. Takes the same arguments as L<C<send_event>/send_event>.
 
 =head2 C<send_event_now>
 
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/send_event_now>>
+
 This will send an event to be processed immediately. This means that if an
 event is currently being processed and there are plugins or sessions which
 will receive it after you do, then an event sent with C<send_event_now> will
 be received by those plugins/sessions I<before> the current event. Takes the
 same arguments as L<C<send_event>/send_event>.
+
+=head2 C<pipeline>
+
+I<Inherited from L<Object::Pluggable|Object::Pluggable/pipeline>>
+
+Returns the L<Object::Pluggable::Pipeline|Object::Pluggable::Pipeline>
+object.
+
+=head2 C<plugin_add>
+
+I<Inherited from L<Object::Pluggable|Object::Pluggable/plugin_add>>
+
+Accepts two arguments:
+
+ The alias for the plugin
+ The actual plugin object
+ Any number of extra arguments
+
+The alias is there for the user to refer to it, as it is possible to have
+multiple plugins of the same kind active in one Object::Pluggable object.
+
+This method goes through the pipeline's C<push()> method, which will call
+C<< $plugin->plugin_register($pluggable, @args) >>.
+
+Returns the number of plugins now in the pipeline if plugin was initialized,
+C<undef>/an empty list if not.
+
+=head2 C<plugin_del>
+
+I<Inherited from L<Object::Pluggable|Object::Pluggable/plugin_del>>
+
+Accepts the following arguments:
+
+ The alias for the plugin or the plugin object itself
+ Any number of extra arguments
+
+This method goes through the pipeline's C<remove()> method, which will call
+C<< $plugin->plugin_unregister($pluggable, @args) >>.
+
+Returns the plugin object if the plugin was removed, C<undef>/an empty list
+if not.
+
+=head2 C<plugin_get>
+
+I<Inherited from L<Object::Pluggable|Object::Pluggable/plugin_get>>
+
+Accepts the following arguments:
+
+ The alias for the plugin
+
+This method goes through the pipeline's C<get()> method.
+
+Returns the plugin object if it was found, C<undef>/an empty list if not.
+
+=head2 C<plugin_list>
+
+I<Inherited from L<Object::Pluggable|Object::Pluggable/plugin_list>>
+
+Takes no arguments.
+
+Returns a hashref of plugin objects, keyed on alias, or an empty list if
+there are no plugins loaded.
+
+=head2 C<plugin_order>
+
+I<Inherited from L<Object::Pluggable|Object::Pluggable/plugin_order>>
+
+Takes no arguments.
+
+Returns an arrayref of plugin objects, in the order which they are
+encountered in the pipeline.
+
+=head2 C<plugin_register>
+
+I<Inherited from L<Object::Pluggable|Object::Pluggable/plugin_register>>
+
+Accepts the following arguments:
+
+ The plugin object
+ The type of the hook (the hook types are specified with _pluggable_init()'s 'types')
+ The event name[s] to watch
+
+The event names can be as many as possible, or an arrayref. They correspond
+to the prefixed events and naturally, arbitrary events too.
+
+You do not need to supply events with the prefix in front of them, just the
+names.
+
+It is possible to register for all events by specifying 'all' as an event.
+
+Returns 1 if everything checked out fine, C<undef>/an empty list if something
+is seriously wrong.
+
+=head2 C<plugin_unregister>
+
+I<Inherited from L<Object::Pluggable|Object::Pluggable/plugin_unregister>>
+
+Accepts the following arguments:
+
+ The plugin object
+ The type of the hook (the hook types are specified with _pluggable_init()'s 'types')
+ The event name[s] to unwatch
+
+The event names can be as many as possible, or an arrayref. They correspond
+to the prefixed events and naturally, arbitrary events too.
+
+You do not need to supply events with the prefix in front of them, just the
+names.
+
+It is possible to register for all events by specifying 'all' as an event.
+
+Returns 1 if all the event name[s] was unregistered, undef if some was not
+found.
 
 =head1 INPUT
 
@@ -2324,6 +2117,8 @@ So the following would be functionally equivalent:
 =head2 Important Commands
 
 =head3 C<register>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/register>>
 
 Takes N arguments: a list of event names that your session wants to
 listen for, minus the C<irc_> prefix. So, for instance, if you just
@@ -2357,6 +2152,19 @@ session, the component will automatically register that session as wanting
 B<'all'> irc events. That session will receive an
 L<C<irc_registered>|/irc_registered> event indicating that the component
 is up and ready to go.
+
+=head3 C<unregister>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/unregister>>
+
+Takes N arguments: a list of event names which you I<don't> want to
+receive. If you've previously done a L<C<register>|/register>
+for a particular event which you no longer care about, this event will
+tell the IRC connection to stop sending them to you. (If you haven't, it just
+ignores you. No big deal.)
+
+If you have registered with 'all', attempting to unregister individual
+events such as 'mode', etc. will not work. This is a 'feature'.
 
 =head3 C<connect>
 
@@ -2471,17 +2279,6 @@ the channel name as an argument, it will ask the server to return the
 current topic. If called with the channel name and a string, it will
 set the channel topic to that string. Supply an empty string to unset a
 channel topic.
-
-=head3 C<unregister>
-
-Takes N arguments: a list of event names which you I<don't> want to
-receive. If you've previously done a L<C<register>|/register>
-for a particular event which you no longer care about, this event will
-tell the IRC connection to stop sending them to you. (If you haven't, it just
-ignores you. No big deal.)
-
-If you have registered with 'all', attempting to unregister individual
-events such as 'mode', etc. will not work. This is a 'feature'.
 
 =head3 C<debug>
 
@@ -2733,6 +2530,38 @@ object. Useful if you want on-the-fly access to the object and its methods.
 
 =head2 Important Events
 
+=head3 C<irc_registered>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/syndicator_registered>>
+
+Sent once to the requesting session on registration (see
+L<C<register>|/register>). C<ARG0> is a reference tothe component's object.
+
+=head3 C<irc_shutdown>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/syndicator_shutdown>>
+
+Sent to all registered sessions when the component has been asked to
+L<C<shutdown>|/shutdown>. C<ARG0> will be the session ID of the requesting
+session.
+
+=head3 C<irc_delay_set>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/syndicator_delay_set>>
+
+Emitted on a successful addition of a delayed event using the
+L<C<delay>|/delay> method. C<ARG0> will be the alarm_id which can be used
+later with L<C<delay_remove>|/delay_remove>. Subsequent parameters are
+the arguments that were passed to L<C<delay>|/delay>.
+
+=head3 C<irc_delay_removed>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/syndicator_delay_removed>>
+
+Emitted when a delayed command is successfully removed. C<ARG0> will be the
+alarm_id that was removed. Subsequent parameters are the arguments that were
+passed to L<C<delay>|/delay>.
+
 =head3 C<irc_connected>
 
 The IRC component will send an C<irc_connected> event as soon as it
@@ -2928,36 +2757,12 @@ L<C<connect>|/connect>, or by calling L<C<raw_events>|/raw_events> with
 a true argument. C<ARG0> is the raw IRC string sent by the component to the
 the IRC server.
 
-=head3 C<irc_registered>
-
-Sent once to the requesting session on registration (see
-L<C<register>|/register>). C<ARG0> is a reference tothe component's object.
-
-=head3 C<irc_shutdown>
-
-Sent to all registered sessions when the component has been asked to
-L<C<shutdown>|/shutdown>. C<ARG0> will be the session ID of the requesting
-session.
-
 =head3 C<irc_isupport>
 
 Emitted by the first event after an L<C<irc_005>|/All numeric events>, to
 indicate that isupport information has been gathered. C<ARG0> is the
 L<POE::Component::IRC::Plugin::ISupport|POE::Component::IRC::Plugin::ISupport>
 object.
-
-=head3 C<irc_delay_set>
-
-Emitted on a successful addition of a delayed event using the
-L<C<delay>|/delay> method. C<ARG0> will be the alarm_id which can be used
-later with L<C<delay_remove>|/delay_remove>. Subsequent parameters are
-the arguments that were passed to L<C<delay>|/delay>.
-
-=head3 C<irc_delay_removed>
-
-Emitted when a delayed command is successfully removed. C<ARG0> will be the
-alarm_id that was removed. Subsequent parameters are the arguments that were
-passed to L<C<delay>|/delay>.
 
 =head3 C<irc_socks_failed>
 
@@ -3024,6 +2829,8 @@ L<POE::Kernel|POE::Kernel>'s C<signal> method.
 
 =head2 C<POCOIRC_REGISTER>
 
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/SYNDICATOR_REGISTER>>
+
 Registering with multiple PoCo-IRC components has been a pita. Well, no more,
 using the power of L<POE::Kernel|POE::Kernel> signals.
 
@@ -3074,6 +2881,8 @@ L<C<irc_registered>|/irc_registered> event:
  }
 
 =head2 C<POCOIRC_SHUTDOWN>
+
+I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/SYNDICATOR_SHUTDOWN>>
 
 Telling multiple poco-ircs to shutdown was a pita as well. The same principle as
 with registering applies to shutdown too.

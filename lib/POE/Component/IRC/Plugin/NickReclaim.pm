@@ -108,7 +108,7 @@ sub S_433 {
     # BingOS, is there a ->is_still_alarm() method to check if the alarm..
     #...is pending to go off? I couldn't find it in the docs, but would be
     #...nice to have (and use right here)
-    $irc->delay_remove( $self->{_alarm_id} );
+    $irc->delay_remove($self->{_alarm_id}) if defined $self->{_alarm_id};
     $self->{_alarm_id} = $irc->delay(
         [ nick => $self->{_nick} ],
         $self->{poll}

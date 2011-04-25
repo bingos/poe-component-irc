@@ -8,6 +8,11 @@ Revision history for Perl extension POE::Component::IRC.
       message (usually '*' or 'AUTH' or something).
     - Qnet/State.pm: Forgot to import parse_user() from IRC::Utils.
     - IRC.pm: Document the Bitmode parameter and make it 8 (+i) by default.
+    - IRC.pm: Remove a sizable chunk of the code and inherit from
+      POE::Component::Syndicator instead. Got rid of an old backwards
+      compatability workaround in the process: sessions will no longer
+      receive irc_connected/irc_disconnected/irc_shutdown events if they
+      didn't register for them.
 
 6.61  Tue Apr 19 17:02:54 GMT 2011
     - The changes to the filter test were causing failures on <5.12 due to
