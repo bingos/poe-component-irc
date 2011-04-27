@@ -13,6 +13,7 @@ Revision history for Perl extension POE::Component::IRC.
       compatability workaround in the process: sessions will no longer
       receive irc_connected/irc_disconnected/irc_shutdown events if they
       didn't register for them.
+    - Console.pm: Avoid custom stringifications when dumping objects
 
 6.61  Tue Apr 19 17:02:54 GMT 2011
     - The changes to the filter test were causing failures on <5.12 due to
