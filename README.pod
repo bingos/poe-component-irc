@@ -762,12 +762,13 @@ channel. Takes at least 2 arguments: a channel name, the nick of the
 user to boot, and an optional witty message to show them as they sail
 out the door.
 
-=head3 C<remove> (FreeNode only)
+=head3 C<remove>
 
 Tell the IRC server to forcibly evict a user from a particular
 channel. Takes at least 2 arguments: a channel name, the nick of the
 user to boot, and an optional witty message to show them as they sail
-out the door. Similar to KICK but does an enforced PART instead.
+out the door. Similar to KICK but does an enforced PART instead. Not
+supported by all servers.
 
 =head3 C<mode>
 
@@ -784,9 +785,10 @@ the details anyhow.
 Allows you to change your nickname. Takes exactly one argument: the
 new username that you'd like to be known as.
 
-=head3 C<nickserv> (FreeNode, ratbox, et al)
+=head3 C<nickserv>
 
-Talks to NickServ. Takes any number of arguments.
+Talks to NickServ, on networks which have it. Takes any number of
+arguments.
 
 =head3 C<notice>
 
