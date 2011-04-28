@@ -3,6 +3,7 @@ package POE::Component::IRC::Plugin::Console;
 use strict;
 use warnings FATAL => 'all';
 use Carp;
+use IRC::Utils qw(decode_irc);
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::IRCD Filter::Line Filter::Stackable);
 use POE::Component::IRC::Plugin qw( :ALL );
 use Scalar::Util qw(looks_like_number);
@@ -62,7 +63,8 @@ sub _dump {
         return overload::StrVal($arg);
     }
     elsif (defined $arg) {
-        return looks_like_number($arg) ? $arg : "'$arg'";
+        return $arg if looks_like_number($arg);
+        return "'".decode_irc($arg)."'";
     }
     else {
         return 'undef';
