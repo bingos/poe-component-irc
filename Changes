@@ -14,6 +14,7 @@ Revision history for Perl extension POE::Component::IRC.
       receive irc_connected/irc_disconnected/irc_shutdown events if they
       didn't register for them.
     - Console.pm: Avoid custom stringifications when dumping objects
+    - State.pm: nick_info() was failing when a nick was known but unsynced
 
 6.61  Tue Apr 19 17:02:54 GMT 2011
     - The changes to the filter test were causing failures on <5.12 due to

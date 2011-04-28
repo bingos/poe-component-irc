@@ -6,7 +6,7 @@ use Socket qw(unpack_sockaddr_in);
 use POE::Component::IRC::State;
 use POE::Component::IRC::Plugin::AutoJoin;
 use POE::Component::Server::IRC;
-use Test::More tests => 14;
+use Test::More tests => 16;
 
 my $bot1 = POE::Component::IRC::State->spawn(
     Flood        => 1,
@@ -95,12 +95,24 @@ sub irc_join {
     my $nick = ( split /!/, $who )[0];
     my $irc = $sender->get_heap();
 
+    if ($irc == $bot1 && $nick eq $bot2->nick_name() && !$heap->{seen_bot2}) {
+        is($irc->nick_info($bot2->nick_name())->{Server}, undef,
+            $bot1->nick_name(). " hasn't synced ".$bot2->nick_name(). " yet");
+        $heap->{seen_bot2} = 1;
+    }
+
     return if $nick ne $irc->nick_name();
     pass($irc->nick_name() . " joined channel $where");
 
     if (keys %{ $bot1->channels } == 2 && !keys %{ $bot2->channels }) {
         $bot2->yield(join => "#testchannel");
         $bot2->yield(join => "#testchannel2");
+    }
+
+
+    if ($irc == $bot2 && keys %{ $bot2->channels } == 1) {
+        is($irc->nick_info($bot1->nick_name()), undef,
+            $bot2->nick_name()." doesn't know about ".$bot1->nick_name." yet");
     }
 }
 
