@@ -1034,7 +1034,6 @@ sub sl {
 sub sl_prioritized {
     my ($kernel, $self, $priority, @args) = @_[KERNEL, OBJECT, ARG0, ARG1];
 
-    my $eat;
     if (my ($event) = $args[0] =~ /^(\w+)/ ) {
         # Let the plugin system process this
         return 1 if $self->send_user_event($event, \@args) == PCI_EAT_ALL;
