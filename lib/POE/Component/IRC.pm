@@ -413,7 +413,7 @@ sub _socks_proxy_response {
     }
 
     my @resp = unpack 'CCnN', $input;
-    if (@resp != 4 || $resp[0] ne '0' || $resp[1] !~ /^(90|91|92|93)$/) {
+    if (@resp != 4 || $resp[0] ne '0' || $resp[1] !~ /^(?:90|91|92|93)$/) {
         $self->send_event(
             'irc_socks_failed',
             'Mangled response from SOCKS proxy',
