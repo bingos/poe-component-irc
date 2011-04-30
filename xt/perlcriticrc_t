@@ -27,3 +27,4 @@ verbose  = 3
 [-Modules::RequireFilenameMatchesPackage]
 [-Subroutines::RequireFinalReturn]
 [-ControlStructures::ProhibitCascadingIfElse]
+[-RegularExpressions::ProhibitUnusedCapture]
