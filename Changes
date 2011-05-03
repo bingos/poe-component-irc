@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.62  Tue May 3 10:58:45 GMT 2011
     - Make use of IPv6 functions from Socket (instead of Socket6) if
       they are available, and skip the IPv6 test if we don't have an
       implementation of getaddrinfo(). Thanks to Apocalypse for this.
