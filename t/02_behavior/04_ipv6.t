@@ -174,5 +174,6 @@ sub _skip_rest {
     SKIP: {
         skip "AF_INET6 probably not supported ($error)", $tests;
     }
+    $tests = 0;
     $bot->yield('shutdown');
 }
