@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.63  Sun May 15 05:06:57 GMT 2011
     - Remove vestigial 'unregister' event handler, poco-syndicator handles
       that now. The latest poco-syndicator release croaks if we try to
       override its handler, so this was causing failures.
