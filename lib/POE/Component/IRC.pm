@@ -143,7 +143,6 @@ sub _create {
         sl_delayed
         sl_prioritized
         topic
-        unregister
         userhost
     )];
 
