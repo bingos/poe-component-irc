@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.64  Sun May 15 09:59:12 GMT 2011
     - Fix incorrect amount of tests skipped in 04_ipv6.t when IPv6 is not
       supported
 
