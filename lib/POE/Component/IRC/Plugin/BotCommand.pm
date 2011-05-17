@@ -45,8 +45,12 @@ sub S_msg {
     return PCI_EAT_NONE if !$self->{In_private};
     $what = $self->_normalize($what);
 
+    if (!$self->{Bare_private}) {
+        return PCI_EAT_NONE if $what !~ s/^\Q$self->{Prefix}\E//;
+    }
+
     my ($cmd, $args);
-    if (!(($cmd, $args) = $what =~ /^\Q$self->{Prefix}\E(\w+)(?:\s+(.+))?$/)) {
+    if (!(($cmd, $args) = $what =~ /^(\w+)(?:\s+(.+))?$/)) {
         return PCI_EAT_NONE;
     }
 
@@ -298,6 +302,9 @@ to issue commands. Default is true.
 B<'Prefix'>, a string which all commands must be prefixed with (except in
 channels when B<'Addressed'> is true). Default is '!'. You can set it to ''
 to allow bare commands.
+
+B<'Bare_private'>, a boolean value indicating whether bare commands (without
+the prefix) are allowed in private messages. Default is false.
 
 =head3 Authorization
 

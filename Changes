@@ -1,7 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
-    - BotCommand.pm: Quote the 'Prefix' before using it in a regex
+    - BotCommand.pm: Quote the 'Prefix' before using it in a regex, and add
+      'Bare_private' to allow commands in private without a prefix
 
 6.64  Sun May 15 09:59:12 GMT 2011
     - Fix incorrect amount of tests skipped in 04_ipv6.t when IPv6 is not
