@@ -46,7 +46,7 @@ sub S_msg {
     $what = $self->_normalize($what);
 
     my ($cmd, $args);
-    if (!(($cmd, $args) = $what =~ /^$self->{Prefix}(\w+)(?:\s+(.+))?$/)) {
+    if (!(($cmd, $args) = $what =~ /^\Q$self->{Prefix}\E(\w+)(?:\s+(.+))?$/)) {
         return PCI_EAT_NONE;
     }
 
@@ -68,7 +68,7 @@ sub S_public {
         return PCI_EAT_NONE if !(($what) = $what =~ m/^\s*\Q$me\E[:,;.!?~]?\s*(.*)$/);
     }
     else {
-        return PCI_EAT_NONE if $what !~ s/^$self->{Prefix}//;
+        return PCI_EAT_NONE if $what !~ s/^\Q$self->{Prefix}\E//;
     }
 
     my ($cmd, $args);
