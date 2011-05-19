@@ -26,6 +26,7 @@ sub PCI_register {
     $self->{Prefix}      = '!' if !defined $self->{Prefix};
     $self->{In_channels} = 1   if !defined $self->{In_channels};
     $self->{In_private}  = 1   if !defined $self->{In_private};
+    $self->{rx_cmd_args} = qr/^(\S+)(?:\s+(.+))?$/;
     $self->{irc} = $irc;
 
     $irc->plugin_register( $self, 'SERVER', qw(msg public) );
@@ -50,7 +51,7 @@ sub S_msg {
     }
 
     my ($cmd, $args);
-    if (!(($cmd, $args) = $what =~ /^(\w+)(?:\s+(.+))?$/)) {
+    if (!(($cmd, $args) = $what =~ $self->{rx_cmd_args})) {
         return PCI_EAT_NONE;
     }
 
@@ -76,7 +77,7 @@ sub S_public {
     }
 
     my ($cmd, $args);
-    if (!(($cmd, $args) = $what =~ /^(\w+)(?:\s+(.+))?$/)) {
+    if (!(($cmd, $args) = $what =~ $self->{rx_cmd_args})) {
         return PCI_EAT_NONE;
     }
 
