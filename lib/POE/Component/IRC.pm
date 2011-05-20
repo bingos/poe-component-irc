@@ -1902,7 +1902,7 @@ events to the component.
 I<Inherited from L<POE::Component::Syndicator|POE::Component::Syndicator/session_alias>>
 
 Takes no arguments. Returns the session alias that has been set through
-L<C<spawn>|/spawn>'s alias argument.
+L<C<spawn>|/spawn>'s B<'alias'> argument.
 
 =head2 C<yield>
 
@@ -1967,7 +1967,7 @@ This sends an event right after the one that's currently being processed.
 Useful if you want to generate some event which is directly related to
 another event so you want them to appear together. This method can only be
 called when POE::Component::IRC is processing an event, e.g. from one of your
-event handlers. Takes the same arguments as L<C<send_event>/send_event>.
+event handlers. Takes the same arguments as L<C<send_event>|/send_event>.
 
 =head2 C<send_event_now>
 
@@ -1977,7 +1977,7 @@ This will send an event to be processed immediately. This means that if an
 event is currently being processed and there are plugins or sessions which
 will receive it after you do, then an event sent with C<send_event_now> will
 be received by those plugins/sessions I<before> the current event. Takes the
-same arguments as L<C<send_event>/send_event>.
+same arguments as L<C<send_event>|/send_event>.
 
 =head2 C<pipeline>
 
