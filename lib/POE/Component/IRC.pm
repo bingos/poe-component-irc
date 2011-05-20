@@ -2776,6 +2776,27 @@ Emitted whenever a SOCKS connection is rejected by a SOCKS server. C<ARG0> is
 the SOCKS code, C<ARG1> the SOCKS server address, C<ARG2> the SOCKS port and
 C<ARG3> the SOCKS user id (if defined).
 
+=head3 C<irc_plugin_add>
+
+I<Inherited from L<Object::Pluggable|Object::Pluggable/_pluggable_event>>
+
+Emitted whenever a new plugin is added to the pipeline. C<ARG0> is the
+plugin alias. C<ARG1> is the plugin object.
+
+=head3 C<irc_plugin_del>
+
+I<Inherited from L<Object::Pluggable|Object::Pluggable/_pluggable_event>>
+
+Emitted whenever a plugin is removed from the pipeline. C<ARG0> is the
+plugin alias. C<ARG1> is the plugin object.
+
+=head3 C<irc_plugin_error>
+
+I<Inherited from L<Object::Pluggable|Object::Pluggable/_pluggable_event>>
+
+Emitted when an error occurs while executing a plugin handler. C<ARG0> is
+the error message. C<ARG1> is the plugin alias. C<ARG2> is the plugin object.
+
 =head2 Somewhat Less Important Events
 
 =head3 C<irc_cap>
