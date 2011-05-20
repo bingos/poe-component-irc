@@ -1684,7 +1684,7 @@ B<'Nick'>, your client's IRC nickname;
 
 B<'Username'>, your client's username;
 
-Z<< B<'Ircname'>, some cute comment or something. >>
+B<'Ircname'>, some cute comment or something.
 
 C<'Bitmode'>, an integer representing your initial user modes set in the
 USER command. See RFC 2812. If you do not set this, C<8> (+i) will be used.
