@@ -211,7 +211,7 @@ Denotes the capabilities of the server.
 Once the next signal is received that is I<greater> than C<irc_005>,
 it emits an C<irc_isupport> signal.
 
-=head1 OUTPUT
+=head1 OUTPUT EVENTS
 
 =head2 C<irc_isupport>
 

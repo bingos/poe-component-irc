@@ -594,7 +594,7 @@ event for each of the given channels (assuming that nick is on each of those cha
 
 =back
 
-=head1 OUTPUT
+=head1 OUTPUT EVENTS
 
 This module returns one additional event over and above the usual events:
 

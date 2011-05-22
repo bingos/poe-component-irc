@@ -304,8 +304,8 @@ will know what to do.
  ...
 
 Keep in mind that they are always lowercased. Check out the
-L<OUTPUT|POE::Component::IRC/OUTPUT> section of POE::Component::IRC's
-documentation for the complete list of events.
+L<OUTPUT EVENTS|POE::Component::IRC/OUTPUT EVENTS> section of
+POE::Component::IRC's documentation for the complete list of events.
 
 =head2 USER hooks
 

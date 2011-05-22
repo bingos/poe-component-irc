@@ -315,7 +315,7 @@ L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
 Gives access to the underlying listener's C<getsockname> method. See
 L<POE::Wheel::SocketFactory|POE::Wheel::SocketFactory> for details.
 
-=head1 OUTPUT
+=head1 OUTPUT EVENTS
 
 The plugin generates the following additional
 L<POE::Component::IRC|POE::Component::IRC> events:

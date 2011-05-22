@@ -210,7 +210,7 @@ the event.
 
  $kernel->post ('my client' => qbot_auth => $q_user => $q_pass);
 
-=head1 OUTPUT
+=head1 OUTPUT EVENTS
 
 All output from the Quakenet service bots is sent as NOTICEs.
 Use L<C<irc_notice>|POE::Component::IRC/irc_notice> to trap these.

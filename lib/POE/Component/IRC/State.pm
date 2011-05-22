@@ -1546,7 +1546,7 @@ is returned.
 
 Takes no parameters. Returns the current user mode set for the bot.
 
-=head1 OUTPUT
+=head1 OUTPUT EVENTS
 
 =head2 Augmented events
 

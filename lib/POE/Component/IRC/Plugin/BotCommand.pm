@@ -372,7 +372,7 @@ if the command wasn't defined to begin with, true otherwise.
 Takes no arguments. Returns a list of key/value pairs, the keys being the
 command names and the values being the usage strings.
 
-=head1 OUTPUT
+=head1 OUTPUT EVENTS
 
 =head2 C<irc_botcmd_*>
 

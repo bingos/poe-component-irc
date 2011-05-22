@@ -176,7 +176,7 @@ B<'filter'>, a POE::Filter object to pass to POE::Wheel::FollowTail, optional;
 Returns a plugin object suitable for feeding to
 L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
 
-=head1 OUTPUT
+=head1 OUTPUT EVENTS
 
 The plugin generates the following additional
 L<POE::Component::IRC|POE::Component::IRC> events:

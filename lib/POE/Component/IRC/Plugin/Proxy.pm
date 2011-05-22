@@ -430,7 +430,7 @@ is passed. In a scalar context returns the time that the client connected in
 unix time. In a list context returns a list consisting of the peer address,
 port, tthe connect time and the lag in seconds for that connection.
 
-=head1 OUTPUT
+=head1 OUTPUT EVENTS
 
 The plugin emits the following L<POE::Component::IRC>
 events:
