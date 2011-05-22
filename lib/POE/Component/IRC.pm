@@ -1823,7 +1823,7 @@ plans to make it die() >;]
 
 =head1 METHODS
 
-=head2 General
+=head2 Information
 
 =head3 C<server>
 
