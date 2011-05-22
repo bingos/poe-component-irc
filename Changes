@@ -1,6 +1,7 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+    - REALLY fix it to work with the latest IRC::Utils
 
 6.67  Sun May 22 16:43:27 GMT 2011
     - Add missing documentation for irc_plugin_(add|del|error) events
