@@ -2,7 +2,7 @@ use strict;
 use warnings FATAL => 'all';
 use lib 't/inc';
 use File::Spec::Functions qw(catfile);
-use POE qw(Wheel::SocketFactory);
+use POE;
 use POE::Component::IRC::State;
 use POE::Component::IRC::Plugin::Logger;
 use POE::Component::Server::IRC;

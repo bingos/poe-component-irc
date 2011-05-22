@@ -1,7 +1,7 @@
 use strict;
 use warnings FATAL => 'all';
 use lib 't/inc';
-use POE qw(Wheel::SocketFactory);
+use POE;
 use POE::Component::IRC;
 use POE::Component::IRC::Plugin::CTCP;
 use POE::Component::Server::IRC;

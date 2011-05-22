@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use POE qw(Wheel::SocketFactory);
+use POE;
 use POE::Component::IRC;
 use Socket qw(unpack_sockaddr_in);
 use Test::More tests => 4;
