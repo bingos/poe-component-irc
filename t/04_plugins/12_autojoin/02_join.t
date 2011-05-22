@@ -12,7 +12,6 @@ my $bot = POE::Component::IRC->spawn(
     plugin_debug => 1,
 );
 my $ircd = POE::Component::Server::IRC->spawn(
-    Alias     => 'ircd',
     Auth      => 0,
     AntiFlood => 0,
 );
@@ -89,7 +88,7 @@ sub _shutdown {
     fail($error) if defined $error;
 
     $kernel->alarm_remove_all();
-    $kernel->post(ircd => 'shutdown');
     $bot->yield('shutdown');
+    $ircd->yield('shutdown');
 }
 
