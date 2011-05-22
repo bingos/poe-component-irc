@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.68  Sun May 22 17:01:21 GMT 2011
     - REALLY fix it to work with the latest IRC::Utils
 
 6.67  Sun May 22 16:43:27 GMT 2011
