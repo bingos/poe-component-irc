@@ -201,7 +201,7 @@ Log public and private messages to disk.
 
 Identify with NickServ when needed.
 
-=item *L<POE::Component::IRC::Plugin::Proxy|POE::Component::IRC::Plugin::Proxy>
+=item * L<POE::Component::IRC::Plugin::Proxy|POE::Component::IRC::Plugin::Proxy>
 
 A lightweight IRC proxy/bouncer.
 
@@ -825,6 +825,12 @@ the text of the message to send.
 
 Have a look at the constants in L<IRC::Utils|IRC::Utils> if you would
 like to use formatting and color codes in your messages.
+
+ $irc->yield('primvsg', '#mychannel', 'Hello there');
+
+ # same, but colored green
+ use IRC::Utils qw(GREEN NORMAL);
+ $irc->yield('primvsg', '#mychannel', GREEN.'Hello'.NORMAL.' there');
 
 =head3 C<quit>
 

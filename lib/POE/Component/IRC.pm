@@ -1634,7 +1634,7 @@ Log public and private messages to disk.
 
 Identify with NickServ when needed.
 
-=item *L<POE::Component::IRC::Plugin::Proxy|POE::Component::IRC::Plugin::Proxy>
+=item * L<POE::Component::IRC::Plugin::Proxy|POE::Component::IRC::Plugin::Proxy>
 
 A lightweight IRC proxy/bouncer.
 
