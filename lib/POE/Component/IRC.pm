@@ -2259,6 +2259,12 @@ the text of the message to send.
 Have a look at the constants in L<IRC::Utils|IRC::Utils> if you would
 like to use formatting and color codes in your messages.
 
+ $irc->yield('primvsg', '#mychannel', 'Hello there');
+
+ # same, but with a green Hello
+ use IRC::Utils qw(GREEN NORMAL);
+ $irc->yield('primvsg', '#mychannel', GREEN.'Hello'.NORMAL.' there');
+
 =head3 C<quit>
 
 Tells the IRC server to disconnect you. Takes one optional argument:

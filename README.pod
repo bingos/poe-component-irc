@@ -828,7 +828,7 @@ like to use formatting and color codes in your messages.
 
  $irc->yield('primvsg', '#mychannel', 'Hello there');
 
- # same, but colored green
+ # same, but with a green Hello
  use IRC::Utils qw(GREEN NORMAL);
  $irc->yield('primvsg', '#mychannel', GREEN.'Hello'.NORMAL.' there');
 
