@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.69  Fri Jul 29 01:52:38 GMT 2011
     - Whois.pm: Collect info from numerics 307 and 310
     - Whois.pm: Removed the 'account' key and have the 'identified' key
       do its thing instead, so that there is one generic way to check if
