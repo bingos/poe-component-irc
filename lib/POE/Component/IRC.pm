@@ -456,7 +456,8 @@ sub _send_login {
     # Now that we're connected, attempt to log into the server.
 
     # for servers which support CAP, it's customary to start with that
-    $kernel->call($session, 'sl_login', 'CAP REQ identify-msg');
+    $kernel->call($session, 'sl_login', 'CAP REQ :identify-msg');
+    $kernel->call($session, 'sl_login', 'CAP REQ :multi-prefix');
     $kernel->call($session, 'sl_login', 'CAP LS');
     $kernel->call($session, 'sl_login', 'CAP END');
 
