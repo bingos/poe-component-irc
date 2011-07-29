@@ -420,32 +420,36 @@ sub S_topic {
 # RPL_NAMES
 sub S_353 {
     my ($self, undef) = splice @_, 0, 2;
-    my @data = @{ ${ $_[2] } };
+    my @data   = @{ ${ $_[2] } };
     shift @data if $data[0] =~ /^[@=*]$/;
-    my $chan = shift @data;
-    my @nicks = split /\s+/, shift @data;
-    my $map   = $self->isupport('CASEMAPPING');
-    my $uchan = uc_irc($chan, $map);
+    my $chan   = shift @data;
+    my @nicks  = split /\s+/, shift @data;
+    my $map    = $self->isupport('CASEMAPPING');
+    my $uchan  = uc_irc($chan, $map);
     my $prefix = $self->isupport('PREFIX') || { o => '@', v => '+' };
     my $search = join '|', map { quotemeta } values %$prefix;
-    foreach my $user ( @nicks ) {
+
+    for my $user (@nicks) {
        my $status;
        if ( ($status) = $user =~ /^($search)/ ) {
           $user =~ s/^($search)//g;
        }
-       $status = '' unless $status;
+
+       $status = '' if !length $status;
        my $whatever = '';
-       my $unick = uc_irc($user,$map);
-       my $existing = $self->{STATE}{Nicks}{ $unick }{CHANS}{ $uchan } || '';
-       for my $mode ( keys %{ $prefix } ) {
-         if ($status =~ /\Q$prefix->{$mode}/ && $existing !~ /\Q$prefix->{$mode}/ ) {
-           $whatever .= $mode;
-         }
+       my $unick    = uc_irc($user, $map);
+       my $existing = $self->{STATE}{Nicks}{$unick}{CHANS}{$uchan} || '';
+
+       for my $mode (keys %$prefix) {
+            if ($status =~ /\Q$prefix->{$mode}/ && $existing !~ /\Q$prefix->{$mode}/) {
+                $whatever .= $mode;
+            }
        }
-       $existing .= $whatever if !$existing || $existing !~ /$whatever/;
-       $self->{STATE}{Nicks}{ $unick }{CHANS}{ $uchan } = $existing;
-       $self->{STATE}{Chans}{ $uchan }{Nicks}{ $unick } = $existing;
-       $self->{STATE}{Nicks}{ $unick }{Nick} = $user;
+
+       $existing .= $whatever if !length $existing || $existing !~ /$whatever/;
+       $self->{STATE}{Nicks}{$unick}{CHANS}{$uchan} = $existing;
+       $self->{STATE}{Chans}{$uchan}{Nicks}{$unick} = $existing;
+       $self->{STATE}{Nicks}{$unick}{Nick} = $user;
     }
     return PCI_EAT_NONE;
 }
