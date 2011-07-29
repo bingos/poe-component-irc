@@ -78,7 +78,12 @@ sub S_join {
             Name => $chan,
             Mode => ''
         };
-        $self->yield(who => $chan);
+        if ($self->isupport('UHNAMES')) {
+            $self->_channel_sync($chan, 'WHO');
+        }
+        else {
+            $self->yield(who => $chan);
+        }
         $self->yield(mode => $chan);
         $self->yield(mode => $chan => 'b');
     }
@@ -430,15 +435,20 @@ sub S_353 {
     my $search = join '|', map { quotemeta } values %$prefix;
     $search    = qr/(?:$search)/;
 
-    for my $user (@nicks) {
+    for my $nick (@nicks) {
         my $status;
-        if ( ($status) = $user =~ /^($search+)/ ) {
-           $user =~ s/^($search+)//;
+        if ( ($status) = $nick =~ /^($search+)/ ) {
+           $nick =~ s/^($search+)//;
         }
 
-        $status = '' if !length $status;
+        my ($user, $host);
+        if ($self->isupport('UHNAMES')) {
+            ($nick, $user, $host) = split /[!@]/, $nick;
+        }
+
+        my $unick    = uc_irc($nick, $map);
+        $status      = '' if !length $status;
         my $whatever = '';
-        my $unick    = uc_irc($user, $map);
         my $existing = $self->{STATE}{Nicks}{$unick}{CHANS}{$uchan} || '';
 
         for my $mode (keys %$prefix) {
@@ -450,7 +460,11 @@ sub S_353 {
         $existing .= $whatever if !length $existing || $existing !~ /$whatever/;
         $self->{STATE}{Nicks}{$unick}{CHANS}{$uchan} = $existing;
         $self->{STATE}{Chans}{$uchan}{Nicks}{$unick} = $existing;
-        $self->{STATE}{Nicks}{$unick}{Nick} = $user;
+        $self->{STATE}{Nicks}{$unick}{Nick} = $nick;
+        if ($self->isupport('UHNAMES')) {
+            $self->{STATE}{Nicks}{$unick}{User} = $user;
+            $self->{STATE}{Nicks}{$unick}{Host} = $host;
+        }
     }
     return PCI_EAT_NONE;
 }
