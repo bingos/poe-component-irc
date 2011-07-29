@@ -431,26 +431,26 @@ sub S_353 {
     $search    = qr/(?:$search)/;
 
     for my $user (@nicks) {
-       my $status;
-       if ( ($status) = $user =~ /^($search+)/ ) {
-          $user =~ s/^($search+)//;
-       }
+        my $status;
+        if ( ($status) = $user =~ /^($search+)/ ) {
+           $user =~ s/^($search+)//;
+        }
 
-       $status = '' if !length $status;
-       my $whatever = '';
-       my $unick    = uc_irc($user, $map);
-       my $existing = $self->{STATE}{Nicks}{$unick}{CHANS}{$uchan} || '';
+        $status = '' if !length $status;
+        my $whatever = '';
+        my $unick    = uc_irc($user, $map);
+        my $existing = $self->{STATE}{Nicks}{$unick}{CHANS}{$uchan} || '';
 
-       for my $mode (keys %$prefix) {
+        for my $mode (keys %$prefix) {
             if ($status =~ /\Q$prefix->{$mode}/ && $existing !~ /\Q$prefix->{$mode}/) {
                 $whatever .= $mode;
             }
-       }
+        }
 
-       $existing .= $whatever if !length $existing || $existing !~ /$whatever/;
-       $self->{STATE}{Nicks}{$unick}{CHANS}{$uchan} = $existing;
-       $self->{STATE}{Chans}{$uchan}{Nicks}{$unick} = $existing;
-       $self->{STATE}{Nicks}{$unick}{Nick} = $user;
+        $existing .= $whatever if !length $existing || $existing !~ /$whatever/;
+        $self->{STATE}{Nicks}{$unick}{CHANS}{$uchan} = $existing;
+        $self->{STATE}{Chans}{$uchan}{Nicks}{$unick} = $existing;
+        $self->{STATE}{Nicks}{$unick}{Nick} = $user;
     }
     return PCI_EAT_NONE;
 }
