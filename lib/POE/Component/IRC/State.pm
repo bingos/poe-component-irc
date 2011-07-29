@@ -433,7 +433,7 @@ sub S_353 {
     for my $user (@nicks) {
        my $status;
        if ( ($status) = $user =~ /^($search+)/ ) {
-          $user =~ s/^($search)//g;
+          $user =~ s/^($search+)//;
        }
 
        $status = '' if !length $status;
