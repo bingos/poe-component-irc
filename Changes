@@ -1,7 +1,7 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
-    - State.pm: Support multiple modes per user in NAMES replies
+    - State.pm: Support multiple modes per user in NAMES replies (NAMESX)
 
 6.69  Fri Jul 29 01:52:38 GMT 2011
     - Whois.pm: Collect info from numerics 307 and 310

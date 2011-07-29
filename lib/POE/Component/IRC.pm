@@ -1331,6 +1331,7 @@ sub S_isupport {
     my $isupport = ${ $_[0] };
     $self->{ircd_compat}->chantypes( $isupport->isupport('CHANTYPES') || [ '#', '&' ] );
     $irc->yield(sl_login => 'CAPAB IDENTIFY-MSG') if $isupport->isupport('CAPAB');
+    $irc->yield(sl_login => 'PROTOCTL NAMESX') if $isupport->isupport('NAMESX');
     return PCI_EAT_NONE;
 }
 
