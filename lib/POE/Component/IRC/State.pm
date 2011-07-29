@@ -431,7 +431,7 @@ sub S_353 {
 
     for my $user (@nicks) {
        my $status;
-       if ( ($status) = $user =~ /^($search)/ ) {
+       if ( ($status) = $user =~ /^($search+)/ ) {
           $user =~ s/^($search)//g;
        }
 
