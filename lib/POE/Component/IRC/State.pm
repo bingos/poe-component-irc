@@ -428,6 +428,7 @@ sub S_353 {
     my $uchan  = uc_irc($chan, $map);
     my $prefix = $self->isupport('PREFIX') || { o => '@', v => '+' };
     my $search = join '|', map { quotemeta } values %$prefix;
+    $search    = qr/(?:$search)/;
 
     for my $user (@nicks) {
        my $status;
