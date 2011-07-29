@@ -1,6 +1,10 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+    - Whois.pm: Collect info from numerics 307 and 310
+    - Whois.pm: Removed the 'account' key and have the 'identified' key
+      do its thing instead, so that there is one generic way to check if
+      a user is identified, regardless of the network.
 
 6.68  Sun May 22 17:01:21 GMT 2011
     - REALLY fix it to work with the latest IRC::Utils

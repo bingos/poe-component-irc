@@ -12,7 +12,7 @@ sub new {
 
 sub PCI_register {
     my( $self, $irc ) = @_;
-    $irc->plugin_register( $self, 'SERVER', qw(311 313 312 317 319 320 330 338 318 314 369) );
+    $irc->plugin_register( $self, 'SERVER', qw(307 310 311 312 313 314 317 318 319 330 338 369) );
     return 1;
 }
 
@@ -97,13 +97,29 @@ sub S_319 {
   return PCI_EAT_NONE;
 }
 
-# RPL_WHOISIDENTIFIED ( Freenode hack )
-sub S_320 {
+# RPL_WHOISACCOUNT
+sub S_330 {
     my ($self, $irc) = splice @_, 0, 2;
     my $mapping = $irc->isupport('CASEMAPPING');
     my ($nick, $ident) = @{ ${ $_[2] } };
 
     $self->{WHOIS}->{ uc_irc ( $nick, $mapping  ) }->{identified} = $ident;
+
+    return PCI_EAT_NONE;
+}
+
+{
+    no warnings 'once';
+    *S_307 = \&S_330;   # RPL_WHOISREGNICK
+}
+
+# RPL_WHOISMODES
+sub S_310 {
+    my ($self, $irc) = splice @_, 0, 2;
+    my $mapping = $irc->isupport('CASEMAPPING');
+    my ($nick, $modes) = @{ ${ $_[2] } };
+
+    $self->{WHOIS}->{ uc_irc ( $nick, $mapping  ) }->{modes} = $modes;
 
     return PCI_EAT_NONE;
 }
@@ -119,18 +135,6 @@ sub S_338 {
 
     return PCI_EAT_NONE;
 }
-
-# RPL_WHOISACCOUNT (ircu)
-sub S_330 {
-    my ($self, $irc) = splice @_, 0, 2;
-    my $mapping = $irc->isupport('CASEMAPPING');
-    my ($nick,$account) = @{ ${ $_[2] } };
-
-    $self->{WHOIS}->{ uc_irc ( $nick, $mapping ) }->{account} = $account;
-
-    return PCI_EAT_NONE;
-}
-
 
 # RPL_ENDOFWHOIS
 sub S_318 {

@@ -1298,14 +1298,13 @@ the channel is prefixed with '@','+','%' depending on whether they have
 =item * B<'oper'>, whether they are an IRCop, contains the IRC operator
 string if they are, undef if they aren't.
 
-=item * B<'actually'>, some ircds report the users actual ip address,
+=item * B<'actually'>, some ircds report the user's actual ip address,
 that'll be here;
 
-=item * B<'account'> , if the user has registered with services (only on
-ircu/seven IRCDs, such as FreeNode)
+=item * B<'identified'>. if the user has identified with NICKSERV
+(ircu, seven, Plexus)
 
-=item * B<'identified'>. if the user has identified with NICKSERV (only on
-Hyperion IRCDs)
+=item * B<'modes'>, a string describing the user's modes (Rizon)
 
 =back
 
