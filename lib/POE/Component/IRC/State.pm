@@ -78,7 +78,11 @@ sub S_join {
             Name => $chan,
             Mode => ''
         };
-        if ($self->isupport('UHNAMES')) {
+
+        # fake a WHO sync if we're only interested in people's user@host
+        # and the server provides those in the NAMES reply
+        if (exists $self->{whojoiners} && !$self->{whojoiners}
+            && $self->isupport('UHNAMES')) {
             $self->_channel_sync($chan, 'WHO');
         }
         else {
