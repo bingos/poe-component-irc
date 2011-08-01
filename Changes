@@ -3,6 +3,7 @@ Revision history for Perl extension POE::Component::IRC.
 {{$NEXT}}
     - State.pm: Support multiple modes in NAMES replies (NAMESX, multi-prefix)
     - State.pm: Support nick!user@host in NAMES replies (UHNAMES)
+    - State.pm: Added channel_url()
 
 6.69  Fri Jul 29 01:52:38 GMT 2011
     - Whois.pm: Collect info from numerics 307 and 310

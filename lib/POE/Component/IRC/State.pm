@@ -299,6 +299,18 @@ sub S_221 {
     return PCI_EAT_NONE;
 }
 
+# RPL_CHANNEL_URL
+sub S_328 {
+    my ($self, undef) = splice @_, 0, 2;
+    my ($chan, $url) = @{ ${ $_[2] } };
+    my $map   = $self->isupport('CASEMAPPING');
+    my $uchan = uc_irc($chan, $map);
+
+    return PCI_EAT_NONE if !$self->_channel_exists($chan);
+    $self->{STATE}{Chans}{ $uchan }{Url} = $url;
+    return PCI_EAT_NONE;
+}
+
 # RPL_UNAWAY
 sub S_305 {
     my ($self, undef) = splice @_, 0, 2;
@@ -1239,6 +1251,21 @@ sub channel_topic {
     return \%result;
 }
 
+sub channel_url {
+    my ($self, $chan) = @_;
+
+    if (!defined $chan) {
+        warn 'Channel is undefined';
+        return;
+    }
+
+    my $map   = $self->isupport('CASEMAPPING');
+    my $uchan = uc_irc($chan, $map);
+
+    return if !$self->_channel_exists($chan);
+    return $self->{STATE}{Chans}{ $uchan }{Url};
+}
+
 sub nick_channel_modes {
     my ($self, $chan, $nick) = @_;
 
@@ -1466,7 +1493,12 @@ will hold the topic itself, the nick!hostmask of the user who set it (or just
 the nick if it's all the ircd gives us), and the time at which it was set
 respectively.
 
-If the component happens to not be on any channels an empty hashref is returned.
+If the component happens to not be on the channel, nothing will be returned.
+
+=head2 C<channel_url>
+
+Expects a channel as a parameter. Returns the channel's URL. If the channel
+has no URL or the component is not on the channel, nothing will be returned.
 
 =head2 C<has_channel_voice>
 
