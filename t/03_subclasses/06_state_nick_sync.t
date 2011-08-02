@@ -96,13 +96,13 @@ sub irc_join {
 
     if (keys %{ $bot1->channels } == 2 && !keys %{ $bot2->channels }) {
         $bot2->yield(join => "#testchannel");
-        $bot2->yield(join => "#testchannel2");
     }
 
 
     if ($irc == $bot2 && keys %{ $bot2->channels } == 1) {
         is($irc->nick_info($bot1->nick_name()), undef,
             $bot2->nick_name()." doesn't know about ".$bot1->nick_name." yet");
+        $bot2->yield(join => "#testchannel2");
     }
 }
 
