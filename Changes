@@ -1,6 +1,7 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+    - Make the component easier to use with dynamic IP interfaces
 
 6.70  Tue Aug 2 03:38:52 GMT 2011
     - State.pm: Support multiple modes in NAMES replies (NAMESX, multi-prefix)
