@@ -463,7 +463,7 @@ sub S_353 {
         }
 
         my $unick    = uc_irc($nick, $map);
-        $status      = '' if !length $status;
+        $status      = '' if !defined $status;
         my $whatever = '';
         my $existing = $self->{STATE}{Nicks}{$unick}{CHANS}{$uchan} || '';
 
