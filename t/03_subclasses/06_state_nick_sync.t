@@ -98,11 +98,9 @@ sub irc_join {
         $bot2->yield(join => "#testchannel");
     }
 
-
     if ($irc == $bot2 && keys %{ $bot2->channels } == 1) {
         is($irc->nick_info($bot1->nick_name()), undef,
             $bot2->nick_name()." doesn't know about ".$bot1->nick_name." yet");
-        $bot2->yield(join => "#testchannel2");
     }
 }
 
@@ -126,6 +124,7 @@ sub irc_nick_sync {
         $heap->{nick_sync}++;
         if ($heap->{nick_sync} == 1) {
             is($chan, '#testchannel', 'Channel from irc_nick_sync is correct');
+            $bot2->yield(join => "#testchannel2");
         }
         if ($heap->{nick_sync} == 2) {
             is($chan, '#testchannel2', 'Channel from irc_nick_sync is correct');
