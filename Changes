@@ -4,6 +4,7 @@ Revision history for Perl extension POE::Component::IRC.
     - Make the component easier to use with dynamic IP interfaces
     - Fix race condition in 06_state_nick_sync.t
     - Silence warning due to incorrect use of length() instead of defined()
+    - State.pm: Add a parameter to irc_topic containing the old topic
 
 6.70  Tue Aug 2 03:38:52 GMT 2011
     - State.pm: Support multiple modes in NAMES replies (NAMESX, multi-prefix)

@@ -428,6 +428,7 @@ sub S_topic {
     my $topic = ${ $_[2] };
     my $map   = $self->isupport('CASEMAPPING');
     my $uchan = uc_irc($chan, $map);
+    push @{ $_[-1] }, $self->{STATE}{Chans}{$uchan}{Topic};
 
     $self->{STATE}{Chans}{ $uchan }{Topic} = {
         Value => $topic,
@@ -1631,6 +1632,14 @@ L<POE::Component::IRC|POE::Component::IRC>.
 
 Additional parameter C<ARG4> contains the full nick!user@host of the kicked
 individual.
+
+=head3 C<irc_topic>
+
+See also L<C<irc_kick>|POE::Component::IRC/irc_kick> in
+L<POE::Component::IRC|POE::Component::IRC>.
+
+Additional parameter C<ARG3> contains the old topic hashref, like the one
+returned by L<C<channel_topic>|/channel_topic>.
 
 =head3 C<irc_disconnected>
 

@@ -5,7 +5,7 @@ use POE;
 use POE::Component::IRC::Common qw(parse_user);
 use POE::Component::IRC::State;
 use POE::Component::Server::IRC;
-use Test::More tests => 45;
+use Test::More tests => 46;
 
 my $bot = POE::Component::IRC::State->spawn(Flood => 1);
 my $ircd = POE::Component::Server::IRC->spawn(
@@ -140,9 +140,21 @@ sub irc_join {
 }
 
 sub irc_topic {
-    my ($sender, $chan, $topic) = @_[SENDER, ARG1, ARG2];
+    my ($sender, $heap, $chan, $topic) = @_[SENDER, HEAP, ARG1, ARG2];
     my $irc = $sender->get_heap();
-    is($topic, $irc->channel_topic($chan)->{Value}, 'Channel topic set');
+
+    $heap->{got_topic}++;
+
+    if ($heap->{got_topic} == 1) {
+        my $topic_info = $irc->channel_topic($chan);
+        is($topic, $topic_info->{Value}, 'Channel topic set');
+        $heap->{topic} = $topic_info;
+        $irc->yield(topic => $chan, 'New test topic');
+    }
+    elsif ($heap->{got_topic} == 2) {
+        my $old_topic = $_[ARG3];
+        is_deeply($old_topic, $heap->{topic}, 'Got old topic');
+    }
 }
 
 sub irc_chan_sync {
