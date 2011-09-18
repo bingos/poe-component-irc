@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.71  Sun Sep 18 16:07:33 GMT 2011
     - Make the component easier to use with dynamic IP interfaces
     - Fix race condition in 06_state_nick_sync.t
     - Silence warning due to incorrect use of length() instead of defined()
