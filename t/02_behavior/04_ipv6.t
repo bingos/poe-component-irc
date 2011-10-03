@@ -32,7 +32,7 @@ if ($@) {
     }
 }
 
-my $addr = inet_pton(AF_INET6, "::1");
+my $addr = eval { inet_pton(AF_INET6, "::1"); };
 if (!defined $addr) {
     plan skip_all => "IPv6 tests require a configured localhost address ('::1')";
 }
