@@ -5,7 +5,7 @@ use POE;
 use POE::Component::IRC::Common qw(parse_user);
 use POE::Component::IRC::State;
 use POE::Component::Server::IRC;
-use Test::More tests => 46;
+use Test::More 'no_plan';
 
 my $bot = POE::Component::IRC::State->spawn(Flood => 1);
 my $ircd = POE::Component::Server::IRC->spawn(
