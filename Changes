@@ -3,6 +3,7 @@ Revision history for Perl extension POE::Component::IRC.
 {{$NEXT}}
     - Skip IPv6 tests on systems which don't have inet_pton()
     - Fix regression in t/03_subclasses/01_state.t
+    - Update the poco-server-irc in t/inc to version 1.53
 
 6.71  Sun Sep 18 16:07:33 GMT 2011
     - Make the component easier to use with dynamic IP interfaces
