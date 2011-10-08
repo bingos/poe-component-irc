@@ -1,4 +1,10 @@
 package POE::Component::Server::IRC::Plugin::OperServ;
+BEGIN {
+  $POE::Component::Server::IRC::Plugin::OperServ::AUTHORITY = 'cpan:HINRIK';
+}
+BEGIN {
+  $POE::Component::Server::IRC::Plugin::OperServ::VERSION = '1.52';
+}
 
 use strict;
 use warnings;

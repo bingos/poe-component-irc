@@ -1,6 +1,7 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+    - Add missing dependencies to t/inc needed by poco-server-irc
 
 6.72  Fri Oct 7 15:41:53 UTC 2011
     - Skip IPv6 tests on systems which don't have inet_pton()

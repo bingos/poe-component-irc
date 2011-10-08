@@ -1,4 +1,10 @@
 package POE::Component::Server::IRC::Common;
+BEGIN {
+  $POE::Component::Server::IRC::Common::AUTHORITY = 'cpan:HINRIK';
+}
+BEGIN {
+  $POE::Component::Server::IRC::Common::VERSION = '1.52';
+}
 
 use strict;
 use warnings FATAL => 'all';
