@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.74  Sun Oct 9 20:16:13 GMT 2011
     - Disable authentication in t/01_base/04_pocosi.t. Fixes test failure.
 
 6.73  Sat Oct 8 04:40:18 GMT 2011
