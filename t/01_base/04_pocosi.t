@@ -5,7 +5,7 @@ use POE;
 use POE::Component::Server::IRC;
 use Test::More tests => 2;
 
-my $ircd = POE::Component::Server::IRC->spawn();
+my $ircd = POE::Component::Server::IRC->spawn(auth => 0);
 isa_ok($ircd, 'POE::Component::Server::IRC');
 
 POE::Session->create(

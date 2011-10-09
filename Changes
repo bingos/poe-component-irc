@@ -1,6 +1,7 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+    - Disable authentication in t/01_base/04_pocosi.t. Fixes test failure.
 
 6.73  Sat Oct 8 04:40:18 GMT 2011
     - Add missing dependencies to t/inc needed by poco-server-irc
