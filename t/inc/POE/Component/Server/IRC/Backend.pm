@@ -686,6 +686,11 @@ sub _disconnected {
         $errstr || 'Client Quit',
     );
 
+    if ( $^O =~ /(cygwin|MSWin)/ ) {
+      $conn->{wheel}->shutdown_input();
+      $conn->{wheel}->shutdown_output();
+    }
+
     return 1;
 }
 
