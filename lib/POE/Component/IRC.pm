@@ -186,8 +186,9 @@ sub _configure {
     $self->{port} = 6667 if !$self->{port};
     $self->{msg_length} = 450 if !defined $self->{msg_length};
 
-    if ($self->{use_localaddr} && $self->{localport}) {
-        $self->{localaddr} = $self->{use_localaddr}.':'.$self->{localport};
+    if ($self->{use_localaddr}) {
+        $self->{localaddr} = $self->{use_localaddr}
+            . ($self->{localport} ? (':'.$self->{localport}) : '');
     }
 
     # Make sure that we have reasonable defaults for all the attributes.
