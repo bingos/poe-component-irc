@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.75  Sun Nov 13 14:24:50 UTC 2011
     - Win32 fixes to the DCC plugin and netsplit test
     - You couldn't specify a localaddr without a localport. Fixed.
 
