@@ -130,6 +130,7 @@ sub S_dcc_request {
             next if $cookie->{nick} ne $nick;
             next if $cookie->{port} ne $port;
             $file = _quote_file($file);
+            $cookie->{done} = $size;
             $irc->yield(ctcp => $nick => "DCC ACCEPT $file $port $size");
             last;
         }
@@ -349,6 +350,9 @@ sub _U_dcc_close {
         delete $self->{dcc}->{$id}->{wheel};
     }
 
+    # flush the filehandle
+    close $self->{dcc}{$id}{fh} if $self->{dcc}{$id}{type} eq 'GET';
+
     delete $self->{dcc}->{$id};
     return;
 }
@@ -360,22 +364,16 @@ sub _U_dcc_resume {
 
     my $sender_file = _quote_file($cookie->{file});
     $cookie->{file} = $myfile if defined $myfile;
-    my $size = -s $cookie->{file};
-    my $fraction = $size % IN_BLOCKSIZE;
-    $size -= $fraction;
+    $cookie->{done} = -s $cookie->{file};
+    $cookie->{resuming} = 1;
 
-    # we need to truncate the whole thing, adjust the size we are
-    # requesting to the size we will truncate the file to
     if (open(my $handle, '>>', $cookie->{file})) {
-        if (!truncate($handle, $size)) {
-            warn "dcc_resume: Can't truncate '$cookie->{file}' to size $size\n";
-            return;
-        }
-
-        $irc->yield(ctcp => $cookie->{nick} => "DCC RESUME $sender_file $cookie->{port} $size");
-
-        # save the cookie for later
+        $irc->yield(ctcp => $cookie->{nick} => "DCC RESUME $sender_file $cookie->{port} $cookie->{done}");
         $self->{resuming}->{"$cookie->{port}+$cookie->{nick}"} = $cookie;
+    }
+    else {
+        warn "dcc_resume: Can't append to file '$cookie->{file}'\n";
+        return;
     }
 
     return;
@@ -580,7 +578,7 @@ sub _dcc_up {
     my $handle;
     if ($self->{dcc}->{$id}->{type} eq 'GET') {
         # check if we're resuming
-        my $mode = -s $self->{dcc}->{$id}->{file} ? '>>' : '>';
+        my $mode = $self->{dcc}->{$id}->{resuming} ? '>>' : '>';
 
         if ( !open $handle, $mode, $self->{dcc}->{$id}->{file} ) {
             $kernel->yield(_dcc_failed => 'open file', $! + 0, $!, $id);
@@ -597,6 +595,7 @@ sub _dcc_up {
         }
 
         binmode $handle;
+        seek $handle, $self->{dcc}{$id}{done}, 0;
         # Send the first packet to get the ball rolling.
         read $handle, my $buffer, $self->{dcc}->{$id}->{blocksize};
         $self->{dcc}->{$id}->{wheel}->put($buffer);

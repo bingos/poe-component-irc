@@ -5,7 +5,8 @@ use File::Temp qw(tempfile);
 use POE;
 use POE::Component::IRC;
 use POE::Component::Server::IRC;
-use Test::More tests => 13;
+use Test::Differences;
+use Test::More tests => 12;
 
 my ($resume_fh, $resume_file) = tempfile(UNLINK => 1);
 
@@ -111,9 +112,19 @@ sub irc_dcc_start {
 
 sub irc_dcc_done {
     my ($sender, $size1, $size2) = @_[SENDER, ARG5, ARG6];
-    pass('Got dcc close');
+    my $irc = $sender->get_heap();
+    return if $irc != $bot2;
+    pass('Got dcc done');
     is($size1, $size2, 'Send test results');
-    $sender->get_heap()->yield('quit');
+
+    open my $orig, '<', 'Changes' or die $!;
+    open my $resume, '<', $resume_file or die $!;
+    my $orig_changes = do { local $/; <$orig> };
+    my $resume_changes = do { local $/; <$resume> };
+    eq_or_diff($resume_changes, $orig_changes, 'File contents match');
+
+    $bot1->yield('quit');
+    $bot2->yield('quit');
 }
 
 sub irc_dcc_error {
