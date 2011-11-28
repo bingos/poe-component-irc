@@ -16,104 +16,56 @@ sub new {
         $args{poll} = 30;
     }
 
-    # the $irc->nick_name() and offending nickname will be...
-    #...the same on start, thus won't change
-    $args{_did_start} = 0;
-    $args{_claims} = {};
-
     return bless \%args, $package;
 }
 
 sub PCI_register {
     my ($self, $irc) = @_;
-    $irc->plugin_register( $self, 'SERVER', qw(433 001 nick quit) );
+    $irc->plugin_register( $self, 'SERVER', qw(001 433 nick quit) );
     $irc->plugin_register( $self, 'USER', qw(nick) );
 
-    # we will store the original nickname so we would know...
-    #...what we need to reclaim, without sending dozens of...
-    #...requests to reclaim foo_, foo__, foo___ etc.
-    $self->{_nick} = $irc->nick_name();
-
+    $self->{_desired_nick} = $irc->nick_name();
     return 1;
 }
-
-##############
-### sub U_nick
-#######
-# Basically, since we store the "real" nick in $self->{_nick}
-# we need to adjust it if the PoCo::IRC user wants the bot
-# to change its nick via ->yield(nick => 'foo');
-# problem is that the "reclaiming" process also triggers this event
-# we deal with it by using $self->{_claims} which stores all the
-# nick with underscores that NickReclaim appended.
-#
-# if we get a new "real" nick, reset the $self->{_claims}
-# and store "real" nick in $self->{_nick} so we would know
-# what to reclaim in case we need to.
-##############
-sub U_nick {
-    my $self = shift;
-    my ($nick) = ${ $_[1 ] } =~ /^NICK +(.+)/i;
-
-    return PCI_EAT_NONE if exists $self->{_claims}{ $nick };
-
-    # we got a new "real" nick, reset old nicks with underscores...
-    #...we don't need those anymore.
-    $self->{_claims} = {};
-    $self->{_nick} = $nick;
-
-    return PCI_EAT_NONE;
-}
-
 
 sub PCI_unregister {
     return 1;
 }
 
-########
-## sub S_001
-########
-# This is basically a tiny little bit that will differentiate
-# between successful reclaims and the startup routine
-# when $irc->nick_name() returns the nick which we need to reclaim
-######
+sub U_nick {
+    my $self = shift;
+    my ($nick) = ${ $_[1] } =~ /^NICK +(.+)/i;
+
+    if (!defined $self->{_temp_nick} || $self->{_temp_nick} ne $nick) {
+        delete $self->{_temp_nick};
+        $self->{_desired_nick} = $nick;
+    }
+    return PCI_EAT_NONE;
+}
+
 sub S_001 {
-    $_[0]->{_did_start} = 1;
+    my ($self, $irc) = splice @_, 0, 2;
+    $self->{_reclaimed} = $irc->nick_name eq $self->{_desired_nick} ? 1 : 0;
     return PCI_EAT_NONE;
 }
 
 # ERR_NICKNAMEINUSE
 sub S_433 {
-    my ($self,$irc) = splice @_, 0, 2;
-
-    # this is the nickname which we failed to get...
+    my ($self, $irc) = splice @_, 0, 2;
     my $offending = ${ $_[2] }->[0];
 
-    # only reclaim if we don't have a nick we can use...
-    #...and it's not a startup routine where ->nick_name cannot
-    #...be used (and needs to be reclaimed)
-    if (!$self->{_did_start} || $irc->nick_name() eq $offending) {
-        # we will store the nick with the underscore in ->{_claims}...
-        #...so in sub U_nick{} we would know which ones were caused...
-        #...by NickReclaim and which ones need to change the "real" nick
-        $offending .= '_';
-        $self->{_claims}{ $offending } = 1;
+    if (!$irc->logged_in || $irc->nick_name() eq $offending) {
+        my $temp_nick = "${offending}_";
+        $self->{_temp_nick} = $temp_nick;
 
-        # we will kindly ask the server to give us the nick with an underscore...
-        $irc->yield( nick => $offending );
+        $irc->yield('nick', $temp_nick);
     }
 
-    # cancel old alarm, we won't need it anymore, considering we are going...
-    #...to post a new one.
-    # BingOS, is there a ->is_still_alarm() method to check if the alarm..
-    #...is pending to go off? I couldn't find it in the docs, but would be
-    #...nice to have (and use right here)
     $irc->delay_remove($self->{_alarm_id}) if defined $self->{_alarm_id};
     $self->{_alarm_id} = $irc->delay(
-        [ nick => $self->{_nick} ],
+        ['nick', $self->{_desired_nick} ],
         $self->{poll}
-    ); # note that we are asking the server to give us ->{_nick} which is...
-    #....our "real" nick.
+    );
 
   return PCI_EAT_NONE;
 }
@@ -122,9 +74,12 @@ sub S_quit {
     my ($self, $irc) = splice @_, 0, 2;
     my $who = parse_user(${ $_[0] });
 
-    if ($who eq $self->{_nick}) {
-        $irc->delay_remove( $self->{_alarm_id} );
-        $irc->yield(nick => $self->{_nick});
+    if ($who eq $irc->nick_name) {
+        $irc->delay_remove($self->{_alarm_id}) if defined $self->{_alarm_id};
+    }
+    elsif (!$self->{_reclaimed} && $who eq $self->{_desired_nick}) {
+        $irc->delay_remove($self->{_alarm_id}) if defined $self->{_alarm_id};
+        $irc->yield('nick', $self->{_desired_nick});
     }
 
     return PCI_EAT_NONE;
@@ -133,10 +88,17 @@ sub S_quit {
 sub S_nick {
     my ($self, $irc) = splice @_, 0, 2;
     my $old_nick = parse_user(${ $_[0] });
+    my $new_nick = ${ $_[1] };
 
-    if ($old_nick eq $self->{_nick}) {
-        $irc->delay_remove( $self->{_alarm_id} );
-        $irc->yield(nick => $self->{_nick});
+    if ($new_nick eq $irc->nick_name) {
+        if ($new_nick eq $self->{_desired_nick}) {
+            $self->{_reclaimed} = 1;
+            $irc->delay_remove($self->{_alarm_id}) if defined $self->{_alarm_id};
+        }
+    }
+    elsif ($old_nick eq $self->{_desired_nick}) {
+        $irc->delay_remove($self->{_alarm_id}) if defined $self->{_alarm_id};
+        $irc->yield('nick', $self->{_desired_nick});
     }
 
     return PCI_EAT_NONE;

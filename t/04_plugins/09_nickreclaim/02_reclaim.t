@@ -23,7 +23,7 @@ my $ircd = POE::Component::Server::IRC->spawn(
 );
 
 $bot2->plugin_add(NickReclaim => POE::Component::IRC::Plugin::NickReclaim->new(
-    poll => 2,
+    poll => 1,
 ));
 
 POE::Session->create(

@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+    - NickReclaim.pm: Make it more robust and prevent an error from being
+      raised when we quit from IRC.
 
 6.75  Sun Nov 13 14:24:50 UTC 2011
     - Win32 fixes to the DCC plugin and netsplit test
