@@ -21,6 +21,7 @@ POE::Session->create(
             irc_registered
             irc_connected
             irc_001
+            irc_465
             irc_error
             irc_socketerr
             irc_disconnected
@@ -116,6 +117,15 @@ sub irc_001 {
     };
     $_[HEAP]->{tests}--;
     $irc->yield('quit');
+}
+
+sub irc_465 {
+    my $irc = $_[SENDER]->get_heap();
+    TODO: {
+        local $TODO = "Hey we is K-lined";
+        pass('ERR_YOUREBANNEDCREEP');
+    };
+    $_[HEAP]->{tests}--;
 }
 
 sub irc_error {
