@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.76  Tue Nov 29 03:24:55 GMT 2011
     - DCC.pm: Fix DCC RESUME, it was broken
     - NickReclaim.pm: Make it more robust and prevent an error from being
       raised when we quit from IRC.
