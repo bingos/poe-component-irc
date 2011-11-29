@@ -100,7 +100,7 @@ sub irc_join {
 
     $heap->{joined}++;
     return if $heap->{joined} != 2;
-    $bot1->yield(dcc => $bot2->nick_name() => CHAT => undef, undef, 5);
+    $bot1->yield(dcc => $bot2->nick_name() => CHAT => undef, undef, 3);
 }
 
 sub irc_dcc_request {

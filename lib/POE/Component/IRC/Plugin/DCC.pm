@@ -42,6 +42,7 @@ sub PCI_register {
                 _U_dcc_chat
                 _U_dcc_close
                 _U_dcc_resume
+                _cancel_timeout
             )],
         ],
     );
@@ -223,6 +224,10 @@ sub _U_dcc {
     # Tell the other end that we're waiting for them to connect.
     $irc->yield(ctcp => $nick => "DCC $type $basename $addr $port" . ($size ? " $size" : ''));
 
+    my $alarm_id = $kernel->delay_set(
+        '_dcc_timeout', ($timeout || LISTEN_TIMEOUT), $factory->ID,
+    );
+
     # Store the state for this connection.
     $self->{dcc}->{ $factory->ID } = {
         open      => 0,
@@ -236,13 +241,8 @@ sub _U_dcc {
         blocksize => ($blocksize || OUT_BLOCKSIZE),
         listener  => 1,
         factory   => $factory,
+        alarm_id  => $alarm_id,
     };
-
-    $kernel->alarm(
-        '_dcc_timeout',
-        time() + ($timeout || LISTEN_TIMEOUT),
-        $factory->ID,
-    );
 
     return;
 }
@@ -342,18 +342,7 @@ sub _U_dcc_close {
         push ( @{ $self->{dccports} }, $self->{dcc}->{$id}->{port} );
     }
 
-    if (exists $self->{dcc}->{$id}->{wheel}) {
-        delete $self->{wheelmap}->{$self->{dcc}->{$id}->{wheel}->ID};
-        if ( $^O =~ /(cygwin|MSWin)/ ) {
-          $self->{dcc}->{$id}->{wheel}->$_ for qw(shutdown_input shutdown_output);
-        }
-        delete $self->{dcc}->{$id}->{wheel};
-    }
-
-    # flush the filehandle
-    close $self->{dcc}{$id}{fh} if $self->{dcc}{$id}{type} eq 'GET';
-
-    delete $self->{dcc}->{$id};
+    $self->_remove_dcc($id);
     return;
 }
 
@@ -381,10 +370,13 @@ sub _U_dcc_resume {
 
 # Accept incoming data on a DCC socket.
 sub _dcc_read {
-    my ($self, $data, $id) = @_[OBJECT, ARG0, ARG1];
+    my ($kernel, $self, $data, $id) = @_[KERNEL, OBJECT, ARG0, ARG1];
     my $irc = $self->{irc};
 
     $id = $self->{wheelmap}->{$id};
+    if ($self->{dcc}{$id}{alarm_id}) {
+        $kernel->call($self->{session_id}, '_cancel_timeout', $id);
+    }
 
     if ($self->{dcc}->{$id}->{type} eq 'GET') {
         # Acknowledge the received data.
@@ -429,8 +421,8 @@ sub _dcc_read {
                     nick type port file size done peeraddr
                 )},
             );
-            delete $self->{wheelmap}->{ $self->{dcc}->{$id}->{wheel}->ID };
-            delete $self->{dcc}->{$id};
+
+            $self->_remove_dcc($id);
             return;
         }
 
@@ -492,10 +484,7 @@ sub _dcc_failed {
                 )},
             );
 
-            if ( $self->{dcc}->{$id}->{wheel} ) {
-                delete $self->{wheelmap}->{ $self->{dcc}->{$id}->{wheel}->ID };
-            }
-            delete $self->{dcc}->{$id};
+            $self->_remove_dcc($id);
         }
 
         return;
@@ -521,11 +510,7 @@ sub _dcc_failed {
         )},
     );
 
-    if (exists $self->{dcc}->{$id}->{wheel}) {
-        delete $self->{wheelmap}->{$self->{dcc}->{$id}->{wheel}->ID};
-    }
-    delete $self->{dcc}->{$id};
-
+    $self->_remove_dcc($id);
     return;
 }
 
@@ -611,6 +596,34 @@ sub _dcc_up {
         )},
     );
 
+    return;
+}
+
+sub _cancel_timeout {
+    my ($kernel, $self, $id) = @_[KERNEL, OBJECT, ARG0];
+    my $alarm_id = delete $self->{dcc}{$id}{alarm_id};
+    $kernel->alarm_remove($alarm_id);
+    return;
+}
+
+sub _remove_dcc {
+    my ($self, $id) = @_;
+
+    if (exists $self->{dcc}{$id}{alarm_id}) {
+        $poe_kernel->call($self->{session_id}, '_cancel_timeout', $id);
+    }
+
+    if (exists $self->{dcc}{$id}{wheel}) {
+        delete $self->{wheelmap}{ $self->{dcc}{$id}{wheel}->ID };
+        if ($^O =~ /cygwin|MSWin/) {
+          $self->{dcc}{$id}{wheel}->$_ for qw(shutdown_input shutdown_output);
+        }
+    }
+
+    # flush the filehandle
+    close $self->{dcc}{$id}{fh} if $self->{dcc}{$id}{type} eq 'GET';
+
+    delete $self->{dcc}{$id};
     return;
 }
 
