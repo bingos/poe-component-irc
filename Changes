@@ -1,6 +1,7 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+    - Prevent a test failure in 06_online.t if the host is K-lined
 
 6.76  Tue Nov 29 03:24:55 GMT 2011
     - DCC.pm: Fix DCC RESUME, it was broken
