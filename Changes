@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.78  Wed Dec 7 20:29:45 GMT 2011
     - Prevent an IPv6 test failure
 
 6.77  Fri Dec 2 03:55:14 GMT 2011
