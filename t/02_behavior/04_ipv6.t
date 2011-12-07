@@ -26,7 +26,7 @@ BEGIN {
 # Perl-5.14.0 will core getaddrinfo() in it's Socket.pm
 eval { Socket->import('getaddrinfo') };
 if ($@) {
-    eval { require Socket::GetAddrInfo };
+    eval { require Socket::GetAddrInfo; Socket::GetAddrInfo->import(qw(:newapi getaddrinfo)) };
     if ($@) {
         plan skip_all => 'Socket::GetAddrInfo is needed for IPv6 tests';
     }

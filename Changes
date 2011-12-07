@@ -1,6 +1,7 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+    - Prevent an IPv6 test failure
 
 6.77  Fri Dec 2 03:55:14 GMT 2011
     - Prevent a test failure in 06_online.t if the host is K-lined
