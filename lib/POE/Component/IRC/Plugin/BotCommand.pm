@@ -14,6 +14,13 @@ sub new {
     $args{Method} = 'notice' if !defined $args{Method};
 
     for my $cmd (keys %{ $args{Commands} }) {
+        if (ref $args{Commands}->{$cmd} eq 'HASH') {
+            croak "$cmd: no info provided" 
+                if !exists $args{Commands}->{$cmd}->{info} ;
+            croak "$cmd: no arguments provided" 
+                if !@{ $args{Commands}->{$cmd}->{args} };
+            
+        }
         $args{Commands}->{lc $cmd} = delete $args{Commands}->{$cmd};
     }
     return bless \%args, $package;
@@ -114,6 +121,20 @@ sub _handle_cmd {
     }
 
     if (defined $self->{Commands}->{$cmd}) {
+        if (ref $self->{Commands}->{$cmd} eq 'HASH') {
+            my @args_array = defined $args ? split /\s+/, $args : ();      
+            if (@args_array != @{ $self->{Commands}->{$cmd}->{args} }) {
+                $irc->yield($self->{Method}, $where, 
+                    "Not enough or too many arguments. See help for $cmd");
+                return;
+            }
+
+            $args = {};
+            for (@{ $self->{Commands}->{$cmd}->{args} }) {
+                $args->{$_} = shift @args_array;
+            }
+        }
+
         $irc->send_event_next("irc_botcmd_$cmd" => $who, $where, $args);
     }
     elsif ($cmd =~ /^help$/i) {
@@ -139,7 +160,19 @@ sub _get_help {
     if (defined $args) {
         my $cmd = (split /\s+/, $args, 2)[0];
         if (exists $self->{Commands}->{$cmd}) {
-            @help = split /\015?\012/, $self->{Commands}->{$cmd};
+            if (ref $self->{Commands}->{$cmd} eq 'HASH') {
+                push @help, "$cmd ".join ' ', @{ $self->{Commands}->{$cmd}->{args} };
+                push @help, "\n";
+                push @help, split /\015?\012/, $self->{Commands}->{$cmd}->{info};
+                push @help, "Arguments:";
+                for my $arg (@{ $self->{Commands}->{$cmd}->{args} }) {
+                    push @help, "\t$arg: ".$self->{Commands}->{$cmd}->{$arg} 
+                        if defined $self->{Commands}->{$cmd}->{$arg};
+                }
+            } 
+            else {
+                @help = split /\015?\012/, $self->{Commands}->{$cmd};
+            }
         }
         else {
             push @help, "Unknown command: $cmd";
@@ -163,6 +196,11 @@ sub add {
     my ($self, $cmd, $usage) = @_;
     $cmd = lc $cmd;
     return if exists $self->{Commands}->{$cmd};
+
+    if (ref $usage eq 'HASH') {
+        return if !exists $usage->{info} || !@{ $usage->{args} };
+    }
+
     $self->{Commands}->{$cmd} = $usage;
     return 1;
 }
@@ -289,6 +327,22 @@ B<'Commands'>, a hash reference, with your commands as keys, and usage
 information as values. If the usage string contains newlines, the plugin
 will send one message for each line.
 
+If a command's value is a HASH ref like this:
+
+     $irc->plugin_add('BotCommand', POE::Component::IRC::Plugin::BotCommand->new(
+         Commands => {
+             slap   => {
+                info => 'Slap someone',
+                args => [qw(nickname)],
+                nickname => 'nickname to slap'
+             }
+         }
+     ));
+
+The args array reference is than used to validate number of arguments required
+and to name arguments passed to event handler. Help is than generated from
+C<info> and other hash keys which represent arguments (they are optional).
+
 =head3 Accepting commands
 
 B<'In_channels'>, a boolean value indicating whether to accept commands in
@@ -359,8 +413,9 @@ L<POE::Component::IRC|POE::Component::IRC>'s C<plugin_add> method.
 =head2 C<add>
 
 Adds a new command. Takes two arguments, the name of the command, and a string
-containing its usage information. Returns false if the command has already been
-defined, true otherwise.
+or hash reference containing its usage information (see C<new>). Returns false 
+if the command has already been defined or no info or arguments are provided, 
+true otherwise.
 
 =head2 C<remove>
 
@@ -370,7 +425,7 @@ if the command wasn't defined to begin with, true otherwise.
 =head2 C<list>
 
 Takes no arguments. Returns a list of key/value pairs, the keys being the
-command names and the values being the usage strings.
+command names and the values being the usage strings or hash references.
 
 =head1 OUTPUT EVENTS
 
@@ -387,7 +442,8 @@ every time someone issued that command. It receives the following arguments:
 =item * C<ARG1> is the name of the channel in which the command was issued,
 or the sender's nickname if this was a private message.
 
-=item * C<ARG2>: a string of arguments to the command, or undef if there
+=item * C<ARG2>: a string of arguments to the command, or hash reference with
+arguments in case you defined command along with arguments, or undef if there
 were no arguments
 
 =back
