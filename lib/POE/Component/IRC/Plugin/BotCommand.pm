@@ -162,7 +162,7 @@ sub _get_help {
         if (exists $self->{Commands}->{$cmd}) {
             if (ref $self->{Commands}->{$cmd} eq 'HASH') {
                 push @help, "$cmd ".join ' ', @{ $self->{Commands}->{$cmd}->{args} };
-                push @help, "\n";
+                push @help, "\t";
                 push @help, split /\015?\012/, $self->{Commands}->{$cmd}->{info};
                 push @help, "Arguments:";
                 for my $arg (@{ $self->{Commands}->{$cmd}->{args} }) {

@@ -5,7 +5,7 @@ use POE;
 use POE::Component::IRC;
 use POE::Component::IRC::Plugin::BotCommand;
 use POE::Component::Server::IRC;
-use Test::More tests => 23;
+use Test::More tests => 27;
 
 my $bot1 = POE::Component::IRC->spawn(
     Flood        => 1,
@@ -37,7 +37,7 @@ POE::Session->create(
 
 my @bar_help = (
     "bar arg1 arg2",
-    "\n",
+    "\t",
     "Test command2", 
     "Arguments:", 
     "\targ1: What to bar", 
