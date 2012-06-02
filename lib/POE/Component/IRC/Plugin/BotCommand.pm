@@ -161,12 +161,11 @@ sub _get_help {
         my $cmd = (split /\s+/, $args, 2)[0];
         if (exists $self->{Commands}->{$cmd}) {
             if (ref $self->{Commands}->{$cmd} eq 'HASH') {
-                push @help, "$cmd ".join ' ', @{ $self->{Commands}->{$cmd}->{args} };
-                push @help, "\t";
-                push @help, split /\015?\012/, $self->{Commands}->{$cmd}->{info};
+                push @help, "Syntax: $cmd ".join ' ', @{ $self->{Commands}->{$cmd}->{args} };
+                push @help, split /\015?\012/, "Description: ".$self->{Commands}->{$cmd}->{info};
                 push @help, "Arguments:";
                 for my $arg (@{ $self->{Commands}->{$cmd}->{args} }) {
-                    push @help, "\t$arg: ".$self->{Commands}->{$cmd}->{$arg} 
+                    push @help, "    $arg: ".$self->{Commands}->{$cmd}->{$arg} 
                         if defined $self->{Commands}->{$cmd}->{$arg};
                 }
             } 

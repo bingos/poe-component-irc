@@ -36,12 +36,11 @@ POE::Session->create(
 );
 
 my @bar_help = (
-    "bar arg1 arg2",
-    "\t",
-    "Test command2", 
+    "Syntax: bar arg1 arg2",
+    "Description: Test command2",
     "Arguments:", 
-    "\targ1: What to bar", 
-    "\targ2: Where to bar"
+    "    arg1: What to bar", 
+    "    arg2: Where to bar"
 );
 
 $poe_kernel->run();
