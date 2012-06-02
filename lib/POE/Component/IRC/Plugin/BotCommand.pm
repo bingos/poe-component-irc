@@ -106,6 +106,22 @@ sub _handle_cmd {
     my $public = $where =~ /^[$chantypes]/ ? 1 : 0;
     $cmd = lc $cmd;
 
+    if (defined $self->{Commands}->{$cmd}) {
+        if (ref $self->{Commands}->{$cmd} eq 'HASH') {
+            my @args_array = defined $args ? split /\s+/, $args : ();      
+            if (@args_array != @{ $self->{Commands}->{$cmd}->{args} }) {
+                $irc->yield($self->{Method}, $where, 
+                    "Not enough or too many arguments. See help for $cmd");
+                return;
+            }
+
+            $args = {};
+            for (@{ $self->{Commands}->{$cmd}->{args} }) {
+                $args->{$_} = shift @args_array;
+            }
+        }
+    }
+
     if (ref $self->{Auth_sub} eq 'CODE') {
         my ($authed, $errors) = $self->{Auth_sub}->($self->{irc}, $who, $where, $cmd, $args);
 
@@ -121,20 +137,6 @@ sub _handle_cmd {
     }
 
     if (defined $self->{Commands}->{$cmd}) {
-        if (ref $self->{Commands}->{$cmd} eq 'HASH') {
-            my @args_array = defined $args ? split /\s+/, $args : ();      
-            if (@args_array != @{ $self->{Commands}->{$cmd}->{args} }) {
-                $irc->yield($self->{Method}, $where, 
-                    "Not enough or too many arguments. See help for $cmd");
-                return;
-            }
-
-            $args = {};
-            for (@{ $self->{Commands}->{$cmd}->{args} }) {
-                $args->{$_} = shift @args_array;
-            }
-        }
-
         $irc->send_event_next("irc_botcmd_$cmd" => $who, $where, $args);
     }
     elsif ($cmd =~ /^help$/i) {
