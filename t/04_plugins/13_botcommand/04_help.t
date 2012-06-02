@@ -5,7 +5,7 @@ use POE;
 use POE::Component::IRC;
 use POE::Component::IRC::Plugin::BotCommand;
 use POE::Component::Server::IRC;
-use Test::More tests => 27;
+use Test::More tests => 25;
 
 my $bot1 = POE::Component::IRC->spawn(
     Flood        => 1,
