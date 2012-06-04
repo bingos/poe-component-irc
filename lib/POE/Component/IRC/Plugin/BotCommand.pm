@@ -109,15 +109,40 @@ sub _handle_cmd {
     if (defined $self->{Commands}->{$cmd}) {
         if (ref $self->{Commands}->{$cmd} eq 'HASH') {
             my @args_array = defined $args ? split /\s+/, $args : ();      
-            if (@args_array != @{ $self->{Commands}->{$cmd}->{args} }) {
-                $irc->yield($self->{Method}, $where, 
-                    "Not enough or too many arguments. See help for $cmd");
-                return;
+            if (@args_array < @{ $self->{Commands}->{$cmd}->{args} } ||
+               (!defined $self->{Commands}->{$cmd}->{variable} && 
+                @args_array > @{ $self->{Commands}->{$cmd}->{args} })
+            ) {
+                  $irc->yield($self->{Method}, $where, 
+                      "Not enough or too many arguments. See help for $cmd");
+                  return;
             }
 
             $args = {};
             for (@{ $self->{Commands}->{$cmd}->{args} }) {
-                $args->{$_} = shift @args_array;
+                my $in_arg = shift @args_array;
+                if (ref $self->{Commands}->{$cmd}->{$_} eq 'ARRAY') {
+                    my @values = @{ $self->{Commands}->{$cmd}->{$_} };
+                    shift @values;
+
+                    use List::MoreUtils qw(none);
+                    # Check if argument has one of possible values
+                    if (none { $_ eq $in_arg} @values) {
+                      $irc->yield($self->{Method}, $where, 
+                          "$_ can be one of ".join '|', @values);
+                      return;
+                    }
+
+                } 
+                $args->{$_} = $in_arg;
+            }
+
+            # Process remaining arguments if variable is set
+            my $arg_cnt = 0;
+            if (defined $self->{Commands}->{$cmd}->{variable}) {
+                for (@args_array) { 
+                    $args->{"opt".$arg_cnt++} = $_;
+                }
             }
         }
     }
@@ -163,12 +188,25 @@ sub _get_help {
         my $cmd = (split /\s+/, $args, 2)[0];
         if (exists $self->{Commands}->{$cmd}) {
             if (ref $self->{Commands}->{$cmd} eq 'HASH') {
-                push @help, "Syntax: $cmd ".join ' ', @{ $self->{Commands}->{$cmd}->{args} };
-                push @help, split /\015?\012/, "Description: ".$self->{Commands}->{$cmd}->{info};
+                push @help, "Syntax: $cmd ".
+                    (join ' ', @{ $self->{Commands}->{$cmd}->{args} }).
+                    (defined $self->{Commands}->{$cmd}->{variable} ? 
+                        " ..."  : "");
+                push @help, split /\015?\012/, 
+                    "Description: ".$self->{Commands}->{$cmd}->{info};
                 push @help, "Arguments:";
+
                 for my $arg (@{ $self->{Commands}->{$cmd}->{args} }) {
-                    push @help, "    $arg: ".$self->{Commands}->{$cmd}->{$arg} 
-                        if defined $self->{Commands}->{$cmd}->{$arg};
+                    next if not defined $self->{Commands}->{$cmd}->{$arg};
+                    if (ref $self->{Commands}->{$cmd}->{$arg} eq 'ARRAY') {
+                        my @arg_usage = @{$self->{Commands}->{$cmd}->{$arg}};
+                        push @help, "    $arg: ".$arg_usage[0].
+                        " (".(join '|', @arg_usage[1..$#arg_usage]).")"
+                    } 
+                    else {
+                        push @help, "    $arg: ".
+                            $self->{Commands}->{$cmd}->{$arg};
+                    }
                 }
             } 
             else {

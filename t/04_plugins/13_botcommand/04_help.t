@@ -36,10 +36,10 @@ POE::Session->create(
 );
 
 my @bar_help = (
-    "Syntax: bar arg1 arg2",
+    "Syntax: bar arg1 arg2 ...",
     "Description: Test command2",
     "Arguments:", 
-    "    arg1: What to bar", 
+    "    arg1: What to bar (table|chair)", 
     "    arg2: Where to bar"
 );
 
@@ -132,7 +132,9 @@ sub irc_notice {
         ok($p->add(bar => { 
                     info => 'Test command2', 
                     args => [qw(arg1 arg2)], 
-                    arg1 => 'What to bar', arg2 => 'Where to bar' 
+                    arg1 => ['What to bar', qw(table chair)], 
+                    arg2 => 'Where to bar',
+                    variable => 1,
         }), 'Add command bar');
         $irc->yield(privmsg => $where, "TestBot1: help");
         $irc->yield(privmsg => $where, "TestBot1: help bar");

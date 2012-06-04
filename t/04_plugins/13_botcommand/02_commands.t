@@ -93,8 +93,10 @@ sub irc_001 {
             cmd2 => {
                 info => 'First test command with argument count checking',
                 args => [qw(test_arg test_arg2)],
-                test_arg => 'Description of first arg',
+                variable => 1,
+                test_arg => ['Description of first arg', qw(value1 value2)],
                 test_arg2 => 'Description of second arg',
+                optional_arg => 'Description of optional arg',
             },
             foo  => 'This will get removed',
         },
@@ -125,7 +127,7 @@ sub irc_join {
     $bot2->yield(privmsg => $where, "TestBot1: cmd1 foo bar");
 
     # try command with predefined arguments
-    $bot2->yield(privmsg => $where, "TestBot1: cmd2 foo bar");
+    $bot2->yield(privmsg => $where, "TestBot1: cmd2 value1 bar opt_arg");
 
     # and one with color
     $bot2->yield(privmsg => $where, "\x0302TestBot1\x0f: \x02cmd3\x0f");
@@ -148,7 +150,7 @@ sub irc_botcmd_cmd2 {
 
     is($nick, $bot2->nick_name(), 'Command with args (user)');
     is($where, '#testchannel', 'Command with args (channel)');
-    is_deeply($args, { test_arg => 'foo', test_arg2 => 'bar' }, 
+    is_deeply($args, { test_arg => 'value1', test_arg2 => 'bar', opt0 => 'opt_arg'}, 
         'Command with args (arguments)');
 }
 
