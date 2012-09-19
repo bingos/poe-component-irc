@@ -874,6 +874,7 @@ sub nick_long_form {
     return if !$self->_nick_exists($nick);
 
     my $user = $self->{STATE}{Nicks}{ $unick };
+    return unless exists $user->{User} && exists $user->{Host};
     return "$user->{Nick}!$user->{User}\@$user->{Host}";
 }
 
