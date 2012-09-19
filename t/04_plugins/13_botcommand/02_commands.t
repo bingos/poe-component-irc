@@ -5,7 +5,7 @@ use POE;
 use POE::Component::IRC;
 use POE::Component::IRC::Plugin::BotCommand;
 use POE::Component::Server::IRC;
-use Test::More tests => 18;
+use Test::More tests => 22;
 
 my $bot1 = POE::Component::IRC->spawn(
     Flood        => 1,
@@ -31,6 +31,7 @@ POE::Session->create(
             irc_join
             irc_botcmd_cmd1
             irc_botcmd_cmd2
+            irc_botcmd_cmd3
             irc_disconnected
         )],
     ],
@@ -89,18 +90,27 @@ sub irc_001 {
     my $plugin = POE::Component::IRC::Plugin::BotCommand->new(
         Commands => {
             cmd1 => 'First test command',
+            cmd2 => {
+                info => 'First test command with argument count checking',
+                args => [qw(test_arg test_arg2)],
+                variable => 1,
+                test_arg => ['Description of first arg', qw(value1 value2)],
+                test_arg2 => 'Description of second arg',
+                optional_arg => 'Description of optional arg',
+            },
             foo  => 'This will get removed',
         },
     );
 
-    ok($irc->plugin_add(BotCommand => $plugin), 'Add plugin with two commands');
-    ok($plugin->add(cmd2 => 'Second test command'), 'Add another command');
+    ok($irc->plugin_add(BotCommand => $plugin), 'Add plugin with three commands');
+    ok($plugin->add(cmd3 => 'Third test command'), 'Add another command');
     ok($plugin->remove('foo'), 'Remove command');
 
     my %cmds = $plugin->list();
-    is(keys %cmds, 2, 'Correct number of commands');
+    is(keys %cmds, 3, 'Correct number of commands');
     ok($cmds{cmd1}, 'First command is present');
     ok($cmds{cmd2}, 'Second command is present');
+    ok($cmds{cmd3}, 'Third command is present');
 }
 
 sub irc_join {
@@ -116,8 +126,11 @@ sub irc_join {
     # try command
     $bot2->yield(privmsg => $where, "TestBot1: cmd1 foo bar");
 
+    # try command with predefined arguments
+    $bot2->yield(privmsg => $where, "TestBot1: cmd2 value1 bar opt_arg");
+
     # and one with color
-    $bot2->yield(privmsg => $where, "\x0302TestBot1\x0f: \x02cmd2\x0f");
+    $bot2->yield(privmsg => $where, "\x0302TestBot1\x0f: \x02cmd3\x0f");
 }
 
 sub irc_botcmd_cmd1 {
@@ -131,6 +144,17 @@ sub irc_botcmd_cmd1 {
 }
 
 sub irc_botcmd_cmd2 {
+    my ($sender, $user, $where, $args) = @_[SENDER, ARG0..ARG2];
+    my $nick = (split /!/, $user)[0];
+    my $irc = $sender->get_heap();
+
+    is($nick, $bot2->nick_name(), 'Command with args (user)');
+    is($where, '#testchannel', 'Command with args (channel)');
+    is_deeply($args, { test_arg => 'value1', test_arg2 => 'bar', opt0 => 'opt_arg'}, 
+        'Command with args (arguments)');
+}
+
+sub irc_botcmd_cmd3 {
     my ($sender, $user, $where, $args) = @_[SENDER, ARG0..ARG2];
     my $nick = (split /!/, $user)[0];
     my $irc = $sender->get_heap();
