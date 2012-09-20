@@ -1,6 +1,7 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+    - Add missing prereq
 
 6.79  Wed Sep 19 14:24:03 BST 2012
     - Argument naming and argument count validation in Plugin::BotCommand
