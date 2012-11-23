@@ -150,7 +150,7 @@ sub irc_botcmd_cmd2 {
 
     is($nick, $bot2->nick_name(), 'Command with args (user)');
     is($where, '#testchannel', 'Command with args (channel)');
-    is_deeply($args, { test_arg => 'value1', test_arg2 => 'bar', opt0 => 'opt_arg'}, 
+    is_deeply($args, { test_arg => 'value1', test_arg2 => 'bar', opt0 => 'opt_arg'},
         'Command with args (arguments)');
 }
 

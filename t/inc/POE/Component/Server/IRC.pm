@@ -4841,8 +4841,8 @@ sub _daemon_peer_server {
             last SWITCH;
         }
         my $record = {
-            name => $args->[0], 
-            hops => $args->[1], 
+            name => $args->[0],
+            hops => $args->[1],
             desc => ( $args->[2] || '' ),
             route_id => $peer_id,
             type => 'r',
@@ -5085,7 +5085,7 @@ sub _daemon_peer_nick {
         }
         my $unick = uc_irc($args->[0]);
         $args->[3] =~ s/^\+//g;
-        my $record = { 
+        my $record = {
             nick  => $args->[0],
             hops  => $args->[1],
             ts    => $args->[2],
@@ -5603,7 +5603,7 @@ sub _daemon_peer_mode {
             $arg = shift @{ $parsed_mode->{args} }
                 if $mode =~ /^(\+[ohvklbIe]|-[ohvbIe])/;
                     if (my ($flag,$char) = $mode =~ /^(\+|-)([ohv])/) {
-                    if ($flag eq '+' 
+                    if ($flag eq '+'
                         && $record->{users}{uc_irc($arg)} !~ /$char/) {
                         # Update user and chan record
                         $arg = uc_irc($arg);
@@ -6797,7 +6797,7 @@ sub _state_server_burst {
 
     my $ref = [ ];
     $peer = $self->_state_peer_name($peer);
-    my $upeer = uc $peer; 
+    my $upeer = uc $peer;
     my $utarg = uc $targ;
 
     for my $server (keys %{ $self->{state}{peers}{$upeer}{peers} }) {
@@ -7650,7 +7650,7 @@ sub _send_output_to_channel {
         && $output->{command} ne 'JOIN') {
         my $full = $output->{prefix};
         my $nick = (split /!/, $full)[0];
-        my $output2 = { %$output }; 
+        my $output2 = { %$output };
         $output2->{prefix} = $nick;
         $self->send_output($output2, keys %$peers);
     }
@@ -8140,7 +8140,7 @@ sub daemon_server_wallops {
                 command => 'WALLOPS',
                 params  => [$args->[0]],
             },
-            $self->_state_connected_peers(), 
+            $self->_state_connected_peers(),
             keys %{ $self->{state}{operwall} },
         );
         $self->send_event("daemon_wallops", $server, $args->[0]);
@@ -8269,7 +8269,7 @@ POE::Component::Server::IRC - A fully event-driven networkable IRC server daemon
  use POE qw(Component::Server::IRC);
 
  my %config = (
-     servername => 'simple.poco.server.irc', 
+     servername => 'simple.poco.server.irc',
      nicklen    => 15,
      network    => 'SimpleNET'
  );
@@ -8784,7 +8784,7 @@ To set a temporary 10 minute KLINE on all servers:
 
 =head3 C<daemon_cmd_unkline>
 
-Removes a KLINE as indicated by the user@host mask supplied. 
+Removes a KLINE as indicated by the user@host mask supplied.
 
 To remove a KLINE:
 

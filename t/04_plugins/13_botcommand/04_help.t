@@ -38,8 +38,8 @@ POE::Session->create(
 my @bar_help = (
     "Syntax: bar arg1 arg2 ...",
     "Description: Test command2",
-    "Arguments:", 
-    "    arg1: What to bar (table|chair)", 
+    "Arguments:",
+    "    arg1: What to bar (table|chair)",
     "    arg2: Where to bar"
 );
 
@@ -129,10 +129,10 @@ sub irc_notice {
         like($what, qr/^Unknown command:/, 'Bot reply');
         my ($p) = grep { $_->isa('POE::Component::IRC::Plugin::BotCommand') } values %{ $bot1->plugin_list() };
         ok($p->add(foo => 'Test command'), 'Add command foo');
-        ok($p->add(bar => { 
-                    info => 'Test command2', 
-                    args => [qw(arg1 arg2)], 
-                    arg1 => ['What to bar', qw(table chair)], 
+        ok($p->add(bar => {
+                    info => 'Test command2',
+                    args => [qw(arg1 arg2)],
+                    arg1 => ['What to bar', qw(table chair)],
                     arg2 => 'Where to bar',
                     variable => 1,
         }), 'Add command bar');

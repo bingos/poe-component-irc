@@ -164,7 +164,7 @@ sub irc_chan_sync {
     my ($sender, $heap, $chan) = @_[SENDER, HEAP, ARG0];
     my $irc = $sender->get_heap();
     my ($nick, $user, $host) = parse_user($irc->nick_long_form($irc->nick_name()));
-    my ($occupant) = $irc->channel_list($chan);
+    my ($occupant) = grep { $_ eq 'TestBot' } $irc->channel_list($chan);
 
     is($occupant, 'TestBot', 'Channel Occupancy Test');
     ok($irc->channel_creation_time($chan), 'Got channel creation time');
