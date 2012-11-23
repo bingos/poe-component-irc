@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.81  Fri Nov 23 15:53:11 GMT 2012
     - Resolve hash randomisation issues with v5.17.6
 
 6.80  Thu Sep 20 09:52:59 BST 2012
