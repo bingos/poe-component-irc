@@ -188,7 +188,7 @@ sub _get_help {
         my $cmd = (split /\s+/, $args, 2)[0];
         if (exists $self->{Commands}->{$cmd}) {
             if (ref $self->{Commands}->{$cmd} eq 'HASH') {
-                push @help, "Syntax: $cmd ".
+                push @help, "Syntax: $p$cmd ".
                     (join ' ', @{ $self->{Commands}->{$cmd}->{args} }).
                     (defined $self->{Commands}->{$cmd}->{variable} ?
                         " ..."  : "");
