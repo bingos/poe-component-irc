@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.82  Sat Mar 9 22:15:02 GMT 2013
     - Add the Prefix to the "Syntax:" line of the command help
 
 6.81  Fri Nov 23 15:53:11 GMT 2012
