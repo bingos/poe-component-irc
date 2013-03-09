@@ -36,7 +36,7 @@ POE::Session->create(
 );
 
 my @bar_help = (
-    "Syntax: bar arg1 arg2 ...",
+    "Syntax: TestBot1: bar arg1 arg2 ...",
     "Description: Test command2",
     "Arguments:",
     "    arg1: What to bar (table|chair)",
