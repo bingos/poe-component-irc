@@ -383,6 +383,8 @@ The args array reference is than used to validate number of arguments required
 and to name arguments passed to event handler. Help is than generated from
 C<info> and other hash keys which represent arguments (they are optional).
 
+An optional C<handler> key can be specified inside the HASH ref to override the event handler.
+
 =head3 Accepting commands
 
 B<'In_channels'>, a boolean value indicating whether to accept commands in
