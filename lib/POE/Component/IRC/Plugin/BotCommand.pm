@@ -163,7 +163,7 @@ sub _handle_cmd {
     }
 
     if (defined $self->{Commands}->{$cmd}) {
-        $irc->send_event_next("irc_botcmd_$self->{Commands}->{$cmd}->{handler}" => $who, $where, $args);
+        $irc->send_event_next("irc_botcmd_$self->{Commands}->{$cmd}->{handler}" => $who, $where, $args, $cmd);
     }
     elsif ($cmd =~ /^help$/i) {
         my @help = $self->_get_help($args, $public);
