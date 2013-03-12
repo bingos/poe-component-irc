@@ -19,7 +19,8 @@ sub new {
                 if !exists $args{Commands}->{$cmd}->{info} ;
             croak "$cmd: no arguments provided"
                 if !@{ $args{Commands}->{$cmd}->{args} };
-            $args{Commands}->{lc $cmd}->{handler} = $cmd
+            $args{Commands}->{lc $cmd}->{handler} = 
+                sprintf("irc_botcmd_%s", lc($cmd)
                 if !$args{Commands}->{lc $cmd}->{handler};
         }
         $args{Commands}->{lc $cmd} = delete $args{Commands}->{$cmd};
@@ -163,7 +164,7 @@ sub _handle_cmd {
     }
 
     if (defined $self->{Commands}->{$cmd}) {
-        $irc->send_event_next("irc_botcmd_$self->{Commands}->{$cmd}->{handler}" => $who, $where, $args, $cmd);
+        $irc->send_event_next($self->{Commands}->{$cmd}->{handler} => $who, $where, $args, $cmd);
     }
     elsif ($cmd =~ /^help$/i) {
         my @help = $self->_get_help($args, $public);
@@ -384,6 +385,7 @@ and to name arguments passed to event handler. Help is than generated from
 C<info> and other hash keys which represent arguments (they are optional).
 
 An optional C<handler> key can be specified inside the HASH ref to override the event handler.
+The irc_botcmd_ prefix  is not automatically prepended  to the handler name when overriding it. 
 
 =head3 Accepting commands
 
