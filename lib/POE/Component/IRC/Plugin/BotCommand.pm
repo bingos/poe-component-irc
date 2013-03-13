@@ -164,7 +164,8 @@ sub _handle_cmd {
     }
 
     if (defined $self->{Commands}->{$cmd}) {
-        $irc->send_event_next($self->{Commands}->{$cmd}->{handler} => $who, $where, $args, $cmd);
+        my $handler = (ref($self->{Commands}->{$cmd}) eq 'HASH' ? $self->{Commands}->{$cmd}->{handler} : "irc_botcmd_$cmd");
+        $irc->send_event_next($handler => $who, $where, $args, $cmd);
     }
     elsif ($cmd =~ /^help$/i) {
         my @help = $self->_get_help($args, $public);
@@ -210,7 +211,7 @@ sub _get_help {
                             $self->{Commands}->{$cmd}->{$arg};
                     }
                 }
-                push @help, "Aliases: ".join( ",", $self->list_aliases()) if $self->list_aliases();
+                push @help, "Aliases: ".join( " ", $self->list_aliases($cmd)) if $self->list_aliases($cmd);
             }
             else {
                 @help = split /\015?\012/, $self->{Commands}->{$cmd};
@@ -268,6 +269,7 @@ sub resolve_alias {
     #TODO: refactor using smartmatch/Perl6::Junction if feasible
     while(my ($cmd, $info) = each(%cmds))
     {
+       next unless ref($info) eq 'HASH';
        next unless $info->{aliases} && ref($info->{aliases}) eq 'ARRAY';
        my @aliases = @{$info->{aliases}};
        
@@ -285,6 +287,7 @@ sub list_aliases
     my ($self, $cmd) = @_;
     $cmd = lc $cmd;
     return if !exists $self->{Commands}->{$cmd};
+    return unless ref($self->{Commands}->{$cmd}) eq 'HASH';
     return unless exists $self->{Commands}->{$cmd}->{aliases} && ref($self->{Commands}->{$cmd}->{aliases}) eq 'ARRAY';
     return @{$self->{Commands}->{$cmd}->{aliases}};
 
