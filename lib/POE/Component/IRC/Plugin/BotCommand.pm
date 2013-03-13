@@ -20,7 +20,7 @@ sub new {
             croak "$cmd: no arguments provided"
                 if !@{ $args{Commands}->{$cmd}->{args} };
             $args{Commands}->{lc $cmd}->{handler} = 
-                sprintf("irc_botcmd_%s", lc($cmd)
+                sprintf("irc_botcmd_%s", lc($cmd))
                 if !$args{Commands}->{lc $cmd}->{handler};
         }
         $args{Commands}->{lc $cmd} = delete $args{Commands}->{$cmd};
@@ -210,6 +210,7 @@ sub _get_help {
                             $self->{Commands}->{$cmd}->{$arg};
                     }
                 }
+                push @help, "Aliases: ".join( ",", $self->list_aliases()) if $self->list_aliases();
             }
             else {
                 @help = split /\015?\012/, $self->{Commands}->{$cmd};
@@ -257,6 +258,36 @@ sub remove {
 sub list {
     my ($self) = @_;
     return %{ $self->{Commands} };
+}
+
+sub resolve_alias {
+    my ($self, $alias) = @_;
+    
+    my %cmds = $self->list();
+
+    #TODO: refactor using smartmatch/Perl6::Junction if feasible
+    while(my ($cmd, $info) = each(%cmds))
+    {
+       next unless $info->{aliases} && ref($info->{aliases}) eq 'ARRAY';
+       my @aliases = @{$info->{aliases}};
+       
+       foreach my $cmdalias (@aliases)
+       {
+           return $cmd if $alias eq $cmdalias;
+       }
+    }
+
+    return undef;
+}
+
+sub list_aliases
+{
+    my ($self, $cmd) = @_;
+    $cmd = lc $cmd;
+    return if !exists $self->{Commands}->{$cmd};
+    return unless exists $self->{Commands}->{$cmd}->{aliases} && ref($self->{Commands}->{$cmd}->{aliases}) eq 'ARRAY';
+    return @{$self->{Commands}->{$cmd}->{aliases}};
+
 }
 
 1;
