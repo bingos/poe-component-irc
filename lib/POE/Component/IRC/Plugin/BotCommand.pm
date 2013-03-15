@@ -253,7 +253,9 @@ sub _get_help {
 
     if(ref($self->{'Help_sub'}) eq 'CODE')
     {
-        return $self->{'Help_sub'}->($self->{irc}, @help);
+		my ($cmd, $args) = (split /\s+/, $args, 2);
+
+        return $self->{'Help_sub'}->($self->{irc}, $cmd, $args, @help);
     }
     else
     {
