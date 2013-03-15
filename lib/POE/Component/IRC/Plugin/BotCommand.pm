@@ -225,14 +225,18 @@ sub _get_help {
                     }
                 }
 
-				push @help, "Alias of: ${p}${cmd_resolved}" if $cmd_resolved ne $cmd;
+                push @help, "Alias of: ${p}${cmd_resolved}" .
+                    (join ' ', @{ $self->{Commands}->{$cmd_resolved}->{args} }).
+                    (defined $self->{Commands}->{$cmd_resolved}->{variable} ?
+                    " ..."  : "")
+                    if $cmd_resolved ne $cmd;
 
-				my @aliases = grep { $_ ne $cmd } $self->list_aliases($cmd_resolved);
+                my @aliases = grep { $_ ne $cmd } $self->list_aliases($cmd_resolved);
 
-				if($cmd_resolved ne $cmd)
-				{
-					push @aliases, $cmd_resolved;
-				}
+                if($cmd_resolved ne $cmd)
+                {
+                    push @aliases, $cmd_resolved;
+                }
 
                 push @help, "Aliases: ".join( " ", @aliases) if scalar(@aliases);
             }
