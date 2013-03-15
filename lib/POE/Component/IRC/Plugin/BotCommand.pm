@@ -229,6 +229,7 @@ sub _get_help {
                             $self->{Commands}->{$cmd}->{$arg};
                     }
                 }
+
                 push @help, "Aliases: ".join( " ", $self->list_aliases($cmd)) if $self->list_aliases($cmd);
             }
             else {
@@ -250,7 +251,14 @@ sub _get_help {
         }
     }
 
-    return @help;
+    if(ref($self->{'Help_sub'}) eq 'CODE')
+    {
+        return $self->{'Help_sub'}->($self->{irc}, @help);
+    }
+    else
+    {
+        return @help;
+    }
 }
 
 sub add {
