@@ -503,6 +503,27 @@ B<'Ignore_unauthorized'>, if true, the plugin will ignore unauthorized
 commands, rather than printing an error message upon receiving them. This is
 only relevant if B<'Auth_sub'> is also supplied. Default is false.
 
+=head3 Help Command
+
+B<'Help_sub'>, a subroutine reference which, if provided, will be called upon
+the end of the predefined help command. The subroutine will be called in list context.
+
+Your subroutine will be called with the following arguments:
+
+=over 4
+
+=item 1. The IRC component object
+
+=item 2. The command.
+
+=item 3. The arguments.
+
+=item 4. The generated help text as array.
+
+
+=back
+
+
 =head3 Miscellaneous
 
 B<'Ignore_unknown'>, if true, the plugin will ignore undefined commands,
