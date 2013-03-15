@@ -108,6 +108,14 @@ sub _handle_cmd {
     my $public = $where =~ /^[$chantypes]/ ? 1 : 0;
     $cmd = lc $cmd;
 
+    my $cmd_unresolved = $cmd;
+
+    if((my $cmd_resolved = $self->resolve_alias($cmd)))
+    {
+        $cmd = $cmd_resolved;
+    }
+
+
     if (defined $self->{Commands}->{$cmd}) {
         if (ref $self->{Commands}->{$cmd} eq 'HASH') {
             my @args_array = defined $args ? split /\s+/, $args : ();
@@ -150,7 +158,7 @@ sub _handle_cmd {
     }
 
     if (ref $self->{Auth_sub} eq 'CODE') {
-        my ($authed, $errors) = $self->{Auth_sub}->($self->{irc}, $who, $where, $cmd, $args);
+        my ($authed, $errors) = $self->{Auth_sub}->($self->{irc}, $who, $where, $cmd, $args, $cmd_unresolved);
 
         if (!$authed) {
             my @errors = ref $errors eq 'ARRAY'
@@ -165,7 +173,7 @@ sub _handle_cmd {
 
     if (defined $self->{Commands}->{$cmd}) {
         my $handler = (ref($self->{Commands}->{$cmd}) eq 'HASH' ? $self->{Commands}->{$cmd}->{handler} : "irc_botcmd_$cmd");
-        $irc->send_event_next($handler => $who, $where, $args, $cmd);
+        $irc->send_event_next($handler => $who, $where, $args, $cmd, $cmd_unresolved);
     }
     elsif ($cmd =~ /^help$/i) {
         my @help = $self->_get_help($args, $public);
@@ -189,6 +197,16 @@ sub _get_help {
     my @help;
     if (defined $args) {
         my $cmd = (split /\s+/, $args, 2)[0];
+
+        $cmd = lc $cmd;
+
+        my $cmd_unresolved = $cmd;
+
+        if((my $cmd_resolved = $self->resolve_alias($cmd)))
+        {
+            $cmd = $cmd_resolved;
+        }
+
         if (exists $self->{Commands}->{$cmd}) {
             if (ref $self->{Commands}->{$cmd} eq 'HASH') {
                 push @help, "Syntax: $p$cmd ".
