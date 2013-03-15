@@ -439,6 +439,9 @@ C<info> and other hash keys which represent arguments (they are optional).
 An optional C<handler> key can be specified inside the HASH ref to override the event handler.
 The irc_botcmd_ prefix  is not automatically prepended  to the handler name when overriding it. 
 
+An optional C<aliases>  key can be specified inside the HASH ref containing a array ref with alias names.
+The aliases can be specified for help and to run the command.
+
 =head3 Accepting commands
 
 B<'In_channels'>, a boolean value indicating whether to accept commands in
@@ -522,6 +525,11 @@ if the command wasn't defined to begin with, true otherwise.
 
 Takes no arguments. Returns a list of key/value pairs, the keys being the
 command names and the values being the usage strings or hash references.
+
+=head2 C<resolve_alias>
+
+Takes one argument, a string to match against command aliases, if no matching
+command can be found undef is returned.
 
 =head1 OUTPUT EVENTS
 
