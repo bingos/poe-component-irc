@@ -200,12 +200,7 @@ sub _get_help {
 
         $cmd = lc $cmd;
 
-        my $cmd_unresolved = $cmd;
-
-        if((my $cmd_resolved = $self->resolve_alias($cmd)))
-        {
-            $cmd = $cmd_resolved;
-        }
+		my $cmd_resolved = $self->resolve_alias($cmd);
 
         if (exists $self->{Commands}->{$cmd}) {
             if (ref $self->{Commands}->{$cmd} eq 'HASH') {
@@ -230,6 +225,7 @@ sub _get_help {
                     }
                 }
 
+				push @help, "Alias of: ${p}${cmd_resolved}" if $cmd_resolved;
                 push @help, "Aliases: ".join( " ", $self->list_aliases($cmd)) if $self->list_aliases($cmd);
             }
             else {
