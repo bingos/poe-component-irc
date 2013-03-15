@@ -225,7 +225,7 @@ sub _get_help {
                     }
                 }
 
-				push @help, "Alias of: ${p}${cmd_resolved}" if $cmd_resolved;
+				push @help, "Alias of: ${p}${cmd_resolved}" if $cmd_resolved ne $cmd;
                 push @help, "Aliases: ".join( " ", $self->list_aliases($cmd_resolved)) if $self->list_aliases($cmd_resolved);
             }
             else {
