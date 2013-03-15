@@ -200,33 +200,33 @@ sub _get_help {
 
         $cmd = lc $cmd;
 
-		my $cmd_resolved = $self->resolve_alias($cmd);
+		my $cmd_resolved = $self->resolve_alias($cmd) || $cmd;
 
-        if (exists $self->{Commands}->{$cmd}) {
-            if (ref $self->{Commands}->{$cmd} eq 'HASH') {
+        if (exists $self->{Commands}->{$cmd_resolved}) {
+            if (ref $self->{Commands}->{$cmd_resolved} eq 'HASH') {
                 push @help, "Syntax: $p$cmd ".
-                    (join ' ', @{ $self->{Commands}->{$cmd}->{args} }).
-                    (defined $self->{Commands}->{$cmd}->{variable} ?
+                    (join ' ', @{ $self->{Commands}->{$cmd_resolved}->{args} }).
+                    (defined $self->{Commands}->{$cmd_resolved}->{variable} ?
                         " ..."  : "");
                 push @help, split /\015?\012/,
-                    "Description: ".$self->{Commands}->{$cmd}->{info};
+                    "Description: ".$self->{Commands}->{$cmd_resolved}->{info};
                 push @help, "Arguments:";
 
-                for my $arg (@{ $self->{Commands}->{$cmd}->{args} }) {
-                    next if not defined $self->{Commands}->{$cmd}->{$arg};
-                    if (ref $self->{Commands}->{$cmd}->{$arg} eq 'ARRAY') {
-                        my @arg_usage = @{$self->{Commands}->{$cmd}->{$arg}};
+                for my $arg (@{ $self->{Commands}->{$cmd_resolved}->{args} }) {
+                    next if not defined $self->{Commands}->{$cmd_resolved}->{$arg};
+                    if (ref $self->{Commands}->{$cmd_resolved}->{$arg} eq 'ARRAY') {
+                        my @arg_usage = @{$self->{Commands}->{$cmd_resolved}->{$arg}};
                         push @help, "    $arg: ".$arg_usage[0].
                         " (".(join '|', @arg_usage[1..$#arg_usage]).")"
                     }
                     else {
                         push @help, "    $arg: ".
-                            $self->{Commands}->{$cmd}->{$arg};
+                            $self->{Commands}->{$cmd_resolved}->{$arg};
                     }
                 }
 
 				push @help, "Alias of: ${p}${cmd_resolved}" if $cmd_resolved;
-                push @help, "Aliases: ".join( " ", $self->list_aliases($cmd)) if $self->list_aliases($cmd);
+                push @help, "Aliases: ".join( " ", $self->list_aliases($cmd_resolved)) if $self->list_aliases($cmd_resolved);
             }
             else {
                 @help = split /\015?\012/, $self->{Commands}->{$cmd};
