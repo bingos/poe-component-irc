@@ -263,7 +263,7 @@ sub _get_help {
     {
 		my ($cmd, $args) = (split /\s+/, $args, 2);
 
-        return $self->{'Help_sub'}->($self->{irc}, $cmd, $args, @help);
+        return $self->{'Help_sub'}->($self->{irc}, $cmd, $cmd_resolved, $args, @help);
     }
     else
     {
@@ -524,9 +524,11 @@ Your subroutine will be called with the following arguments:
 
 =item 2. The command.
 
-=item 3. The arguments.
+=item 3. The resolved command(after alias processing).
 
-=item 4. The generated help text as array.
+=item 4. The arguments.
+
+=item 5. The generated help text as array.
 
 
 =back
