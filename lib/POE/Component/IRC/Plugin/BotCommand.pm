@@ -1,4 +1,5 @@
 package POE::Component::IRC::Plugin::BotCommand;
+# vim: set expandtab ts=4 sw=4 ai:
 
 use strict;
 use warnings FATAL => 'all';
@@ -17,8 +18,8 @@ sub new {
         if (ref $args{Commands}->{$cmd} eq 'HASH') {
             croak "$cmd: no info provided"
                 if !exists $args{Commands}->{$cmd}->{info} ;
-            croak "$cmd: no arguments provided"
-                if !@{ $args{Commands}->{$cmd}->{args} };
+                #croak "$cmd: no arguments provided"
+            #    if !@{ $args{Commands}->{$cmd}->{args} };
             $args{Commands}->{lc $cmd}->{handler} = 
                 sprintf("irc_botcmd_%s", lc($cmd))
                 if !$args{Commands}->{lc $cmd}->{handler};
@@ -119,9 +120,12 @@ sub _handle_cmd {
     if (defined $self->{Commands}->{$cmd}) {
         if (ref $self->{Commands}->{$cmd} eq 'HASH') {
             my @args_array = defined $args ? split /\s+/, $args : ();
-            if (@args_array < @{ $self->{Commands}->{$cmd}->{args} } ||
+            if (defined($self->{Commands}->{$cmd}->{args}) &&
+               ref($self->{Commands}->{$cmd}->{args}) eq 'ARRAY' &&
+               @{ $self->{Commands}->{$cmd}->{args} } && 
+               (@args_array < @{ $self->{Commands}->{$cmd}->{args} } ||
                (!defined $self->{Commands}->{$cmd}->{variable} &&
-                @args_array > @{ $self->{Commands}->{$cmd}->{args} })
+                @args_array > @{ $self->{Commands}->{$cmd}->{args} }))
             ) {
                   $irc->yield($self->{Method}, $where,
                       "Not enough or too many arguments. See help for $cmd");
@@ -129,22 +133,27 @@ sub _handle_cmd {
             }
 
             $args = {};
-            for (@{ $self->{Commands}->{$cmd}->{args} }) {
-                my $in_arg = shift @args_array;
-                if (ref $self->{Commands}->{$cmd}->{$_} eq 'ARRAY') {
-                    my @values = @{ $self->{Commands}->{$cmd}->{$_} };
-                    shift @values;
+            if( defined($self->{Commands}->{$cmd}->{args}) &&
+                ref($self->{Commands}->{$cmd}->{args}) eq 'ARRAY' &&
+                @{ $self->{Commands}->{$cmd}->{args} })
+            {
+                for (@{ $self->{Commands}->{$cmd}->{args} }) {
+                    my $in_arg = shift @args_array;
+                    if (ref $self->{Commands}->{$cmd}->{$_} eq 'ARRAY') {
+                        my @values = @{ $self->{Commands}->{$cmd}->{$_} };
+                        shift @values;
 
-                    use List::MoreUtils qw(none);
-                    # Check if argument has one of possible values
-                    if (none { $_ eq $in_arg} @values) {
-                      $irc->yield($self->{Method}, $where,
-                          "$_ can be one of ".join '|', @values);
-                      return;
+                        use List::MoreUtils qw(none);
+                        # Check if argument has one of possible values
+                        if (none { $_ eq $in_arg} @values) {
+                            $irc->yield($self->{Method}, $where,
+                                "$_ can be one of ".join '|', @values);
+                            return;
+                        }
+
                     }
-
+                    $args->{$_} = $in_arg;
                 }
-                $args->{$_} = $in_arg;
             }
 
             # Process remaining arguments if variable is set
@@ -200,7 +209,7 @@ sub _get_help {
 
         $cmd = lc $cmd;
 
-		my $cmd_resolved = $self->resolve_alias($cmd) || $cmd;
+        my $cmd_resolved = $self->resolve_alias($cmd) || $cmd;
 
         if (exists $self->{Commands}->{$cmd_resolved}) {
             if (ref $self->{Commands}->{$cmd_resolved} eq 'HASH') {
@@ -210,18 +219,23 @@ sub _get_help {
                         " ..."  : "");
                 push @help, split /\015?\012/,
                     "Description: ".$self->{Commands}->{$cmd_resolved}->{info};
-                push @help, "Arguments:";
+                if( defined($self->{Commands}->{$cmd_resolved}->{args}) &&
+                    ref($self->{Commands}->{$cmd_resolved}->{args}) eq 'ARRAY' &&
+                    @{ $self->{Commands}->{$cmd_resolved}->{args} })
+                {
+                    push @help, "Arguments:";
 
-                for my $arg (@{ $self->{Commands}->{$cmd_resolved}->{args} }) {
-                    next if not defined $self->{Commands}->{$cmd_resolved}->{$arg};
-                    if (ref $self->{Commands}->{$cmd_resolved}->{$arg} eq 'ARRAY') {
-                        my @arg_usage = @{$self->{Commands}->{$cmd_resolved}->{$arg}};
-                        push @help, "    $arg: ".$arg_usage[0].
-                        " (".(join '|', @arg_usage[1..$#arg_usage]).")"
-                    }
-                    else {
-                        push @help, "    $arg: ".
-                            $self->{Commands}->{$cmd_resolved}->{$arg};
+                    for my $arg (@{ $self->{Commands}->{$cmd_resolved}->{args} }) {
+                        next if not defined $self->{Commands}->{$cmd_resolved}->{$arg};
+                        if (ref $self->{Commands}->{$cmd_resolved}->{$arg} eq 'ARRAY') {
+                            my @arg_usage = @{$self->{Commands}->{$cmd_resolved}->{$arg}};
+                            push @help, "    $arg: ".$arg_usage[0].
+                            " (".(join '|', @arg_usage[1..$#arg_usage]).")"
+                        }
+                        else {
+                            push @help, "    $arg: ".
+                                $self->{Commands}->{$cmd_resolved}->{$arg};
+                        }
                     }
                 }
 
@@ -261,7 +275,9 @@ sub _get_help {
 
     if(ref($self->{'Help_sub'}) eq 'CODE')
     {
-		my ($cmd, $args) = (split /\s+/, $args, 2);
+        my ($cmd, $args) = (split /\s+/, $args, 2);
+
+        my $cmd_resolved = $self->resolve_alias($cmd) || $cmd;
 
         return $self->{'Help_sub'}->($self->{irc}, $cmd, $cmd_resolved, $args, @help);
     }
