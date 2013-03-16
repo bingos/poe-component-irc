@@ -18,8 +18,6 @@ sub new {
         if (ref $args{Commands}->{$cmd} eq 'HASH') {
             croak "$cmd: no info provided"
                 if !exists $args{Commands}->{$cmd}->{info} ;
-                #croak "$cmd: no arguments provided"
-            #    if !@{ $args{Commands}->{$cmd}->{args} };
             $args{Commands}->{lc $cmd}->{handler} = 
                 sprintf("irc_botcmd_%s", lc($cmd))
                 if !$args{Commands}->{lc $cmd}->{handler};
@@ -214,7 +212,10 @@ sub _get_help {
         if (exists $self->{Commands}->{$cmd_resolved}) {
             if (ref $self->{Commands}->{$cmd_resolved} eq 'HASH') {
                 push @help, "Syntax: $p$cmd ".
-                    (join ' ', @{ $self->{Commands}->{$cmd_resolved}->{args} }).
+                    (   defined($self->{Commands}->{$cmd_resolved}->{args}) &&
+                        ref($self->{Commands}->{$cmd_resolved}->{args}) eq 'ARRAY' ?
+                        join ' ', @{ $self->{Commands}->{$cmd_resolved}->{args} } :
+                        "" ).
                     (defined $self->{Commands}->{$cmd_resolved}->{variable} ?
                         " ..."  : "");
                 push @help, split /\015?\012/,
