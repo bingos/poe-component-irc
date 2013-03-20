@@ -211,10 +211,10 @@ sub _get_help {
 
         if (exists $self->{Commands}->{$cmd_resolved}) {
             if (ref $self->{Commands}->{$cmd_resolved} eq 'HASH') {
-                push @help, "Syntax: $p$cmd ".
+                push @help, "Syntax: $p$cmd".
                     (   defined($self->{Commands}->{$cmd_resolved}->{args}) &&
                         ref($self->{Commands}->{$cmd_resolved}->{args}) eq 'ARRAY' ?
-                        join ' ', @{ $self->{Commands}->{$cmd_resolved}->{args} } :
+                        " ".join ' ', @{ $self->{Commands}->{$cmd_resolved}->{args} } :
                         "" ).
                     (defined $self->{Commands}->{$cmd_resolved}->{variable} ?
                         " ..."  : "");
@@ -240,10 +240,12 @@ sub _get_help {
                     }
                 }
 
-                push @help, "Alias of: ${p}${cmd_resolved} " .
-                    (join ' ', @{ $self->{Commands}->{$cmd_resolved}->{args} }).
+                push @help, "Alias of: ${p}${cmd_resolved}" .
+                        (ref($self->{Commands}->{$cmd_resolved}->{args}) eq 'ARRAY' ?
+                        " ".join ' ', @{ $self->{Commands}->{$cmd_resolved}->{args} } :
+                        "" ).
                     (defined $self->{Commands}->{$cmd_resolved}->{variable} ?
-                    " ..."  : "")
+                        " ..."  : "")
                     if $cmd_resolved ne $cmd;
 
                 my @aliases = grep { $_ ne $cmd } $self->list_aliases($cmd_resolved);
@@ -276,7 +278,7 @@ sub _get_help {
 
     if(ref($self->{'Help_sub'}) eq 'CODE')
     {
-        my ($cmd, $args) = (split /\s+/, $args, 2);
+        my ($cmd, $args) = (defined $args ? split /\s+/, $args, 2 : ('', ''));
 
         my $cmd_resolved = $self->resolve_alias($cmd) || $cmd;
 
