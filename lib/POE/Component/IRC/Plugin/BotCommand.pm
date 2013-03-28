@@ -130,35 +130,41 @@ sub _handle_cmd {
                   return;
             }
 
-            $args = {};
-            if( defined($self->{Commands}->{$cmd}->{args}) &&
-                ref($self->{Commands}->{$cmd}->{args}) eq 'ARRAY' &&
-                @{ $self->{Commands}->{$cmd}->{args} })
+            if(defined $self->{Commands}->{$cmd}->{variable} ||
+                (defined($self->{Commands}->{$cmd}->{args}) &&
+                    ref($self->{Commands}->{$cmd}->{args}) eq 'ARRAY' &&
+                    @{ $self->{Commands}->{$cmd}->{args} }))
             {
-                for (@{ $self->{Commands}->{$cmd}->{args} }) {
-                    my $in_arg = shift @args_array;
-                    if (ref $self->{Commands}->{$cmd}->{$_} eq 'ARRAY') {
-                        my @values = @{ $self->{Commands}->{$cmd}->{$_} };
-                        shift @values;
+                $args = {};
+                if( defined($self->{Commands}->{$cmd}->{args}) &&
+                    ref($self->{Commands}->{$cmd}->{args}) eq 'ARRAY' &&
+                    @{ $self->{Commands}->{$cmd}->{args} })
+                {
+                    for (@{ $self->{Commands}->{$cmd}->{args} }) {
+                        my $in_arg = shift @args_array;
+                        if (ref $self->{Commands}->{$cmd}->{$_} eq 'ARRAY') {
+                            my @values = @{ $self->{Commands}->{$cmd}->{$_} };
+                            shift @values;
 
-                        use List::MoreUtils qw(none);
-                        # Check if argument has one of possible values
-                        if (none { $_ eq $in_arg} @values) {
-                            $irc->yield($self->{Method}, $where,
-                                "$_ can be one of ".join '|', @values);
-                            return;
+                            use List::MoreUtils qw(none);
+                            # Check if argument has one of possible values
+                            if (none { $_ eq $in_arg} @values) {
+                                $irc->yield($self->{Method}, $where,
+                                    "$_ can be one of ".join '|', @values);
+                                return;
+                            }
+
                         }
-
+                        $args->{$_} = $in_arg;
                     }
-                    $args->{$_} = $in_arg;
                 }
-            }
 
-            # Process remaining arguments if variable is set
-            my $arg_cnt = 0;
-            if (defined $self->{Commands}->{$cmd}->{variable}) {
-                for (@args_array) {
-                    $args->{"opt".$arg_cnt++} = $_;
+                # Process remaining arguments if variable is set
+                my $arg_cnt = 0;
+                if (defined $self->{Commands}->{$cmd}->{variable}) {
+                    for (@args_array) {
+                        $args->{"opt".$arg_cnt++} = $_;
+                    }
                 }
             }
         }
