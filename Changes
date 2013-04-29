@@ -1,6 +1,12 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+	- NickServID: React on IRC Message 433 - Commit: ec7cd33736
+	- BotCommand: Support for overriding the Command Handler
+	- BotCommand: Added Support for a Help Modification Callback
+	- BotCommand: Adapted the Help Callback Options so it gets the Command and Arguments
+    - BotCommand: Added Support for Command Aliases
+	- BotCommand: Allowed No Arguments/Only Variable Arguments
 
 6.82  Sat Mar 9 22:15:02 GMT 2013
     - Add the Prefix to the "Syntax:" line of the command help
