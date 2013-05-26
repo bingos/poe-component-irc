@@ -7,6 +7,7 @@ Revision history for Perl extension POE::Component::IRC.
 	- BotCommand: Adapted the Help Callback Options so it gets the Command and Arguments
     - BotCommand: Added Support for Command Aliases
 	- BotCommand: Allowed No Arguments/Only Variable Arguments
+	- Implemented SSL Client Cert Support
 
 6.82  Sat Mar 9 22:15:02 GMT 2013
     - Add the Prefix to the "Syntax:" line of the command help
