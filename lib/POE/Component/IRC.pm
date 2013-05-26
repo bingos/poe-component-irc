@@ -20,7 +20,7 @@ our ($GOT_SSL, $GOT_CLIENT_DNS, $GOT_SOCKET6, $GOT_ZLIB);
 BEGIN {
     eval {
         require POE::Component::SSLify;
-        import POE::Component::SSLify qw( Client_SSLify );
+        import POE::Component::SSLify qw( Client_SSLify SSLify_ContextCreate );
         $GOT_SSL = 1;
     };
     eval {
@@ -346,11 +346,26 @@ sub _sock_up {
     # ssl!
     if ($GOT_SSL and $self->{usessl}) {
         eval {
-            $socket = Client_SSLify($socket);
+            my ($ctx);
+
+            if( $self->{sslctx} )
+            {
+                $ctx = $self->{sslctx};
+            }
+            elsif( $self->{sslkey} && $self->{sslcert} )
+            {
+                $ctx = SSLify_ContextCreate( $self->{sslkey}, $self->{sslcert} );
+            }
+            else
+            {
+                $ctx = undef;
+            }
+
+            $socket = Client_SSLify($socket, undef, undef, $ctx);
         };
 
         if ($@) {
-            chomp $@;
+         	chomp $@;
             warn "Couldn't use an SSL socket: $@\n";
             $self->{usessl} = 0;
         }
@@ -1702,6 +1717,14 @@ be used.
 
 =item *  B<'UseSSL'>, set to some true value if you want to connect using
 SSL.
+
+=item *  B<'SSLCert'>, set to a SSL Certificate(PAM encoded) to connect using a client cert
+
+=item *  B<'SSLKey'>, set to a SSL Key(PAM encoded) to connect using a client cert
+
+=item *  B<'SSLCtx'>, set to a SSL Context to configure the SSL Connection
+
+The B<'SSLCert'> and B<'SSLKey'> both need to be specified. The B<'SSLCtx'> takes precedence specified.
 
 =item * B<'Raw'>, set to some true value to enable the component to send
 L<C<irc_raw>|/irc_raw> and L<C<irc_raw_out>|/irc_raw_out> events.
