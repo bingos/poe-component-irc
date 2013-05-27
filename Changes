@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+
+6.83  Mon May 27 10:40:09 BST 2013
     - NickServID: React on IRC Message 433 - Commit: ec7cd33736
     - BotCommand: Support for overriding the Command Handler
     - BotCommand: Added Support for a Help Modification Callback
