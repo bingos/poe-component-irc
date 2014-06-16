@@ -131,9 +131,10 @@ sub load {
 
         eval "require $plugin";
         if ($@) {
+            my $error = $@;
             delete $INC{$module};
             $self->_unload_subs($plugin);
-            die "$@\n";
+            die $error;
         }
 
         $object = $plugin->new( @_ );
