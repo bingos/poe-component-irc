@@ -2,6 +2,9 @@ Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
 
+6.84  Tue Jun 17 10:45:38 BST 2014
+    - Plugman: store @$ or else it gets overwritten - Commit: 65ba2a4f3
+
 6.83  Mon May 27 10:40:09 BST 2013
     - NickServID: React on IRC Message 433 - Commit: ec7cd33736
     - BotCommand: Support for overriding the Command Handler
