@@ -2,6 +2,9 @@ Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
 
+6.85  Thu Jun 19 10:19:07 BST 2014
+    - Added some diagnostics output to the online test
+
 6.84  Tue Jun 17 10:45:38 BST 2014
     - Plugman: store @$ or else it gets overwritten - Commit: 65ba2a4f3
 
