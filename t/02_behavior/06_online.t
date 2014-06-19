@@ -74,6 +74,7 @@ sub _time_out {
 
 sub _shutdown {
     my ($heap, $skip) = @_[HEAP, ARG0];
+    diag("Skipping: $skip\n") if $skip;
     SKIP: {
         skip $skip, $heap->{tests} if $skip;
     }
@@ -93,6 +94,7 @@ sub _irc_connect {
 sub irc_registered {
     my ($heap, $irc) = @_[HEAP, ARG0];
     isa_ok($irc, 'POE::Component::IRC');
+    diag("irc_registered\n");
     $heap->{tests}--;
 }
 
@@ -101,6 +103,7 @@ sub irc_connected {
         local $TODO = "K-lines or other unforeseen issues could derail this test";
         pass('Connected');
     };
+    diag("irc_connected\n");
     $_[HEAP]->{tests}--;
 }
 
@@ -115,6 +118,7 @@ sub irc_001 {
         local $TODO = "K-lines or other unforeseen issues could derail this test";
         pass('Logged in');
     };
+    diag("irc_001\n");
     $_[HEAP]->{tests}--;
     $irc->yield('quit');
 }
@@ -125,6 +129,7 @@ sub irc_465 {
         local $TODO = "Hey we is K-lined";
         pass('ERR_YOUREBANNEDCREEP');
     };
+    diag("irc_465\n");
     $_[HEAP]->{tests}--;
 }
 
@@ -133,6 +138,7 @@ sub irc_error {
         local $TODO = "K-lines or other unforeseen issues could derail this test";
         pass('irc_error');
     };
+    diag("irc_error\n");
     $_[HEAP]->{tests}--;
 }
 
@@ -142,6 +148,7 @@ sub irc_disconnected {
         local $TODO = "K-lines or other unforeseen issues could derail this test";
         pass('Disconnected');
     };
+    diag("irc_disconnected\n");
     $heap->{tests}--;
     $kernel->yield('_shutdown');
 }
