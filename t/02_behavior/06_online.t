@@ -18,6 +18,7 @@ POE::Session->create(
             _failure
             _irc_connect
             _time_out
+            _default
             irc_registered
             irc_connected
             irc_001
@@ -138,7 +139,7 @@ sub irc_error {
         local $TODO = "K-lines or other unforeseen issues could derail this test";
         pass('irc_error');
     };
-    diag("irc_error\n");
+    diag("irc_error: [" . $_[ARG0] . "]\n");
     $_[HEAP]->{tests}--;
 }
 
@@ -151,4 +152,21 @@ sub irc_disconnected {
     diag("irc_disconnected\n");
     $heap->{tests}--;
     $kernel->yield('_shutdown');
+}
+
+sub _default {
+  my ($event, $args) = @_[ARG0 .. $#_];
+  return unless $event =~ m!^irc_!;
+  my @output = ( "$event: " );
+
+  for my $arg (@$args) {
+    if ( ref $arg eq 'ARRAY' ) {
+      push( @output, '[' . join(', ', @$arg ) . ']' );
+    }
+    else {
+      push ( @output, "'$arg'" );
+    }
+  }
+  diag(join(' ', @output), "\n");
+  return;
 }
