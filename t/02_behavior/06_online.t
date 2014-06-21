@@ -48,6 +48,7 @@ sub _start {
     );
 
     $kernel->delay(_time_out => 40);
+    $heap->{numeric} = 0;
     $heap->{tests} = 5;
 }
 
@@ -75,7 +76,9 @@ sub _time_out {
 
 sub _shutdown {
     my ($heap, $skip) = @_[HEAP, ARG0];
-    diag("Skipping: $skip\n") if $skip;
+    if ( !$skip && !$heap->{numeric} ) {
+      $skip = 'Never received a numeric IRC event';
+    }
     SKIP: {
         skip $skip, $heap->{tests} if $skip;
     }
@@ -95,7 +98,6 @@ sub _irc_connect {
 sub irc_registered {
     my ($heap, $irc) = @_[HEAP, ARG0];
     isa_ok($irc, 'POE::Component::IRC');
-    diag("irc_registered\n");
     $heap->{tests}--;
 }
 
@@ -104,7 +106,6 @@ sub irc_connected {
         local $TODO = "K-lines or other unforeseen issues could derail this test";
         pass('Connected');
     };
-    diag("irc_connected\n");
     $_[HEAP]->{tests}--;
 }
 
@@ -119,7 +120,7 @@ sub irc_001 {
         local $TODO = "K-lines or other unforeseen issues could derail this test";
         pass('Logged in');
     };
-    diag("irc_001\n");
+    $_[HEAP]->{numeric}++;
     $_[HEAP]->{tests}--;
     $irc->yield('quit');
 }
@@ -130,7 +131,7 @@ sub irc_465 {
         local $TODO = "Hey we is K-lined";
         pass('ERR_YOUREBANNEDCREEP');
     };
-    diag("irc_465\n");
+    $_[HEAP]->{numeric}++;
     $_[HEAP]->{tests}--;
 }
 
@@ -139,7 +140,6 @@ sub irc_error {
         local $TODO = "K-lines or other unforeseen issues could derail this test";
         pass('irc_error');
     };
-    diag("irc_error: [" . $_[ARG0] . "]\n");
     $_[HEAP]->{tests}--;
 }
 
@@ -149,24 +149,13 @@ sub irc_disconnected {
         local $TODO = "K-lines or other unforeseen issues could derail this test";
         pass('Disconnected');
     };
-    diag("irc_disconnected\n");
     $heap->{tests}--;
     $kernel->yield('_shutdown');
 }
 
 sub _default {
   my ($event, $args) = @_[ARG0 .. $#_];
-  return unless $event =~ m!^irc_!;
-  my @output = ( "$event: " );
-
-  for my $arg (@$args) {
-    if ( ref $arg eq 'ARRAY' ) {
-      push( @output, '[' . join(', ', @$arg ) . ']' );
-    }
-    else {
-      push ( @output, "'$arg'" );
-    }
-  }
-  diag(join(' ', @output), "\n");
+  return unless $event =~ m!^irc_\d+!;
+  $_[HEAP]->{numeric}++;
   return;
 }
