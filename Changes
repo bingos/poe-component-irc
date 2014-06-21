@@ -2,6 +2,9 @@ Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
 
+6.87  Sat Jun 21 15:08:32 BST 2014
+    - Believe have resolved issues with online test
+
 6.86  Fri Jun 20 11:12:06 BST 2014
     - Added more diagnostics to the online test
 
