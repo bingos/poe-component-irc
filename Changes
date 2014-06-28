@@ -2,6 +2,9 @@ Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
 
+6.88  Sat Jun 28 13:14:00 BST 2014
+    - BotAddressed: Handle being addressed with a prefixed @ or %
+
 6.87  Sat Jun 21 15:08:32 BST 2014
     - Believe have resolved issues with online test
 
