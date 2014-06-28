@@ -5,7 +5,7 @@ use POE;
 use POE::Component::IRC;
 use POE::Component::IRC::Plugin::BotAddressed;
 use POE::Component::Server::IRC;
-use Test::More tests => 9;
+use Test::More tests => 10;
 
 my $bot1 = POE::Component::IRC->spawn(
     Flood        => 1,
@@ -89,6 +89,7 @@ sub irc_join {
     return if $heap->{joined} != 2;
 
     $bot1->yield(privmsg => $where, $bot2->nick_name . ': y halo thar');
+    $bot1->yield(privmsg => $where, '@' . $bot2->nick_name . ': y halo thar');
     $bot1->yield(privmsg => $where, 'y halo thar, ' . $bot2->nick_name());
     $bot1->yield(ctcp => $where, 'ACTION greets ' . $bot2->nick_name());
 }
