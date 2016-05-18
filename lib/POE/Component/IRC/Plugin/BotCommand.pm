@@ -177,8 +177,10 @@ sub _handle_cmd {
             my @errors = ref $errors eq 'ARRAY'
                 ? @$errors
                 : 'You are not authorized to use this command.';
-            for my $error (@errors) {
-                $irc->yield($self->{Method}, $where, $error);
+            if (!$self->{Ignore_unauthorized}) {
+                for my $error (@errors) {
+                    $irc->yield($self->{Method}, $where, $error);
+                }
             }
             return;
         }
