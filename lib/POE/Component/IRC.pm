@@ -213,6 +213,17 @@ sub _configure {
         $self->{server} = $ENV{IRCSERVER};
     }
 
+    if (defined $self->{webirc}) {
+        if (!ref $self->{webirc} ne 'HASH') {
+            die "webirc param expects a hashref";
+        }
+        for my $expect_key (qw(pass user host ip)) {
+            if (!exists $self->{webirc}{$expect_key}) {
+                die "webirc value is missing key '$expect_key'";
+            }
+        }
+    }
+
     return;
 }
 
