@@ -479,6 +479,13 @@ sub _send_login {
     $kernel->call($session, 'sl_login', 'CAP LS');
     $kernel->call($session, 'sl_login', 'CAP END');
 
+    # If we were told to use WEBIRC to spoof our host/IP, do so:
+    if (defined $self->{webirc}) {
+        $kernel->call($session => sl_login => 'WEBIRC '
+            . join " ", @{$self->{webirc}}{qw(pass user ip host)}
+        );
+    }
+
     if (defined $self->{password}) {
         $kernel->call($session => sl_login => 'PASS ' . $self->{password});
     }
@@ -1789,6 +1796,12 @@ specified.
 =item * B<'socks_id'>, specify a SOCKS user_id. Default is none.
 
 =item * B<'useipv6'>, enable the use of IPv6 for connections.
+
+=item * B<'webirc'>, enable the use of WEBIRC to spoof host/IP.
+You must have a WEBIRC password set up on the IRC server/network (so will
+only work for servers which trust you to spoof the IP & host the connection
+is from) - value should be a hashref containing keys C<pass>, C<user>,
+C<host> and C<ip>.
 
 =back
 
