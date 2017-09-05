@@ -146,7 +146,7 @@ sub _handle_cmd {
                             my @values = @{ $self->{Commands}->{$cmd}->{$_} };
                             shift @values;
 
-                            use List::MoreUtils qw(none);
+                            use List::Util qw(none);
                             # Check if argument has one of possible values
                             if (none { $_ eq $in_arg} @values) {
                                 $irc->yield($self->{Method}, $where,
