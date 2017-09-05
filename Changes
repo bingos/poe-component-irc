@@ -1,6 +1,10 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+    - Update simpleclient with IPv6 option
+    - Remove requirement on List::MoreUtils
+    - Fix missing code for Ignore_unauthorized
+    - Add support for WEBIRC
 
 6.89  Tue Sep 5 19:13:09 BST 2017
 
