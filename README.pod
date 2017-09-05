@@ -264,6 +264,14 @@ be used.
 =item *  B<'UseSSL'>, set to some true value if you want to connect using
 SSL.
 
+=item *  B<'SSLCert'>, set to a SSL Certificate(PAM encoded) to connect using a client cert
+
+=item *  B<'SSLKey'>, set to a SSL Key(PAM encoded) to connect using a client cert
+
+=item *  B<'SSLCtx'>, set to a SSL Context to configure the SSL Connection
+
+The B<'SSLCert'> and B<'SSLKey'> both need to be specified. The B<'SSLCtx'> takes precedence specified.
+
 =item * B<'Raw'>, set to some true value to enable the component to send
 L<C<irc_raw>|/irc_raw> and L<C<irc_raw_out>|/irc_raw_out> events.
 
@@ -327,6 +335,12 @@ specified.
 =item * B<'socks_id'>, specify a SOCKS user_id. Default is none.
 
 =item * B<'useipv6'>, enable the use of IPv6 for connections.
+
+=item * B<'webirc'>, enable the use of WEBIRC to spoof host/IP.
+You must have a WEBIRC password set up on the IRC server/network (so will
+only work for servers which trust you to spoof the IP & host the connection
+is from) - value should be a hashref containing keys C<pass>, C<user>,
+C<host> and C<ip>.
 
 =back
 
@@ -1578,4 +1592,3 @@ devoted to IRC programming L<http://poe.perl.org/?POE_Cookbook>.
 
 The examples/ folder of this distribution.
 
-=cut
