@@ -1089,7 +1089,7 @@ sub sl_prioritized {
         $msg = bytes::substr($msg, 0, $self->{msg_length} - bytes::length($self->nick_name()));
     }
 
-    if (@{ $self->{send_queue} }) {
+    if (!$self->{flood} && @{ $self->{send_queue} }) {
         my $i = @{ $self->{send_queue} };
         $i-- while ($i && $priority < $self->{send_queue}->[$i-1]->[MSG_PRI]);
         splice( @{ $self->{send_queue} }, $i, 0, [ $priority, $msg ] );
