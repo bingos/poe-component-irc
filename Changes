@@ -1,6 +1,8 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+    - Don't queue messages if $self->{flood}
+    - Fix issue with DCC on OpenBSD with newer Socket >= 2.031
 
 6.90  Tue Sep 5 19:17:35 BST 2017
     - Update simpleclient with IPv6 option
