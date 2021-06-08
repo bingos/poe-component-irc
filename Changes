@@ -1,6 +1,7 @@
 Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
+    - v5.8.9 didn't have '>' pack() modifier, switch to use 'N'
 
 6.91  Sat Jun 5 13:54:11 BST 2021
     - Don't queue messages if $self->{flood}

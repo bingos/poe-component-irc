@@ -263,7 +263,7 @@ sub _U_dcc_accept {
     }
 
     my $factory = POE::Wheel::SocketFactory->new(
-        RemoteAddress => sprintf("%vd", pack("L>", $cookie->{addr})),
+        RemoteAddress => sprintf("%vd", pack("N", $cookie->{addr})),
         RemotePort    => $cookie->{port},
         SuccessEvent  => '_dcc_up',
         FailureEvent  => '_dcc_failed',
