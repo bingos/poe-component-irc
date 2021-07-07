@@ -173,7 +173,7 @@ sub _configure {
     }
 
     if ($self->{useipv6} && !$GOT_SOCKET6) {
-        warn "'useipv6' option specified, but Socket6 was not found\n";
+        warn "'useipv6' option specified, but Socket/Socket6 was not found\n";
     }
 
     if ($self->{usessl} && !$GOT_SSL) {
@@ -654,7 +654,7 @@ sub _do_connect {
     for my $address (qw(socks_proxy proxy server resolved_server use_localaddr)) {
         next if !$self->{$address} || !_ip_is_ipv6( $self->{$address} );
         if (!$GOT_SOCKET6) {
-            warn "IPv6 address specified for '$address' but Socket6 not found\n";
+            warn "IPv6 address specified for '$address' but Socket/Socket6 not found\n";
             return;
         }
         $domain = AF_INET6;
