@@ -692,7 +692,7 @@ sub _got_dns_response {
 
     for my $net_dns_answer (@net_dns_answers) {
         next if $net_dns_answer->type !~ /^A/;
-        push @{ $self->{res_addresses} }, $net_dns_answer->rdatastr;
+        push @{ $self->{res_addresses} }, $net_dns_answer->rdstring;
     }
 
     if ( !@{ $self->{res_addresses} } && $type eq 'AAAA') {
