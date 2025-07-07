@@ -214,7 +214,7 @@ sub _configure {
     }
 
     if (defined $self->{webirc}) {
-        if (!ref $self->{webirc} ne 'HASH') {
+        if (!(ref $self->{webirc} ne 'HASH')) {
             die "webirc param expects a hashref";
         }
         for my $expect_key (qw(pass user host ip)) {
