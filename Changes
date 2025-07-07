@@ -2,6 +2,9 @@ Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
 
+6.95  Mon Jul 7 02:31:19 BST 2025
+    - Hopefully fix indexing issues
+
 6.94  Mon Jul 7 01:24:52 BST 2025
     - Improve/fix error message for failing ipv6
     - Update simpleclient example with usessl option
