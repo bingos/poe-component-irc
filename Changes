@@ -2,6 +2,12 @@ Revision history for Perl extension POE::Component::IRC.
 
 {{$NEXT}}
 
+6.94  Mon Jul 7 01:24:52 BST 2025
+    - Improve/fix error message for failing ipv6
+    - Update simpleclient example with usessl option
+    - Use rdstring() instead of deprecated bleating rdatastr()
+    - RT#157738 Possible precedence issues with v5.42.0
+
 6.93  Tue Jun 15 19:28:17 BST 2021
     - Update online test to use Libera.chat
 
